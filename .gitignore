@@ -1,0 +1,9 @@
+z_legacy
+test_examples
+*.bak
+*.pyc
+*.orig
+custom_problemtype
+*.h.*
+*.cpp.*
+*.mm
