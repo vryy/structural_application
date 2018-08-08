@@ -71,6 +71,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "constitutive_laws/tutorial_damage_model.h"
 #include "constitutive_laws/isotropic_2d.h"
 #include "constitutive_laws/isotropic_3d.h"
+#include "constitutive_laws/neo_hookean_3d.h"
 #include "constitutive_laws/hyperelastic_3d.h"
 #include "constitutive_laws/hyperelastic_2d.h"
 // #include "constitutive_laws/viscoelastic_2d.h" // new VISCOELASTICITY
@@ -164,6 +165,9 @@ void  AddConstitutiveLawsToPython()
     ( "PlaneStress",
       init<>() )
     ;
+
+    class_< NeoHookean3D, bases< ConstitutiveLawBaseType >, boost::noncopyable >
+    ( "NeoHookean3D", init<>() );
 
     class_< MohrCoulombPlaneStrain, bases< ConstitutiveLawBaseType >, boost::noncopyable >
     ( "MohrCoulombPlaneStrain",
