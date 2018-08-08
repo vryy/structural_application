@@ -44,6 +44,7 @@ set( KRATOS_STRUCTURAL_APPLICATION_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/constitutive_laws/isotropic_damage_implex.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/constitutive_laws/isotropic_planestress_wrinkling.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/constitutive_laws/isotropic_3d.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/constitutive_laws/neo_hookean_2d.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/constitutive_laws/neo_hookean_3d.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/constitutive_laws/hyperelastic_3d.cpp 
     ${CMAKE_CURRENT_SOURCE_DIR}/constitutive_laws/hyperelastic_2d.cpp 
