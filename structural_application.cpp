@@ -501,6 +501,11 @@ KratosStructuralApplication::KratosStructuralApplication():
     mElasticFaceConstraint4N( 0, Element::GeometryType::Pointer( new Quadrilateral3D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4, Node<3>() ) ) ) ),
     mElasticFaceConstraint8N( 0, Element::GeometryType::Pointer( new Quadrilateral3D8 <Node<3> >( Element::GeometryType::PointsArrayType( 8, Node<3>() ) ) ) ),
     mElasticFaceConstraint9N( 0, Element::GeometryType::Pointer( new Quadrilateral3D9 <Node<3> >( Element::GeometryType::PointsArrayType( 9, Node<3>() ) ) ) ),
+    mElasticFaceSprings3N( 0, Element::GeometryType::Pointer( new Triangle3D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
+    mElasticFaceSprings6N( 0, Element::GeometryType::Pointer( new Triangle3D6 <Node<3> >( Element::GeometryType::PointsArrayType( 6, Node<3>() ) ) ) ),
+    mElasticFaceSprings4N( 0, Element::GeometryType::Pointer( new Quadrilateral3D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4, Node<3>() ) ) ) ),
+    mElasticFaceSprings8N( 0, Element::GeometryType::Pointer( new Quadrilateral3D8 <Node<3> >( Element::GeometryType::PointsArrayType( 8, Node<3>() ) ) ) ),
+    mElasticFaceSprings9N( 0, Element::GeometryType::Pointer( new Quadrilateral3D9 <Node<3> >( Element::GeometryType::PointsArrayType( 9, Node<3>() ) ) ) ),
     mNitscheIsotropicConstraint2D2N( 0, Element::GeometryType::Pointer( new Line2D2 <Node<3> >( Element::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) ),
     mNitscheIsotropicConstraint2D3N( 0, Element::GeometryType::Pointer( new Line2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
     mNitscheIsotropicConstraint3D3N( 0, Element::GeometryType::Pointer( new Triangle3D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
@@ -930,6 +935,12 @@ void KratosStructuralApplication::Register()
     KRATOS_REGISTER_CONDITION( "ElasticFaceConstraint4N", mElasticFaceConstraint4N )
     KRATOS_REGISTER_CONDITION( "ElasticFaceConstraint8N", mElasticFaceConstraint8N )
     KRATOS_REGISTER_CONDITION( "ElasticFaceConstraint9N", mElasticFaceConstraint9N )
+
+    KRATOS_REGISTER_CONDITION( "ElasticFaceSprings3N", mElasticFaceSprings3N )
+    KRATOS_REGISTER_CONDITION( "ElasticFaceSprings6N", mElasticFaceSprings6N )
+    KRATOS_REGISTER_CONDITION( "ElasticFaceSprings4N", mElasticFaceSprings4N )
+    KRATOS_REGISTER_CONDITION( "ElasticFaceSprings8N", mElasticFaceSprings8N )
+    KRATOS_REGISTER_CONDITION( "ElasticFaceSprings9N", mElasticFaceSprings9N )
 
     KRATOS_REGISTER_CONDITION( "NitscheIsotropicConstraint2D2N", mNitscheIsotropicConstraint2D2N )
     KRATOS_REGISTER_CONDITION( "NitscheIsotropicConstraint2D3N", mNitscheIsotropicConstraint2D3N )

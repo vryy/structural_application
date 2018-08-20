@@ -115,6 +115,7 @@ set( KRATOS_STRUCTURAL_APPLICATION_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/face_face_joint_condition.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/point_point_lagrange_condition.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/elastic_constraint.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/elastic_face_springs.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/pile_kinematic_linear.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/embedded_node_lagrange_tying_condition.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/embedded_node_penalty_tying_condition.cpp
