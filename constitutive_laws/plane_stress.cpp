@@ -142,6 +142,14 @@ void PlaneStress::Calculate(const Variable<Matrix >& rVariable, Matrix& rResult,
 {
 }
 
+int& PlaneStress::GetValue( const Variable<int>& rThisVariable, int& rValue )
+{
+    if (rThisVariable == IS_SHAPE_FUNCTION_REQUIRED)
+        rValue = 0;
+
+    return rValue;
+}
+
 double& PlaneStress::GetValue( const Variable<double>& rThisVariable, double& rValue )
 {
     if( rThisVariable == YOUNG_MODULUS )

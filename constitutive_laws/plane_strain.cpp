@@ -110,6 +110,9 @@ bool PlaneStrain::Has( const Variable<Matrix>& rThisVariable )
 
 int& PlaneStrain::GetValue( const Variable<int>& rThisVariable, int& rValue )
 {
+    if (rThisVariable == IS_SHAPE_FUNCTION_REQUIRED)
+        rValue = 0;
+
     return rValue;
 }
 

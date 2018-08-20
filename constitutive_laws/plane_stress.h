@@ -129,6 +129,7 @@ public:
                   const Matrix& rValue,
                   const ProcessInfo& rCurrentProcessInfo);
 
+    int& GetValue(const Variable<int>& rThisVariable, int& rValue);
     double& GetValue(const Variable<double>& rThisVariable, double& rValue);
     Vector& GetValue(const Variable<Vector>& rThisVariable, Vector& rValue);
 

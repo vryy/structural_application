@@ -122,6 +122,9 @@ bool Isotropic3D::Has( const Variable<Matrix>& rThisVariable )
 
 int& Isotropic3D::GetValue( const Variable<int>& rThisVariable, int& rValue )
 {
+    if (rThisVariable == IS_SHAPE_FUNCTION_REQUIRED)
+        rValue = 0;
+
     return rValue;
 }
 
