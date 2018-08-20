@@ -103,40 +103,108 @@ namespace Kratos
     {
         KRATOS_TRY
 
-        if(mIsInitialized)
-            return;
+        //dimension of the problem
+        unsigned int dim = GetGeometry().WorkingSpaceDimension();
 
+        // integration rule
+        if(this->Has( INTEGRATION_ORDER ))
+        {
+            if(this->GetValue(INTEGRATION_ORDER) == 1)
+            {
+                mThisIntegrationMethod = GeometryData::GI_GAUSS_1;
+            }
+            else if(this->GetValue(INTEGRATION_ORDER) == 2)
+            {
+                mThisIntegrationMethod = GeometryData::GI_GAUSS_2;
+            }
+            else if(this->GetValue(INTEGRATION_ORDER) == 3)
+            {
+                mThisIntegrationMethod = GeometryData::GI_GAUSS_3;
+            }
+            else if(this->GetValue(INTEGRATION_ORDER) == 4)
+            {
+                mThisIntegrationMethod = GeometryData::GI_GAUSS_4;
+            }
+            else if(this->GetValue(INTEGRATION_ORDER) == 5)
+            {
+                mThisIntegrationMethod = GeometryData::GI_GAUSS_5;
+            }
+            else
+                KRATOS_THROW_ERROR(std::logic_error, "TotalLagrangian element does not support for integration rule", this->GetValue(INTEGRATION_ORDER))
+        }
+        else if(GetProperties().Has( INTEGRATION_ORDER ))
+        {
+            if(GetProperties()[INTEGRATION_ORDER] == 1)
+            {
+                mThisIntegrationMethod = GeometryData::GI_GAUSS_1;
+            }
+            else if(GetProperties()[INTEGRATION_ORDER] == 2)
+            {
+                mThisIntegrationMethod = GeometryData::GI_GAUSS_2;
+            }
+            else if(GetProperties()[INTEGRATION_ORDER] == 3)
+            {
+                mThisIntegrationMethod = GeometryData::GI_GAUSS_3;
+            }
+            else if(GetProperties()[INTEGRATION_ORDER] == 4)
+            {
+                mThisIntegrationMethod = GeometryData::GI_GAUSS_4;
+            }
+            else if(GetProperties()[INTEGRATION_ORDER] == 5)
+            {
+                mThisIntegrationMethod = GeometryData::GI_GAUSS_5;
+            }
+            else
+                KRATOS_THROW_ERROR(std::logic_error, "TotalLagrangian element does not support for integration points", GetProperties()[INTEGRATION_ORDER])
+        }
+        else
+            mThisIntegrationMethod = GetGeometry().GetDefaultIntegrationMethod(); // default method
+
+        //number of integration points used, mThisIntegrationMethod refers to the
+        //integration method defined in the constructor
         const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
 
-        //resizing jacobian inverses containers
-        mInvJ0.resize( integration_points.size() );
-        mDetJ0.resize( integration_points.size(), false );
-
-        GeometryType::JacobiansType J0;
-        J0 = GetGeometry().Jacobian( J0, mThisIntegrationMethod );
-        mTotalDomainInitialSize = 0.00;
-
-        //Constitutive Law initialisation
+        //Initialization of the constitutive law vector and
+        // declaration, definition and initialization of the material
+        // laws at each integration point
         if ( mConstitutiveLawVector.size() != integration_points.size() )
         {
             mConstitutiveLawVector.resize( integration_points.size() );
-            //InitializeMaterial();
+            InitializeMaterial();
         }
 
-        InitializeMaterial();
+        if ( mIsInitialized )
+            return;
 
-        //calculating the inverse J0
-        for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
+        //initializing the Jacobian in the reference configuration
+        GeometryType::JacobiansType J0;
+        Matrix DeltaPosition(GetGeometry().size(), 3);
+
+        for ( unsigned int node = 0; node < GetGeometry().size(); ++node )
+        {
+            noalias( row( DeltaPosition, node ) ) = GetGeometry()[node].Coordinates() - GetGeometry()[node].GetInitialPosition();
+        }
+
+        J0 = GetGeometry().Jacobian( J0, mThisIntegrationMethod, DeltaPosition );
+
+        //calculating the domain size
+        mTotalDomainInitialSize = 0.00;
+        for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); ++PointNumber )
         {
             //getting informations for integration
             double IntegrationWeight = integration_points[PointNumber].Weight();
-
-            //calculating and storing inverse of the jacobian and the parameters needed
-            MathUtils<double>::InvertMatrix( J0[PointNumber], mInvJ0[PointNumber], mDetJ0[PointNumber] );
-
-            //calculating the total area
-            mTotalDomainInitialSize += mDetJ0[PointNumber] * IntegrationWeight;
+            //calculating the total domain size
+            mTotalDomainInitialSize += MathUtils<double>::Det(J0[PointNumber]) * IntegrationWeight;
         }
+//        KRATOS_WATCH(mTotalDomainInitialSize)
+        if ( mTotalDomainInitialSize < 0.0 )
+        {
+            std::stringstream ss;
+            ss << "error on element -> " << this->Id() << std::endl;
+            ss << ". Domain size can not be less than 0, mTotalDomainInitialSize = " << mTotalDomainInitialSize;
+            KRATOS_THROW_ERROR( std::logic_error, ss.str(), "" );
+        }
+        this->SetValue(GEOMETRICAL_DOMAIN_SIZE, mTotalDomainInitialSize);
 
         mIsInitialized = true;
 
@@ -155,12 +223,7 @@ namespace Kratos
         KRATOS_TRY
         const unsigned int number_of_nodes = GetGeometry().size();
         const unsigned int dim = GetGeometry().WorkingSpaceDimension();
-        unsigned int StrainSize;
-
-        if ( dim == 2 )
-            StrainSize = 3;
-        else
-            StrainSize = 6;
+        unsigned int StrainSize = dim * (dim+1) / 2;
 
         Matrix B( StrainSize, number_of_nodes * dim );
 
@@ -176,7 +239,11 @@ namespace Kratos
 
         Matrix DN_DX( number_of_nodes, dim );
 
+        Matrix CurrentDisp( number_of_nodes, dim );
 
+        Matrix InvJ0(dim, dim);
+
+        double DetJ0;
 
         //resizing as needed the LHS
         unsigned int MatSize = number_of_nodes * dim;
@@ -199,43 +266,49 @@ namespace Kratos
             rRightHandSideVector = ZeroVector( MatSize ); //resetting RHS
         }
 
+        #ifdef ENABLE_BEZIER_GEOMETRY
+        //initialize the geometry
+        GetGeometry().Initialize(mThisIntegrationMethod);
+        #endif
+
         //reading integration points and local gradients
         const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
 
         const GeometryType::ShapeFunctionsGradientsType& DN_De = GetGeometry().ShapeFunctionsLocalGradients( mThisIntegrationMethod );
 
-
         const Matrix& Ncontainer = GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod );
 
+        //initializing the Jacobian in the reference configuration
+        Matrix DeltaPosition(GetGeometry().size(), 3);
+        for ( unsigned int node = 0; node < GetGeometry().size(); ++node )
+            noalias( row( DeltaPosition, node ) ) = GetGeometry()[node].Coordinates() - GetGeometry()[node].GetInitialPosition();
+
+        //Current displacements
+        for ( unsigned int node = 0; node < GetGeometry().size(); ++node )
+            noalias( row( CurrentDisp, node ) ) = GetGeometry()[node].GetSolutionStepValue( DISPLACEMENT );
+
+        GeometryType::JacobiansType J0;
+        J0 = GetGeometry().Jacobian( J0, mThisIntegrationMethod, DeltaPosition );
 
         //calculating actual jacobian
         GeometryType::JacobiansType J;
-
-        GetGeometry().Jacobian( J );
-
-
-//        KRATOS_WATCH(J)
-
-        //auxiliary terms
-        Vector BodyForce;
+        Matrix ShiftedDisp = DeltaPosition - CurrentDisp;
+        J = GetGeometry().Jacobian( J, mThisIntegrationMethod, ShiftedDisp );
 
         for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
         {
             //Calculating the cartesian derivatives (it is avoided storing them to minimize storage)
-            noalias( DN_DX ) = prod( DN_De[PointNumber], mInvJ0[PointNumber] );
-
+            MathUtils<double>::InvertMatrix( J0[PointNumber], InvJ0, DetJ0 );
+            noalias( DN_DX ) = prod( DN_De[PointNumber], InvJ0 );
 
             //deformation gradient
-            noalias( F ) = prod( J[PointNumber], mInvJ0[PointNumber] );
-
+            noalias( F ) = prod( J[PointNumber], InvJ0 );
 
             //strain calculation
             noalias( C ) = prod( trans( F ), F );
 
-
             CalculateStrain( C, StrainVector );
 //            Comprobate_State_Vector( StrainVector ); // I don't understand why we need this
-
 
             mConstitutiveLawVector[PointNumber]->CalculateMaterialResponse(
                 StrainVector,
@@ -254,8 +327,7 @@ namespace Kratos
             CalculateB( B, F, DN_DX, StrainVector.size() );
 
             //calculating weights for integration on the reference configuration
-            double IntToReferenceWeight = integration_points[PointNumber].Weight() * mDetJ0[PointNumber];
-
+            double IntToReferenceWeight = integration_points[PointNumber].Weight() * DetJ0;
 
             if ( dim == 2 ) IntToReferenceWeight *= GetProperties()[THICKNESS];
 
@@ -269,7 +341,7 @@ namespace Kratos
             if ( CalculateResidualVectorFlag == true ) //calculation of the matrix is required
             {
                 //contribution to external forces
-                BodyForce = GetProperties()[BODY_FORCE];
+                const Vector& BodyForce = GetProperties()[BODY_FORCE];
 
                 // operation performed: rRightHandSideVector += ExtForce*IntToReferenceWeight
                 CalculateAndAdd_ExtForceContribution( row( Ncontainer, PointNumber ), rCurrentProcessInfo, BodyForce, rRightHandSideVector, IntToReferenceWeight );
@@ -279,6 +351,10 @@ namespace Kratos
             }
         }
 
+        #ifdef ENABLE_BEZIER_GEOMETRY
+        //clean the internal data of the geometry
+        GetGeometry().Clean();
+        #endif
 
         KRATOS_CATCH( "" )
     }
@@ -313,7 +389,7 @@ namespace Kratos
 //************************************************************************************
 //************************************************************************************
 
-    double TotalLagrangian::CalculateIntegrationWeight( double GaussPointWeight, double DetJ0 )
+    double TotalLagrangian::CalculateIntegrationWeight( const double& GaussPointWeight, const double& DetJ0 )
     {
         //to permorm the integration over the reference domain we need to include
         // the thickness in 2D
@@ -343,7 +419,6 @@ namespace Kratos
 
     void TotalLagrangian::FinalizeSolutionStep( ProcessInfo& CurrentProcessInfo )
     {
-        //         std::cout << "in TL: calling FinalizeSolutionStep" << std::endl;
         for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); i++ )
             mConstitutiveLawVector[i]->FinalizeSolutionStep( GetProperties(),
                     GetGeometry(),
@@ -391,9 +466,9 @@ namespace Kratos
     inline void TotalLagrangian::CalculateAndAdd_ExtForceContribution(
         const Vector& N,
         const ProcessInfo& CurrentProcessInfo,
-        Vector& BodyForce,
+        const Vector& BodyForce,
         VectorType& rRightHandSideVector,
-        double weight
+        const double& weight
     )
     {
         KRATOS_TRY
@@ -417,9 +492,9 @@ namespace Kratos
 
     void TotalLagrangian::CalculateAndAddKg(
         MatrixType& K,
-        Matrix& DN_DX,
-        Vector& StressVector,
-        double weight )
+        const Matrix& DN_DX,
+        const Vector& StressVector,
+        const double& weight )
     {
         KRATOS_TRY
         // unsigned int dimension = mpReferenceGeometry->WorkingSpaceDimension();
@@ -445,12 +520,6 @@ namespace Kratos
     {
         KRATOS_TRY
         unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-        /*   if( omp_get_thread_num() == 1 )
-           {
-            ////KRATOS_WATCH( dimension );
-            ////KRATOS_WATCH( C );
-           }
-         */
 
         if ( dimension == 2 )
         {
@@ -488,8 +557,8 @@ namespace Kratos
 
     void TotalLagrangian::CalculateB(
         Matrix& B,
-        Matrix& F,
-        Matrix& DN_DX,
+        const Matrix& F,
+        const Matrix& DN_DX,
         unsigned int StrainSize )
     {
         KRATOS_TRY
@@ -575,13 +644,14 @@ namespace Kratos
     void TotalLagrangian::GetDofList( DofsVectorType& ElementalDofList, ProcessInfo& CurrentProcessInfo )
     {
         ElementalDofList.resize( 0 );
+        int dim = GetGeometry().WorkingSpaceDimension();
 
         for ( unsigned int i = 0; i < GetGeometry().size(); i++ )
         {
             ElementalDofList.push_back( GetGeometry()[i].pGetDof( DISPLACEMENT_X ) );
             ElementalDofList.push_back( GetGeometry()[i].pGetDof( DISPLACEMENT_Y ) );
 
-            if ( GetGeometry().WorkingSpaceDimension() == 3 )
+            if ( dim == 3 )
             {
                 ElementalDofList.push_back( GetGeometry()[i].pGetDof( DISPLACEMENT_Z ) );
             }
@@ -706,12 +776,7 @@ namespace Kratos
 
         const unsigned int number_of_nodes = GetGeometry().size();
         const unsigned int dim = GetGeometry().WorkingSpaceDimension();
-        unsigned int StrainSize;
-
-        if ( dim == 2 )
-            StrainSize = 3;
-        else
-            StrainSize = 6;
+        unsigned int StrainSize = dim * (dim + 1) / 2;
 
         Matrix F( dim, dim );
 
@@ -725,26 +790,49 @@ namespace Kratos
 
         Matrix DN_DX( number_of_nodes, dim );
 
+        Matrix CurrentDisp( number_of_nodes, dim );
+
+        Matrix InvJ0(dim, dim);
+
+        double DetJ0;
+
         Matrix PlasticStrainVector( GetGeometry().size(), GetGeometry().WorkingSpaceDimension() );
+
+        #ifdef ENABLE_BEZIER_GEOMETRY
+        //initialize the geometry
+        GetGeometry().Initialize(mThisIntegrationMethod);
+        #endif
 
         //reading integration points and local gradients
         const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
 
         const Matrix& Ncontainer = GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod );
 
+        //initializing the Jacobian in the reference configuration
+        Matrix DeltaPosition(GetGeometry().size(), 3);
+        for ( unsigned int node = 0; node < GetGeometry().size(); ++node )
+            noalias( row( DeltaPosition, node ) ) = GetGeometry()[node].Coordinates() - GetGeometry()[node].GetInitialPosition();
+
+        //Current displacements
+        for ( unsigned int node = 0; node < GetGeometry().size(); ++node )
+            noalias( row( CurrentDisp, node ) ) = GetGeometry()[node].GetSolutionStepValue( DISPLACEMENT );
+
+        GeometryType::JacobiansType J0;
+        J0 = GetGeometry().Jacobian( J0, mThisIntegrationMethod, DeltaPosition );
+
         //calculating actual jacobian
         GeometryType::JacobiansType J;
-
-        J = GetGeometry().Jacobian( J );
+        Matrix ShiftedDisp = DeltaPosition - CurrentDisp;
+        J = GetGeometry().Jacobian( J, mThisIntegrationMethod, ShiftedDisp );
 
         if ( Output.size() != integration_points.size() )
             Output.resize( integration_points.size() );
 
         for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
         {
-
             //deformation gradient
-            noalias( F ) = prod( J[PointNumber], mInvJ0[PointNumber] );
+            MathUtils<double>::InvertMatrix( J0[PointNumber], InvJ0, DetJ0 );
+            noalias( F ) = prod( J[PointNumber], InvJ0 );
 
             //strain calculation
             noalias( C ) = prod( trans( F ), F );
@@ -796,6 +884,11 @@ namespace Kratos
                 Output[PointNumber] = PlasticStrainVector;
             }
         }
+
+        #ifdef ENABLE_BEZIER_GEOMETRY
+        //clean the internal data of the geometry
+        GetGeometry().Clean();
+        #endif
 
         KRATOS_CATCH( "" )
     }

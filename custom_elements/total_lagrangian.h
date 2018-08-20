@@ -295,27 +295,24 @@ private:
     double mTotalDomainInitialSize;
     bool mIsInitialized;
 
-    std::vector< Matrix > mInvJ0;
-    Vector mDetJ0;
-
     ///@}
     ///@name Private Operators
     ///@{
 
-    void CalculateAndAddKm(
-        MatrixType& K,
-        Matrix& B,
-        Matrix& D,
-        double weight);
+//    void CalculateAndAddKm(
+//        MatrixType& K,
+//        Matrix& B,
+//        Matrix& D,
+//        double weight);
 
     /**
      * Calculation of the Geometric Stiffness Matrix. Kg = dB * S
      */
     void CalculateAndAddKg(
         MatrixType& K,
-        Matrix& DN_DX,
-        Vector& StressVector,
-        double weight
+        const Matrix& DN_DX,
+        const Vector& StressVector,
+        const double& weight
     );
 
     void CalculateBodyForces(
@@ -327,24 +324,22 @@ private:
 
     virtual void InitializeMaterial();
 
-    double CalculateIntegrationWeight
-    (double GaussPointWeight,
-     double DetJ0);
+    double CalculateIntegrationWeight(const double& GaussPointWeight, const double& DetJ0);
 
     void CalculateAndAdd_ExtForceContribution(
         const Vector& N,
         const ProcessInfo& CurrentProcessInfo,
-        Vector& BodyForce,
+        const Vector& BodyForce,
         VectorType& mResidualVector,
-        double weight
+        const double& weight
     );
 
     void CalculateStrain(const Matrix& C,
                          Vector& StrainVector);
 
     void CalculateB(Matrix& B,
-                    Matrix& F,
-                    Matrix& DN_DX,
+                    const Matrix& F,
+                    const Matrix& DN_DX,
                     unsigned int StrainSize);
 
 
