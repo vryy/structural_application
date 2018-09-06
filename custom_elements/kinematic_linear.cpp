@@ -405,13 +405,24 @@ namespace Kratos
     {
         KRATOS_TRY
 
+        for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); ++i )
+            mConstitutiveLawVector[i] = GetProperties()[CONSTITUTIVE_LAW]->Clone();
+
+        int need_shape_function = 0, tmp;
+        for ( unsigned int Point = 0; Point < mConstitutiveLawVector.size(); ++Point )
+        {
+            tmp = mConstitutiveLawVector[Point]->GetValue(IS_SHAPE_FUNCTION_REQUIRED, tmp);
+            need_shape_function += tmp;
+        }
+
+        if (need_shape_function)
+        {
             #ifdef ENABLE_BEZIER_GEOMETRY
             GetGeometry().Initialize(mThisIntegrationMethod);
             #endif
 
             for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); ++i )
             {
-                mConstitutiveLawVector[i] = GetProperties()[CONSTITUTIVE_LAW]->Clone();
                 mConstitutiveLawVector[i]->SetValue( PARENT_ELEMENT_ID, this->Id(), *(ProcessInfo*)0);
                 mConstitutiveLawVector[i]->SetValue( INTEGRATION_POINT_INDEX, i, *(ProcessInfo*)0);
                 mConstitutiveLawVector[i]->InitializeMaterial( GetProperties(), GetGeometry(), row( GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod ), i ) );
@@ -444,6 +455,14 @@ namespace Kratos
             #ifdef ENABLE_BEZIER_GEOMETRY
             GetGeometry().Clean();
             #endif
+        }
+        else
+        {
+            for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); i++ )
+            {
+                mConstitutiveLawVector[i]->InitializeMaterial( GetProperties(), GetGeometry(), Vector(1) );
+            }
+        }
 
         KRATOS_CATCH( "" )
     }
@@ -762,19 +781,40 @@ namespace Kratos
                 }
             }
         }
-//        else
-//        {
-//            KRATOS_WATCH(GetValue(ACTIVATION_LEVEL))
-//            KRATOS_WATCH(GetValue(IS_INACTIVE))
-//            KRATOS_WATCH(this->Is(ACTIVE))
-//            std::cout << "Element " << Id() << " has no integration_points" << std::endl;
-//        }
 
+        int need_shape_function = 0, tmp;
         for ( unsigned int Point = 0; Point < mConstitutiveLawVector.size(); ++Point )
         {
+            tmp = mConstitutiveLawVector[Point]->GetValue(IS_SHAPE_FUNCTION_REQUIRED, tmp);
+            need_shape_function += tmp;
+        }
+
+        if (need_shape_function)
+        {
+            #ifdef ENABLE_BEZIER_GEOMETRY
+            //initialize the geometry
+            GetGeometry().Initialize(mThisIntegrationMethod);
+            #endif
+
+            const Matrix& Ncontainer = GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod );
+
+            for ( unsigned int Point = 0; Point < mConstitutiveLawVector.size(); ++Point )
+            {
+                mConstitutiveLawVector[Point]->InitializeSolutionStep( GetProperties(), GetGeometry(), row(Ncontainer, Point), CurrentProcessInfo );
+            }
+
+            #ifdef ENABLE_BEZIER_GEOMETRY
+            //clean the internal data of the geometry
+            GetGeometry().Clean();
+            #endif
+        }
+        else
+        {
             Vector dummy;
-//            dummy = row( GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod ), Point );
-            mConstitutiveLawVector[Point]->InitializeSolutionStep( GetProperties(), GetGeometry(), dummy, CurrentProcessInfo );
+            for ( unsigned int Point = 0; Point < mConstitutiveLawVector.size(); ++Point )
+            {
+                mConstitutiveLawVector[Point]->InitializeSolutionStep( GetProperties(), GetGeometry(), dummy, CurrentProcessInfo );
+            }
         }
     }
 
@@ -798,11 +838,39 @@ namespace Kratos
 //            }
 //        }
 
+        int need_shape_function = 0, tmp;
         for ( unsigned int Point = 0; Point < mConstitutiveLawVector.size(); ++Point )
         {
+            tmp = mConstitutiveLawVector[Point]->GetValue(IS_SHAPE_FUNCTION_REQUIRED, tmp);
+            need_shape_function += tmp;
+        }
+
+        if (need_shape_function)
+        {
+            #ifdef ENABLE_BEZIER_GEOMETRY
+            //initialize the geometry
+            GetGeometry().Initialize(mThisIntegrationMethod);
+            #endif
+
+            const Matrix& Ncontainer = GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod );
+
+            for ( unsigned int Point = 0; Point < mConstitutiveLawVector.size(); ++Point )
+            {
+                mConstitutiveLawVector[Point]->InitializeNonLinearIteration( GetProperties(), GetGeometry(), row(Ncontainer, Point), CurrentProcessInfo );
+            }
+
+            #ifdef ENABLE_BEZIER_GEOMETRY
+            //clean the internal data of the geometry
+            GetGeometry().Clean();
+            #endif
+        }
+        else
+        {
             Vector dummy;
-//            dummy = row( GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod ), Point );
-            mConstitutiveLawVector[Point]->InitializeNonLinearIteration( GetProperties(), GetGeometry(), dummy, CurrentProcessInfo );
+            for ( unsigned int Point = 0; Point < mConstitutiveLawVector.size(); ++Point )
+            {
+                mConstitutiveLawVector[Point]->InitializeNonLinearIteration( GetProperties(), GetGeometry(), dummy, CurrentProcessInfo );
+            }
         }
     }
 
@@ -821,11 +889,39 @@ namespace Kratos
             }
         }
 
+        int need_shape_function = 0, tmp;
         for ( unsigned int Point = 0; Point < mConstitutiveLawVector.size(); ++Point )
         {
+            tmp = mConstitutiveLawVector[Point]->GetValue(IS_SHAPE_FUNCTION_REQUIRED, tmp);
+            need_shape_function += tmp;
+        }
+
+        if (need_shape_function)
+        {
+            #ifdef ENABLE_BEZIER_GEOMETRY
+            //initialize the geometry
+            GetGeometry().Initialize(mThisIntegrationMethod);
+            #endif
+
+            const Matrix& Ncontainer = GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod );
+
+            for ( unsigned int Point = 0; Point < mConstitutiveLawVector.size(); ++Point )
+            {
+                mConstitutiveLawVector[Point]->FinalizeNonLinearIteration( GetProperties(), GetGeometry(), row(Ncontainer, Point), CurrentProcessInfo );
+            }
+
+            #ifdef ENABLE_BEZIER_GEOMETRY
+            //clean the internal data of the geometry
+            GetGeometry().Clean();
+            #endif
+        }
+        else
+        {
             Vector dummy;
-//            dummy = row( GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod ), Point );
-            mConstitutiveLawVector[Point]->FinalizeNonLinearIteration( GetProperties(), GetGeometry(), dummy, CurrentProcessInfo );
+            for ( unsigned int Point = 0; Point < mConstitutiveLawVector.size(); ++Point )
+            {
+                mConstitutiveLawVector[Point]->FinalizeNonLinearIteration( GetProperties(), GetGeometry(), dummy, CurrentProcessInfo );
+            }
         }
     }
 
@@ -849,11 +945,39 @@ namespace Kratos
 //            }
 //        }
 
+        int need_shape_function = 0, tmp;
         for ( unsigned int Point = 0; Point < mConstitutiveLawVector.size(); ++Point )
         {
+            tmp = mConstitutiveLawVector[Point]->GetValue(IS_SHAPE_FUNCTION_REQUIRED, tmp);
+            need_shape_function += tmp;
+        }
+
+        if (need_shape_function)
+        {
+            #ifdef ENABLE_BEZIER_GEOMETRY
+            //initialize the geometry
+            GetGeometry().Initialize(mThisIntegrationMethod);
+            #endif
+
+            const Matrix& Ncontainer = GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod );
+
+            for ( unsigned int Point = 0; Point < mConstitutiveLawVector.size(); ++Point )
+            {
+                mConstitutiveLawVector[Point]->FinalizeSolutionStep( GetProperties(), GetGeometry(), row(Ncontainer, Point), CurrentProcessInfo );
+            }
+
+            #ifdef ENABLE_BEZIER_GEOMETRY
+            //clean the internal data of the geometry
+            GetGeometry().Clean();
+            #endif
+        }
+        else
+        {
             Vector dummy;
-//            dummy = row( GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod ), Point );
-            mConstitutiveLawVector[Point]->FinalizeSolutionStep( GetProperties(), GetGeometry(), dummy, CurrentProcessInfo );
+            for ( unsigned int Point = 0; Point < mConstitutiveLawVector.size(); ++Point )
+            {
+                mConstitutiveLawVector[Point]->FinalizeSolutionStep( GetProperties(), GetGeometry(), dummy, CurrentProcessInfo );
+            }
         }
     }
 
