@@ -148,7 +148,9 @@ public:
      */
     IntegrationMethod GetIntegrationMethod() const;
 
-    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const;
+    virtual Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const;
+
+    virtual Element::Pointer Create( IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties ) const;
 
     void Initialize();
 
@@ -165,6 +167,10 @@ public:
     void GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& CurrentProcessInfo);
 
     void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo);
+
+    void InitializeNonLinearIteration( ProcessInfo& CurrentProcessInfo );
+
+    void FinalizeNonLinearIteration( ProcessInfo& CurrentProcessInfo );
 
     void FinalizeSolutionStep(ProcessInfo& CurrentProcessInfo);
 
@@ -204,7 +210,7 @@ public:
      * or that no common error is found.
      * @param rCurrentProcessInfo
      */
-    int Check(const ProcessInfo& rCurrentProcessInfo);
+    virtual int Check( const ProcessInfo& rCurrentProcessInfo );
 
     //std::string Info() const;
 

@@ -92,6 +92,11 @@ namespace Kratos
         return Element::Pointer( new TotalLagrangian( NewId, GetGeometry().Create( ThisNodes ), pProperties ) );
     }
 
+    Element::Pointer TotalLagrangian::Create( IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties ) const
+    {
+        return Element::Pointer( new TotalLagrangian( NewId, pGeom, pProperties ) );
+    }
+
     TotalLagrangian::~TotalLagrangian()
     {
     }
@@ -403,27 +408,176 @@ namespace Kratos
         return weight;
     }
 
-////************************************************************************************
-////************************************************************************************
+//************************************************************************************
+//************************************************************************************
 
     void TotalLagrangian::InitializeSolutionStep( ProcessInfo& CurrentProcessInfo )
     {
-        for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); i++ )
-            mConstitutiveLawVector[i]->InitializeSolutionStep( GetProperties(),
-                    GetGeometry(), row( GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod ), i ),
-                    CurrentProcessInfo );
+        int need_shape_function = 0, tmp;
+        for ( unsigned int Point = 0; Point < mConstitutiveLawVector.size(); ++Point )
+        {
+            tmp = mConstitutiveLawVector[Point]->GetValue(IS_SHAPE_FUNCTION_REQUIRED, tmp);
+            need_shape_function += tmp;
+        }
+
+        if (need_shape_function)
+        {
+            #ifdef ENABLE_BEZIER_GEOMETRY
+            //initialize the geometry
+            GetGeometry().Initialize(mThisIntegrationMethod);
+            #endif
+
+            const Matrix& Ncontainer = GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod );
+
+            for ( unsigned int Point = 0; Point < mConstitutiveLawVector.size(); ++Point )
+            {
+                mConstitutiveLawVector[Point]->InitializeSolutionStep( GetProperties(), GetGeometry(), row(Ncontainer, Point), CurrentProcessInfo );
+            }
+
+            #ifdef ENABLE_BEZIER_GEOMETRY
+            //clean the internal data of the geometry
+            GetGeometry().Clean();
+            #endif
+        }
+        else
+        {
+            Vector dummy;
+            for ( unsigned int Point = 0; Point < mConstitutiveLawVector.size(); ++Point )
+            {
+                mConstitutiveLawVector[Point]->InitializeSolutionStep( GetProperties(), GetGeometry(), dummy, CurrentProcessInfo );
+            }
+        }
     }
 
-////************************************************************************************
-////************************************************************************************
+//************************************************************************************
+//************************************************************************************
+
+    void TotalLagrangian::InitializeNonLinearIteration(ProcessInfo& CurrentProcessInfo)
+    {
+        //reset all resistant forces at node
+        for ( unsigned int i = 0; i < GetGeometry().size(); ++i )
+        {
+            GetGeometry()[i].GetSolutionStepValue( REACTION_X ) = 0.0;
+            GetGeometry()[i].GetSolutionStepValue( REACTION_Y ) = 0.0;
+            GetGeometry()[i].GetSolutionStepValue( REACTION_Z ) = 0.0;
+        }
+
+        int need_shape_function = 0, tmp;
+        for ( unsigned int Point = 0; Point < mConstitutiveLawVector.size(); ++Point )
+        {
+            tmp = mConstitutiveLawVector[Point]->GetValue(IS_SHAPE_FUNCTION_REQUIRED, tmp);
+            need_shape_function += tmp;
+        }
+
+        if (need_shape_function)
+        {
+            #ifdef ENABLE_BEZIER_GEOMETRY
+            //initialize the geometry
+            GetGeometry().Initialize(mThisIntegrationMethod);
+            #endif
+
+            const Matrix& Ncontainer = GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod );
+
+            for ( unsigned int Point = 0; Point < mConstitutiveLawVector.size(); ++Point )
+            {
+                mConstitutiveLawVector[Point]->InitializeNonLinearIteration( GetProperties(), GetGeometry(), row(Ncontainer, Point), CurrentProcessInfo );
+            }
+
+            #ifdef ENABLE_BEZIER_GEOMETRY
+            //clean the internal data of the geometry
+            GetGeometry().Clean();
+            #endif
+        }
+        else
+        {
+            Vector dummy;
+            for ( unsigned int Point = 0; Point < mConstitutiveLawVector.size(); ++Point )
+            {
+                mConstitutiveLawVector[Point]->InitializeNonLinearIteration( GetProperties(), GetGeometry(), dummy, CurrentProcessInfo );
+            }
+        }
+    }
+
+//************************************************************************************
+//************************************************************************************
+
+    void TotalLagrangian::FinalizeNonLinearIteration(ProcessInfo& CurrentProcessInfo)
+    {
+        int need_shape_function = 0, tmp;
+        for ( unsigned int Point = 0; Point < mConstitutiveLawVector.size(); ++Point )
+        {
+            tmp = mConstitutiveLawVector[Point]->GetValue(IS_SHAPE_FUNCTION_REQUIRED, tmp);
+            need_shape_function += tmp;
+        }
+
+        if (need_shape_function)
+        {
+            #ifdef ENABLE_BEZIER_GEOMETRY
+            //initialize the geometry
+            GetGeometry().Initialize(mThisIntegrationMethod);
+            #endif
+
+            const Matrix& Ncontainer = GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod );
+
+            for ( unsigned int Point = 0; Point < mConstitutiveLawVector.size(); ++Point )
+            {
+                mConstitutiveLawVector[Point]->FinalizeNonLinearIteration( GetProperties(), GetGeometry(), row(Ncontainer, Point), CurrentProcessInfo );
+            }
+
+            #ifdef ENABLE_BEZIER_GEOMETRY
+            //clean the internal data of the geometry
+            GetGeometry().Clean();
+            #endif
+        }
+        else
+        {
+            Vector dummy;
+            for ( unsigned int Point = 0; Point < mConstitutiveLawVector.size(); ++Point )
+            {
+                mConstitutiveLawVector[Point]->FinalizeNonLinearIteration( GetProperties(), GetGeometry(), dummy, CurrentProcessInfo );
+            }
+        }
+    }
+
+//************************************************************************************
+//************************************************************************************
 
     void TotalLagrangian::FinalizeSolutionStep( ProcessInfo& CurrentProcessInfo )
     {
-        for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); i++ )
-            mConstitutiveLawVector[i]->FinalizeSolutionStep( GetProperties(),
-                    GetGeometry(),
-                    row( GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod ), i ),
-                    CurrentProcessInfo );
+        int need_shape_function = 0, tmp;
+        for ( unsigned int Point = 0; Point < mConstitutiveLawVector.size(); ++Point )
+        {
+            tmp = mConstitutiveLawVector[Point]->GetValue(IS_SHAPE_FUNCTION_REQUIRED, tmp);
+            need_shape_function += tmp;
+        }
+
+        if (need_shape_function)
+        {
+            #ifdef ENABLE_BEZIER_GEOMETRY
+            //initialize the geometry
+            GetGeometry().Initialize(mThisIntegrationMethod);
+            #endif
+
+            const Matrix& Ncontainer = GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod );
+
+            for ( unsigned int Point = 0; Point < mConstitutiveLawVector.size(); ++Point )
+            {
+                mConstitutiveLawVector[Point]->FinalizeSolutionStep( GetProperties(), GetGeometry(), row(Ncontainer, Point), CurrentProcessInfo );
+            }
+
+            #ifdef ENABLE_BEZIER_GEOMETRY
+            //clean the internal data of the geometry
+            GetGeometry().Clean();
+            #endif
+        }
+        else
+        {
+            Vector dummy;
+            for ( unsigned int Point = 0; Point < mConstitutiveLawVector.size(); ++Point )
+            {
+                mConstitutiveLawVector[Point]->FinalizeSolutionStep( GetProperties(), GetGeometry(), dummy, CurrentProcessInfo );
+            }
+        }
     }
 
 //************************************************************************************
@@ -433,29 +587,53 @@ namespace Kratos
     {
         KRATOS_TRY
 
-        if ( GetProperties()[CONSTITUTIVE_LAW] != NULL )
+        for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); ++i )
+            mConstitutiveLawVector[i] = GetProperties()[CONSTITUTIVE_LAW]->Clone();
+
+        int need_shape_function = 0, tmp;
+        for ( unsigned int Point = 0; Point < mConstitutiveLawVector.size(); ++Point )
+        {
+            tmp = mConstitutiveLawVector[Point]->GetValue(IS_SHAPE_FUNCTION_REQUIRED, tmp);
+            need_shape_function += tmp;
+        }
+
+        if (need_shape_function)
+        {
+            #ifdef ENABLE_BEZIER_GEOMETRY
+            GetGeometry().Initialize(mThisIntegrationMethod);
+            #endif
+
+            for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); ++i )
+            {
+                mConstitutiveLawVector[i]->SetValue( PARENT_ELEMENT_ID, this->Id(), *(ProcessInfo*)0);
+                mConstitutiveLawVector[i]->SetValue( INTEGRATION_POINT_INDEX, i, *(ProcessInfo*)0);
+                mConstitutiveLawVector[i]->InitializeMaterial( GetProperties(), GetGeometry(), row( GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod ), i ) );
+
+                //check constitutive law
+                mConstitutiveLawVector[i]->Check( GetProperties(), GetGeometry(), *(ProcessInfo*)0 );
+            }
+
+            #ifdef ENABLE_BEZIER_GEOMETRY
+            GetGeometry().Clean();
+            #endif
+        }
+        else
         {
             for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); i++ )
             {
-                mConstitutiveLawVector[i] = GetProperties()[CONSTITUTIVE_LAW]->Clone();
-                mConstitutiveLawVector[i]->InitializeMaterial( GetProperties(), GetGeometry(),
-                        row( GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod ), i ) );
+                mConstitutiveLawVector[i]->InitializeMaterial( GetProperties(), GetGeometry(), Vector(1) );
             }
         }
-        else
-            KRATOS_THROW_ERROR( std::logic_error, "a constitutive law needs to be specified for the element with ID ", this->Id() )
-            KRATOS_CATCH( "" )
-        }
+
+        KRATOS_CATCH( "" )
+    }
 
     void TotalLagrangian::ResetConstitutiveLaw()
     {
         KRATOS_TRY
 
-        if ( GetProperties()[CONSTITUTIVE_LAW] != NULL )
-        {
-            for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); i++ )
-                mConstitutiveLawVector[i]->ResetMaterial( GetProperties(), GetGeometry(), row( GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod ), i ) );
-        }
+        for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); i++ )
+            mConstitutiveLawVector[i]->ResetMaterial( GetProperties(), GetGeometry(), row( GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod ), i ) );
 
         KRATOS_CATCH( "" )
     }
@@ -1185,33 +1363,33 @@ namespace Kratos
 
         //verify that the variables are correctly initialized
 
-        if ( VELOCITY.Key() == 0 )
-            KRATOS_THROW_ERROR( std::invalid_argument, "VELOCITY has Key zero! (check if the application is correctly registered", "" );
+//        if ( VELOCITY.Key() == 0 )
+//            KRATOS_THROW_ERROR( std::invalid_argument, "VELOCITY has Key zero! (check if the application is correctly registered", "" );
 
-        if ( DISPLACEMENT.Key() == 0 )
-            KRATOS_THROW_ERROR( std::invalid_argument, "DISPLACEMENT has Key zero! (check if the application is correctly registered", "" );
+//        if ( DISPLACEMENT.Key() == 0 )
+//            KRATOS_THROW_ERROR( std::invalid_argument, "DISPLACEMENT has Key zero! (check if the application is correctly registered", "" );
 
-        if ( ACCELERATION.Key() == 0 )
-            KRATOS_THROW_ERROR( std::invalid_argument, "ACCELERATION has Key zero! (check if the application is correctly registered", "" );
+//        if ( ACCELERATION.Key() == 0 )
+//            KRATOS_THROW_ERROR( std::invalid_argument, "ACCELERATION has Key zero! (check if the application is correctly registered", "" );
 
-        if ( DENSITY.Key() == 0 )
-            KRATOS_THROW_ERROR( std::invalid_argument, "DENSITY has Key zero! (check if the application is correctly registered", "" );
+//        if ( DENSITY.Key() == 0 )
+//            KRATOS_THROW_ERROR( std::invalid_argument, "DENSITY has Key zero! (check if the application is correctly registered", "" );
 
-        if ( BODY_FORCE.Key() == 0 )
-            KRATOS_THROW_ERROR( std::invalid_argument, "BODY_FORCE has Key zero! (check if the application is correctly registered", "" );
+//        if ( BODY_FORCE.Key() == 0 )
+//            KRATOS_THROW_ERROR( std::invalid_argument, "BODY_FORCE has Key zero! (check if the application is correctly registered", "" );
 
-        if ( THICKNESS.Key() == 0 )
-            KRATOS_THROW_ERROR( std::invalid_argument, "THICKNESS has Key zero! (check if the application is correctly registered", "" );
+//        if ( THICKNESS.Key() == 0 )
+//            KRATOS_THROW_ERROR( std::invalid_argument, "THICKNESS has Key zero! (check if the application is correctly registered", "" );
 
-        //verify that the dofs exist
-        for ( unsigned int i = 0; i < this->GetGeometry().size(); i++ )
-        {
-            if ( this->GetGeometry()[i].SolutionStepsDataHas( DISPLACEMENT ) == false )
-                KRATOS_THROW_ERROR( std::invalid_argument, "missing variable DISPLACEMENT on node ", this->GetGeometry()[i].Id() );
+//        //verify that the dofs exist
+//        for ( unsigned int i = 0; i < this->GetGeometry().size(); i++ )
+//        {
+//            if ( this->GetGeometry()[i].SolutionStepsDataHas( DISPLACEMENT ) == false )
+//                KRATOS_THROW_ERROR( std::invalid_argument, "missing variable DISPLACEMENT on node ", this->GetGeometry()[i].Id() );
 
-            if ( this->GetGeometry()[i].HasDofFor( DISPLACEMENT_X ) == false || this->GetGeometry()[i].HasDofFor( DISPLACEMENT_Y ) == false || this->GetGeometry()[i].HasDofFor( DISPLACEMENT_Z ) == false )
-                KRATOS_THROW_ERROR( std::invalid_argument, "missing one of the dofs for the variable DISPLACEMENT on node ", GetGeometry()[i].Id() );
-        }
+//            if ( this->GetGeometry()[i].HasDofFor( DISPLACEMENT_X ) == false || this->GetGeometry()[i].HasDofFor( DISPLACEMENT_Y ) == false || this->GetGeometry()[i].HasDofFor( DISPLACEMENT_Z ) == false )
+//                KRATOS_THROW_ERROR( std::invalid_argument, "missing one of the dofs for the variable DISPLACEMENT on node ", GetGeometry()[i].Id() );
+//        }
 
         //verify that the constitutive law exists
         if ( this->GetProperties().Has( CONSTITUTIVE_LAW ) == false )
