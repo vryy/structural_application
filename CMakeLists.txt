@@ -26,6 +26,7 @@ set( KRATOS_STRUCTURAL_APPLICATION_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/eas_element_q4e4.cpp
 
     ${CMAKE_CURRENT_SOURCE_DIR}/structural_application.cpp 
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_elements_to_python.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_conditions_to_python.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_strategies_to_python.cpp 
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp

@@ -65,6 +65,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_python/add_custom_utilities_to_python.h"
 #include "custom_python/add_custom_io_to_python.h"
 #include "custom_python/add_custom_parallel_strategies_to_python.h"
+#include "custom_python/add_elements_to_python.h"
 #include "custom_python/add_conditions_to_python.h"
 #include "custom_python/add_fluency_criteria_to_python.h"
 #include "custom_python/add_custom_processes_to_python.h"
@@ -92,6 +93,7 @@ BOOST_PYTHON_MODULE( KratosStructuralApplication )
     AddCustomUtilitiesToPython();
     AddCustomIOToPython();
     AddCustomParallelStrategiesToPython();
+    AddCustomElementsToPython();
     AddCustomConditionsToPython();
     AddFluencyCriteriaToPython();
     AddCustomProcessesToPython();

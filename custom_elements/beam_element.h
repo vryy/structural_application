@@ -20,7 +20,6 @@
 
 
 // Project includes
-#include "structural_application.h"
 #include "includes/define.h"
 #include "includes/serializer.h"
 #include "includes/element.h"
@@ -77,6 +76,10 @@ public:
     /// Default constructor.
     BeamElement(IndexType NewId, GeometryType::Pointer pGeometry);
     BeamElement(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties);
+
+    /// Constructor for 2-node beam
+    BeamElement(IndexType NewId, GeometryType::PointType::Pointer pNode1,
+        GeometryType::PointType::Pointer pNode2, PropertiesType::Pointer pProperties);
 
     /// Destructor.
     virtual ~BeamElement();

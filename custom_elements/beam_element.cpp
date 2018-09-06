@@ -15,11 +15,12 @@
 // Project includes
 
 #include "includes/define.h"
-#include "structural_application.h"
+#include "geometries/line_3d_2.h"
 #include "custom_elements/beam_element.h"
 #include "utilities/math_utils.h"
 #include "custom_utilities/sd_math_utils.h"
 #include "custom_utilities/sd_math_utils.h"
+#include "structural_application.h"
 
 
 
@@ -42,29 +43,34 @@ BeamElement::BeamElement(IndexType NewId,GeometryType::Pointer pGeometry,  Prope
 {
     KRATOS_TRY
 
-    unsigned int dimension = GetGeometry().WorkingSpaceDimension();    // Dimension de trabajo: en 2D o 3D
-    unsigned int Nodos = GetGeometry().size();                         // Cantidad de Nodos en el elemento
+//    unsigned int dimension = GetGeometry().WorkingSpaceDimension();    // Dimension de trabajo: en 2D o 3D
+//    unsigned int Nodos = GetGeometry().size();                         // Cantidad de Nodos en el elemento
 
 
-    if (dimension != 3)
-    {
-        std::cout<<"This element works only with a 2 node line and 3D dimension"<<std::endl;
-        return;
-    }
-    for (unsigned int i=0; i < Nodos; i++)
-    {
-        GetGeometry()[i].pAddDof(DISPLACEMENT_X, REACTION_X);      //	GRADOS DE LIBERTAD DEL ELEMENTO.
-        GetGeometry()[i].pAddDof(DISPLACEMENT_Y, REACTION_Y);      //	GRADOS DE LIBERTAD DEL ELEMENTO.
-        GetGeometry()[i].pAddDof(DISPLACEMENT_Z, REACTION_Z);      //	GRADOS DE LIBERTAD DEL ELEMENTO.
-        GetGeometry()[i].pAddDof(ROTATION_X,     MOMENT_X);      //	GRADOS DE LIBERTAD DEL ELEMENTO.
-        GetGeometry()[i].pAddDof(ROTATION_Y,     MOMENT_Y);      //	GRADOS DE LIBERTAD DEL ELEMENTO.
-        GetGeometry()[i].pAddDof(ROTATION_Z,     MOMENT_Z);      //	GRADOS DE LIBERTAD DEL ELEMENTO.
-    }
+//    if (dimension != 3)
+//    {
+//        std::cout<<"This element works only with a 2 node line and 3D dimension"<<std::endl;
+//        return;
+//    }
+//    for (unsigned int i=0; i < Nodos; i++)
+//    {
+//        GetGeometry()[i].pAddDof(DISPLACEMENT_X, REACTION_X);      //	GRADOS DE LIBERTAD DEL ELEMENTO.
+//        GetGeometry()[i].pAddDof(DISPLACEMENT_Y, REACTION_Y);      //	GRADOS DE LIBERTAD DEL ELEMENTO.
+//        GetGeometry()[i].pAddDof(DISPLACEMENT_Z, REACTION_Z);      //	GRADOS DE LIBERTAD DEL ELEMENTO.
+//        GetGeometry()[i].pAddDof(ROTATION_X,     MOMENT_X);      //	GRADOS DE LIBERTAD DEL ELEMENTO.
+//        GetGeometry()[i].pAddDof(ROTATION_Y,     MOMENT_Y);      //	GRADOS DE LIBERTAD DEL ELEMENTO.
+//        GetGeometry()[i].pAddDof(ROTATION_Z,     MOMENT_Z);      //	GRADOS DE LIBERTAD DEL ELEMENTO.
+//    }
 
     KRATOS_CATCH("")
 
 }
 
+BeamElement::BeamElement(IndexType NewId, GeometryType::PointType::Pointer pNode1,
+        GeometryType::PointType::Pointer pNode2, PropertiesType::Pointer pProperties)
+: Element(NewId, GeometryType::Pointer(new Line3D2<GeometryType::PointType>(pNode1, pNode2)), pProperties)
+{
+}
 
 Element::Pointer BeamElement::Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
 {
@@ -164,7 +170,6 @@ void BeamElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
     bool CalculateResidualVectorFlag = true;
     CalculateAll(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo,
                  CalculateStiffnessMatrixFlag,CalculateResidualVectorFlag);
-KRATOS_WATCH(rLeftHandSideMatrix)
 }
 
 //************************************************************************************
