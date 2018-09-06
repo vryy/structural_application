@@ -74,35 +74,39 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(TEMPERATURE)
     model_part.AddNodalSolutionStepVariable(NODAL_ERROR_1)
     model_part.AddNodalSolutionStepVariable(VON_MISES_STRESS)
+    model_part.AddNodalSolutionStepVariable(PLASTICITY_INDICATOR)
     print("variables for the dynamic structural solution added correctly")
 
-def AddDofsForNodes(nodes):
-    for node in nodes:
-        #adding dofs 
+def AddDofsForNode(node):
+    #adding dofs 
 #        node.AddDof(DISPLACEMENT_X)
 #        node.AddDof(DISPLACEMENT_Y)
 #        node.AddDof(DISPLACEMENT_Z)
-        node.AddDof(DISPLACEMENT_X, REACTION_X)
-        node.AddDof(DISPLACEMENT_Y, REACTION_Y)
-        node.AddDof(DISPLACEMENT_Z, REACTION_Z)
-        node.AddDof(WATER_PRESSURE)
-        node.AddDof(AIR_PRESSURE)
+    node.AddDof(DISPLACEMENT_X, REACTION_X)
+    node.AddDof(DISPLACEMENT_Y, REACTION_Y)
+    node.AddDof(DISPLACEMENT_Z, REACTION_Z)
+    node.AddDof(WATER_PRESSURE)
+    node.AddDof(AIR_PRESSURE)
 #        node.AddDof(LAGRANGE_DISPLACEMENT_X, REACTION_LAGRANGE_DISPLACEMENT_X)
 #        node.AddDof(LAGRANGE_DISPLACEMENT_Y, REACTION_LAGRANGE_DISPLACEMENT_Y)
 #        node.AddDof(LAGRANGE_DISPLACEMENT_Z, REACTION_LAGRANGE_DISPLACEMENT_Z)
-        node.AddDof(LAGRANGE_DISPLACEMENT_X)
-        node.AddDof(LAGRANGE_DISPLACEMENT_Y)
-        node.AddDof(LAGRANGE_DISPLACEMENT_Z)
-        node.AddDof(ROTATION_X)
-        node.AddDof(ROTATION_Y)
-        node.AddDof(ROTATION_Z)
-        #node.AddDof(LAGRANGE_AIR_PRESSURE)
-        node.AddDof(LAGRANGE_WATER_PRESSURE)
+    node.AddDof(LAGRANGE_DISPLACEMENT_X)
+    node.AddDof(LAGRANGE_DISPLACEMENT_Y)
+    node.AddDof(LAGRANGE_DISPLACEMENT_Z)
+    node.AddDof(ROTATION_X)
+    node.AddDof(ROTATION_Y)
+    node.AddDof(ROTATION_Z)
+    #node.AddDof(LAGRANGE_AIR_PRESSURE)
+    node.AddDof(LAGRANGE_WATER_PRESSURE)
+
+def AddDofsForNodes(nodes):
+    for node in nodes:
+        AddDofsForNode(node)
     print("dofs for the dynamic structural solution added correctly")
 
 def AddDofs(model_part):
     AddDofsForNodes(model_part.Nodes)
-        
+
 #######################################################################
 class SolverAdvanced(structural_solver_static.StaticStructuralSolver):
     def __init__( self, model_part, domain_size, time_steps, analysis_parameters, abs_tol, rel_tol ):
@@ -125,6 +129,8 @@ class SolverAdvanced(structural_solver_static.StaticStructuralSolver):
         
     def CheckAndConvertParameters(self, analysis_parameters):
         if( type( analysis_parameters ) == dict ):
+            if 'builder_and_solver_type' not in analysis_parameters:
+                analysis_parameters['builder_and_solver_type'] = "residual-based elimination deactivation"
             return analysis_parameters
         elif( type( analysis_parameters ) == list ):
             new_analysis_parameters = {}
@@ -151,6 +157,7 @@ class SolverAdvanced(structural_solver_static.StaticStructuralSolver):
                 else:
                     new_analysis_parameters['dissipation_radius'] = 1.0
             new_analysis_parameters['decouple_build_and_solve'] = False
+            new_analysis_parameters['builder_and_solver_type'] = "residual-based elimination deactivation"
             return new_analysis_parameters
         else:
             print 'unsupported type of analysis parameters'
@@ -159,6 +166,7 @@ class SolverAdvanced(structural_solver_static.StaticStructuralSolver):
         #######################################################################
         
     def Initialize(self):
+        print(166)
         #definition of time integration scheme
         if( self.analysis_parameters['analysis_type'] == 0 ):
             print("using static scheme")
@@ -197,8 +205,10 @@ class SolverAdvanced(structural_solver_static.StaticStructuralSolver):
         #self.conv_criteria = ResidualCriteria(1.0e-9,1.0e-9)
 #        self.conv_criteria = DisplacementCriteria(self.toll,self.absolute_tol)
         if(self.analysis_parameters['decouple_build_and_solve'] == False):
-            builder_and_solver = ResidualBasedEliminationBuilderAndSolverDeactivation(self.structure_linear_solver)
-#            builder_and_solver = ResidualBasedBlockBuilderAndSolver(self.structure_linear_solver)
+            if(self.analysis_parameters['builder_and_solver_type'] == "residual-based elimination deactivation"):
+                builder_and_solver = ResidualBasedEliminationBuilderAndSolverDeactivation(self.structure_linear_solver)
+            elif(self.analysis_parameters['builder_and_solver_type'] == "residual-based block"):
+                builder_and_solver = ResidualBasedBlockBuilderAndSolver(self.structure_linear_solver)
             #builder_and_solver = MultiPhaseBuilderAndSolver(self.structure_linear_solver)
             #builder_and_solver = BuiMultiPhaseBuilderAndSolver(self.structure_linear_solver)
             #builder_and_solver = ParallelResidualBasedEliminationBuilderAndSolverDeactivation(self.structure_linear_solver)
