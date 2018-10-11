@@ -501,7 +501,7 @@ void FacePressure3D::CalculateAll(
 
     const GeometryType::ShapeFunctionsGradientsType& DN_De = GetGeometry().ShapeFunctionsLocalGradients(mThisIntegrationMethod);
 
-    const Matrix& Ncontainer = GetGeometry().ShapeFunctionsValues();
+    const Matrix& Ncontainer = GetGeometry().ShapeFunctionsValues(mThisIntegrationMethod);
 
     Vector t1(3), t2(3), v3(3), Load(3);
 
@@ -533,7 +533,7 @@ void FacePressure3D::CalculateAll(
 
         double IntegrationWeight = integration_points[PointNumber].Weight();
 
-        KRATOS_WATCH(Load)
+//        KRATOS_WATCH(Load)
 //        KRATOS_WATCH(IntegrationWeight)
 //        KRATOS_WATCH(dA)
 
@@ -547,7 +547,7 @@ void FacePressure3D::CalculateAll(
         }
     }
 
-    KRATOS_WATCH(rRightHandSideVector)
+//    KRATOS_WATCH(rRightHandSideVector)
 
     KRATOS_CATCH( "" )
 }
