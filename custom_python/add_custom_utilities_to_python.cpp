@@ -209,6 +209,12 @@ void DoubleTransferVariablesToNodes(VariableTransferUtility& dummy,
     dummy.TransferVariablesToNodes(model_part, rThisVariable);
 }
 
+void Array1DTransferVariablesToNodes(VariableTransferUtility& dummy,
+        ModelPart& model_part, Variable<array_1d<double, 3> >& rThisVariable)
+{
+    dummy.TransferVariablesToNodes(model_part, rThisVariable);
+}
+
 void VectorTransferVariablesToNodes(VariableTransferUtility& dummy,
         ModelPart& model_part, Variable<Vector>& rThisVariable)
 {
@@ -336,6 +342,7 @@ void  AddCustomUtilitiesToPython()
     .def( "TransferSpecificVariableWithComponents", &VariableTransferUtility::TransferSpecificVariableWithComponents )
     .def( "InitializeModelPart", &VariableTransferUtility::InitializeModelPart )
     .def("TransferVariablesToNodes", &DoubleTransferVariablesToNodes)
+    .def("TransferVariablesToNodes", &Array1DTransferVariablesToNodes)
     .def("TransferVariablesToNodes", &VectorTransferVariablesToNodes)
     .def("TransferVariablesToNodes", &VectorTransferVariablesToNodesComponents)
     .def("TransferVariablesToGaussPoints", &DoubleTransferVariablesToGaussPoints)

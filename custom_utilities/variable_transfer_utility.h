@@ -1413,7 +1413,8 @@ public:
                 }
             }
         }
-std::cout << KRATOS_HERE; KRATOS_WATCH(active_nodes.size())
+        KRATOS_WATCH(active_nodes.size())
+
         // assign each node an id. That id is the row of this node in the global L2 projection matrix
         std::size_t cnt = 0;
         for( std::set<std::size_t>::iterator it = active_nodes.begin(); it != active_nodes.end(); ++it )
@@ -1846,7 +1847,8 @@ std::cout << KRATOS_HERE; KRATOS_WATCH(active_nodes.size())
                 }
             }
         }
-std::cout << KRATOS_HERE; KRATOS_WATCH(active_nodes.size())
+        KRATOS_WATCH(active_nodes.size())
+
         // assign each node an id. That id is the row of this node in the global L2 projection matrix
         std::size_t cnt = 0;
         for( std::set<std::size_t>::iterator it = active_nodes.begin(); it != active_nodes.end(); ++it )
@@ -2012,6 +2014,210 @@ std::cout << KRATOS_HERE; KRATOS_WATCH(active_nodes.size())
                 it->GetSolutionStepValue(rThisVariable) = g(node_row_id[it->Id()]);
             }
 //            Timer::Stop("Transfer result");
+
+#ifdef _OPENMP
+        for(unsigned int i = 0; i < M_size; ++i)
+            omp_destroy_lock(&lock_array[i]);
+#endif
+        std::cout << "TransferVariablesToNodes for " << rThisVariable.Name() << " completed" << std::endl;
+    }
+
+    void TransferVariablesToNodes(ModelPart& model_part, Variable<array_1d<double, 3> >& rThisVariable)
+    {
+        ElementsArrayType& ElementsArray = model_part.Elements();
+
+        // count all the nodes at all the active elements
+        std::set<std::size_t> active_nodes;
+        std::map<std::size_t, std::size_t> node_row_id;
+        for( ElementsArrayType::ptr_iterator it = ElementsArray.ptr_begin(); it != ElementsArray.ptr_end(); ++it )
+        {
+            if( ((*it)->GetValue(IS_INACTIVE) == false) || (*it)->Is(ACTIVE) )
+            {
+                for( std::size_t i = 0; i < (*it)->GetGeometry().size(); ++i )
+                {
+                    active_nodes.insert( (*it)->GetGeometry()[i].Id() );
+                }
+            }
+        }
+        KRATOS_WATCH(active_nodes.size())
+
+        // assign each node an id. That id is the row of this node in the global L2 projection matrix
+        std::size_t cnt = 0;
+        for( std::set<std::size_t>::iterator it = active_nodes.begin(); it != active_nodes.end(); ++it )
+        {
+            node_row_id[*it] = cnt++;
+        }
+
+        //SetUpEquationSystem
+        SpaceType::MatrixType M(active_nodes.size(), active_nodes.size());
+        SpaceType::VectorType g(active_nodes.size());
+        SpaceType::VectorType b(active_nodes.size());
+        noalias(M)= ZeroMatrix(active_nodes.size(), active_nodes.size());
+
+        int number_of_threads = 1;
+#ifdef _OPENMP
+        number_of_threads = omp_get_max_threads();
+#endif
+        vector<unsigned int> element_partition;
+        CreatePartition(number_of_threads, ElementsArray.size(), element_partition);
+        boost::progress_display show_progress( ElementsArray.size() );
+
+        // create the structure for M a priori
+//        Timer::Start("ConstructMatrixStructure");
+        ConstructMatrixStructure(M, ElementsArray, node_row_id, model_part.GetProcessInfo());
+//        Timer::Stop("ConstructMatrixStructure");
+
+#ifdef _OPENMP
+        //create the array of lock
+        std::vector< omp_lock_t > lock_array(M.size1());
+        unsigned int M_size = M.size1();
+        for(unsigned int i = 0; i < M_size; ++i)
+            omp_init_lock(&lock_array[i]);
+#endif
+
+//        Timer::Start("Assemble Transferred stiffness matrix");
+#ifdef _OPENMP
+        #pragma omp parallel for
+#endif
+        for(int k = 0; k < number_of_threads; ++k)
+        {
+            ElementsArrayType::ptr_iterator it_begin = ElementsArray.ptr_begin() + element_partition[k];
+            ElementsArrayType::ptr_iterator it_end = ElementsArray.ptr_begin() + element_partition[k+1];
+                
+            for( ElementsArrayType::ptr_iterator it = it_begin; it != it_end; ++it )
+            {
+                if( ((*it)->GetValue(IS_INACTIVE) == true) && !(*it)->Is(ACTIVE) )
+                    continue;
+
+                unsigned int dim = (*it)->GetGeometry().WorkingSpaceDimension();
+                unsigned int local_dim = (*it)->GetGeometry().LocalSpaceDimension();
+
+                const IntegrationPointsArrayType& integration_points
+                = (*it)->GetGeometry().IntegrationPoints((*it)->GetIntegrationMethod());
+
+                GeometryType::JacobiansType J(integration_points.size());
+                J = (*it)->GetGeometry().Jacobian(J, (*it)->GetIntegrationMethod());
+
+                const Matrix& Ncontainer = (*it)->GetGeometry().ShapeFunctionsValues((*it)->GetIntegrationMethod());
+
+                std::vector<double> DetJ(integration_points.size());
+                if (dim == local_dim)
+                {
+                    for(unsigned int point=0; point < integration_points.size(); ++point)
+                        DetJ[point] = MathUtils<double>::Det(J[point]);
+                }
+                else
+                {
+                    for(unsigned int point=0; point < integration_points.size(); ++point)
+                        DetJ[point] = sqrt(MathUtils<double>::Det(Matrix(prod(trans(J[point]), J[point]))));
+                }
+
+                for(unsigned int point=0; point< integration_points.size(); point++)
+                {
+                    double dV= DetJ[point]*integration_points[point].Weight();
+
+                    for(unsigned int prim=0 ; prim<(*it)->GetGeometry().size(); prim++)
+                    {
+                        unsigned int row = node_row_id[(*it)->GetGeometry()[prim].Id()];
+#ifdef _OPENMP
+                        omp_set_lock(&lock_array[row]);
+#endif
+                        for(unsigned int sec=0 ; sec<(*it)->GetGeometry().size(); sec++)
+                        {
+                            unsigned int col = node_row_id[(*it)->GetGeometry()[sec].Id()];
+                            M(row, col)+= Ncontainer(point, prim)*Ncontainer(point, sec) * dV;
+                        }
+#ifdef _OPENMP
+                        omp_unset_lock(&lock_array[row]);
+#endif
+                    }
+                }
+
+                ++show_progress;
+            }
+        }
+//        Timer::Stop("Assemble Transferred stiffness matrix");
+
+        for(unsigned int firstvalue = 0; firstvalue < 3; ++firstvalue)
+        {
+            noalias(g)= ZeroVector(active_nodes.size());
+            noalias(b)= ZeroVector(active_nodes.size());
+            //Transfer of GaussianVariables to Nodal Variablias via L_2-Minimization
+            // see Jiao + Heath "Common-refinement-based data tranfer ..."
+            // International Journal for numerical methods in engineering 61 (2004) 2402--2427
+            // for general description of L_2-Minimization
+            
+//            Timer::Start("Assemble Transferred rhs vector");
+#ifdef _OPENMP
+            #pragma omp parallel for
+#endif
+            for(int k = 0; k < number_of_threads; ++k)
+            {
+                ElementsArrayType::ptr_iterator it_begin = ElementsArray.ptr_begin() + element_partition[k];
+                ElementsArrayType::ptr_iterator it_end = ElementsArray.ptr_begin() + element_partition[k+1];
+            
+                for( ElementsArrayType::ptr_iterator it = it_begin; it != it_end; ++it )
+                {
+                    if( ((*it)->GetValue(IS_INACTIVE) == true) && !(*it)->Is(ACTIVE) )
+                        continue;
+
+                    unsigned int dim = (*it)->GetGeometry().WorkingSpaceDimension();
+                    unsigned int local_dim = (*it)->GetGeometry().LocalSpaceDimension();
+
+                    const IntegrationPointsArrayType& integration_points
+                    = (*it)->GetGeometry().IntegrationPoints( (*it)->GetIntegrationMethod());
+
+                    GeometryType::JacobiansType J(integration_points.size());
+                    J = (*it)->GetGeometry().Jacobian(J, (*it)->GetIntegrationMethod());
+                    std::vector<array_1d<double, 3> > ValuesOnIntPoint(integration_points.size());
+
+                    (*it)->GetValueOnIntegrationPoints(rThisVariable, ValuesOnIntPoint, model_part.GetProcessInfo());
+
+                    const Matrix& Ncontainer = (*it)->GetGeometry().ShapeFunctionsValues((*it)->GetIntegrationMethod());
+
+                    std::vector<double> DetJ(integration_points.size());
+                    if (dim == local_dim)
+                    {
+                        for(unsigned int point=0; point < integration_points.size(); ++point)
+                            DetJ[point] = MathUtils<double>::Det(J[point]);
+                    }
+                    else
+                    {
+                        for(unsigned int point=0; point < integration_points.size(); ++point)
+                            DetJ[point] = sqrt(MathUtils<double>::Det(Matrix(prod(trans(J[point]), J[point]))));
+                    }
+
+                    for(unsigned int point=0; point< integration_points.size(); point++)
+                    {
+                        double dV= DetJ[point]*integration_points[point].Weight();
+
+                        for(unsigned int prim=0 ; prim<(*it)->GetGeometry().size(); prim++)
+                        {
+                            unsigned int row = node_row_id[(*it)->GetGeometry()[prim].Id()];
+#ifdef _OPENMP
+                            omp_set_lock(&lock_array[row]);
+#endif
+                            b(row) += (ValuesOnIntPoint[point](firstvalue)) * Ncontainer(point, prim) * dV;
+#ifdef _OPENMP
+                            omp_unset_lock(&lock_array[row]);
+#endif
+                        }
+                    }
+                }
+            }
+//            Timer::Stop("Assemble Transferred rhs vector");
+
+//            Timer::Start("Transfer solve");
+            mpLinearSolver->Solve(M, g, b);
+//            Timer::Stop("Transfer solve");
+
+//            Timer::Start("Transfer result");
+            for(std::set<std::size_t>::iterator it = active_nodes.begin(); it != active_nodes.end(); ++it)
+            {
+                model_part.Nodes()[*it].GetSolutionStepValue(rThisVariable)(firstvalue) = g(node_row_id[*it]);
+            }
+//            Timer::Stop("Transfer result");
+        }//END firstvalue
 
 #ifdef _OPENMP
         for(unsigned int i = 0; i < M_size; ++i)
