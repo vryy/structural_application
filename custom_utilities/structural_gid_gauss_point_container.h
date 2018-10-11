@@ -146,6 +146,31 @@ public:
     virtual void PrintResults( GiD_FILE ResultFile, Variable<array_1d<double, 3> > rVariable, ModelPart& r_model_part, double
                                SolutionTag, unsigned int parameter_index )
     {
+        if( mMeshElements.size() != 0 )
+        {
+//            WriteGaussPoints(ResultFile);
+
+            GiD_fBeginResult( ResultFile, (char*)(rVariable.Name().c_str()), "Kratos",
+                             SolutionTag, GiD_Vector,
+                             GiD_OnGaussPoints, mGPTitle, NULL, 0, NULL );
+            std::vector<array_1d<double,3> > ValuesOnIntPoint(mSize);
+
+            for( ModelPart::ElementsContainerType::iterator it = mMeshElements.begin();
+                    it != mMeshElements.end(); it++ )
+            {
+                if( ! it->GetValue( IS_INACTIVE ) )
+                {
+                    it->GetValueOnIntegrationPoints( rVariable, ValuesOnIntPoint,
+                                                     r_model_part.GetProcessInfo() );
+                    for(unsigned int i=0; i<mIndexContainer.size(); i++)
+                    {
+                        GiD_fWriteVector( ResultFile, it->Id(), ValuesOnIntPoint[i][0],
+                                         ValuesOnIntPoint[i][1], ValuesOnIntPoint[i][2] );
+                    }
+                }
+            }
+            GiD_fEndResult(ResultFile);
+        }
         if( mMeshConditions.size() != 0 )
         {
 //            WriteGaussPoints(ResultFile);
