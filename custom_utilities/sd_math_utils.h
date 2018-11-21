@@ -1579,12 +1579,14 @@ public:
      * @param AA the fourth order Tensor
      * @param B the second order Tensor
      */
+    template<int Op = 1>
     static void ContractFourthOrderTensor(const double& alpha, const Fourth_Order_Tensor& A, const MatrixType& B, MatrixType& Result)
     {
         for(unsigned int i = 0; i < 3; ++i)
         {
             for(unsigned int j = 0; j < 3; ++j)
             {
+                if (Op == 0) Result(i, j) = 0.0;
                 for(unsigned int k = 0; k < 3; ++k)
                 {
                     for(unsigned int l = 0; l < 3; ++l)
@@ -1602,8 +1604,13 @@ public:
      * @param A the second order Tensor
      * @param BB the fourth order Tensor
      */
+    template<int Op = 1>
     static void ContractFourthOrderTensor(const double& alpha, const MatrixType& A, const Fourth_Order_Tensor& BB, MatrixType& Result)
     {
+        if (Op == 0)
+            for(unsigned int i = 0; i < 3; ++i)
+                for(unsigned int j = 0; j < 3; ++j)
+                    Result(i, j) = 0.0;
         for(unsigned int i = 0; i < 3; ++i)
         {
             for(unsigned int j = 0; j < 3; ++j)
@@ -1624,12 +1631,14 @@ public:
      * @param C the given Tensor
      * @param alpha
      */
+    template<int Op = 1>
     static void OuterProductFourthOrderTensor(const double& alpha, const MatrixType& A, const MatrixType& B, Fourth_Order_Tensor& Result)
     {
         for(unsigned int i = 0; i < 3; ++i)
         {
             for(unsigned int j = 0; j < 3; ++j)
             {
+                if (Op == 0) noalias(Result[i][j]) = ZeroMatrix(3, 3);
                 for(unsigned int k = 0; k < 3; ++k)
                 {
                     for(unsigned int l = 0; l < 3; ++l)
@@ -1642,13 +1651,17 @@ public:
     }
 
     // C += alpha A
+    template<int Op = 1>
     static inline void AddFourthOrderTensor(const double& alpha, const Fourth_Order_Tensor& A, Fourth_Order_Tensor& Result)
     {
         for(unsigned int i = 0; i < 3; ++i)
         {
             for(unsigned int j = 0; j < 3; ++j)
             {
-                noalias(Result[i][j]) += alpha * A[i][j];
+                if (Op == 0)
+                    noalias(Result[i][j]) = alpha * A[i][j];
+                else if (Op == 1)
+                    noalias(Result[i][j]) += alpha * A[i][j];
             }
         }
     }
