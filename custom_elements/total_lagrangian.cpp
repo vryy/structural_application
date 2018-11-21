@@ -593,6 +593,8 @@ namespace Kratos
         int need_shape_function = 0, tmp;
         for ( unsigned int Point = 0; Point < mConstitutiveLawVector.size(); ++Point )
         {
+            mConstitutiveLawVector[Point]->SetValue( PARENT_ELEMENT_ID, this->Id(), *(ProcessInfo*)0);
+            mConstitutiveLawVector[Point]->SetValue( INTEGRATION_POINT_INDEX, Point, *(ProcessInfo*)0);
             tmp = mConstitutiveLawVector[Point]->GetValue(IS_SHAPE_FUNCTION_REQUIRED, tmp);
             need_shape_function += tmp;
         }
@@ -605,8 +607,6 @@ namespace Kratos
 
             for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); ++i )
             {
-                mConstitutiveLawVector[i]->SetValue( PARENT_ELEMENT_ID, this->Id(), *(ProcessInfo*)0);
-                mConstitutiveLawVector[i]->SetValue( INTEGRATION_POINT_INDEX, i, *(ProcessInfo*)0);
                 mConstitutiveLawVector[i]->InitializeMaterial( GetProperties(), GetGeometry(), row( GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod ), i ) );
 
                 //check constitutive law
@@ -915,6 +915,14 @@ namespace Kratos
 //************************************************************************************
 //************************************************************************************
 
+    void TotalLagrangian::CalculateOnIntegrationPoints( const Variable<array_1d<double, 3> >& rVariable, std::vector<array_1d<double, 3> >& Output, const ProcessInfo& rCurrentProcessInfo )
+    {
+        GetValueOnIntegrationPoints( rVariable, Output, rCurrentProcessInfo );
+    }
+
+//************************************************************************************
+//************************************************************************************
+
     void TotalLagrangian::CalculateOnIntegrationPoints( const Variable<Vector>& rVariable, std::vector<Vector>& Output, const ProcessInfo& rCurrentProcessInfo )
     {
         unsigned int StrainSize;
@@ -1130,6 +1138,71 @@ namespace Kratos
             rValues[ii] = mConstitutiveLawVector[ii]->GetValue( rVariable, rValues[ii] );
     }
 
+//************************************************************************************
+//************************************************************************************
+
+    void TotalLagrangian::GetValueOnIntegrationPoints( const Variable<array_1d<double, 3> >& rVariable,
+            std::vector<array_1d<double, 3> >& rValues,
+            const ProcessInfo& rCurrentProcessInfo )
+    {
+        if ( rValues.size() != mConstitutiveLawVector.size() )
+            rValues.resize( mConstitutiveLawVector.size() );
+
+        #ifdef ENABLE_BEZIER_GEOMETRY
+        //initialize the geometry
+        GetGeometry().Initialize(mThisIntegrationMethod);
+        #endif
+
+        if( rVariable == DISPLACEMENT )
+        {
+            const GeometryType::IntegrationPointsArrayType& integration_points =
+                    GetGeometry().IntegrationPoints( mThisIntegrationMethod );
+
+            const Matrix& Ncontainer = GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod );
+
+            for(std::size_t point = 0; point < integration_points.size(); ++point)
+            {
+                noalias(rValues[point]) = ZeroVector(3);
+                for(std::size_t i = 0; i < GetGeometry().size(); ++i)
+                {
+                    const array_1d<double, 3>& displacement = GetGeometry()[i].GetSolutionStepValue(DISPLACEMENT);
+                    noalias(rValues[point]) += Ncontainer(point, i) * displacement;
+                }
+            }
+
+            return;
+        }
+
+        if( rVariable == INTEGRATION_POINT_GLOBAL )
+        {
+            const GeometryType::IntegrationPointsArrayType& integration_points =
+                    GetGeometry().IntegrationPoints( mThisIntegrationMethod );
+
+            for(std::size_t point = 0; point < integration_points.size(); ++point)
+            {
+                rValues[point] = GetGeometry().GlobalCoordinates(rValues[point], integration_points[point]);
+            }
+
+            return;
+        }
+
+        if( rVariable == INTEGRATION_POINT_LOCAL )
+        {
+            const GeometryType::IntegrationPointsArrayType& integration_points =
+                    GetGeometry().IntegrationPoints( mThisIntegrationMethod );
+
+            for(std::size_t point = 0; point < integration_points.size(); ++point)
+            {
+                noalias(rValues[point]) = integration_points[point];
+            }
+
+            return;
+        }
+
+        #ifdef ENABLE_BEZIER_GEOMETRY
+        GetGeometry().Clean();
+        #endif
+    }
 
 //************************************************************************************
 //************************************************************************************
