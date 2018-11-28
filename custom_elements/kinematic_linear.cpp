@@ -170,6 +170,11 @@ namespace Kratos
         else
             mThisIntegrationMethod = GetGeometry().GetDefaultIntegrationMethod(); // default method
 
+        // use the default integration rule in the case of finite cell geometry
+        std::string geo_name = typeid(GetGeometry()).name();
+        if ( geo_name.find("FiniteCellGeometry") != std::string::npos )
+            mThisIntegrationMethod = GetGeometry().GetDefaultIntegrationMethod();
+
         //number of integration points used, mThisIntegrationMethod refers to the
         //integration method defined in the constructor
         const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
@@ -211,23 +216,35 @@ namespace Kratos
         J0 = GetGeometry().Jacobian( J0, mThisIntegrationMethod, DeltaPosition );
 
         //calculating the domain size
-        mTotalDomainInitialSize = 0.00;
+        double TotalDomainInitialSize = 0.00;
         for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); ++PointNumber )
         {
             //getting informations for integration
             double IntegrationWeight = integration_points[PointNumber].Weight();
             //calculating the total domain size
-            mTotalDomainInitialSize += MathUtils<double>::Det(J0[PointNumber]) * IntegrationWeight;
+            TotalDomainInitialSize += MathUtils<double>::Det(J0[PointNumber]) * IntegrationWeight;
         }
-//        KRATOS_WATCH(mTotalDomainInitialSize)
-        if ( mTotalDomainInitialSize < 0.0 )
+//        KRATOS_WATCH(TotalDomainInitialSize)
+        if ( TotalDomainInitialSize < 0.0 )
         {
-            std::stringstream ss;
-            ss << "error on element -> " << this->Id() << std::endl;
-            ss << ". Domain size can not be less than 0, mTotalDomainInitialSize = " << mTotalDomainInitialSize;
-            KRATOS_THROW_ERROR( std::logic_error, ss.str(), "" );
+            if ( TotalDomainInitialSize < -1.0e-10 )
+            {
+                std::stringstream ss;
+                ss << "Error on element -> " << this->Id();
+                ss << ". Domain size can not be less than 0, TotalDomainInitialSize = " << TotalDomainInitialSize;
+                KRATOS_THROW_ERROR( std::logic_error, ss.str(), "" );
+            }
+            else
+            {
+                std::cout << "Warning on element -> " << this->Id();
+                std::cout << ". Domain size is small, TotalDomainInitialSize = " << TotalDomainInitialSize << " < -1e-10";
+                std::cout << ". This element will be deactivated." << std::endl;
+                this->SetValue(ACTIVATION_LEVEL, -1);
+                this->SetValue(IS_INACTIVE, true);
+                this->Set(ACTIVE, false);
+            }
         }
-        this->SetValue(GEOMETRICAL_DOMAIN_SIZE, mTotalDomainInitialSize);
+        this->SetValue(GEOMETRICAL_DOMAIN_SIZE, TotalDomainInitialSize);
 
         //Set Up Initial displacement for StressFreeActivation of Elements
         mInitialDisp.resize( GetGeometry().size(), dim, false );
@@ -411,6 +428,8 @@ namespace Kratos
         int need_shape_function = 0, tmp;
         for ( unsigned int Point = 0; Point < mConstitutiveLawVector.size(); ++Point )
         {
+            mConstitutiveLawVector[Point]->SetValue( PARENT_ELEMENT_ID, this->Id(), *(ProcessInfo*)0);
+            mConstitutiveLawVector[Point]->SetValue( INTEGRATION_POINT_INDEX, Point, *(ProcessInfo*)0);
             tmp = mConstitutiveLawVector[Point]->GetValue(IS_SHAPE_FUNCTION_REQUIRED, tmp);
             need_shape_function += tmp;
         }
@@ -423,8 +442,6 @@ namespace Kratos
 
             for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); ++i )
             {
-                mConstitutiveLawVector[i]->SetValue( PARENT_ELEMENT_ID, this->Id(), *(ProcessInfo*)0);
-                mConstitutiveLawVector[i]->SetValue( INTEGRATION_POINT_INDEX, i, *(ProcessInfo*)0);
                 mConstitutiveLawVector[i]->InitializeMaterial( GetProperties(), GetGeometry(), row( GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod ), i ) );
 
                  //verify that the constitutive law has the correct dimension
@@ -595,6 +612,7 @@ namespace Kratos
         //// Reference: Thomas Hughes, The Finite Element Method
         /////////////////////////////////////////////////////////////////////////
         Matrix Bdil_bar;
+        double TotalDomainInitialSize = this->GetValue(GEOMETRICAL_DOMAIN_SIZE);
         if(GetProperties().Has(IS_BBAR))
         {
             if(GetProperties()[IS_BBAR] == true)
@@ -608,11 +626,11 @@ namespace Kratos
                     noalias( DN_DX ) = prod( DN_De[PointNumber], InvJ0 );
                     noalias(Bdil_bar) += DN_DX * Weight * DetJ0;
                 }
-                Bdil_bar /= mTotalDomainInitialSize;
+                Bdil_bar /= TotalDomainInitialSize;
             }
         }
     //    KRATOS_WATCH(Bdil_bar / dim)
-    //    KRATOS_WATCH(mTotalDomainInitialSize)
+    //    KRATOS_WATCH(TotalDomainInitialSize)
 
         /////////////////////////////////////////////////////////////////////////
         //// Integration in space over quadrature points
@@ -744,6 +762,27 @@ namespace Kratos
         MatrixType temp = Matrix();
 
         CalculateAll( temp, rRightHandSideVector, rCurrentProcessInfo, CalculateStiffnessMatrixFlag,  CalculateResidualVectorFlag );
+
+//        //calculation flags
+//        bool CalculateStiffnessMatrixFlag = true;
+//        bool CalculateResidualVectorFlag = true;
+//        MatrixType Ke = Matrix();
+
+//        CalculateAll( Ke, rRightHandSideVector, rCurrentProcessInfo, CalculateStiffnessMatrixFlag,  CalculateResidualVectorFlag );
+
+//        const unsigned int Dim = GetGeometry().WorkingSpaceDimension();
+//        VectorType u(Ke.size1());
+//        std::size_t cnt = 0;
+//        for ( unsigned int node = 0; node < GetGeometry().size(); ++node )
+//        {
+//            u(cnt++) = GetGeometry()[node].GetSolutionStepValue(DISPLACEMENT_X);
+//            u(cnt++) = GetGeometry()[node].GetSolutionStepValue(DISPLACEMENT_Y);
+//            if (Dim == 3)
+//                u(cnt++) = GetGeometry()[node].GetSolutionStepValue(DISPLACEMENT_Z);
+//        }
+
+//        noalias(rRightHandSideVector) = -prod(Ke, u);
+//////        KRATOS_WATCH(rRightHandSideVector)
     }
 
     /**
@@ -1001,12 +1040,13 @@ namespace Kratos
         rMassMatrix = ZeroMatrix( mat_size, mat_size );
 
         double TotalMass = 0.0;
+        double TotalDomainInitialSize = this->GetValue(GEOMETRICAL_DOMAIN_SIZE);
         if( GetValue(USE_DISTRIBUTED_PROPERTIES) )
         {
-            TotalMass = mTotalDomainInitialSize * GetValue(DENSITY);
+            TotalMass = TotalDomainInitialSize * GetValue(DENSITY);
         }
         else
-            TotalMass = mTotalDomainInitialSize * GetProperties()[DENSITY];
+            TotalMass = TotalDomainInitialSize * GetProperties()[DENSITY];
 
         if ( dimension == 2 ) TotalMass *= GetProperties()[THICKNESS];
 

@@ -253,7 +253,6 @@ protected:
     Matrix mInitialDisp;
     IntegrationMethod mThisIntegrationMethod;
     std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector;
-    double mTotalDomainInitialSize;
 
     ///@}
     ///@name Protected Operators
@@ -281,7 +280,6 @@ protected:
         rSerializer.save( "mInitialDisp", mInitialDisp );
 //        rSerializer.save( "mThisIntegrationMethod", mThisIntegrationMethod );
         rSerializer.save( "mConstitutiveLawVector", mConstitutiveLawVector );
-        rSerializer.save( "mTotalDomainInitialSize", mTotalDomainInitialSize );
     }
 
     virtual void load( Serializer& rSerializer )
@@ -291,7 +289,6 @@ protected:
         rSerializer.load( "mInitialDisp", mInitialDisp );
 //        rSerializer.load( "mThisIntegrationMethod", mThisIntegrationMethod );
         rSerializer.load( "mConstitutiveLawVector", mConstitutiveLawVector );
-        rSerializer.load( "mTotalDomainInitialSize", mTotalDomainInitialSize );
     }
 
 
