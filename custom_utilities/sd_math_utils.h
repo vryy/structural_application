@@ -1442,7 +1442,7 @@ public:
         noalias(kronecker) = ZeroMatrix(3, 3);
         for(unsigned int i = 0; i < 3; ++i)
             kronecker(i, i) = 1;
-        
+
         C.resize(3);
         for(unsigned int i = 0; i < 3; ++i)
         {
@@ -1498,7 +1498,7 @@ public:
     static inline void CalculateFourthOrderUnitTensor( Fourth_Order_Tensor& C )
     {
         MatrixType kronecker = IdentityMatrix(3);
-        
+
         C.resize(3);
         for(unsigned int i = 0; i < 3; ++i)
         {
@@ -1734,10 +1734,10 @@ public:
         noalias(kronecker) = ZeroMatrix(3, 3);
         for(unsigned int i = 0; i < 3; ++i)
             kronecker(i, i) = 1.0;
-        
+
         double lambda = NU * E / ((1 + NU) * (1 - 2 * NU));
         double mu     = E / (2 * (1 + NU));
-        
+
         C.resize(3);
         for(unsigned int i = 0; i < 3; ++i)
         {
@@ -2004,7 +2004,7 @@ public:
         x = (c1 * b2 - c2 * b1) / (a1 * b2 - a2 * b1);
         y = (c2 * a1 - c1 * a2) / (a1 * b2 - a2 * b1);
     }
-    
+
     /**
      * Solve a1 * x + b1 * y + c1 * z = d1
      *       a2 * x + b2 * y + c2 * z = d2
@@ -2036,7 +2036,7 @@ public:
     {
         TDataType b2 = b / 2;
         TDataType delta = b2 * b2 - a * c;
-        
+
         if(delta < 0.0)
         {
             return 0; // no solution
@@ -2069,48 +2069,22 @@ public:
                 return 2; // two solution
             }
         }
-        
+
         return 0;
     }
 
     /**
-     * Calculate the second derivatives of the geometry at one point
+     * Calculate the second derivatives providing the Jacobian and the local gradients
+     * REMARKS: the arrangement is
+     * in 2D: [d^2/dx^2 d^2/dy^2 d^2/dxdy]
+     * in 3D: [d^2/dx^2 d^2/dy^2 d^2/dz^2 d^2/dxdy d^2/dydz d^2/dxdz]
      */
-    template<class TGeometryType, std::size_t Configuration>
-    static void CalculateSecondDerivatives(
-        TGeometryType& rGeometry,
-        std::vector<Vector>& rD2N_DX2,
-        const typename TGeometryType::CoordinatesArrayType& rPoint)
+    template<class TGeometryType>
+    static void CalculateSecondDerivatives(TGeometryType& rGeometry, std::vector<Vector>& rD2N_DX2,
+        const Matrix& J, const Matrix& DN_DX, const typename TGeometryType::CoordinatesArrayType& rPoint)
     {
-        unsigned int dim = rGeometry.WorkingSpaceDimension();
-        unsigned int number_of_nodes = rGeometry.size();
-
-        // compute the Jacobian
-        Matrix J;
-        if(Configuration == 0) // compute the Jacobian in undeformed configuration
-        {
-            Matrix DeltaPosition(rGeometry.size(), 3);
-            for ( unsigned int node = 0; node < rGeometry.size(); ++node )
-                noalias( row( DeltaPosition, node ) ) = rGeometry[node].Coordinates() - rGeometry[node].GetInitialPosition();
-            J = rGeometry.Jacobian( J, rPoint, DeltaPosition );
-        }
-        else if(Configuration == 1) // compute the Jacobian in deformed configuration
-        {
-            J = rGeometry.Jacobian(J, rPoint);
-        }
-
-        // compute inverse of Jacobian
-        Matrix InvJ;
-        double DetJ;
-        MathUtils<double>::InvertMatrix(J, InvJ, DetJ);
-
-        // compute the shape function local gradients
-        Matrix DN_De;
-        DN_De = rGeometry.ShapeFunctionsLocalGradients(DN_De, rPoint);
-
-        // compute the shape function gradients w.r.t physical coordinates
-        Matrix DN_DX(number_of_nodes, dim);
-        noalias(DN_DX) = prod(DN_De, InvJ);
+        const unsigned int dim = rGeometry.WorkingSpaceDimension();
+        const unsigned int number_of_nodes = rGeometry.size();
 
         // compute the shape function local second derivatives
         typename TGeometryType::ShapeFunctionsSecondDerivativesType D2N_De2;
@@ -2204,7 +2178,7 @@ public:
         }
 
         Matrix InvD2(mat_size, mat_size);
-        SD_MathUtils<double>::InvertMatrix(D2, InvD2);
+        InvertMatrix(D2, InvD2);
 
         if(rD2N_DX2.size() != number_of_nodes)
             rD2N_DX2.resize(number_of_nodes);
@@ -2235,6 +2209,54 @@ public:
         }
     }
 
+    /**
+     * Calculate the second derivatives of the geometry at one point
+     * REMARKS: the arrangement is
+     * in 2D: [d^2/dx^2 d^2/dy^2 d^2/dxdy]
+     * in 3D: [d^2/dx^2 d^2/dy^2 d^2/dz^2 d^2/dxdy d^2/dydz d^2/dxdz]
+     */
+    template<class TGeometryType, std::size_t Configuration>
+    static void CalculateSecondDerivatives(
+        TGeometryType& rGeometry,
+        std::vector<Vector>& rD2N_DX2,
+        const typename TGeometryType::CoordinatesArrayType& rPoint)
+    {
+        unsigned int dim = rGeometry.WorkingSpaceDimension();
+        unsigned int number_of_nodes = rGeometry.size();
+
+        // compute the Jacobian
+        Matrix J;
+        if(Configuration == 0) // compute the Jacobian in undeformed configuration
+        {
+            Matrix DeltaPosition(rGeometry.size(), 3);
+            for ( unsigned int node = 0; node < rGeometry.size(); ++node )
+                noalias( row( DeltaPosition, node ) ) = rGeometry[node].Coordinates() - rGeometry[node].GetInitialPosition();
+            J = rGeometry.Jacobian( J, rPoint, DeltaPosition );
+        }
+        else if(Configuration == 1) // compute the Jacobian in deformed configuration
+        {
+            J = rGeometry.Jacobian(J, rPoint);
+        }
+
+        // compute inverse of Jacobian
+        Matrix InvJ;
+        double DetJ;
+        MathUtils<double>::InvertMatrix(J, InvJ, DetJ);
+
+        // compute the shape function local gradients
+        Matrix DN_De;
+        DN_De = rGeometry.ShapeFunctionsLocalGradients(DN_De, rPoint);
+
+        // compute the shape function gradients w.r.t physical coordinates
+        Matrix DN_DX(number_of_nodes, dim);
+        noalias(DN_DX) = prod(DN_De, InvJ);
+
+        // compute the second derivatives
+        CalculateSecondDerivatives<TGeometryType>(rGeometry, rD2N_DX2, J, DN_DX, rPoint);
+    }
+
 };// class SD_MathUtils
+
 }
+
 #endif /* SD_MATH_UTILS defined */
