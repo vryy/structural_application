@@ -226,8 +226,9 @@ namespace Kratos
 		rRightHandSideVector[3*soilNN+3*node+1] += relDisp[1];////(mpFoundationElement->GetGeometry().ShapeFunctionValue(node, mFoundationLocalPoint));
 		rRightHandSideVector[3*soilNN+3*node+2] += relDisp[2];////(mpFoundationElement->GetGeometry().ShapeFunctionValue(node, mFoundationLocalPoint));
 	}
-	 
-	///KRATOS_WATCH(rRightHandSideVector)
+	
+//	KRATOS_WATCH(Id()) 
+//	KRATOS_WATCH(rRightHandSideVector)
 /*	for ( unsigned int i = (soilNN+foundationNN)*3 ; i < (soilNN+foundationNN+1)*3; i++ )
         {
                rRightHandSideVector[i] -= relDisp[i] / 3;
@@ -268,7 +269,7 @@ namespace Kratos
                      }
                  }
 	}
-///	KRATOS_WATCH (rLeftHandSideMatrix);
+//	KRATOS_WATCH (rLeftHandSideMatrix);
 
  /*       for( unsigned int foundation_node = 0; foundation_node < foundationNN; foundation_node++ )
         {

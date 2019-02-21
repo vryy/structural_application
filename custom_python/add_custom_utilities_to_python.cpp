@@ -58,6 +58,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // System includes
 #include <boost/python.hpp>
 #include <boost/python/suite/indexing/vector_indexing_suite.hpp>
+#include <boost/python/stl_iterator.hpp>
+#include <boost/foreach.hpp>
 
 // External includes
 #include "boost/smart_ptr.hpp"
@@ -87,7 +89,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_utilities/smoothing_utility.h"
 //#include "custom_utilities/tip_utility.h"
 #include "custom_utilities/pile_utility.h"
-//#include "custom_utilities/foundation_utility.h"
+#include "custom_utilities/foundation_utility.h"
 
 //#include "custom_utilities/detect_elements_utility.h"
 #include "custom_utilities/intra_fracture_triangle_utility.h"
@@ -215,6 +217,42 @@ void Array1DTransferVariablesToNodes(VariableTransferUtility& dummy,
     dummy.TransferVariablesToNodes(model_part, rThisVariable);
 }
 
+void Array1DTransferVariablesToNodesForElements(VariableTransferUtility& dummy,
+        ModelPart& model_part, ModelPart::ElementsContainerType& rElements, Variable<array_1d<double, 3> >& rThisVariable)
+{
+    dummy.TransferVariablesToNodes(model_part, rElements, rThisVariable);
+}
+
+void Array1DTransferVariablesToNodesForElementsAsList(VariableTransferUtility& dummy,
+        ModelPart& model_part, boost::python::list& listElements, Variable<array_1d<double, 3> >& rThisVariable)
+{
+    ModelPart::ElementsContainerType rElements;
+    typedef boost::python::stl_input_iterator<Element::Pointer> iterator_type;
+    BOOST_FOREACH(const iterator_type::value_type& v,
+                  std::make_pair(iterator_type(listElements), // begin
+                    iterator_type() ) ) // end
+        rElements.push_back(v);
+    dummy.TransferVariablesToNodes(model_part, rElements, rThisVariable);
+}
+
+void Array1DTransferVariablesToNodesForConditions(VariableTransferUtility& dummy,
+        ModelPart& model_part, ModelPart::ConditionsContainerType& rConditions, Variable<array_1d<double, 3> >& rThisVariable)
+{
+    dummy.TransferVariablesToNodes(model_part, rConditions, rThisVariable);
+}
+
+void Array1DTransferVariablesToNodesForConditionsAsList(VariableTransferUtility& dummy,
+        ModelPart& model_part, boost::python::list& listConditions, Variable<array_1d<double, 3> >& rThisVariable)
+{
+    ModelPart::ConditionsContainerType rConditions;
+    typedef boost::python::stl_input_iterator<Condition::Pointer> iterator_type;
+    BOOST_FOREACH(const iterator_type::value_type& v,
+                  std::make_pair(iterator_type(listConditions), // begin
+                    iterator_type() ) ) // end
+        rConditions.push_back(v);
+    dummy.TransferVariablesToNodes(model_part, rConditions, rThisVariable);
+}
+
 void VectorTransferVariablesToNodes(VariableTransferUtility& dummy,
         ModelPart& model_part, Variable<Vector>& rThisVariable)
 {
@@ -225,6 +263,42 @@ void VectorTransferVariablesToNodesComponents(VariableTransferUtility& dummy,
         ModelPart& model_part, Variable<Vector>& rThisVariable, const std::size_t& ncomponents)
 {
     dummy.TransferVariablesToNodes(model_part, rThisVariable, ncomponents);
+}
+
+void VectorTransferVariablesToNodesComponentsForElements(VariableTransferUtility& dummy,
+        ModelPart& model_part, ModelPart::ElementsContainerType& rElements, Variable<Vector>& rThisVariable, const std::size_t& ncomponents)
+{
+    dummy.TransferVariablesToNodes(model_part, rElements, rThisVariable, ncomponents);
+}
+
+void VectorTransferVariablesToNodesComponentsForElementsAsList(VariableTransferUtility& dummy,
+        ModelPart& model_part, boost::python::list& listElements, Variable<Vector>& rThisVariable, const std::size_t& ncomponents)
+{
+    ModelPart::ElementsContainerType rElements;
+    typedef boost::python::stl_input_iterator<Element::Pointer> iterator_type;
+    BOOST_FOREACH(const iterator_type::value_type& v,
+                  std::make_pair(iterator_type(listElements), // begin
+                    iterator_type() ) ) // end
+        rElements.push_back(v);
+    dummy.TransferVariablesToNodes(model_part, rElements, rThisVariable, ncomponents);
+}
+
+void VectorTransferVariablesToNodesComponentsForConditions(VariableTransferUtility& dummy,
+        ModelPart& model_part, ModelPart::ConditionsContainerType& rConditions, Variable<Vector>& rThisVariable, const std::size_t& ncomponents)
+{
+    dummy.TransferVariablesToNodes(model_part, rConditions, rThisVariable, ncomponents);
+}
+
+void VectorTransferVariablesToNodesComponentsForConditionsAsList(VariableTransferUtility& dummy,
+        ModelPart& model_part, boost::python::list& listConditions, Variable<Vector>& rThisVariable, const std::size_t& ncomponents)
+{
+    ModelPart::ConditionsContainerType rConditions;
+    typedef boost::python::stl_input_iterator<Condition::Pointer> iterator_type;
+    BOOST_FOREACH(const iterator_type::value_type& v,
+                  std::make_pair(iterator_type(listConditions), // begin
+                    iterator_type() ) ) // end
+        rConditions.push_back(v);
+    dummy.TransferVariablesToNodes(model_part, rConditions, rThisVariable, ncomponents);
 }
 
 void DoubleTransferVariablesToGaussPoints(VariableTransferUtility& dummy,
@@ -311,6 +385,37 @@ void InitializePileUtility( PileUtility& dummy, ModelPart& model_part,
 }
 
 ///////////////////////////////////////////////////////////////////////
+// Auxilliary Utilities for connection of the building to the ground //
+///////////////////////////////////////////////////////////////////////
+void InitializeFoundationUtility( FoundationUtility& dummy, ModelPart& model_part,
+                            boost::python::list foundation_elements, int len_foundation_elements,
+                            boost::python::list soil_elements, int len_soil_elements )
+{
+    std::vector<unsigned int> vec_foundation_elements;
+    std::vector<unsigned int> vec_soil_elements;
+
+    for ( int it = 0; it < len_foundation_elements; it++ )
+    {
+       boost::python::extract<int> x( foundation_elements[it] );
+ 
+       if ( x.check() )
+           vec_foundation_elements.push_back(( unsigned int )x );
+       else break;
+    }
+ 
+    for ( int it = 0; it < len_soil_elements; it++ )
+    {
+        boost::python::extract<int> x( soil_elements[it] );
+
+        if ( x.check() )
+           vec_soil_elements.push_back(( unsigned int )x );
+        else break;
+    }
+ 
+    dummy.InitializeFoundationUtility( model_part, vec_foundation_elements, vec_soil_elements );
+}
+
+///////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////
 
 void  AddCustomUtilitiesToPython()
@@ -343,8 +448,16 @@ void  AddCustomUtilitiesToPython()
     .def( "InitializeModelPart", &VariableTransferUtility::InitializeModelPart )
     .def("TransferVariablesToNodes", &DoubleTransferVariablesToNodes)
     .def("TransferVariablesToNodes", &Array1DTransferVariablesToNodes)
+    .def("TransferVariablesToNodes", &Array1DTransferVariablesToNodesForElements)
+    .def("TransferVariablesToNodesForElements", &Array1DTransferVariablesToNodesForElementsAsList)
+    .def("TransferVariablesToNodes", &Array1DTransferVariablesToNodesForConditions)
+    .def("TransferVariablesToNodesForConditions", &Array1DTransferVariablesToNodesForConditionsAsList)
     .def("TransferVariablesToNodes", &VectorTransferVariablesToNodes)
     .def("TransferVariablesToNodes", &VectorTransferVariablesToNodesComponents)
+    .def("TransferVariablesToNodes", &VectorTransferVariablesToNodesComponentsForElements)
+    .def("TransferVariablesToNodesForElements", &VectorTransferVariablesToNodesComponentsForElementsAsList)
+    .def("TransferVariablesToNodes", &VectorTransferVariablesToNodesComponentsForConditions)
+    .def("TransferVariablesToNodesForConditions", &VectorTransferVariablesToNodesComponentsForConditionsAsList)
     .def("TransferVariablesToGaussPoints", &DoubleTransferVariablesToGaussPoints)
     .def("TransferVariablesToGaussPoints", &VectorTransferVariablesToGaussPoints)
     .def("TransferVariablesToGaussPoints", &VectorTransferVariablesToGaussPointsElementComponents)
@@ -533,6 +646,11 @@ void  AddCustomUtilitiesToPython()
     class_<PileUtility, boost::noncopyable >
     ( "PileUtility", init<>() )
     .def( "InitializePileUtility", &InitializePileUtility )
+    ;
+
+    class_<FoundationUtility, boost::noncopyable >
+    ( "FoundationUtility", init<>() )
+    .def( "InitializeFoundationUtility", &InitializeFoundationUtility )
     ;
 
 }

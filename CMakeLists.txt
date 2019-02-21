@@ -126,6 +126,7 @@ set( KRATOS_STRUCTURAL_APPLICATION_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/inclined_constraint_2d.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/inclined_constraint_3d.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/nitsche_isotropic_constraint.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/foundation_condition.cpp
 )
 
 ###############################################################

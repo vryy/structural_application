@@ -76,108 +76,111 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace Kratos
 {
-	/**
+    /**
      * Steering Utility
          */
     class FoundationUtility
     {
         public:
-	    typedef ModelPart::ElementsContainerType ElementsArrayType;
+            typedef ModelPart::ElementsContainerType ElementsArrayType;
             typedef ModelPart::ConditionsContainerType ConditionsArrayType;
-	    typedef Geometry<Node<3> >::IntegrationPointsArrayType IntegrationPointsArrayType;
+            typedef Geometry<Node<3> >::IntegrationPointsArrayType IntegrationPointsArrayType;
             typedef Geometry<Node<3> > GeometryType;
             typedef Properties PropertiesType;
-            
+
             /**
              * class pointer definition
              */
             KRATOS_CLASS_POINTER_DEFINITION( FoundationUtility );
-            
+
             /**
              * Constructor.
              */
             FoundationUtility()
             {
             }
-            
+
             /**
              * Destructor.
              */
             virtual ~FoundationUtility()
             {
             }
-            
+
             /**
              * Initializes mesh tying by means of lagrange multipliers
              */
             void InitializeFoundationUtility( ModelPart& model_part, std::vector<unsigned int>& foundation_elements, std::vector<unsigned int>& soil_elements )
             {
-		ElementsArrayType::Pointer foundations( new ElementsArrayType() );
-		ElementsArrayType::Pointer soil_elems( new ElementsArrayType() );
-//		KRATOS_WATCH("foundation_utility, line 117");
+                ElementsArrayType::Pointer foundations( new ElementsArrayType() );
+                ElementsArrayType::Pointer soil_elems( new ElementsArrayType() );
+//        KRATOS_WATCH("foundation_utility, line 117");
 //                 Geometry<Node<3> >::Pointer tempGeometry;
 //                 tempGeometry = geometry_object.Create( temp_points );
                 Node<3> point( 0.0, 0.0, 0.0 );
                 GeometryType::Pointer tempGeometry = GeometryType::Pointer(new Point3D<Node<3> >(point) );
        //         KRATOS_WATCH( tempGeometry );
         //        KRATOS_WATCH( *tempGeometry );
-//		KRATOS_WATCH("foundation_utiliy, line 120");
+//        KRATOS_WATCH("foundation_utiliy, line 120");
                 int properties_index = model_part.NumberOfProperties();
                 PropertiesType::Pointer tempProperties( new PropertiesType( properties_index + 1 ) );
                 model_part.AddProperties( tempProperties );
-                    
 
-		std::cout << "Initializing FoundationUtility..." << std::endl;
-		for( unsigned int it = 0; it != foundation_elements.size(); it++ )
-		{
-			foundations->push_back( model_part.GetElement( foundation_elements[it]) );
-		}
-		
-		for( unsigned int it = 0; it != soil_elements.size(); it++ )
-		{
-			soil_elems->push_back( model_part.GetElement( soil_elements[it]) );
-		}
-		for( ElementsArrayType::ptr_iterator it = foundations->ptr_begin(); 
-                         it != foundations->ptr_end(); ++it )
-		{
-			/******KRATOS_WATCH(it);*/
-		//	KRATOS_WATCH(*it);
-			for( IndexType i = 0; i < (*it)->GetGeometry().IntegrationPoints().size(); i++ )
-			{
-				Point<3> FoundationPoint;
-				Point<3> FoundationLocalPoint = (*it)->GetGeometry().IntegrationPoints()[i];
-				FoundationPoint = (*it)->GetGeometry().GlobalCoordinates( FoundationPoint, FoundationLocalPoint );
-				Point<3> SoilLocalPoint;
-				Element::Pointer TargetElement;
-				if( FindPartnerElement( FoundationPoint, soil_elems, TargetElement, SoilLocalPoint ) )
-				{
-				///	KRATOS_WATCH(i);
-				////	KRATOS_WATCH("Soil element found:");
-				///	KRATOS_WATCH(TargetElement->Id());
-				///	KRATOS_WATCH(FoundationLocalPoint);
-				///	KRATOS_WATCH(SoilLocalPoint);
-				///	KRATOS_WATCH(FoundationPoint);
-					Point<3> SoilGlobalPoint;
-					SoilGlobalPoint = TargetElement->GetGeometry().GlobalCoordinates( SoilGlobalPoint, SoilLocalPoint );
-					//j +=  TargetElement->GetGeometry().IntegrationPoints().size();
-			//		KRATOS_WATCH( SoilGlobalPoint );
-                    int a = (model_part.Conditions().end()-1)->Id();
-                //    KRATOS_WATCH (a);
-					IndexType newId = a + 1;
-			//		KRATOS_WATCH( newId );
-//					unsigned int j;
-//					for( IndexType j = 0; j < ( TargetElement->GetGeometry().IntegrationPoints().size()); j++ )
-//					{
-					Condition::Pointer newLink = Condition::Pointer( new FoundationCondition( newId, tempGeometry, tempProperties, TargetElement, *it, SoilLocalPoint, FoundationLocalPoint) );
-                    model_part.Conditions().push_back( newLink );
-			//		KRATOS_WATCH (i);
-//					}
-				}
+                std::cout << "Initializing FoundationUtility..." << std::endl;
+                std::size_t nconds = 0;
+                for( unsigned int it = 0; it != foundation_elements.size(); it++ )
+                {
+                    foundations->push_back( model_part.GetElement( foundation_elements[it]) );
+                }
 
-			}
-		}
+                for( unsigned int it = 0; it != soil_elements.size(); it++ )
+                {
+                    soil_elems->push_back( model_part.GetElement( soil_elements[it]) );
+                }
+                for( ElementsArrayType::ptr_iterator it = foundations->ptr_begin(); 
+                                 it != foundations->ptr_end(); ++it )
+                {
+                    /******KRATOS_WATCH(it);*/
+                    for( IndexType i = 0; i < (*it)->GetGeometry().IntegrationPoints().size(); i++ )
+                    {
+                        Point<3> FoundationPoint;
+                        Point<3> FoundationLocalPoint = (*it)->GetGeometry().IntegrationPoints()[i];
+                        FoundationPoint = (*it)->GetGeometry().GlobalCoordinates( FoundationPoint, FoundationLocalPoint );
+                        Point<3> SoilLocalPoint;
+                        Element::Pointer TargetElement;
+                        if( FindPartnerElement( FoundationPoint, soil_elems, TargetElement, SoilLocalPoint ) )
+                        {
+                        ///    KRATOS_WATCH(i);
+                        ///    KRATOS_WATCH("Soil element found:");
+                        ///    KRATOS_WATCH(TargetElement->Id());
+                        ///    KRATOS_WATCH(FoundationLocalPoint);
+                        ///    KRATOS_WATCH(SoilLocalPoint);
+                        ///    KRATOS_WATCH(FoundationPoint);
+                            Point<3> SoilGlobalPoint;
+                            SoilGlobalPoint = TargetElement->GetGeometry().GlobalCoordinates( SoilGlobalPoint, SoilLocalPoint );
+                            //j +=  TargetElement->GetGeometry().IntegrationPoints().size();
+                    //        KRATOS_WATCH( SoilGlobalPoint );
+                            int a = (model_part.Conditions().end()-1)->Id();
+                        //    KRATOS_WATCH (a);
+                            IndexType newId = a + 1;
+                    //        KRATOS_WATCH( newId );
+        //                    unsigned int j;
+        //                    for( IndexType j = 0; j < ( TargetElement->GetGeometry().IntegrationPoints().size()); j++ )
+        //                    {
+                            Condition::Pointer newLink = Condition::Pointer( new FoundationCondition( newId, tempGeometry, tempProperties, TargetElement, *it, SoilLocalPoint, FoundationLocalPoint) );
+                            model_part.Conditions().push_back( newLink );
+                            ++nconds;
+                    //        KRATOS_WATCH (i);
+        //                    }
+                        }
+
+                    }
+                }
+
+                std::cout << "FoundationUtility completed, " << nconds << " FoundationCondition is added to the model_part" << std::endl;
+
                 return;
-            }//InitializeTipUtility
+            } // InitializeFoundationUtility
 
             /**
              * calculates for a point given with the physical coords newNode
@@ -207,11 +210,11 @@ namespace Kratos
                     double minDist = 1.0e120;
                     newMinDistFound= false;
                     SoilElementsCandidates->clear();
-	            // (global search)
+                // (global search)
                     for( ElementsArrayType::ptr_iterator it = FoundationSoilElements->ptr_begin(); 
                          it != FoundationSoilElements->ptr_end(); ++it )
                     {
-			//loop over all nodes in tested element
+            //loop over all nodes in tested element
                         for( unsigned int n=0; n<(*it)->GetGeometry().size(); n++ )
                         {
                             double dist = ((*it)->GetGeometry().GetPoint(n).X0()-sourcePoint[0])
@@ -276,51 +279,51 @@ namespace Kratos
     * @return global coordinates
     */
 
-     	GeometryType::CoordinatesArrayType& GlobalCoordinatesFoundationSoil(Element::Pointer FoundationSoilElements, GeometryType::CoordinatesArrayType& rResult, GeometryType::CoordinatesArrayType const& LocalCoordinates)
-    	{
-		noalias(rResult)= ZeroVector(3);
+         GeometryType::CoordinatesArrayType& GlobalCoordinatesFoundationSoil(Element::Pointer FoundationSoilElements, GeometryType::CoordinatesArrayType& rResult, GeometryType::CoordinatesArrayType const& LocalCoordinates)
+        {
+        noalias(rResult)= ZeroVector(3);
 
-		for(IndexType i = 0 ; i < FoundationSoilElements->GetGeometry().size() ; i++)
-		{
-			double shape_func= FoundationSoilElements->GetGeometry().ShapeFunctionValue(i,LocalCoordinates);
+        for(IndexType i = 0 ; i < FoundationSoilElements->GetGeometry().size() ; i++)
+        {
+            double shape_func= FoundationSoilElements->GetGeometry().ShapeFunctionValue(i,LocalCoordinates);
 
-			rResult(0) += shape_func* 
-				((FoundationSoilElements->GetGeometry()[i]).X0()
-				+(FoundationSoilElements->GetGeometry()[i]).GetSolutionStepValue(DISPLACEMENT_X));
+            rResult(0) += shape_func* 
+                ((FoundationSoilElements->GetGeometry()[i]).X0()
+                +(FoundationSoilElements->GetGeometry()[i]).GetSolutionStepValue(DISPLACEMENT_X));
 
-			rResult(1) += shape_func* 
-				((FoundationSoilElements->GetGeometry()[i]).Y0()
-				+(FoundationSoilElements->GetGeometry()[i]).GetSolutionStepValue(DISPLACEMENT_Y));
+            rResult(1) += shape_func* 
+                ((FoundationSoilElements->GetGeometry()[i]).Y0()
+                +(FoundationSoilElements->GetGeometry()[i]).GetSolutionStepValue(DISPLACEMENT_Y));
 
-			rResult(2) += shape_func* 
-				((FoundationSoilElements->GetGeometry()[i]).Z0()
-				+(FoundationSoilElements->GetGeometry()[i]).GetSolutionStepValue(DISPLACEMENT_Z));
-		}
-		return rResult;
-    	}      
+            rResult(2) += shape_func* 
+                ((FoundationSoilElements->GetGeometry()[i]).Z0()
+                +(FoundationSoilElements->GetGeometry()[i]).GetSolutionStepValue(DISPLACEMENT_Z));
+        }
+        return rResult;
+        }      
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-     	GeometryType::CoordinatesArrayType& GlobalCoordinatesFoundation(const Element::Pointer FoundationElements, GeometryType::CoordinatesArrayType& rResult, GeometryType::CoordinatesArrayType const& LocalCoordinates)
-    	{
-		noalias(rResult)= ZeroVector(3);
+         GeometryType::CoordinatesArrayType& GlobalCoordinatesFoundation(const Element::Pointer FoundationElements, GeometryType::CoordinatesArrayType& rResult, GeometryType::CoordinatesArrayType const& LocalCoordinates)
+        {
+        noalias(rResult)= ZeroVector(3);
 
-		for(IndexType i = 0 ; i < FoundationElements->GetGeometry().size() ; i++)
-		{
-			double shape_func= FoundationElements->GetGeometry().ShapeFunctionValue(i,LocalCoordinates);
+        for(IndexType i = 0 ; i < FoundationElements->GetGeometry().size() ; i++)
+        {
+            double shape_func= FoundationElements->GetGeometry().ShapeFunctionValue(i,LocalCoordinates);
 
-			rResult(0) += shape_func* 
-				((FoundationElements->GetGeometry()[i]).X0()
-				+(FoundationElements->GetGeometry()[i]).GetSolutionStepValue(DISPLACEMENT_X));
+            rResult(0) += shape_func* 
+                ((FoundationElements->GetGeometry()[i]).X0()
+                +(FoundationElements->GetGeometry()[i]).GetSolutionStepValue(DISPLACEMENT_X));
 
-			rResult(1) += shape_func* 
-				((FoundationElements->GetGeometry()[i]).Y0()
-				+(FoundationElements->GetGeometry()[i]).GetSolutionStepValue(DISPLACEMENT_Y));
+            rResult(1) += shape_func* 
+                ((FoundationElements->GetGeometry()[i]).Y0()
+                +(FoundationElements->GetGeometry()[i]).GetSolutionStepValue(DISPLACEMENT_Y));
 
-			rResult(2) += shape_func* 
-				((FoundationElements->GetGeometry()[i]).Z0()
-				+(FoundationElements->GetGeometry()[i]).GetSolutionStepValue(DISPLACEMENT_Z));
-		}
-		return rResult;
-    	} 
+            rResult(2) += shape_func* 
+                ((FoundationElements->GetGeometry()[i]).Z0()
+                +(FoundationElements->GetGeometry()[i]).GetSolutionStepValue(DISPLACEMENT_Z));
+        }
+        return rResult;
+        } 
     };//class TipUtility
 }  // namespace Kratos.
 

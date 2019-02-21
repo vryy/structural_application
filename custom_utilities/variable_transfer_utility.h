@@ -83,6 +83,7 @@ public:
     typedef Dof<double> TDofType;
     typedef PointerVectorSet<TDofType, IndexedObject> DofsArrayType;
     typedef ModelPart::ElementsContainerType ElementsArrayType;
+    typedef ModelPart::ConditionsContainerType ConditionsArrayType;
     typedef double* ContainerType;
     typedef Element::DofsVectorType DofsVectorType;
     typedef Geometry<Node<3> >::IntegrationPointsArrayType IntegrationPointsArrayType;
@@ -917,7 +918,7 @@ public:
     void TransferVariablesToGaussPointsIdentically(ModelPart& rSource, Element::Pointer pTargetElement,
                                         Variable<Kratos::Vector>& rThisVariable, std::size_t ncomponents = 6)
     {
-        std::cout << "At " << __FUNCTION__ << " for element " << pTargetElement->Id() << std::endl;
+/*        std::cout << "At " << __FUNCTION__ << " for element " << pTargetElement->Id() << std::endl;*/
         ElementsArrayType& SourceMeshElementsArray= rSource.Elements();
 
         if( (pTargetElement->GetValue(IS_INACTIVE) == true) && !pTargetElement->Is(ACTIVE) )
@@ -940,11 +941,11 @@ public:
             noalias(ValuesOnIntPoint[point])=
                 ValueVectorInOldMesh(sourceElement, sourceLocalPoint, rThisVariable );
 
-            if (point==0) KRATOS_WATCH(ValuesOnIntPoint[point])
+/*            if (point==0) KRATOS_WATCH(ValuesOnIntPoint[point])*/
         }
-        std::cout << __FUNCTION__ << " for element " << pTargetElement->Id() << " before SetValueOnIntegrationPoints, ValuesOnIntPoint.size(): " << ValuesOnIntPoint.size() << std::endl;
+/*        std::cout << __FUNCTION__ << " for element " << pTargetElement->Id() << " before SetValueOnIntegrationPoints, ValuesOnIntPoint.size(): " << ValuesOnIntPoint.size() << std::endl;*/
         pTargetElement->SetValueOnIntegrationPoints( rThisVariable, ValuesOnIntPoint, rSource.GetProcessInfo());
-        std::cout << __FUNCTION__ << " for element " << pTargetElement->Id() << " completed" << std::endl;
+/*        std::cout << __FUNCTION__ << " for element " << pTargetElement->Id() << " completed" << std::endl;*/
     }
 
     /**
@@ -1395,15 +1396,28 @@ public:
         std::cout << "TransferVariablesToNodes for " << rThisVariable.Name() << " completed" << std::endl;
     }
 
-
     void TransferVariablesToNodes(ModelPart& model_part, Variable<Kratos::Vector>& rThisVariable, const std::size_t& ncomponents)
     {
-        ElementsArrayType& ElementsArray = model_part.Elements();
+        TransferVectorVariablesToNodes<ElementsArrayType>(model_part, model_part.Elements(), rThisVariable, ncomponents);
+    }
 
+    void TransferVariablesToNodes(ModelPart& model_part, ElementsArrayType& rElements, Variable<Kratos::Vector>& rThisVariable, const std::size_t& ncomponents)
+    {
+        TransferVectorVariablesToNodes<ElementsArrayType>(model_part, rElements, rThisVariable, ncomponents);
+    }
+
+    void TransferVariablesToNodes(ModelPart& model_part, ConditionsArrayType& rConditions, Variable<Kratos::Vector>& rThisVariable, const std::size_t& ncomponents)
+    {
+        TransferVectorVariablesToNodes<ConditionsArrayType>(model_part, rConditions, rThisVariable, ncomponents);
+    }
+
+    template<typename TElementsArrayType>
+    void TransferVectorVariablesToNodes(ModelPart& model_part, TElementsArrayType& ElementsArray, Variable<Kratos::Vector>& rThisVariable, const std::size_t& ncomponents)
+    {
         // count all the nodes at all the active elements
         std::set<std::size_t> active_nodes;
         std::map<std::size_t, std::size_t> node_row_id;
-        for( ElementsArrayType::ptr_iterator it = ElementsArray.ptr_begin(); it != ElementsArray.ptr_end(); ++it )
+        for( typename TElementsArrayType::ptr_iterator it = ElementsArray.ptr_begin(); it != ElementsArray.ptr_end(); ++it )
         {
             if( ((*it)->GetValue(IS_INACTIVE) == false) || (*it)->Is(ACTIVE) )
             {
@@ -1456,10 +1470,10 @@ public:
 #endif
         for(int k = 0; k < number_of_threads; ++k)
         {
-            ElementsArrayType::ptr_iterator it_begin = ElementsArray.ptr_begin() + element_partition[k];
-            ElementsArrayType::ptr_iterator it_end = ElementsArray.ptr_begin() + element_partition[k+1];
+            typename TElementsArrayType::ptr_iterator it_begin = ElementsArray.ptr_begin() + element_partition[k];
+            typename TElementsArrayType::ptr_iterator it_end = ElementsArray.ptr_begin() + element_partition[k+1];
                 
-            for( ElementsArrayType::ptr_iterator it = it_begin; it != it_end; ++it )
+            for( typename TElementsArrayType::ptr_iterator it = it_begin; it != it_end; ++it )
             {
                 if( ((*it)->GetValue(IS_INACTIVE) == true) && !(*it)->Is(ACTIVE) )
                     continue;
@@ -1518,10 +1532,10 @@ public:
 #endif
             for(int k = 0; k < number_of_threads; ++k)
             {
-                ElementsArrayType::ptr_iterator it_begin = ElementsArray.ptr_begin() + element_partition[k];
-                ElementsArrayType::ptr_iterator it_end = ElementsArray.ptr_begin() + element_partition[k+1];
+                typename TElementsArrayType::ptr_iterator it_begin = ElementsArray.ptr_begin() + element_partition[k];
+                typename TElementsArrayType::ptr_iterator it_end = ElementsArray.ptr_begin() + element_partition[k+1];
             
-                for( ElementsArrayType::ptr_iterator it = it_begin; it != it_end; ++it )
+                for( typename TElementsArrayType::ptr_iterator it = it_begin; it != it_end; ++it )
                 {
                     if( ((*it)->GetValue(IS_INACTIVE) == true) && !(*it)->Is(ACTIVE) )
                         continue;
@@ -2024,12 +2038,26 @@ public:
 
     void TransferVariablesToNodes(ModelPart& model_part, Variable<array_1d<double, 3> >& rThisVariable)
     {
-        ElementsArrayType& ElementsArray = model_part.Elements();
+        TransferArray1DVariablesToNodes(model_part, model_part.Elements(), rThisVariable);
+    }
 
+    void TransferVariablesToNodes(ModelPart& model_part, ElementsArrayType& ElementsArray, Variable<array_1d<double, 3> >& rThisVariable)
+    {
+        TransferArray1DVariablesToNodes(model_part, ElementsArray, rThisVariable);
+    }
+
+    void TransferVariablesToNodes(ModelPart& model_part, ConditionsArrayType& ConditionsArray, Variable<array_1d<double, 3> >& rThisVariable)
+    {
+        TransferArray1DVariablesToNodes(model_part, ConditionsArray, rThisVariable);
+    }
+
+    template<typename TElementsArrayType>
+    void TransferArray1DVariablesToNodes(ModelPart& model_part, TElementsArrayType& ElementsArray, Variable<array_1d<double, 3> >& rThisVariable)
+    {
         // count all the nodes at all the active elements
         std::set<std::size_t> active_nodes;
         std::map<std::size_t, std::size_t> node_row_id;
-        for( ElementsArrayType::ptr_iterator it = ElementsArray.ptr_begin(); it != ElementsArray.ptr_end(); ++it )
+        for( typename TElementsArrayType::ptr_iterator it = ElementsArray.ptr_begin(); it != ElementsArray.ptr_end(); ++it )
         {
             if( ((*it)->GetValue(IS_INACTIVE) == false) || (*it)->Is(ACTIVE) )
             {
@@ -2081,10 +2109,10 @@ public:
 #endif
         for(int k = 0; k < number_of_threads; ++k)
         {
-            ElementsArrayType::ptr_iterator it_begin = ElementsArray.ptr_begin() + element_partition[k];
-            ElementsArrayType::ptr_iterator it_end = ElementsArray.ptr_begin() + element_partition[k+1];
+            typename TElementsArrayType::ptr_iterator it_begin = ElementsArray.ptr_begin() + element_partition[k];
+            typename TElementsArrayType::ptr_iterator it_end = ElementsArray.ptr_begin() + element_partition[k+1];
                 
-            for( ElementsArrayType::ptr_iterator it = it_begin; it != it_end; ++it )
+            for( typename TElementsArrayType::ptr_iterator it = it_begin; it != it_end; ++it )
             {
                 if( ((*it)->GetValue(IS_INACTIVE) == true) && !(*it)->Is(ACTIVE) )
                     continue;
@@ -2153,10 +2181,10 @@ public:
 #endif
             for(int k = 0; k < number_of_threads; ++k)
             {
-                ElementsArrayType::ptr_iterator it_begin = ElementsArray.ptr_begin() + element_partition[k];
-                ElementsArrayType::ptr_iterator it_end = ElementsArray.ptr_begin() + element_partition[k+1];
+                typename TElementsArrayType::ptr_iterator it_begin = ElementsArray.ptr_begin() + element_partition[k];
+                typename TElementsArrayType::ptr_iterator it_end = ElementsArray.ptr_begin() + element_partition[k+1];
             
-                for( ElementsArrayType::ptr_iterator it = it_begin; it != it_end; ++it )
+                for( typename TElementsArrayType::ptr_iterator it = it_begin; it != it_end; ++it )
                 {
                     if( ((*it)->GetValue(IS_INACTIVE) == true) && !(*it)->Is(ACTIVE) )
                         continue;
@@ -3069,9 +3097,10 @@ protected:
 #endif
     }
 
+    template<typename TElementsArrayType>
     void ConstructMatrixStructure (
         SpaceType::MatrixType& A,
-        ElementsArrayType& rElements,
+        TElementsArrayType& rElements,
         std::map<std::size_t, std::size_t>& NodeRowId,
         ProcessInfo& CurrentProcessInfo
     )
@@ -3080,7 +3109,7 @@ protected:
         std::vector<std::vector<std::size_t> > indices(equation_size);
 
         Element::EquationIdVectorType ids;
-        for(ElementsArrayType::iterator i_element = rElements.begin() ; i_element != rElements.end() ; ++i_element)
+        for(typename TElementsArrayType::iterator i_element = rElements.begin() ; i_element != rElements.end() ; ++i_element)
         {
             if( ! (i_element)->GetValue( IS_INACTIVE ) || (i_element)->Is(ACTIVE) )
             {
