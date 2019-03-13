@@ -979,7 +979,6 @@ void BeamElement::GetValueOnIntegrationPoints( const Variable<array_1d<double,3>
         std::vector<array_1d<double,3> >& rValues,
         const ProcessInfo& rCurrentProcessInfo)
 {
-
     CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
 
 }
