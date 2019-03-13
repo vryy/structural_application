@@ -154,7 +154,7 @@ double& PlaneStrain::GetValue( const Variable<double>& rThisVariable, double& rV
 
 Vector& PlaneStrain::GetValue( const Variable<Vector>& rThisVariable, Vector& rValue )
 {
-    if ( rThisVariable == STRESSES )
+    if ( rThisVariable == STRESSES || STRESSES_OLD )
     {
         rValue = mCurrentStress;
     }
@@ -195,7 +195,7 @@ Matrix& PlaneStrain::GetValue( const Variable<Matrix>& rThisVariable, Matrix& rV
             rValue(0, i) = 0.00;
     }
 
-    if(rThisVariable == ALGORITHMIC_TANGENT)
+    if(rThisVariable == ALGORITHMIC_TANGENT || rThisVariable == ELASTIC_TANGENT)
     {
         if(rValue.size1() != 3 || rValue.size2() != 3)
             rValue.resize(3, 3, false);
