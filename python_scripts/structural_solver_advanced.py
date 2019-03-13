@@ -166,7 +166,6 @@ class SolverAdvanced(structural_solver_static.StaticStructuralSolver):
         #######################################################################
         
     def Initialize(self):
-        print(166)
         #definition of time integration scheme
         if( self.analysis_parameters['analysis_type'] == 0 ):
             print("using static scheme")
