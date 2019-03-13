@@ -2022,10 +2022,14 @@ public:
 //            Timer::Stop("Transfer solve");
 
 //            Timer::Start("Transfer result");
-            for(ModelPart::NodeIterator it = model_part.NodesBegin() ;
-                    it != model_part.NodesEnd() ; it++)
+            // for(ModelPart::NodeIterator it = model_part.NodesBegin() ;
+            //         it != model_part.NodesEnd() ; it++)
+            // {
+            //     it->GetSolutionStepValue(rThisVariable) = g(node_row_id[it->Id()]);
+            // }
+            for(std::set<std::size_t>::iterator it = active_nodes.begin(); it != active_nodes.end(); ++it)
             {
-                it->GetSolutionStepValue(rThisVariable) = g(node_row_id[it->Id()]);
+                model_part.Nodes()[*it].GetSolutionStepValue(rThisVariable) = g(node_row_id[*it]);
             }
 //            Timer::Stop("Transfer result");
 
