@@ -124,7 +124,7 @@ public:
     /**
      * Operations
      */
-    
+
     /**
      * Setting up the contact condition using LagrangeTying contact links
      */
@@ -188,7 +188,7 @@ public:
 //                                 GlobalCoordinates( **it, contact_point_global, (GeometryType::CoordinatesArrayType)SlaveContactLocalPoint );
 //                                 NodeType::Pointer p_node(new NodeType(*i_node));
 //                 last_id++;
-                
+
                                 Node<3>::Pointer contact_node_global( new Node<3>( *(mr_model_part.NodesEnd()-1) ) );
                                 contact_node_global->SetId(++lastExistingNodeId);
 //                                 contact_node_global->AddDof( DISPLACEMENT_X );
@@ -437,9 +437,24 @@ public:
                     it != LinkingConditions.ptr_end(); ++it )
             {
                 mr_model_part.Conditions().push_back( *it );
+
+                //mark all the activated contact nodes
+                int temp = (*it)->GetValue( CONTACT_LINK_MASTER )->GetGeometry().size();
+                for(int i = 0; i < temp; i++)
+                {
+                    (*it)->GetValue( CONTACT_LINK_MASTER )->GetGeometry()[i].SetValue(IS_CONTACT_NODE, true);
+                }
+
+                temp = (*it)->GetValue( CONTACT_LINK_SLAVE )->GetGeometry().size();
+                for(int i = 0; i < temp; i++)
+                {
+                    (*it)->GetValue( CONTACT_LINK_SLAVE )->GetGeometry()[i].SetValue(IS_CONTACT_NODE, true);
+                }
             }
+
             LinkingConditions.clear();
         }
+
         return lastRealCondition;
     }//SetUpContactConditions
 
@@ -860,6 +875,7 @@ public:
                                           *0.5*((*it)->GetValue(PENALTY)[i]);
                         absolute += (*it)->GetValue( LAMBDAS )[i];
                         ratio += (*it)->GetValue( DELTA_LAMBDAS )[i];
+
                         Index++;
                         cumulative_penetration += (*it)->GetValue( GAPS )[i]*(*it)->GetValue( GAPS )[i];
 
@@ -925,14 +941,16 @@ public:
         if( this->mEchoLevel > 1 )
         {
             std::cout << "absolute Lambda: " << absolute/Index << std::endl;
-            std::cout << "relative Lambda: " << ratio/absolute << std::endl;
+            if(absolute != 0)
+                std::cout << "relative Lambda: " << ratio/absolute << std::endl;
             std::cout << "energy criterion: " << energy_contact/Index << std::endl;
             std::cout << "normed gap: " << wriggers_crit<<std::endl;
             std::cout << "weighted mean penetration: " << sqrt(cumulative_penetration/Index) << std::endl;
             if( friction )
             {
                 std::cout << "absolute Lambda friction: " << absolute_friction/Index << std::endl;
-                std::cout << "relative Lambda friction: " << ratio_friction/absolute_friction << std::endl;
+                if(absolute_friction != 0)
+                    std::cout << "relative Lambda friction: " << ratio_friction/absolute_friction << std::endl;
                 std::cout << "energy criterion friction: " << energy_friction/Index2 << std::endl;
                 std::cout << "forbidden slip: " << sqrt(slip)/Index2  << std::endl;
             }
@@ -941,7 +959,9 @@ public:
         {
             if( friction )
             {
-                std::cout << "relative Lambda friction: " << ratio_friction/absolute_friction << std::endl;
+                KRATOS_WATCH(absolute_friction)
+                if(absolute_friction != 0)
+                    std::cout << "relative Lambda friction: " << ratio_friction/absolute_friction << std::endl;
             }
         }
         if( friction_coefficient > 0.0 )
