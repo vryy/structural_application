@@ -76,6 +76,9 @@ bool NeoHookean2D::Has( const Variable<Matrix>& rThisVariable )
 //**********************************************************************
 int& NeoHookean2D::GetValue( const Variable<int>& rThisVariable, int& rValue )
 {
+    if (rThisVariable == IS_SHAPE_FUNCTION_REQUIRED)
+        rValue = 0;
+
     return rValue;
 }
 
@@ -261,62 +264,125 @@ void  NeoHookean2D::CalculateMaterialResponse( const Vector& StrainVector,
         int CalculateTangent,
         bool SaveInternalVariables )
 {
-    CalculateStress( StressVector, StrainVector );
-    CalculateTangentMatrix( AlgorithmicTangent, StrainVector );
+    Vector StrainVector3D(6), StressVector3D(6);
+    Matrix AlgorithmicTangent3D(6, 6);
+
+    noalias(StrainVector3D) = ZeroVector(6);
+    StrainVector3D(0) = StrainVector(0);
+    StrainVector3D(1) = StrainVector(1);
+    StrainVector3D(3) = StrainVector(2);
+
+    CalculateStress( StressVector3D, StrainVector3D );
+    CalculateTangentMatrix( AlgorithmicTangent3D, StrainVector3D );
+
+    StressVector(0) = StressVector3D(0);
+    StressVector(1) = StressVector3D(1);
+    StressVector(2) = StressVector3D(3);
+
+    std::vector<int> cmap = {0, 1, 3};
+    for (int i = 0; i < 3; ++i)
+    {
+        for (int j = 0; j < 3; ++j)
+        {
+            AlgorithmicTangent(i, j) = AlgorithmicTangent3D(cmap[i], cmap[j]);
+        }
+    }
 }
 
 //**********************************************************************
 void NeoHookean2D::CalculateTangentMatrix( Matrix& C, const Vector& StrainVector )
 {
-    if ( C.size1() != 3 || C.size2() != 3 )
+    if ( C.size1() != 6 || C.size2() != 6 )
     {
-        C.resize( 3, 3 );
+        C.resize( 6, 6 );
     }
 
     double e_11 = StrainVector(0);
     double e_22 = StrainVector(1);
-    double e_12 = StrainVector(2);
+    double e_33 = StrainVector(2);
+    double e_12 = StrainVector(3);
+    double e_23 = StrainVector(4);
+    double e_13 = StrainVector(5);
 
     double mu = mE / (2 * (1.0 + mNU));
     double lambda = mE * mNU / ((1.0 + mNU) * (1.0 - 2*mNU));
 
-    double aux = 4*e_11*e_22+ 2*e_11 - pow(e_12, 2) + 2*e_22 + 1;
+    double aux = 4*e_11*e_22 + 4*e_11*e_33 + 2*e_11 - pow(e_12, 2) - pow(e_13, 2) + 4*e_22*e_33 + 2*e_22 - pow(e_23, 2) + 2*e_33 + 1;
 
-    C( 0, 0 ) = pow(2*e_22 + 1, 2)*(-lambda*log(aux) + lambda + 2*mu)/pow(aux, 2);
-    C( 0, 1 ) = ((lambda*log(aux) - 2*mu)*(aux) + (2*e_11 + 1)*(2*e_22 + 1)*(-lambda*log(aux) + lambda + 2*mu))/pow(aux, 2);
-    C( 0, 2 ) = e_12*(2*e_22 + 1)*(lambda*log(aux) - lambda - 2*mu)/pow(aux, 2);
+    C( 0, 0 ) = pow(2*e_22 + 2*e_33 + 1, 2)*(-lambda*log(aux) + lambda + 2*mu)/pow(aux, 2);
+    C( 0, 1 ) = ((lambda*log(aux) - 2*mu)*(aux) + (2*e_11 + 2*e_33 + 1)*(2*e_22 + 2*e_33 + 1)*(-lambda*log(aux) + lambda + 2*mu))/pow(aux, 2);
+    C( 0, 2 ) = ((lambda*log(aux) - 2*mu)*(aux) + (2*e_11 + 2*e_22 + 1)*(2*e_22 + 2*e_33 + 1)*(-lambda*log(aux) + lambda + 2*mu))/pow(aux, 2);
+    C( 0, 3 ) = e_12*(2*e_22 + 2*e_33 + 1)*(lambda*log(aux) - lambda - 2*mu)/pow(aux, 2);
+    C( 0, 4 ) = e_23*(2*e_22 + 2*e_33 + 1)*(lambda*log(aux) - lambda - 2*mu)/pow(aux, 2);
+    C( 0, 5 ) = e_13*(2*e_22 + 2*e_33 + 1)*(lambda*log(aux) - lambda - 2*mu)/pow(aux, 2);
 
-    C( 1, 0 ) = ((lambda*log(aux) - 2*mu)*(aux) + (2*e_11 + 1)*(2*e_22 + 1)*(-lambda*log(aux) + lambda + 2*mu))/pow(aux, 2);
-    C( 1, 1 ) = pow(2*e_11 + 1, 2)*(-lambda*log(aux) + lambda + 2*mu)/pow(aux, 2);
-    C( 1, 2 ) = e_12*(2*e_11 + 1)*(lambda*log(aux) - lambda - 2*mu)/pow(aux, 2);
+    C( 1, 0 ) = ((lambda*log(aux) - 2*mu)*(aux) + (2*e_11 + 2*e_33 + 1)*(2*e_22 + 2*e_33 + 1)*(-lambda*log(aux) + lambda + 2*mu))/pow(aux, 2);
+    C( 1, 1 ) = pow(2*e_11 + 2*e_33 + 1, 2)*(-lambda*log(aux) + lambda + 2*mu)/pow(aux, 2);
+    C( 1, 2 ) = ((lambda*log(aux) - 2*mu)*(aux) + (2*e_11 + 2*e_22 + 1)*(2*e_11 + 2*e_33 + 1)*(-lambda*log(aux) + lambda + 2*mu))/pow(aux, 2);
+    C( 1, 3 ) = e_12*(2*e_11 + 2*e_33 + 1)*(lambda*log(aux) - lambda - 2*mu)/pow(aux, 2);
+    C( 1, 4 ) = e_23*(2*e_11 + 2*e_33 + 1)*(lambda*log(aux) - lambda - 2*mu)/pow(aux, 2);
+    C( 1, 5 ) = e_13*(2*e_11 + 2*e_33 + 1)*(lambda*log(aux) - lambda - 2*mu)/pow(aux, 2);
 
-    C( 2, 0 ) = e_12*(2*e_22 + 1)*(lambda*log(aux) - lambda - 2*mu)/pow(aux, 2);
-    C( 2, 1 ) = e_12*(2*e_11 + 1)*(lambda*log(aux) - lambda - 2*mu)/pow(aux, 2);
-    C( 2, 2 ) = (2*pow(e_12, 2)*(-lambda*log(aux) + lambda + 2*mu) - lambda*(aux)*log(aux) + 2*mu*(aux))/(2*pow(aux, 2));
+    C( 2, 0 ) = ((lambda*log(aux) - 2*mu)*(aux) + (2*e_11 + 2*e_22 + 1)*(2*e_22 + 2*e_33 + 1)*(-lambda*log(aux) + lambda + 2*mu))/pow(aux, 2);
+    C( 2, 1 ) = ((lambda*log(aux) - 2*mu)*(aux) + (2*e_11 + 2*e_22 + 1)*(2*e_11 + 2*e_33 + 1)*(-lambda*log(aux) + lambda + 2*mu))/pow(aux, 2);
+    C( 2, 2 ) = pow(2*e_11 + 2*e_22 + 1, 2)*(-lambda*log(aux) + lambda + 2*mu)/pow(aux, 2);
+    C( 2, 3 ) = e_12*(2*e_11 + 2*e_22 + 1)*(lambda*log(aux) - lambda - 2*mu)/pow(aux, 2);
+    C( 2, 4 ) = e_23*(2*e_11 + 2*e_22 + 1)*(lambda*log(aux) - lambda - 2*mu)/pow(aux, 2);
+    C( 2, 5 ) = e_13*(2*e_11 + 2*e_22 + 1)*(lambda*log(aux) - lambda - 2*mu)/pow(aux, 2);
+
+    C( 3, 0 ) = e_12*(2*e_22 + 2*e_33 + 1)*(lambda*log(aux) - lambda - 2*mu)/pow(aux, 2);
+    C( 3, 1 ) = e_12*(2*e_11 + 2*e_33 + 1)*(lambda*log(aux) - lambda - 2*mu)/pow(aux, 2);
+    C( 3, 2 ) = e_12*(2*e_11 + 2*e_22 + 1)*(lambda*log(aux) - lambda - 2*mu)/pow(aux, 2);
+    C( 3, 3 ) = (2*pow(e_12, 2)*(-lambda*log(aux) + lambda + 2*mu) - lambda*(aux)*log(aux) + 2*mu*(aux))/(2*pow(aux, 2));
+    C( 3, 4 ) = e_12*e_23*(-lambda*log(aux) + lambda + 2*mu)/pow(aux, 2);
+    C( 3, 5 ) = e_12*e_13*(-lambda*log(aux) + lambda + 2*mu)/pow(aux, 2);
+
+    C( 4, 0 ) = e_23*(2*e_22 + 2*e_33 + 1)*(lambda*log(aux) - lambda - 2*mu)/pow(aux, 2);
+    C( 4, 1 ) = e_23*(2*e_11 + 2*e_33 + 1)*(lambda*log(aux) - lambda - 2*mu)/pow(aux, 2);
+    C( 4, 2 ) = e_23*(2*e_11 + 2*e_22 + 1)*(lambda*log(aux) - lambda - 2*mu)/pow(aux, 2);
+    C( 4, 3 ) = e_12*e_23*(-lambda*log(aux) + lambda + 2*mu)/pow(aux, 2);
+    C( 4, 4 ) = (2*pow(e_23, 2)*(-lambda*log(aux) + lambda + 2*mu) - lambda*(aux)*log(aux) + 2*mu*(aux))/(2*pow(aux, 2));
+    C( 4, 5 ) = e_13*e_23*(-lambda*log(aux) + lambda + 2*mu)/pow(aux, 2);
+
+    C( 5, 0 ) = e_13*(2*e_22 + 2*e_33 + 1)*(lambda*log(aux) - lambda - 2*mu)/pow(aux, 2);
+    C( 5, 1 ) = e_13*(2*e_11 + 2*e_33 + 1)*(lambda*log(aux) - lambda - 2*mu)/pow(aux, 2);
+    C( 5, 2 ) = e_13*(2*e_11 + 2*e_22 + 1)*(lambda*log(aux) - lambda - 2*mu)/pow(aux, 2);
+    C( 5, 3 ) = e_12*e_13*(-lambda*log(aux) + lambda + 2*mu)/pow(aux, 2);
+    C( 5, 4 ) = e_13*e_23*(-lambda*log(aux) + lambda + 2*mu)/pow(aux, 2);
+    C( 5, 5 ) = (2*pow(e_13, 2)*(-lambda*log(aux) + lambda + 2*mu) - lambda*(aux)*log(aux) + 2*mu*(aux))/(2*pow(aux, 2));
 }
 
 //**********************************************************************
 void NeoHookean2D::CalculateStress( Vector& StressVector, const Vector& StrainVector )
 {
-    if ( StressVector.size() != 3 )
+    if ( StressVector.size() != 6 )
     {
-        StressVector.resize( 3 );
+        StressVector.resize( 6 );
     }
+
+    double e_11 = StrainVector(0);
+    double e_22 = StrainVector(1);
+    double e_33 = StrainVector(2);
+    double e_12 = StrainVector(3);
+    double e_23 = StrainVector(4);
+    double e_13 = StrainVector(5);
 
     double mu = mE / (2 * (1.0 + mNU));
     double lambda = mE * mNU / ((1.0 + mNU) * (1.0 - 2*mNU));
 
-    double e_11 = StrainVector(0);
-    double e_22 = StrainVector(1);
-    double e_12 = StrainVector(2);
+    double aux = 4*e_11*e_22 + 4*e_11*e_33 + 2*e_11 - pow(e_12, 2) - pow(e_13, 2) + 4*e_22*e_33 + 2*e_22 - pow(e_23, 2) + 2*e_33 + 1;
 
-    double aux = 4*e_11*e_22 + 2*e_11 - pow(e_12, 2) + 2*e_22 + 1;
+    StressVector(0) = (lambda*(2*e_22 + 2*e_33 + 1)*log(aux)/2 - mu*(2*e_22 + 2*e_33 + 1) + mu*aux) / aux;
 
-    StressVector(0) = (lambda*(2*e_22 + 1)*log(aux)/2 - mu*(2*e_22 + 1) + mu*aux) / aux;
+    StressVector(1) = (lambda*(2*e_11 + 2*e_33 + 1)*log(aux)/2 - mu*(2*e_11 + 2*e_33 + 1) + mu*aux) / aux;
 
-    StressVector(1) = (lambda*(2*e_11 + 1)*log(aux)/2 - mu*(2*e_11 + 1) + mu*aux) / aux;
+    StressVector(2) = (lambda*(2*e_11 + 2*e_22 + 1)*log(aux)/2 - mu*(2*e_11 + 2*e_22 + 1) + mu*aux) / aux;
 
-    StressVector(2) = e_12*(-lambda*log(aux) + 2*mu) / (2*aux);
+    StressVector(3) = e_12*(-lambda*log(aux) + 2*mu) / (2*aux);
+
+    StressVector(4) = e_23*(-lambda*log(aux) + 2*mu) / (2*aux);
+
+    StressVector(5) = e_13*(-lambda*log(aux) + 2*mu) / (2*aux);
 
     noalias( StressVector ) -= mPrestressFactor * mPrestress;
 
