@@ -267,9 +267,12 @@ public:
                                     value = ValuesOnIntPoint[index][parameter_index];
                                 GiD_fWriteScalar( ResultFile, it->Id(), value );
                             }
-                            else if( ValuesOnIntPoint[0].size() == 3 )
-                                GiD_fWriteVector( ResultFile, it->Id(), ValuesOnIntPoint[index][0],
-                                                 ValuesOnIntPoint[index][1], ValuesOnIntPoint[index][2] );
+                            else
+                            {
+                                if( ValuesOnIntPoint[0].size() == 3 )
+                                    GiD_fWriteVector( ResultFile, it->Id(), ValuesOnIntPoint[index][0],
+                                        ValuesOnIntPoint[index][1], ValuesOnIntPoint[index][2] );
+                            }
                         }
                     }
                 }
@@ -321,10 +324,12 @@ public:
                                     value = ValuesOnIntPoint[index][parameter_index];
                                 GiD_fWriteScalar( ResultFile, it->Id(), value );
                             }
-                            else if( ValuesOnIntPoint[0].size() == 3 )
-                                GiD_fWriteVector( ResultFile, it->Id(), ValuesOnIntPoint[index][0],
-                                                 ValuesOnIntPoint[index][1], ValuesOnIntPoint[index][2]
-                                               );
+                            else
+                            {
+                                if( ValuesOnIntPoint[0].size() == 3 )
+                                    GiD_fWriteVector( ResultFile, it->Id(), ValuesOnIntPoint[index][0],
+                                        ValuesOnIntPoint[index][1], ValuesOnIntPoint[index][2] );
+                        }
 
                         }
                     }
@@ -421,4 +426,4 @@ public:
 
 }//namespace Kratos
 
-#endif // KRATOS_STRUCTURAL_GID_GAUSS_POINT_CONTAINER_H_INCLUDED  defined 
+#endif // KRATOS_STRUCTURAL_GID_GAUSS_POINT_CONTAINER_H_INCLUDED  defined
