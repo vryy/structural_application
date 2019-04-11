@@ -203,7 +203,7 @@ void LineForce::CalculateRightHandSide( VectorType& rRightHandSideVector,
 
         // calculating length
         double dL = norm_2(t);
-        
+
         // RIGHT HAND SIDE VECTOR
         for ( unsigned int prim = 0; prim < GetGeometry().size(); ++prim )
             for ( unsigned int i = 0; i < dim; ++i )
