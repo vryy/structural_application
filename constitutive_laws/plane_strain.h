@@ -279,7 +279,8 @@ private:
 
     double mE, mNU, mDE;
     Vector mCurrentStress;
-
+    double mPrestressFactor;
+    Vector mPreStress;
 
 
     /**

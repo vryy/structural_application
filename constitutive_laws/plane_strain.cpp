@@ -87,7 +87,7 @@ bool PlaneStrain::Has(const Variable<int>& rThisVariable)
 {
     return false;
 }
-    
+
 bool PlaneStrain::Has( const Variable<double>& rThisVariable )
 {
     return false;
@@ -120,6 +120,9 @@ double& PlaneStrain::GetValue( const Variable<double>& rThisVariable, double& rV
 {
     if(rThisVariable==DELTA_TIME)
         rValue = sqrt(mE/mDE);
+
+    if(rThisVariable == PRESTRESS_FACTOR)
+        rValue = mPrestressFactor;
 
     if(rThisVariable == YOUNG_MODULUS)
         rValue = mE;
@@ -154,9 +157,14 @@ double& PlaneStrain::GetValue( const Variable<double>& rThisVariable, double& rV
 
 Vector& PlaneStrain::GetValue( const Variable<Vector>& rThisVariable, Vector& rValue )
 {
-    if ( rThisVariable == STRESSES || STRESSES_OLD )
+    if ( rThisVariable == STRESSES || rThisVariable == STRESSES_OLD )
     {
         rValue = mCurrentStress;
+    }
+
+    if ( rThisVariable == PRESTRESS || rThisVariable == INSITU_STRESS )
+    {
+        rValue = mPreStress;
     }
 
     if ( rThisVariable == THREED_STRESSES )
@@ -167,6 +175,18 @@ Vector& PlaneStrain::GetValue( const Variable<Vector>& rThisVariable, Vector& rV
         rValue(1) = mCurrentStress(1);
         rValue(2) = mNU * (mCurrentStress(0) + mCurrentStress(1));
         rValue(3) = mCurrentStress(2);
+        rValue(4) = 0.0;
+        rValue(5) = 0.0;
+    }
+
+    if ( rThisVariable == THREED_PRESTRESS )
+    {
+        if(rValue.size() != 6)
+            rValue.resize(6, false);
+        rValue(0) = mPreStress(0);
+        rValue(1) = mPreStress(1);
+        rValue(2) = mNU * (mPreStress(0) + mPreStress(1));
+        rValue(3) = mPreStress(2);
         rValue(4) = 0.0;
         rValue(5) = 0.0;
     }
@@ -213,8 +233,8 @@ void PlaneStrain::SetValue( const Variable<int>& rThisVariable, const int& rValu
 void PlaneStrain::SetValue( const Variable<double>& rThisVariable, const double& rValue,
                             const ProcessInfo& rCurrentProcessInfo )
 {
-//    if ( rThisVariable == PRESTRESS_FACTOR )
-//        mPrestressFactor = rValue;
+    if ( rThisVariable == PRESTRESS_FACTOR )
+        mPrestressFactor = rValue;
     if ( rThisVariable == YOUNG_MODULUS )
         mE = rValue;
     if ( rThisVariable == POISSON_RATIO )
@@ -224,6 +244,10 @@ void PlaneStrain::SetValue( const Variable<double>& rThisVariable, const double&
 void PlaneStrain::SetValue( const Variable<Vector>& rThisVariable, const Vector& rValue,
                             const ProcessInfo& rCurrentProcessInfo )
 {
+    if ( rThisVariable == PRESTRESS || rThisVariable == INSITU_STRESS )
+    {
+        noalias(mPreStress) = rValue;
+    }
 }
 
 void PlaneStrain::SetValue( const Variable<Matrix>& rThisVariable, const Matrix& rValue,
@@ -260,6 +284,8 @@ void PlaneStrain::InitializeMaterial( const Properties& props,
                                       const Vector& ShapeFunctionsValues )
 {
     mCurrentStress = ZeroVector( 3 );
+    mPreStress = ZeroVector( 3 );
+    mPrestressFactor = 1.0;
     mE  = props[YOUNG_MODULUS];
     mNU = props[POISSON_RATIO];
     mDE = props[DENSITY];
@@ -319,6 +345,8 @@ void PlaneStrain::CalculateStress( const Vector& StrainVector, Vector& StressVec
     StressVector[0] = c1 * StrainVector[0] + c2 * ( StrainVector[1] ) ;
     StressVector[1] = c1 * StrainVector[1] + c2 * ( StrainVector[0] ) ;
     StressVector[2] = c3 * StrainVector[2];
+
+    noalias(StressVector) -= mPrestressFactor*mPreStress;
 
     noalias( mCurrentStress ) = StressVector;
 }
