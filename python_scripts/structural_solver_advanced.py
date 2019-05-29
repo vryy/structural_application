@@ -69,7 +69,7 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(MOMENTUM)
     model_part.AddNodalSolutionStepVariable(MOMENT)
     model_part.AddNodalSolutionStepVariable(ROTATION)
-    model_part.AddNodalSolutionStepVariable(PRESSURE)        
+    model_part.AddNodalSolutionStepVariable(PRESSURE)
     model_part.AddNodalSolutionStepVariable(ERROR_RATIO)
     model_part.AddNodalSolutionStepVariable(TEMPERATURE)
     model_part.AddNodalSolutionStepVariable(NODAL_ERROR_1)
@@ -78,7 +78,7 @@ def AddVariables(model_part):
     print("variables for the dynamic structural solution added correctly")
 
 def AddDofsForNode(node):
-    #adding dofs 
+    #adding dofs
 #        node.AddDof(DISPLACEMENT_X)
 #        node.AddDof(DISPLACEMENT_Y)
 #        node.AddDof(DISPLACEMENT_Z)
@@ -126,7 +126,7 @@ class SolverAdvanced(structural_solver_static.StaticStructuralSolver):
         #self.conv_criteria = ParallelDisplacementCriteria(0.000001,1e-9)
         self.CalculateReactionFlag = False
         #######################################################################
-        
+
     def CheckAndConvertParameters(self, analysis_parameters):
         if( type( analysis_parameters ) == dict ):
             if 'builder_and_solver_type' not in analysis_parameters:
@@ -162,9 +162,9 @@ class SolverAdvanced(structural_solver_static.StaticStructuralSolver):
         else:
             print 'unsupported type of analysis parameters'
             sys.exit(0)
-            
+
         #######################################################################
-        
+
     def Initialize(self):
         #definition of time integration scheme
         if( self.analysis_parameters['analysis_type'] == 0 ):
@@ -208,13 +208,21 @@ class SolverAdvanced(structural_solver_static.StaticStructuralSolver):
                 builder_and_solver = ResidualBasedEliminationBuilderAndSolverDeactivation(self.structure_linear_solver)
             elif(self.analysis_parameters['builder_and_solver_type'] == "residual-based block"):
                 builder_and_solver = ResidualBasedBlockBuilderAndSolver(self.structure_linear_solver)
+            elif(self.analysis_parameters['builder_and_solver_type'] == "residual-based block with constraints"):
+                builder_and_solver = ResidualBasedBlockBuilderAndSolverWithConstraints(self.structure_linear_solver)
             #builder_and_solver = MultiPhaseBuilderAndSolver(self.structure_linear_solver)
             #builder_and_solver = BuiMultiPhaseBuilderAndSolver(self.structure_linear_solver)
             #builder_and_solver = ParallelResidualBasedEliminationBuilderAndSolverDeactivation(self.structure_linear_solver)
             #builder_and_solver = ResidualBasedEliminationBuilderAndSolver(self.structure_linear_solver)
         else:
-            builder_and_solver = ResidualBasedEliminationBuilderAndSolverDeactivation(LinearSolver())
-        
+            if(self.analysis_parameters['builder_and_solver_type'] == "residual-based elimination deactivation"):
+                builder_and_solver = ResidualBasedEliminationBuilderAndSolverDeactivation(LinearSolver())
+            elif(self.analysis_parameters['builder_and_solver_type'] == "residual-based block"):
+                builder_and_solver = ResidualBasedBlockBuilderAndSolver(LinearSolver())
+            elif(self.analysis_parameters['builder_and_solver_type'] == "residual-based block with constraints"):
+                builder_and_solver = ResidualBasedBlockBuilderAndSolverWithConstraints(LinearSolver())
+        print("builder_and_solver type: " + str(self.analysis_parameters['builder_and_solver_type']))
+
         #creating the solution strategy
         self.ReformDofSetAtEachStep = True
         #KLUDGE: this has to be True!
@@ -225,12 +233,12 @@ class SolverAdvanced(structural_solver_static.StaticStructuralSolver):
         #import ekate_strategy
         import uzawa_contact_strategy
         self.solver = uzawa_contact_strategy.SolvingStrategyPython( self.model_part, self.time_scheme, self.structure_linear_solver, self.conv_criteria, self.CalculateReactionFlag, self.ReformDofSetAtEachStep, self.MoveMeshFlag, self.analysis_parameters, self.space_utils, builder_and_solver )
-        
-    #######################################################################   
+
+    #######################################################################
     def SolveLagrange(self):
         (self.solver).SolveLagrange()
 
-    #######################################################################   
+    #######################################################################
     def SolveLagrangeLocal(self):
         (self.solver).SolveLagrangeLocal()
 

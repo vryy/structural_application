@@ -56,17 +56,17 @@ class SolvingStrategyPython:
         #self.A = CompressedMatrix()
         #self.Dx = Vector()
         #self.b = Vector()
-        
+
         #initialize flags
-        self.SolutionStepIsInitialized = False		
+        self.SolutionStepIsInitialized = False
         self.InitializeWasPerformed = False
         self.StiffnessMatrixIsBuilt = False
         #provide settings to the builder and solver
         (self.builder_and_solver).SetCalculateReactionsFlag(self.CalculateReactionsFlag);
         (self.builder_and_solver).SetReshapeMatrixFlag(self.ReformDofSetAtEachStep);
-        
+
         self.solveCounter = 0; #hbui added this variable
-        
+
         self.system_reorderer = Process()
 #        self.system_reorderer = SystemRCMReordererProcess(self.model_part)
 #        self.system_reorderer = SystemBoostRCMReordererProcess(self.model_part)
@@ -79,9 +79,9 @@ class SolvingStrategyPython:
     def Initialize(self):
         if(self.scheme.SchemeIsInitialized() == False):
             self.scheme.Initialize(self.model_part)
-        if (self.scheme.ElementsAreInitialized() == False): 
+        if (self.scheme.ElementsAreInitialized() == False):
             self.scheme.InitializeElements(self.model_part)
-        if (self.scheme.ConditionsAreInitialized() == False): 
+        if (self.scheme.ConditionsAreInitialized() == False):
             self.scheme.InitializeConditions(self.model_part)
         for proc in self.attached_processes:
             proc.ExecuteInitialize()
@@ -96,7 +96,7 @@ class SolvingStrategyPython:
             self.PerformNewtonRaphsonIteration()
             #finalize the solution step
             self.FinalizeSolutionStep(self.CalculateReactionsFlag)
-            #clear if needed - deallocates memory 
+            #clear if needed - deallocates memory
             if(self.ReformDofSetAtEachStep == True):
                 self.Clear();
             return
@@ -108,7 +108,7 @@ class SolvingStrategyPython:
         (self.builder_and_solver).SetReshapeMatrixFlag(self.ReformDofSetAtEachStep)
         #finalize the solution step
         self.FinalizeSolutionStep(self.CalculateReactionsFlag)
-        #clear if needed - deallocates memory 
+        #clear if needed - deallocates memory
         if(self.ReformDofSetAtEachStep == True):
             self.Clear();
 
@@ -123,7 +123,7 @@ class SolvingStrategyPython:
             self.PerformNewtonRaphsonIteration()
             #finalize the solution step
             self.FinalizeSolutionStep(self.CalculateReactionsFlag)
-            #clear if needed - deallocates memory 
+            #clear if needed - deallocates memory
             if(self.ReformDofSetAtEachStep == True):
                 self.Clear();
             return
@@ -139,7 +139,7 @@ class SolvingStrategyPython:
             self.cu.Clean( self.model_part, originalPosition );
             #finalize the solution step
             self.FinalizeSolutionStep(self.CalculateReactionsFlag)
-            #clear if needed - deallocates memory 
+            #clear if needed - deallocates memory
             if(self.ReformDofSetAtEachStep == True):
                 self.Clear()
             return
@@ -148,7 +148,7 @@ class SolvingStrategyPython:
         #props = self.model_part.Properties[1]
         for uzawaStep in range(1, self.Parameters['maxuzawa'] ):
             print "I am inside the uzawa loop, iteration no. " + str(uzawaStep)
-            ## solving the standard newton-raphson iteration 
+            ## solving the standard newton-raphson iteration
             self.PerformNewtonRaphsonIteration()
             ## updating the lagrange multipliers
             self.cu.Update( self.model_part, originalPosition, self.Parameters['friction'], self.Parameters['contact_ramp_penalties_flag'], self.Parameters['rampcriterion'], self.Parameters['fricrampcriterion'], self.Parameters['rampfactor'], self.Parameters['fricrampfactor'], self.Parameters['maxpenalty'], self.Parameters['fricmaxpenalty']  )
@@ -176,10 +176,10 @@ class SolvingStrategyPython:
         (self.builder_and_solver).SetReshapeMatrixFlag(self.ReformDofSetAtEachStep)
         #finalize the solution step
         self.FinalizeSolutionStep(self.CalculateReactionsFlag)
-        #clear if needed - deallocates memory 
+        #clear if needed - deallocates memory
         if(self.ReformDofSetAtEachStep == True):
             self.Clear();
-        
+
     def PerformNewtonRaphsonIteration( self ):
         print("time = " + str(self.model_part.ProcessInfo[TIME]))
         #perform the operations to be performed ONCE and ensure they will not be repeated
@@ -195,7 +195,7 @@ class SolvingStrategyPython:
         if (self.SolutionStepIsInitialized == False):
             self.InitializeSolutionStep()
             self.SolutionStepIsInitialized = True
-        #perform prediction 
+        #perform prediction
         self.Predict()
 
         #execute iteration - first iteration is ALWAYS executed
@@ -239,7 +239,7 @@ class SolvingStrategyPython:
 
             #update iteration count
             it = it + 1
-        
+
         if( it == self.max_iter and converged == False):
             print("Iteration did not converge at time step " + str(self.model_part.ProcessInfo[TIME]))
             if('stop_Newton_Raphson_if_not_converge' in self.Parameters):
@@ -268,14 +268,14 @@ class SolvingStrategyPython:
     #######################################################################
     def InitializeSolutionStep(self):
         if(self.builder_and_solver.GetDofSetIsInitializedFlag() == False or self.ReformDofSetAtEachStep == True):
-            #initialize the list of degrees of freedom to be used 
+            #initialize the list of degrees of freedom to be used
             self.builder_and_solver.SetUpDofSet(self.scheme,self.model_part);
-            #reorder the list of degrees of freedom to identify fixity and system size	  			
+            #reorder the list of degrees of freedom to identify fixity and system size
             self.builder_and_solver.SetUpSystem(self.model_part)
             #reorder the system dof id
             self.system_reorderer.Execute()
             #allocate memory for the system and preallocate the structure of the matrix
-            self.builder_and_solver.ResizeAndInitializeVectors(self.pA,self.pDx,self.pb,self.model_part.Elements,self.model_part.Conditions,self.model_part.ProcessInfo)
+            self.builder_and_solver.ResizeAndInitializeVectors(self.pA,self.pDx,self.pb,self.model_part)
             #updating references
             self.A = (self.pA).GetReference()
             self.Dx = (self.pDx).GetReference()
@@ -290,7 +290,7 @@ class SolvingStrategyPython:
     def ExecuteIteration(self,echo_level,MoveMeshFlag,CalculateNormDxFlag):
         #reset system matrices and vectors prior to rebuild
         self.space_utils.SetToZeroMatrix(self.A)
-        self.space_utils.SetToZeroVector(self.Dx)			
+        self.space_utils.SetToZeroVector(self.Dx)
         self.space_utils.SetToZeroVector(self.b)
 
         self.scheme.InitializeNonLinIteration(self.model_part,self.A,self.Dx,self.b)
@@ -301,6 +301,7 @@ class SolvingStrategyPython:
             self.dof_util.ListDofs(self.builder_and_solver.GetDofSet(),self.builder_and_solver.GetEquationSystemSize())
         else:
             self.builder_and_solver.Build(self.scheme,self.model_part,self.A,self.b)
+            self.builder_and_solver.ApplyDirichletConditions(self.scheme,self.model_part,self.A,self.Dx,self.b)
             self.dof_util.ListDofs(self.builder_and_solver.GetDofSet(),self.builder_and_solver.GetEquationSystemSize())
             #provide data for the preconditioner and linear solver
             if self.linear_solver.AdditionalPhysicalDataIsNeeded():
@@ -324,9 +325,9 @@ class SolvingStrategyPython:
 #            wr.WriteHB(self.A, self.b, "matrix" + str(self.solveCounter) + "." + str(self.iterationCounter) + ".hb.dat")
 #            self.space_utils.WriteMatrixMarketMatrix("matrix" + str(self.solveCounter) + "." + str(self.iterationCounter) + ".mm",self.A,False)
             petsc_utils.DumpUblasCompressedMatrixVector("tempAb", self.A, self.b, False)
-            
+
         if(echo_level >= 3):
-            print "SystemMatrix = ", self.A 
+            print "SystemMatrix = ", self.A
         #printA = []
         #printdx = []
         #printb = []
@@ -357,7 +358,7 @@ class SolvingStrategyPython:
         #    formatted_printA = [ '%.1f' % elem for elem in printA[i] ]
         #    print(formatted_printA)
         self.AnalyseSystemMatrix(self.A)
-            
+
         #perform update
         self.scheme.Update(self.model_part,self.builder_and_solver.GetDofSet(),self.A,self.Dx,self.b);
 
@@ -367,7 +368,7 @@ class SolvingStrategyPython:
 #        print("b:" + str(self.b))
 #        print("Dx:" + str(self.Dx))
 #        print("A:" + str(self.A))
-        
+
         #to account for prescribed displacement, the displacement at prescribed nodes need to be updated
         for node in self.model_part.Nodes:
             if node.IsFixed(DISPLACEMENT_X):
@@ -387,21 +388,21 @@ class SolvingStrategyPython:
                 node.SetSolutionStepValue(PRESCRIBED_DELTA_DISPLACEMENT_Z, 0.0) # set the prescribed displacement to zero to avoid update in the second step
 
         self.scheme.FinalizeNonLinIteration(self.model_part,self.A,self.Dx,self.b)
-        
+
         #calculate the norm of the "correction" Dx
         if(CalculateNormDxFlag == True):
             normDx = self.space_utils.TwoNorm(self.Dx)
         else:
             normDx = 0.0
-            
+
         return normDx
-        
+
     #######################################################################
     def FinalizeSolutionStep(self,CalculateReactionsFlag):
         if(CalculateReactionsFlag == True):
             self.builder_and_solver.CalculateReactions(self.scheme,self.model_part,self.A,self.Dx,self.b)
-        
-        #Finalisation of the solution step, 
+
+        #Finalisation of the solution step,
         self.scheme.FinalizeSolutionStep(self.model_part,self.A,self.Dx,self.b)
         self.builder_and_solver.FinalizeSolutionStep(self.model_part,self.A,self.Dx,self.b)
         self.scheme.Clean()
@@ -415,7 +416,7 @@ class SolvingStrategyPython:
     def Clear(self):
         self.space_utils.ClearMatrix(self.pA)
         self.space_utils.ResizeMatrix(self.A,0,0)
-        
+
         self.space_utils.ClearVector(self.pDx)
         self.space_utils.ResizeVector(self.Dx,0)
 
@@ -426,7 +427,7 @@ class SolvingStrategyPython:
         self.A = (self.pA).GetReference()
         self.Dx = (self.pDx).GetReference()
         self.b = (self.pb).GetReference()
-        
+
         self.builder_and_solver.SetDofSetIsInitializedFlag(False)
         self.builder_and_solver.Clear()
         self.scheme.Clear()
@@ -434,24 +435,24 @@ class SolvingStrategyPython:
         for proc in self.attached_processes:
             proc.ExecuteFinalize()
 
-    #######################################################################   
+    #######################################################################
     def SetEchoLevel(self,level):
         self.echo_level = level
         self.builder_and_solver.SetEchoLevel(level)
 
-    #######################################################################   
+    #######################################################################
     def AnalyseSystemMatrix(self,  A):
         max = 0.0
         for i in range(0,  A.Size1()):
            if( abs(A[(i, i)]) > max ):
                max = A[(i, i)]
-               
+
 #        nonzeros = 0
 #        for i in range(0,  A.Size1()):
 #            for j in range(0,  A.Size2()):
 #                if( abs(A[(i, j)]) > 1e-16 ):
 #                    nonzeros = nonzeros + 1
-                    
+
         print("#############################")
         print("Number of rows: " +str(A.Size1()) )
         print("Number of columns: " +str(A.Size2()) )
@@ -459,7 +460,7 @@ class SolvingStrategyPython:
         print("Max in Diagonal: " +str(max) )
         print("#############################")
 
-    #######################################################################   
+    #######################################################################
     def PlotSparsityScheme(self, A):
         try:
             import Gnuplot, Gnuplot.PlotItems, Gnuplot.funcutils
@@ -493,11 +494,11 @@ class SolvingStrategyPython:
         g("set zrange [0.5:1.5]")
         g("set pm3d map")
         g("splot 'matrix.dat' matrix with dots")
-        
+
 
     def wait(self,str=None, prompt='Press return to show results...\n'):
         if str is not None:
             print(str)
         raw_input(prompt)
 
-        
+
