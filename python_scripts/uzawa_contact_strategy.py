@@ -178,8 +178,9 @@ class SolvingStrategyPython:
         self.FinalizeSolutionStep(self.CalculateReactionsFlag)
         #clear if needed - deallocates memory
         if(self.ReformDofSetAtEachStep == True):
-            self.Clear();
+            self.Clear()
 
+    #######################################################################
     def PerformNewtonRaphsonIteration( self ):
         print("time = " + str(self.model_part.ProcessInfo[TIME]))
         #perform the operations to be performed ONCE and ensure they will not be repeated
@@ -259,17 +260,23 @@ class SolvingStrategyPython:
                     cond.SetValue( PENALTY, penalty )
 
     #######################################################################
-    #######################################################################
-
-    #######################################################################
     def Predict(self):
-        self.scheme.Predict(self.model_part,self.builder_and_solver.GetDofSet(),self.A,self.Dx,self.b);
+        self.scheme.Predict(self.model_part,self.builder_and_solver.GetDofSet(),self.A,self.Dx,self.b)
+
+        if self.model_part.NumberOfMasterSlaveConstraints() > 0:
+
+            for constraint in self.model_part.MasterSlaveConstraints:
+                constraint.ResetSlaveDofs(self.model_part.ProcessInfo)
+                constraint.Apply(self.model_part.ProcessInfo)
+
+            self.space_utils.SetToZeroVector(self.Dx)
+            self.scheme.Update(self.model_part,self.builder_and_solver.GetDofSet(),self.A,self.Dx,self.b)
 
     #######################################################################
     def InitializeSolutionStep(self):
         if(self.builder_and_solver.GetDofSetIsInitializedFlag() == False or self.ReformDofSetAtEachStep == True):
             #initialize the list of degrees of freedom to be used
-            self.builder_and_solver.SetUpDofSet(self.scheme,self.model_part);
+            self.builder_and_solver.SetUpDofSet(self.scheme,self.model_part)
             #reorder the list of degrees of freedom to identify fixity and system size
             self.builder_and_solver.SetUpSystem(self.model_part)
             #reorder the system dof id
@@ -300,6 +307,8 @@ class SolvingStrategyPython:
             self.builder_and_solver.BuildAndSolve(self.scheme,self.model_part,self.A,self.Dx,self.b)
             self.dof_util.ListDofs(self.builder_and_solver.GetDofSet(),self.builder_and_solver.GetEquationSystemSize())
         else:
+            if self.Parameters['builder_and_solver_type'] == "residual-based block with constraints":
+                raise Exception("residual-based block with constraints cannot be used with decouple_build_and_solve")
             self.builder_and_solver.Build(self.scheme,self.model_part,self.A,self.b)
             self.builder_and_solver.ApplyDirichletConditions(self.scheme,self.model_part,self.A,self.Dx,self.b)
             self.dof_util.ListDofs(self.builder_and_solver.GetDofSet(),self.builder_and_solver.GetEquationSystemSize())
@@ -360,11 +369,11 @@ class SolvingStrategyPython:
         self.AnalyseSystemMatrix(self.A)
 
         #perform update
-        self.scheme.Update(self.model_part,self.builder_and_solver.GetDofSet(),self.A,self.Dx,self.b);
+        self.scheme.Update(self.model_part,self.builder_and_solver.GetDofSet(),self.A,self.Dx,self.b)
 
         #move the mesh as needed
         if(MoveMeshFlag == True):
-            self.scheme.MoveMesh(self.model_part.Nodes);
+            self.scheme.MoveMesh(self.model_part.Nodes)
 #        print("b:" + str(self.b))
 #        print("Dx:" + str(self.Dx))
 #        print("A:" + str(self.A))
