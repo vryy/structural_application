@@ -142,23 +142,23 @@ public:
                            PropertiesType::Pointer pProperties) const;
 
     void Initialize();
-    
+
     virtual void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo);
 
     virtual void FinalizeSolutionStep(ProcessInfo& CurrentProcessInfo);
-    
+
     virtual void GetDofList(DofsVectorType& ElementalDofList,ProcessInfo& CurrentProcessInfo);
-    
+
     virtual void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo);
-    
+
     void CalculateExternalLoadVector(Matrix& Rotation,  Vector& LocalBody, Vector& GlobalBody);
-    
+
     void CalculateTransformationMatrix(Matrix& Rotation);
-    
+
     void CalculateLocalMatrix(Matrix& LocalMatrix);
-                           
-    virtual void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);    
-    
+
+    virtual void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
+
     virtual int Check(const ProcessInfo& rCurrentProcessInfo);
 
     ///@}
@@ -317,4 +317,4 @@ private:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_STRUCTURAL_APP_TIMOSHENKO_BEAM_ELEMENT_H_INCLUDED defined 
+#endif // KRATOS_STRUCTURAL_APP_TIMOSHENKO_BEAM_ELEMENT_H_INCLUDED defined

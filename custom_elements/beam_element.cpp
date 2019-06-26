@@ -41,29 +41,6 @@ BeamElement::BeamElement(IndexType NewId,GeometryType::Pointer pGeometry)
 BeamElement::BeamElement(IndexType NewId,GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties)
     : Element(NewId, pGeometry, pProperties)
 {
-    KRATOS_TRY
-
-//    unsigned int dimension = GetGeometry().WorkingSpaceDimension();    // Dimension de trabajo: en 2D o 3D
-//    unsigned int Nodos = GetGeometry().size();                         // Cantidad de Nodos en el elemento
-
-
-//    if (dimension != 3)
-//    {
-//        std::cout<<"This element works only with a 2 node line and 3D dimension"<<std::endl;
-//        return;
-//    }
-//    for (unsigned int i=0; i < Nodos; i++)
-//    {
-//        GetGeometry()[i].pAddDof(DISPLACEMENT_X, REACTION_X);      //	GRADOS DE LIBERTAD DEL ELEMENTO.
-//        GetGeometry()[i].pAddDof(DISPLACEMENT_Y, REACTION_Y);      //	GRADOS DE LIBERTAD DEL ELEMENTO.
-//        GetGeometry()[i].pAddDof(DISPLACEMENT_Z, REACTION_Z);      //	GRADOS DE LIBERTAD DEL ELEMENTO.
-//        GetGeometry()[i].pAddDof(ROTATION_X,     MOMENT_X);      //	GRADOS DE LIBERTAD DEL ELEMENTO.
-//        GetGeometry()[i].pAddDof(ROTATION_Y,     MOMENT_Y);      //	GRADOS DE LIBERTAD DEL ELEMENTO.
-//        GetGeometry()[i].pAddDof(ROTATION_Z,     MOMENT_Z);      //	GRADOS DE LIBERTAD DEL ELEMENTO.
-//    }
-
-    KRATOS_CATCH("")
-
 }
 
 BeamElement::BeamElement(IndexType NewId, GeometryType::PointType::Pointer pNode1,
@@ -74,10 +51,13 @@ BeamElement::BeamElement(IndexType NewId, GeometryType::PointType::Pointer pNode
 
 Element::Pointer BeamElement::Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
 {
-    return Element::Pointer(new BeamElement(NewId, GetGeometry().Create(ThisNodes),
-                                            pProperties));
+    return Element::Pointer(new BeamElement(NewId, GetGeometry().Create(ThisNodes), pProperties));
 }
 
+Element::Pointer BeamElement::Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const
+{
+    return Element::Pointer(new BeamElement(NewId, pGeom, pProperties));
+}
 
 BeamElement::~BeamElement()
 {
@@ -327,7 +307,6 @@ void BeamElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, Process
 
 
 void BeamElement::CalculateSectionProperties()
-
 {
     KRATOS_TRY
 
@@ -343,7 +322,7 @@ void BeamElement::CalculateSectionProperties()
         mArea = GetProperties()[CROSS_AREA];
     else
         mArea = GetValue(AREA);
-    
+
     Matrix* inertia;
     if( GetProperties().Has(LOCAL_INERTIA) )
     {
@@ -389,9 +368,7 @@ void BeamElement::CalculateSectionProperties()
     if (mlength == 0.00)
         KRATOS_THROW_ERROR(std::invalid_argument, "Zero length found in elemnet #", this->Id());
 
-
     KRATOS_CATCH( "" )
-
 }
 
 
@@ -402,9 +379,6 @@ void BeamElement::CalculateSectionProperties()
 void BeamElement::CalculateLocalMatrix(Matrix& LocalMatrix)
 {
     KRATOS_TRY
-
-
-
 
     if(LocalMatrix.size1()!=12 || LocalMatrix.size2()!=12)   // Matriz local de rigidez de la Estructura.
         LocalMatrix.resize(12,12,false);
@@ -478,10 +452,7 @@ void BeamElement::CalculateLocalMatrix(Matrix& LocalMatrix)
     LocalMatrix(7,11)	=  -(6*EIx)/(LL);
     LocalMatrix(11,11)=  (4*EIx)/L;
 
-
-
     KRATOS_CATCH("")
-
 }
 
 
@@ -489,9 +460,7 @@ void BeamElement::CalculateLocalMatrix(Matrix& LocalMatrix)
 //*****************************************************************************
 
 void BeamElement::CalculateTransformationMatrix(Matrix& Rotation)
-
 {
-
     KRATOS_TRY
 
     Vector Normal_zero(9); // vector que contiene los cosenos directores.
@@ -548,14 +517,12 @@ void BeamElement::CalculateTransformationMatrix(Matrix& Rotation)
     if(nx < 0.0)
         teta   = teta + PI;
 
-
     Normal_zero[3] = -sin(teta);
     Normal_zero[4] =  cos(teta);
     Normal_zero[5] =  0.0;
     Normal_zero[6] = -nz*cos(teta);
     Normal_zero[7] = -nz*sin(teta);
     Normal_zero[8] =  nx*cos(teta) + ny*sin(teta);
-
 
     // Creacion de la matriz de transformacion.
     for (unsigned int kk=0; kk < 12; kk += 3)
@@ -568,15 +535,14 @@ void BeamElement::CalculateTransformationMatrix(Matrix& Rotation)
             }
         }
     }
-    KRATOS_CATCH("")
 
+    KRATOS_CATCH("")
 }
 
 
 //************************************************************************************
 //************************************************************************************
 void BeamElement::CalculateBodyForce(Matrix& Rotation, Vector& LocalBody, Vector& GlobalBody)
-
 {
     KRATOS_TRY
     //Creacion de los vectores de cargas externas.
@@ -608,7 +574,6 @@ void BeamElement::CalculateBodyForce(Matrix& Rotation, Vector& LocalBody, Vector
     Normal_Loads.resize(3,false);
     Vector_zero.resize(3,false);
 
-
     x_zero(0)= GetGeometry()[0].X0();
     x_zero(1)= GetGeometry()[0].Y0();
     x_zero(2)= GetGeometry()[0].Z0();
@@ -616,13 +581,10 @@ void BeamElement::CalculateBodyForce(Matrix& Rotation, Vector& LocalBody, Vector
     x_zero(4)= GetGeometry()[1].Y0();
     x_zero(5)= GetGeometry()[1].Z0();
 
-
-
     for (unsigned int i=0; i<3; i++)
     {
         Vector_zero[i] = x_zero[i+3] - x_zero[i];
     }
-
 
     //Fuerza En X
     //***********************************
@@ -670,11 +632,7 @@ void BeamElement::CalculateBodyForce(Matrix& Rotation, Vector& LocalBody, Vector
 
         noalias(GlobalBody) = prod(Rotation,Cargas_X);		// Cargas externas en coordenadas globales.
         noalias(LocalBody)  = Cargas_X;
-
     }
-
-
-
 
     //Fuerza En Z
     //***********************************
@@ -723,7 +681,6 @@ void BeamElement::CalculateBodyForce(Matrix& Rotation, Vector& LocalBody, Vector
 
         noalias(GlobalBody) = prod(Rotation,Cargas_Z);		// Cargas externas en coordenadas globales.
         noalias(LocalBody)  = Cargas_Z;
-
     }
 
     //Fuerza En Y
@@ -778,7 +735,6 @@ void BeamElement::CalculateBodyForce(Matrix& Rotation, Vector& LocalBody, Vector
     }
 
     KRATOS_CATCH("")
-
 }
 
 //************************************************************************************
@@ -786,8 +742,8 @@ void BeamElement::CalculateBodyForce(Matrix& Rotation, Vector& LocalBody, Vector
 
 void BeamElement::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
 {
-
     KRATOS_TRY
+
     unsigned int dimension = GetGeometry().WorkingSpaceDimension();
     unsigned int NumberOfNodes = GetGeometry().size();
     unsigned int MatSize = dimension * NumberOfNodes;
@@ -814,16 +770,16 @@ void BeamElement::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCur
 
         }
     }
+
     KRATOS_CATCH("")
 }
-
-
 
 //************************************************************************************
 //************************************************************************************
 void BeamElement::GetFirstDerivativesVector(Vector& values, int Step)
 {
     KRATOS_TRY
+
     const unsigned int number_of_nodes = GetGeometry().size();
     const unsigned int dim = GetGeometry().WorkingSpaceDimension();
     unsigned int MatSize = 2*number_of_nodes*dim;
@@ -831,7 +787,6 @@ void BeamElement::GetFirstDerivativesVector(Vector& values, int Step)
     for (unsigned int i=0; i<number_of_nodes; i++)
     {
         unsigned int index =  i*number_of_nodes*dim;
-
 
         values[index] = GetGeometry()[i].GetSolutionStepValue(VELOCITY_X,Step);
         values[index + 1] = GetGeometry()[i].GetSolutionStepValue(VELOCITY_Y,Step);
@@ -841,14 +796,15 @@ void BeamElement::GetFirstDerivativesVector(Vector& values, int Step)
         values[index + 5] = 0.00; // GetGeometry()[i].GetSolutionStepValue(ANGULAR_VELOCITY_Z,Step);
     }
 
-
     KRATOS_CATCH("")
 }
+
 //************************************************************************************
 //************************************************************************************
 void BeamElement::GetSecondDerivativesVector(Vector& values, int Step)
 {
     KRATOS_TRY
+
     const unsigned int number_of_nodes = GetGeometry().size();
     const unsigned int dim = GetGeometry().WorkingSpaceDimension();
     unsigned int MatSize = 2*number_of_nodes*dim;
@@ -867,20 +823,16 @@ void BeamElement::GetSecondDerivativesVector(Vector& values, int Step)
     }
 
     KRATOS_CATCH("")
-
 }
-//************************************************************************************
-//************************************************************************************
 
+//************************************************************************************
+//************************************************************************************
 void BeamElement::CalculateOnIntegrationPoints( const Variable<array_1d<double,3> >& rVariable,
         std::vector< array_1d<double,3> >& Output,
         const ProcessInfo& rCurrentProcessInfo)
 {
-
-
     const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints(GeometryData::GI_GAUSS_3);
     //const Matrix& Ncontainer = GetGeometry().ShapeFunctionsValues(GeometryData::GI_GAUSS_3);
-
 
     if(Output.size() != integration_points.size())
         Output.resize(integration_points.size());
@@ -955,9 +907,7 @@ void BeamElement::CalculateOnIntegrationPoints( const Variable<array_1d<double,3
         Output[2][1] = factor * CalculateInternalShear(Stress[1], Load2[1], 3.00 * mlength/4.00);
         Output[2][2] = 0.00;
     }
-
 }
-
 
 double BeamElement::CalculateInternalMoment(const double& Mo, const double& Vo, const double& Load, const double& X)
 {
@@ -982,6 +932,7 @@ void BeamElement::GetValueOnIntegrationPoints( const Variable<array_1d<double,3>
     CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
 
 }
+
 IntegrationMethod  BeamElement::GetIntegrationMethod() const
 {
     return GeometryData::GI_GAUSS_3;
@@ -989,7 +940,6 @@ IntegrationMethod  BeamElement::GetIntegrationMethod() const
 
 void BeamElement::CalculateLocalNodalStress(Vector& Stress)
 {
-
     Matrix Rotation;
     Matrix LocalMatrix;
     array_1d<double, 12 > CurrentDisplacement;
@@ -1018,13 +968,12 @@ void BeamElement::CalculateLocalNodalStress(Vector& Stress)
     CalculateBodyForce(Rotation, LocalBody, GlobalBody);
     noalias(Stress) = -LocalBody + prod(LocalMatrix, LocalDisplacement);
 //		noalias(Stress) = -LocalBody + prod(Matrix(prod(Rotation,LocalMatrix)), LocalDisplacement);
-    return;
 
+    return;
 }
 
 void BeamElement::CalculateDistrubuitedBodyForce(const int Direction, Vector& Load)
 {
-
     array_1d<double, 3> Weight;
     Load.resize(2, false);
     Weight[0]        =  GetProperties()[BODY_FORCE](0);
@@ -1148,16 +1097,7 @@ void BeamElement::CalculateDistrubuitedBodyForce(const int Direction, Vector& Lo
         Load[0]= mArea*Weight[2]*sino;         // Carga Axialmente Distribuida.
         Load[1]= mArea*Weight[2]*cose;         // Carga en la Direccion gravedad
     }
-
-
-
 }
-
-
-
-
-
-
 
 /**
  * This function provides the place to perform checks on the completeness of the input.
@@ -1222,6 +1162,7 @@ int  BeamElement::Check(const ProcessInfo& rCurrentProcessInfo)
     }
     else
         KRATOS_THROW_ERROR(std::logic_error, "The Inertia is not fully defined for the beam element", Id())
+
     if(inertia->size1() < 2 || inertia->size2() < 2)
     {
         std::stringstream ss;
@@ -1240,9 +1181,6 @@ int  BeamElement::Check(const ProcessInfo& rCurrentProcessInfo)
 
     KRATOS_CATCH("");
 }
-
-
-
 
 } // Namespace Kratos
 
