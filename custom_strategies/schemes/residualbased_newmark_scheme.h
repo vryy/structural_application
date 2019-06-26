@@ -182,7 +182,6 @@ public:
     /**@name Operators */
 
     /** Performing the update of the solution.*/
-    //***************************************************************************
     /**
      * incremental update within newton iteration. It updates the state variables at the end of the time step: u_{n+1}^{k+1}= u_{n+1}^{k}+ \Delta u
      * @param r_model_part
@@ -191,7 +190,7 @@ public:
      * @param Dx incremental update of primary variables
      * @param b RHS Vector
      */
-    void Update(
+    void UpdateAll(
         ModelPart& r_model_part,
         DofsArrayType& rDofSet,
         TSystemMatrixType& A,
@@ -283,6 +282,115 @@ public:
                 {
                     i->GetSolutionStepValue(LAGRANGE_AIR_PRESSURE)
                     +=Dx[i->GetDof(LAGRANGE_AIR_PRESSURE).EquationId()];
+                }
+            }
+        }
+
+        KRATOS_CATCH("")
+    }
+
+    /**@name Operators */
+
+    /** Performing the update of the solution.*/
+    /**
+     * incremental update within newton iteration. It updates the state variables at the end of the time step: u_{n+1}^{k+1}= u_{n+1}^{k}+ \Delta u
+     * @param r_model_part
+     * @param rDofSet set of all primary variables
+     * @param A LHS matrix
+     * @param Dx incremental update of primary variables
+     * @param b RHS Vector
+     */
+    void Update(
+        ModelPart& r_model_part,
+        DofsArrayType& rDofSet,
+        TSystemMatrixType& A,
+        TSystemVectorType& Dx,
+        TSystemVectorType& b )
+    {
+        KRATOS_TRY
+
+        for (typename DofsArrayType::iterator dof_iterator = rDofSet.begin(); dof_iterator != rDofSet.end(); ++dof_iterator)
+        {
+            ModelPart::NodeType& rNode = r_model_part.GetNode(dof_iterator->Id());
+
+            if (dof_iterator->GetVariable() == DISPLACEMENT_X)
+            {
+                if (dof_iterator->IsFree())
+                {
+                    rNode.GetSolutionStepValue(DISPLACEMENT_EINS_X)
+                    += Dx[dof_iterator->EquationId()];
+                }
+            }
+            else if (dof_iterator->GetVariable() == DISPLACEMENT_Y)
+            {
+                if (dof_iterator->IsFree())
+                {
+                    rNode.GetSolutionStepValue(DISPLACEMENT_EINS_Y)
+                    += Dx[dof_iterator->EquationId()];
+                }
+            }
+            else if (dof_iterator->GetVariable() == DISPLACEMENT_Z)
+            {
+                if (dof_iterator->IsFree())
+                {
+                    rNode.GetSolutionStepValue(DISPLACEMENT_EINS_Z)
+                    += Dx[dof_iterator->EquationId()];
+                }
+            }
+            else if (dof_iterator->GetVariable() == WATER_PRESSURE)
+            {
+                if (dof_iterator->IsFree())
+                {
+                    rNode.GetSolutionStepValue(WATER_PRESSURE_EINS)
+                    += Dx[dof_iterator->EquationId()];
+                }
+            }
+            else if (dof_iterator->GetVariable() == AIR_PRESSURE)
+            {
+                if (dof_iterator->IsFree())
+                {
+                    rNode.GetSolutionStepValue(AIR_PRESSURE_EINS)
+                    += Dx[dof_iterator->EquationId()];
+                }
+            }
+            else if (dof_iterator->GetVariable() == LAGRANGE_DISPLACEMENT_X)
+            {
+                if (dof_iterator->IsFree())
+                {
+                    rNode.GetSolutionStepValue(LAGRANGE_DISPLACEMENT_X)
+                    += Dx[dof_iterator->EquationId()];
+                }
+            }
+            else if (dof_iterator->GetVariable() == LAGRANGE_DISPLACEMENT_Y)
+            {
+                if (dof_iterator->IsFree())
+                {
+                    rNode.GetSolutionStepValue(LAGRANGE_DISPLACEMENT_Y)
+                    += Dx[dof_iterator->EquationId()];
+                }
+            }
+            else if (dof_iterator->GetVariable() == LAGRANGE_DISPLACEMENT_Z)
+            {
+                if (dof_iterator->IsFree())
+                {
+                    rNode.GetSolutionStepValue(LAGRANGE_DISPLACEMENT_Z)
+                    += Dx[dof_iterator->EquationId()];
+                }
+            }
+            else if (dof_iterator->GetVariable() == LAGRANGE_WATER_PRESSURE)
+            {
+                if (dof_iterator->IsFree())
+                {
+                    rNode.GetSolutionStepValue(LAGRANGE_WATER_PRESSURE)
+                    += Dx[dof_iterator->EquationId()];
+                }
+            }
+            else if (dof_iterator->GetVariable() == LAGRANGE_AIR_PRESSURE)
+            {
+                if (dof_iterator->IsFree())
+                {
+                    rNode.GetSolutionStepValue(LAGRANGE_AIR_PRESSURE)
+                    += Dx[dof_iterator->EquationId()];
                 }
             }
         }
