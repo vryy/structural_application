@@ -248,6 +248,12 @@ void PlaneStrain::SetValue( const Variable<Vector>& rThisVariable, const Vector&
     {
         noalias(mPreStress) = rValue;
     }
+    if ( rThisVariable == STRESSES )
+    {
+        if(mCurrentStress.size() != rValue.size())
+            mCurrentStress.resize(rValue.size(), false);
+        noalias(mCurrentStress) = rValue;
+    }
 }
 
 void PlaneStrain::SetValue( const Variable<Matrix>& rThisVariable, const Matrix& rValue,

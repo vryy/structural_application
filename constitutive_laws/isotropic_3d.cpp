@@ -269,6 +269,12 @@ void Isotropic3D::SetValue( const Variable<Vector>& rThisVariable, const Vector&
             mPrestress.resize(rValue.size(), false);
         noalias(mPrestress) = rValue;
     }
+    else if ( rThisVariable == STRESSES )
+    {
+        if(mCurrentStress.size() != rValue.size())
+            mCurrentStress.resize(rValue.size(), false);
+        noalias(mCurrentStress) = rValue;
+    }
 }
 
 void Isotropic3D::SetValue( const Variable<Matrix>& rThisVariable, const Matrix& rValue,

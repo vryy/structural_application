@@ -130,6 +130,12 @@ void PlaneStress::SetValue( const Variable<double>& rThisVariable, const double&
 void PlaneStress::SetValue( const Variable<Vector>& rThisVariable, const Vector& rValue,
                             const ProcessInfo& rCurrentProcessInfo )
 {
+    if ( rThisVariable == STRESSES )
+    {
+        if(mCurrentStress.size() != rValue.size())
+            mCurrentStress.resize(rValue.size(), false);
+        noalias(mCurrentStress) = rValue;
+    }
 }
 
 void PlaneStress::SetValue( const Variable<Matrix>& rThisVariable, const Matrix& rValue,
@@ -157,7 +163,7 @@ double& PlaneStress::GetValue( const Variable<double>& rThisVariable, double& rV
        rValue = mE;
        return rValue;
     }
- 
+
     if ( rThisVariable == POISSON_RATIO )
     {
         rValue = mNU;
