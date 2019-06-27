@@ -75,6 +75,15 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(NODAL_ERROR_1)
     model_part.AddNodalSolutionStepVariable(VON_MISES_STRESS)
     model_part.AddNodalSolutionStepVariable(PLASTICITY_INDICATOR)
+    model_part.AddNodalSolutionStepVariable(ROTATION_OLD)
+    model_part.AddNodalSolutionStepVariable(ROTATION_NULL)
+    model_part.AddNodalSolutionStepVariable(ROTATION_EINS)
+    model_part.AddNodalSolutionStepVariable(ROTATION_DT)
+    model_part.AddNodalSolutionStepVariable(ROTATION_NULL_DT)
+    model_part.AddNodalSolutionStepVariable(ROTATION_EINS_DT)
+    model_part.AddNodalSolutionStepVariable(ANGULAR_ACCELERATION)
+    model_part.AddNodalSolutionStepVariable(ANGULAR_ACCELERATION_NULL)
+    model_part.AddNodalSolutionStepVariable(ANGULAR_ACCELERATION_EINS)
     print("variables for the dynamic structural solution added correctly")
 
 def AddDofsForNode(node):

@@ -393,6 +393,30 @@ public:
                     += Dx[dof_iterator->EquationId()];
                 }
             }
+            else if (dof_iterator->GetVariable() == ROTATION_X)
+            {
+                if (dof_iterator->IsFree())
+                {
+                    rNode.GetSolutionStepValue(ROTATION_EINS_X)
+                    += Dx[dof_iterator->EquationId()];
+                }
+            }
+            else if (dof_iterator->GetVariable() == ROTATION_Y)
+            {
+                if (dof_iterator->IsFree())
+                {
+                    rNode.GetSolutionStepValue(ROTATION_EINS_Y)
+                    += Dx[dof_iterator->EquationId()];
+                }
+            }
+            else if (dof_iterator->GetVariable() == ROTATION_Z)
+            {
+                if (dof_iterator->IsFree())
+                {
+                    rNode.GetSolutionStepValue(ROTATION_EINS_Z)
+                    += Dx[dof_iterator->EquationId()];
+                }
+            }
         }
 
         KRATOS_CATCH("")
@@ -572,6 +596,99 @@ public:
                 i->GetSolutionStepValue(AIR_PRESSURE)
                 = mAlpha*i->GetSolutionStepValue(AIR_PRESSURE_NULL)
                   +(1.0-mAlpha)*i->GetSolutionStepValue(AIR_PRESSURE_EINS);
+            }
+            if( i->HasDofFor(ROTATION_X) )
+            {
+                i->GetSolutionStepValue(ANGULAR_ACCELERATION_EINS_X)
+                = 1.0/(mBeta*CurrentProcessInfo[DELTA_TIME]
+                       *CurrentProcessInfo[DELTA_TIME])
+                  * (i->GetSolutionStepValue(ROTATION_EINS_X)
+                     -i->GetSolutionStepValue(ROTATION_NULL_X))
+                  -1.0/(mBeta*CurrentProcessInfo[DELTA_TIME])
+                  *i->GetSolutionStepValue(ROTATION_NULL_DT_X)
+                  -(1.0-2.0*mBeta)/(2.0*mBeta)*i->GetSolutionStepValue(ANGULAR_ACCELERATION_NULL_X);
+
+                i->GetSolutionStepValue(ROTATION_EINS_DT_X)
+                = (i->GetSolutionStepValue(ROTATION_EINS_X)
+                   -i->GetSolutionStepValue(ROTATION_NULL_X))
+                  *mGamma/(mBeta*CurrentProcessInfo[DELTA_TIME])
+                  -(mGamma-mBeta)/mBeta*(i->GetSolutionStepValue(ROTATION_NULL_DT_X))
+                  -(mGamma-2.0*mBeta)/(2.0*mBeta)*CurrentProcessInfo[DELTA_TIME]
+                  *(i->GetSolutionStepValue(ANGULAR_ACCELERATION_NULL_X));
+
+                i->GetSolutionStepValue(ANGULAR_ACCELERATION_X)
+                = mAlpha_m*i->GetSolutionStepValue(ANGULAR_ACCELERATION_NULL_X)
+                  +(1.0-mAlpha_m)*i->GetSolutionStepValue(ANGULAR_ACCELERATION_EINS_X);
+
+                i->GetSolutionStepValue(ROTATION_DT_X)
+                = mAlpha*i->GetSolutionStepValue(ROTATION_NULL_DT_X)
+                  +(1.0-mAlpha)*i->GetSolutionStepValue(ROTATION_EINS_DT_X);
+
+                i->GetSolutionStepValue(ROTATION_X)
+                = mAlpha*i->GetSolutionStepValue(ROTATION_NULL_X)
+                  +(1.0-mAlpha)*i->GetSolutionStepValue(ROTATION_EINS_X);
+
+            }
+            if( i->HasDofFor(ROTATION_Y) )
+            {
+                i->GetSolutionStepValue(ANGULAR_ACCELERATION_EINS_Y)
+                =1.0/(mBeta*CurrentProcessInfo[DELTA_TIME]*CurrentProcessInfo[DELTA_TIME])
+                 * (i->GetSolutionStepValue(ROTATION_EINS_Y)
+                    -i->GetSolutionStepValue(ROTATION_NULL_Y))
+                 -1.0/(mBeta*CurrentProcessInfo[DELTA_TIME])
+                 *i->GetSolutionStepValue(ROTATION_NULL_DT_Y)
+                 -(1.0-2.0*mBeta)/(2.0*mBeta)*
+                 i->GetSolutionStepValue(ANGULAR_ACCELERATION_NULL_Y);
+
+                i->GetSolutionStepValue(ROTATION_EINS_DT_Y)
+                =(i->GetSolutionStepValue(ROTATION_EINS_Y)
+                  -i->GetSolutionStepValue(ROTATION_NULL_Y))
+                 *mGamma/(mBeta*CurrentProcessInfo[DELTA_TIME])
+                 -(mGamma-mBeta)/mBeta*(i->GetSolutionStepValue(ROTATION_NULL_DT_Y))
+                 -(mGamma-2.0*mBeta)/(2.0*mBeta)*CurrentProcessInfo[DELTA_TIME]
+                 *(i->GetSolutionStepValue(ANGULAR_ACCELERATION_NULL_Y));
+
+                i->GetSolutionStepValue(ANGULAR_ACCELERATION_Y)
+                =mAlpha_m*i->GetSolutionStepValue(ANGULAR_ACCELERATION_NULL_Y)
+                 +(1.0-mAlpha_m)*i->GetSolutionStepValue(ANGULAR_ACCELERATION_EINS_Y);
+
+                i->GetSolutionStepValue(ROTATION_DT_Y)
+                = mAlpha*i->GetSolutionStepValue(ROTATION_NULL_DT_Y)
+                  +(1.0-mAlpha)*i->GetSolutionStepValue(ROTATION_EINS_DT_Y);
+
+                i->GetSolutionStepValue(ROTATION_Y)
+                = mAlpha*i->GetSolutionStepValue(ROTATION_NULL_Y)+(1.0-mAlpha)*
+                  i->GetSolutionStepValue(ROTATION_EINS_Y);
+            }
+            if( i->HasDofFor(ROTATION_Z) )
+            {
+                i->GetSolutionStepValue(ANGULAR_ACCELERATION_EINS_Z)
+                = 1.0/(mBeta*CurrentProcessInfo[DELTA_TIME]*CurrentProcessInfo[DELTA_TIME])
+                  * (i->GetSolutionStepValue(ROTATION_EINS_Z)
+                     -i->GetSolutionStepValue(ROTATION_NULL_Z))
+                  -1.0/(mBeta*CurrentProcessInfo[DELTA_TIME])
+                  *i->GetSolutionStepValue(ROTATION_NULL_DT_Z)
+                  -(1.0-2.0*mBeta)/(2.0*mBeta)*i->GetSolutionStepValue(ANGULAR_ACCELERATION_NULL_Z);
+
+                i->GetSolutionStepValue(ROTATION_EINS_DT_Z)
+                = (i->GetSolutionStepValue(ROTATION_EINS_Z)
+                   -i->GetSolutionStepValue(ROTATION_NULL_Z))
+                  *mGamma/(mBeta*CurrentProcessInfo[DELTA_TIME])-(mGamma-mBeta)/mBeta*
+                  (i->GetSolutionStepValue(ROTATION_NULL_DT_Z))
+                  -(mGamma-2.0*mBeta)/(2.0*mBeta)*CurrentProcessInfo[DELTA_TIME]
+                  *(i->GetSolutionStepValue(ANGULAR_ACCELERATION_NULL_Z));
+
+                i->GetSolutionStepValue(ANGULAR_ACCELERATION_Z)
+                = mAlpha_m*i->GetSolutionStepValue(ANGULAR_ACCELERATION_NULL_Z)
+                  +(1.0-mAlpha_m)*i->GetSolutionStepValue(ANGULAR_ACCELERATION_EINS_Z);
+
+                i->GetSolutionStepValue(ROTATION_DT_Z)
+                = mAlpha*i->GetSolutionStepValue(ROTATION_NULL_DT_Z)
+                  +(1.0-mAlpha)*i->GetSolutionStepValue(ROTATION_EINS_DT_Z);
+
+                i->GetSolutionStepValue(ROTATION_Z)
+                = mAlpha*i->GetSolutionStepValue(ROTATION_NULL_Z)
+                  +(1.0-mAlpha)*i->GetSolutionStepValue(ROTATION_EINS_Z);
             }
         }
 
@@ -835,6 +952,51 @@ public:
                         = i->GetSolutionStepValue(AIR_PRESSURE_EINS);
                         i->GetSolutionStepValue(AIR_PRESSURE_NULL_ACCELERATION)
                         = i->GetSolutionStepValue(AIR_PRESSURE_EINS_ACCELERATION);
+                    }
+                }
+                if( i->HasDofFor(ROTATION_X))
+                {
+                    if(CurrentProcessInfo[FIRST_TIME_STEP])
+                    {
+                        i->GetSolutionStepValue(ANGULAR_ACCELERATION_NULL_X)=i->GetSolutionStepValue(ANGULAR_ACCELERATION_X);
+                        i->GetSolutionStepValue(ROTATION_NULL_DT_X)= i->GetSolutionStepValue(ROTATION_DT_X);
+                        i->GetSolutionStepValue(ROTATION_NULL_X)= i->GetSolutionStepValue(ROTATION_X);
+                    }
+                    else
+                    {
+                        i->GetSolutionStepValue(ROTATION_NULL_X)= i->GetSolutionStepValue(ROTATION_EINS_X);
+                        i->GetSolutionStepValue(ROTATION_NULL_DT_X)= i->GetSolutionStepValue(ROTATION_EINS_DT_X);
+                        i->GetSolutionStepValue(ANGULAR_ACCELERATION_NULL_X)=i->GetSolutionStepValue(ANGULAR_ACCELERATION_EINS_X);
+                    }
+                }
+                if( i->HasDofFor(ROTATION_Y) )
+                {
+                    if(CurrentProcessInfo[FIRST_TIME_STEP])
+                    {
+                        i->GetSolutionStepValue(ANGULAR_ACCELERATION_NULL_Y)=i->GetSolutionStepValue(ANGULAR_ACCELERATION_Y);
+                        i->GetSolutionStepValue(ROTATION_NULL_DT_Y)=i->GetSolutionStepValue(ROTATION_DT_Y);
+                        i->GetSolutionStepValue(ROTATION_NULL_Y)=i->GetSolutionStepValue(ROTATION_Y);
+                    }
+                    else
+                    {
+                        i->GetSolutionStepValue(ROTATION_NULL_Y)=i->GetSolutionStepValue(ROTATION_EINS_Y);
+                        i->GetSolutionStepValue(ROTATION_NULL_DT_Y)=i->GetSolutionStepValue(ROTATION_EINS_DT_Y);
+                        i->GetSolutionStepValue(ANGULAR_ACCELERATION_NULL_Y)=i->GetSolutionStepValue(ANGULAR_ACCELERATION_EINS_Y);
+                    }
+                }
+                if( i->HasDofFor(ROTATION_Z) )
+                {
+                    if(CurrentProcessInfo[FIRST_TIME_STEP])
+                    {
+                        i->GetSolutionStepValue(ANGULAR_ACCELERATION_NULL_Z)=i->GetSolutionStepValue(ANGULAR_ACCELERATION_Z);
+                        i->GetSolutionStepValue(ROTATION_NULL_DT_Z)=i->GetSolutionStepValue(ROTATION_DT_Z);
+                        i->GetSolutionStepValue(ROTATION_NULL_Z)=i->GetSolutionStepValue(ROTATION_Z);
+                    }
+                    else
+                    {
+                        i->GetSolutionStepValue(ROTATION_NULL_Z)=i->GetSolutionStepValue(ROTATION_EINS_Z);
+                        i->GetSolutionStepValue(ROTATION_NULL_DT_Z)=i->GetSolutionStepValue(ROTATION_EINS_DT_Z);
+                        i->GetSolutionStepValue(ANGULAR_ACCELERATION_NULL_Z)=i->GetSolutionStepValue(ANGULAR_ACCELERATION_EINS_Z);
                     }
                 }
             }
