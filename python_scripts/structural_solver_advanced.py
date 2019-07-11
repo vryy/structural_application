@@ -56,6 +56,7 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(EXCESS_PORE_WATER_PRESSURE)
     model_part.AddNodalSolutionStepVariable(VISCOSITY)
     model_part.AddNodalSolutionStepVariable(PRESCRIBED_DELTA_DISPLACEMENT)
+    model_part.AddNodalSolutionStepVariable(ELASTIC_STRAIN_VECTOR)
     #auxiliary variables misused for mesh rezoning ;-)
     model_part.AddNodalSolutionStepVariable(IS_VISITED)
     model_part.AddNodalSolutionStepVariable(MESH_VELOCITY)
