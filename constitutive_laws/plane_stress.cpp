@@ -136,6 +136,12 @@ void PlaneStress::SetValue( const Variable<Vector>& rThisVariable, const Vector&
             mCurrentStress.resize(rValue.size(), false);
         noalias(mCurrentStress) = rValue;
     }
+    if ( rThisVariable == THREED_STRESSES )
+    {
+        mCurrentStress(0) = rValue(0);
+        mCurrentStress(1) = rValue(1);
+        mCurrentStress(2) = rValue(3);
+    }
 }
 
 void PlaneStress::SetValue( const Variable<Matrix>& rThisVariable, const Matrix& rValue,
