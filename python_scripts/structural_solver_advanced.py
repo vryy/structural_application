@@ -220,6 +220,8 @@ class SolverAdvanced(structural_solver_static.StaticStructuralSolver):
                 builder_and_solver = ResidualBasedBlockBuilderAndSolver(self.structure_linear_solver)
             elif(self.analysis_parameters['builder_and_solver_type'] == "residual-based block with constraints"):
                 builder_and_solver = ResidualBasedBlockBuilderAndSolverWithConstraints(self.structure_linear_solver)
+            elif(self.analysis_parameters['builder_and_solver_type'] == "residual-based block with constraints element-wise"):
+                builder_and_solver = ResidualBasedBlockBuilderAndSolverWithConstraintsElementWise(self.structure_linear_solver)
             #builder_and_solver = MultiPhaseBuilderAndSolver(self.structure_linear_solver)
             #builder_and_solver = BuiMultiPhaseBuilderAndSolver(self.structure_linear_solver)
             #builder_and_solver = ParallelResidualBasedEliminationBuilderAndSolverDeactivation(self.structure_linear_solver)
