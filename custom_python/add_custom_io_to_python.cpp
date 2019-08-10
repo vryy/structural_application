@@ -39,6 +39,11 @@ void WriteMesh( GidIOType& dummy, GidIOType::MeshType& rThisMesh )
     dummy.WriteMesh( rThisMesh );
 }
 
+void IntPrintOnGaussPoints( GidIOType& dummy, const Variable<int>& rVariable,
+                               ModelPart& r_model_part, double SolutionTag )
+{
+    dummy.PrintOnGaussPoints( rVariable, r_model_part, SolutionTag );
+}
 
 void DoublePrintOnGaussPoints( GidIOType& dummy, const Variable<double>& rVariable,
                                ModelPart& r_model_part, double SolutionTag )
@@ -62,6 +67,13 @@ void MatrixPrintOnGaussPoints( GidIOType& dummy, const Variable<Matrix>& rVariab
 {
     dummy.PrintOnGaussPoints( rVariable, r_model_part, SolutionTag );
 }
+
+void IntPrintOnGaussPointsIndexed( GidIOType& dummy, const Variable<int>& rVariable,
+                               ModelPart& r_model_part, double SolutionTag, int value_index = 0 )
+{
+    dummy.PrintOnGaussPoints( rVariable, r_model_part, SolutionTag, value_index );
+}
+
 void DoublePrintOnGaussPointsIndexed( GidIOType& dummy, const Variable<double>& rVariable,
                                       ModelPart& r_model_part, double SolutionTag, int value_index = 0 )
 {
@@ -150,6 +162,8 @@ void  AddCustomIOToPython()
 //                     .def("PrintOnGaussPoints", pointer_to_double_print_on_gauss_points)
 //                     .def("PrintOnGaussPoints", pointer_to_vector_print_on_gauss_points)
 //                     .def("PrintOnGaussPoints", pointer_to_matrix_print_on_gauss_points)
+    .def("PrintOnGaussPoints", IntPrintOnGaussPoints)
+    .def("PrintOnGaussPoints", IntPrintOnGaussPointsIndexed)
     .def("PrintOnGaussPoints", DoublePrintOnGaussPoints)
     .def("PrintOnGaussPoints", DoublePrintOnGaussPointsIndexed)
     .def("PrintOnGaussPoints", VectorPrintOnGaussPoints)

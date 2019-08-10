@@ -117,8 +117,9 @@ namespace Kratos
 //        KRATOS_WATCH("foundation_utility, line 117");
 //                 Geometry<Node<3> >::Pointer tempGeometry;
 //                 tempGeometry = geometry_object.Create( temp_points );
-                Node<3> point( 0.0, 0.0, 0.0 );
-                GeometryType::Pointer tempGeometry = GeometryType::Pointer(new Point3D<Node<3> >(point) );
+                // Node<3> point( 0.0, 0.0, 0.0 );
+                // GeometryType::Pointer tempGeometry = GeometryType::Pointer(new Point3D<Node<3> >(point) );
+                GeometryType::Pointer tempGeometry = GeometryType::Pointer(new GeometryType());
        //         KRATOS_WATCH( tempGeometry );
         //        KRATOS_WATCH( *tempGeometry );
 //        KRATOS_WATCH("foundation_utiliy, line 120");
