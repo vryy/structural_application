@@ -76,6 +76,8 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(NODAL_ERROR_1)
     model_part.AddNodalSolutionStepVariable(VON_MISES_STRESS)
     model_part.AddNodalSolutionStepVariable(PLASTICITY_INDICATOR)
+    model_part.AddNodalSolutionStepVariable(THREED_STRESSES)
+    model_part.AddNodalSolutionStepVariable(INTEGRATION_POINT_STRAIN_VECTOR)
     model_part.AddNodalSolutionStepVariable(ROTATION_OLD)
     model_part.AddNodalSolutionStepVariable(ROTATION_NULL)
     model_part.AddNodalSolutionStepVariable(ROTATION_EINS)
@@ -253,5 +255,3 @@ class SolverAdvanced(structural_solver_static.StaticStructuralSolver):
     #######################################################################
     def SolveLagrangeLocal(self):
         (self.solver).SolveLagrangeLocal()
-
-
