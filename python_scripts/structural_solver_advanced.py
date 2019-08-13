@@ -135,8 +135,8 @@ class SolverAdvanced(structural_solver_static.StaticStructuralSolver):
         self.conv_criteria = DisplacementCriteria(0.000001,1e-9)
         #self.conv_criteria = ParallelDisplacementCriteria(0.000001,1e-9)
         self.CalculateReactionFlag = False
-        #######################################################################
 
+    #######################################################################
     def CheckAndConvertParameters(self, analysis_parameters):
         if( type( analysis_parameters ) == dict ):
             if 'builder_and_solver_type' not in analysis_parameters:
@@ -173,8 +173,8 @@ class SolverAdvanced(structural_solver_static.StaticStructuralSolver):
             print 'unsupported type of analysis parameters'
             sys.exit(0)
 
-        #######################################################################
 
+    #######################################################################
     def Initialize(self):
         #definition of time integration scheme
         if( self.analysis_parameters['analysis_type'] == 0 ):
@@ -237,14 +237,15 @@ class SolverAdvanced(structural_solver_static.StaticStructuralSolver):
 
         #creating the solution strategy
         self.ReformDofSetAtEachStep = True
-        #KLUDGE: this has to be True!
         self.MoveMeshFlag = True
         self.space_utils = UblasSparseSpace()
-        #self.space_utils = ParallelUblasSparseSpace()
-        #importing strategy
-        #import ekate_strategy
+        self.model_part.ProcessInfo[RESET_CONFIGURATION] = 0
         import uzawa_contact_strategy
         self.solver = uzawa_contact_strategy.SolvingStrategyPython( self.model_part, self.time_scheme, self.structure_linear_solver, self.conv_criteria, self.CalculateReactionFlag, self.ReformDofSetAtEachStep, self.MoveMeshFlag, self.analysis_parameters, self.space_utils, builder_and_solver )
+
+    #######################################################################
+    def InitializeSolver(self):
+        self.solver.Initialize()
 
     #######################################################################
     def SolveLagrange(self):

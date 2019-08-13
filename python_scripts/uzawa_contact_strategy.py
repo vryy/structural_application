@@ -85,6 +85,8 @@ class SolvingStrategyPython:
             self.scheme.InitializeConditions(self.model_part)
         for proc in self.attached_processes:
             proc.ExecuteInitialize()
+        self.InitializeWasPerformed = True
+        print("SolvingStrategyPython.Initialize is called")
 
     #######################################################################
     def SolveLagrange( self ):
@@ -187,7 +189,6 @@ class SolvingStrategyPython:
         # elemental function "Initialize" is called here
         if(self.InitializeWasPerformed == False):
             self.Initialize()
-            self.InitializeWasPerformed = True
         #perform initializations for the current step
         #this operation implies:
         #identifying the set of DOFs that will be solved during this step
