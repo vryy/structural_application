@@ -136,7 +136,7 @@ Element::Pointer CrisfieldTrussElement::Create(IndexType NewId, NodesArrayType c
 * Initialization of the Crisfield truss element.
 * This initializes the cross-section, length, position vector and matrix A for the element
 */
-void CrisfieldTrussElement::Initialize()
+void CrisfieldTrussElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
     unsigned int dof = number_of_nodes * dimension;
@@ -618,17 +618,17 @@ double CrisfieldTrussElement::CalculateStrain(const Matrix& A, const Vector& X, 
 
         if ( AREA.Key() == 0 )
             KRATOS_THROW_ERROR( std::invalid_argument, "AREA has Key zero! (check if the application is correctly registered", "" );
-	
+
 	if ( this->GetProperties().Has( BODY_FORCE ) == false )
             KRATOS_THROW_ERROR( std::logic_error, "BODY_FORCE not provided for property ", this->GetProperties().Id())
-            
+
 	if ( this->GetProperties().Has( CROSS_AREA ) == false )
             KRATOS_THROW_ERROR( std::logic_error, "CROSS_AREA not provided for property ", this->GetProperties().Id())
-         
-        return 0; 
-         
-         KRATOS_CATCH(" ")   
-        
+
+        return 0;
+
+         KRATOS_CATCH(" ")
+
       }
 
 } // Namespace Kratos

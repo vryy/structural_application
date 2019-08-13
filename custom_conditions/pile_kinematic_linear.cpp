@@ -113,7 +113,7 @@ Pile_Kinematic_Linear::~Pile_Kinematic_Linear()
 {
 }
 
-void Pile_Kinematic_Linear::Initialize()
+void Pile_Kinematic_Linear::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
     KRATOS_CATCH( "" )
@@ -243,7 +243,7 @@ Vector Pile_Kinematic_Linear::NormalVector( Element::Pointer rElement,
         vPC[2] += ( rElement->GetGeometry()[n].Z()
                                 + mpPileElement->GetGeometry()[n].GetSolutionStepValue( DISPLACEMENT_Z, 0 ) )
                          *  ShapeFunctionValues[n];
-    }  
+    }
 
     Vector vP0( 3 );
     for ( unsigned int n = 0; n < rElement->GetGeometry().PointsNumber(); n++ )
@@ -285,12 +285,12 @@ Matrix Pile_Kinematic_Linear::TangentialVectorsTotal( Element::Pointer rElement,
     Vector N( 1, 3 );
     noalias( N ) = NormalVector(  rElement, rPoint );
 
-    T( 0, 0 ) = T( 0, 0 );        
-    T( 0, 1 ) = T( 0, 1 );        
+    T( 0, 0 ) = T( 0, 0 );
+    T( 0, 1 ) = T( 0, 1 );
     T( 0, 2 ) = T( 0, 2 );
 
-    T( 1, 0 ) = T( 0, 1 ) * N(2) - T( 0, 2 ) * N(1);        
-    T( 1, 1 ) = T( 0, 2 ) * N(0) - T( 0, 0 ) * N(2);        
+    T( 1, 0 ) = T( 0, 1 ) * N(2) - T( 0, 2 ) * N(1);
+    T( 1, 1 ) = T( 0, 2 ) * N(0) - T( 0, 0 ) * N(2);
     T( 1, 2 ) = T( 0, 0 ) * N(1) - T( 0, 1 ) * N(0);
 
     return( T );
@@ -381,7 +381,7 @@ void Pile_Kinematic_Linear::CalculateAll( MatrixType& rLeftHandSideMatrix,
 
     for ( IndexType i = 0; i < pileNN; i++ )
         PileShapeFunctionValues[i] = mpPileElement->GetGeometry().ShapeFunctionValue( i, mPileLocalPoint );
-    
+
 
     //calculating shape function gradients for current pile element
     Matrix PileDN = ZeroMatrix( pileNN, ( dimension - 2 ) ); ////??????????????????????????????????????????
@@ -419,7 +419,7 @@ void Pile_Kinematic_Linear::CalculateAll( MatrixType& rLeftHandSideMatrix,
     //********************************
 
     //calculating normal vector on Pile element
-    
+
     Vector vPile( 3 );
 
     noalias( vPile ) = ZeroVector( 3 );
@@ -441,7 +441,7 @@ void Pile_Kinematic_Linear::CalculateAll( MatrixType& rLeftHandSideMatrix,
 
     //calculating normal vetors vectors
     Vector vCurentPile( 3 );
-    
+
    //calculating current position of target point on pile
 
     noalias( vCurentPile ) = ZeroVector( 3 );
@@ -483,7 +483,7 @@ void Pile_Kinematic_Linear::CalculateAll( MatrixType& rLeftHandSideMatrix,
 
     //calculating normal vector
     vPile = vCurentPile - vOriginPileProj;
-   
+
     noalias( mPileGlobalPoint ) = GetGlobalCoordinates( mpPileElement, mPileGlobalPoint, mPileLocalPoint );
 
     noalias( mSoilGlobalPoint ) = GetGlobalCoordinates( mpSoilElement, mSoilGlobalPoint, mSoilLocalPoint );
@@ -594,7 +594,7 @@ void Pile_Kinematic_Linear::CalculateAll( MatrixType& rLeftHandSideMatrix,
 
     norm_T[0] = sqrt( T( 0, 0 ) * T( 0, 0 ) + T( 0, 1 ) * T( 0, 1 ) + T( 0, 2 ) * T( 0, 2 ) );
     norm_T[1] = sqrt( T( 1, 0 ) * T( 1, 0 ) + T( 1, 1 ) * T( 1, 1 ) + T( 1, 2 ) * T( 1, 2 ) );
-    
+
     double NormvPile = MathUtils<double>::Norm3( vPileNonNormalized );
     if (NormvPile !=0)
     {
@@ -669,9 +669,9 @@ void Pile_Kinematic_Linear::CalculateAll( MatrixType& rLeftHandSideMatrix,
                                               + ( soil_velo( 2 ) - pile_velo( 2 ) ) * T( 0, 2 ) ) / norm_T( 0 );
         } else
         {
-         relativTangentialVelocity( 0 ) = 0; 
+         relativTangentialVelocity( 0 ) = 0;
         }
-        
+
         if ((norm_T (1)) != 0)
         {
         relativTangentialVelocity( 1 ) = (( soil_velo( 0 ) - pile_velo( 0 ) ) * T( 1, 0 ) + ( soil_velo( 1 ) - pile_velo( 1 ) ) * T( 1, 1 )
@@ -680,11 +680,11 @@ void Pile_Kinematic_Linear::CalculateAll( MatrixType& rLeftHandSideMatrix,
         {
           relativTangentialVelocity( 1 ) = 0;
         }
-        
-        
 
 
-        
+
+
+
 
         tangentialStresses_trial[0] +=  relativTangentialVelocity( 0 ) * penalty_T;
 
@@ -698,7 +698,7 @@ void Pile_Kinematic_Linear::CalculateAll( MatrixType& rLeftHandSideMatrix,
                                               + tangentialStresses_trial[1] * m( 1, 1 ) * tangentialStresses_trial[1] );
 
 
-          
+
 
       if ( normTangentialStresses_trial > friction_coeff*normalStress )//Slip
       {
@@ -785,16 +785,16 @@ void Pile_Kinematic_Linear::CalculateAll( MatrixType& rLeftHandSideMatrix,
                         += PileShapeFunctionValues[prim] * vPile[i]
                            * PileShapeFunctionValues[sec] * vPile[j]
                            * penalty * SoilIntegrationWeight * influence_area;
-              
+
                 cont1 (0) =  prim*dimension + i;
-                cont1 (1) = sec*dimension + j;    
+                cont1 (1) = sec*dimension + j;
             //    KRATOS_WATCH (cont1)
                     }
                 }
             }
         }
 
-               
+
 
         //END OF CONTRIBUTION: MASTER-MASTER
         //BEGIN OF CONTRIBUTION: MASTER-SLAVE
@@ -812,7 +812,7 @@ void Pile_Kinematic_Linear::CalculateAll( MatrixType& rLeftHandSideMatrix,
                            * SoilIntegrationWeight * influence_area;
 
             //   //KRATOS_WATCH (cont2);
-            
+
                     }
                 }
             }
@@ -882,7 +882,7 @@ void Pile_Kinematic_Linear::CalculateAll( MatrixType& rLeftHandSideMatrix,
         for ( unsigned int i = 0; i < dimension; i++ )
         {
             Vector XiPrim = ZeroVector( 2 );
-        
+
         if ((norm_T (0)) != 0)
         {
           XiPrim[0] = -PileShapeFunctionValues[prim] * T( 0, i ) / norm_T( 0 );
@@ -891,7 +891,7 @@ void Pile_Kinematic_Linear::CalculateAll( MatrixType& rLeftHandSideMatrix,
         {
          XiPrim[0]=0;
         }
-          
+
         if ((norm_T (1)) != 0)
         {
           XiPrim[1] = -PileShapeFunctionValues[prim] * T( 1, i ) / norm_T( 1 );
@@ -949,7 +949,7 @@ void Pile_Kinematic_Linear::CalculateAll( MatrixType& rLeftHandSideMatrix,
         {
          XiPrim[0]=0;
         }
-          
+
         if ((norm_T (1)) != 0)
         {
           XiPrim[1] = -PileShapeFunctionValues[prim] * T( 1, i ) / norm_T( 1 );
@@ -1004,7 +1004,7 @@ void Pile_Kinematic_Linear::CalculateAll( MatrixType& rLeftHandSideMatrix,
         {
          XiPrim[0]=0;
         }
-          
+
         if ((norm_T (1)) != 0)
         {
 
@@ -1060,7 +1060,7 @@ void Pile_Kinematic_Linear::CalculateAll( MatrixType& rLeftHandSideMatrix,
         {
          XiPrim[0]=0;
         }
-          
+
         if ((norm_T (1)) != 0)
         {
 
@@ -1226,7 +1226,7 @@ void Pile_Kinematic_Linear::DampMatrix( MatrixType& rDampMatrix, ProcessInfo& rC
         TPileN( 1, 0 ) +=0;
         TPileN( 1, 1 ) +=0;
         TPileN( 1, 2 ) +=0;
-              
+
 
     }
     //calculating curent possition of the pile target point
@@ -1440,7 +1440,7 @@ void Pile_Kinematic_Linear::DampMatrix( MatrixType& rDampMatrix, ProcessInfo& rC
     //calculating compatibiliy vector m (due to orogonaliy condition it is usnity vector )
     Matrix m( 2, 2 );
     noalias( m ) = ZeroMatrix( 2, 2 );//m[alpha][beta]=T[alpha]*T[beta]
-    
+
 
       for ( int i = 0; i < 2; i++ )
       {
@@ -1448,7 +1448,7 @@ void Pile_Kinematic_Linear::DampMatrix( MatrixType& rDampMatrix, ProcessInfo& rC
         {
             m( i, j ) ==1;
         }
-      }     
+      }
 
 
     Vector tangentialStresses( 2 );
@@ -1563,7 +1563,7 @@ void Pile_Kinematic_Linear::DampMatrix( MatrixType& rDampMatrix, ProcessInfo& rC
         {
         Xi[0]=0;
         }
-          
+
         if ((norm_T (1)) != 0)
         {
           Xi[1] = -PileShapeFunctionValues[prim] * T( 1, i ) / norm_T( 1 );
@@ -1589,13 +1589,13 @@ void Pile_Kinematic_Linear::DampMatrix( MatrixType& rDampMatrix, ProcessInfo& rC
             {tangentialStresses_trial_DV( 0 ) = 0;
             }
             if ((norm_T (1)) != 0)
-            {            
+            {
                         tangentialStresses_trial_DV( 1 ) =
                             penalty_T * T( 1, j ) / norm_T( 1 ) * ( -1 ) * PileShapeFunctionValues[sec];
             }else
             {tangentialStresses_trial_DV( 1 ) = 0;
             }
-            
+
                         if ( Stick )
                         {
                             tangentialStresses_DV( 0 ) =
@@ -1655,7 +1655,7 @@ void Pile_Kinematic_Linear::DampMatrix( MatrixType& rDampMatrix, ProcessInfo& rC
         {
         Xi[0]=0;
         }
-          
+
         if ((norm_T (1)) != 0)
         {
           Xi[1] = -PileShapeFunctionValues[prim] * T( 1, i ) / norm_T( 1 );
@@ -1682,14 +1682,14 @@ void Pile_Kinematic_Linear::DampMatrix( MatrixType& rDampMatrix, ProcessInfo& rC
             {tangentialStresses_trial_DV( 0 ) = 0;
             }
             if ((norm_T (1)) != 0)
-            {            
-  
+            {
+
                         tangentialStresses_trial_DV( 1 ) =
                             penalty_T * T( 1, j ) / norm_T( 1 ) * SoilShapeFunctionValues[sec];
             }else
             {tangentialStresses_trial_DV( 1 ) = 0;
             }
-            
+
                         if ( Stick )
                         {
                             tangentialStresses_DV( 0 ) =
@@ -1718,7 +1718,7 @@ void Pile_Kinematic_Linear::DampMatrix( MatrixType& rDampMatrix, ProcessInfo& rC
               {
                             tangentialStresses_DV( 0 ) = 0;
                              tangentialStresses_DV( 1 ) = 0;
-              }                        
+              }
              }
 
                         rDampMatrix( prim*dimension+ i, pileNN*dimension+ sec*dimension+ j )
@@ -1748,7 +1748,7 @@ void Pile_Kinematic_Linear::DampMatrix( MatrixType& rDampMatrix, ProcessInfo& rC
         {
         Xi[0]=0;
         }
-          
+
         if ((norm_T (1)) != 0)
         {
 
@@ -1775,12 +1775,12 @@ void Pile_Kinematic_Linear::DampMatrix( MatrixType& rDampMatrix, ProcessInfo& rC
             {tangentialStresses_trial_DV( 0 ) = 0;
             }
             if ((norm_T (1)) != 0)
-            {            
-  
+            {
+
                         tangentialStresses_trial_DV( 1 ) =
                             penalty_T * T( 1, j ) / norm_T( 1 ) * ( -1 ) * PileShapeFunctionValues[sec];
             }else
-              
+
             {
               tangentialStresses_trial_DV( 1 ) = 0;
             }
@@ -1795,7 +1795,7 @@ void Pile_Kinematic_Linear::DampMatrix( MatrixType& rDampMatrix, ProcessInfo& rC
                         else
                         {
               if (normTangentialStresses_trial !=0 )
-              {              
+              {
                             tangentialStresses_DV( 0 ) =
                                 ( penalty_T * T( 0, j ) / norm_T( 0 ) * ( friction_coeff
                                         * normalStress ) / normTangentialStresses_trial
@@ -1813,7 +1813,7 @@ void Pile_Kinematic_Linear::DampMatrix( MatrixType& rDampMatrix, ProcessInfo& rC
               {
                             tangentialStresses_DV( 0 ) = 0;
                              tangentialStresses_DV( 1 ) = 0;
-              }                        
+              }
              }
 
                         rDampMatrix( pileNN*dimension+ prim*dimension+ i, sec*dimension+ j )
@@ -1842,7 +1842,7 @@ void Pile_Kinematic_Linear::DampMatrix( MatrixType& rDampMatrix, ProcessInfo& rC
         {
         Xi[0]=0;
         }
-          
+
         if ((norm_T (1)) != 0)
         {
 
@@ -1868,15 +1868,15 @@ void Pile_Kinematic_Linear::DampMatrix( MatrixType& rDampMatrix, ProcessInfo& rC
             {tangentialStresses_trial_DV( 0 ) = 0;
             }
             if ((norm_T (1)) != 0)
-            {            
+            {
                         tangentialStresses_trial_DV( 1 ) =
                             penalty_T * T( 1, j ) / norm_T( 1 ) * SoilShapeFunctionValues[sec];
             }else
             {
               tangentialStresses_trial_DV( 1 ) = 0;
             }
-            
-            
+
+
                         if ( Stick )
                         {
                             tangentialStresses_DV( 0 ) =
@@ -1888,7 +1888,7 @@ void Pile_Kinematic_Linear::DampMatrix( MatrixType& rDampMatrix, ProcessInfo& rC
                         else
                         {
               if (normTangentialStresses_trial !=0 )
-              {              
+              {
                             tangentialStresses_DV( 0 ) =
                                 -( penalty_T * T( 0, j ) / norm_T( 0 ) * ( friction_coeff
                                         * normalStress ) / normTangentialStresses_trial
@@ -1906,7 +1906,7 @@ void Pile_Kinematic_Linear::DampMatrix( MatrixType& rDampMatrix, ProcessInfo& rC
               {
                             tangentialStresses_DV( 0 ) = 0;
                              tangentialStresses_DV( 1 ) = 0;
-              }                        
+              }
             }
 
                         rDampMatrix( pileNN*dimension+ prim*dimension+ i, pileNN*dimension+ sec*dimension+ j )

@@ -1,14 +1,14 @@
 /*
 ==============================================================================
-KratosR1StructuralApplication 
+KratosR1StructuralApplication
 A library based on:
 Kratos
 A General Purpose Software for Multi-Physics Finite Element Analysis
 Version 1.0 (Released on march 05, 2007).
 
 Copyright 2007
-Pooyan Dadvand, Riccardo Rossi, Janip_utilityosch Stascheit, Felix Nagel 
-pooyan@cimne.upc.edu 
+Pooyan Dadvand, Riccardo Rossi, Janip_utilityosch Stascheit, Felix Nagel
+pooyan@cimne.upc.edu
 rrossi@cimne.upc.edu
 janosch.stascheit@rub.de
 nagel@sd.rub.de
@@ -41,8 +41,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ==============================================================================
 */
-//   
-//   Project Name:        Kratos       
+//
+//   Project Name:        Kratos
 //   Last Modified by:    $Author: nagel $
 //   Date:                $Date: 2007-10-16 12:48:37 $
 //   Revision:            $Revision: 1.1 $
@@ -52,7 +52,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define  KRATOS_FOUNDATION_CONDITION_H_INCLUDED
 
 
-// External includes 
+// External includes
 #include "boost/smart_ptr.hpp"
 
 // Project includes
@@ -80,18 +80,18 @@ namespace Kratos
         public:
             // Counted pointer of FoundationCondition
             KRATOS_CLASS_POINTER_DEFINITION(FoundationCondition);
-            
-            /** 
+
+            /**
              * Default constructor.
              */
             FoundationCondition();
             FoundationCondition( IndexType NewId, GeometryType::Pointer pGeometry);
-            
-            FoundationCondition( IndexType NewId, GeometryType::Pointer pGeometry,  
+
+            FoundationCondition( IndexType NewId, GeometryType::Pointer pGeometry,
                            PropertiesType::Pointer pProperties
                          );
-            
-            FoundationCondition( IndexType NewId, GeometryType::Pointer pGeometry,  
+
+            FoundationCondition( IndexType NewId, GeometryType::Pointer pGeometry,
                                   	PropertiesType::Pointer pProperties,
 					Element::Pointer& soilElement,
 					Element::Pointer& FoundationElement,
@@ -101,42 +101,42 @@ namespace Kratos
              * Destructor.
              */
             virtual ~FoundationCondition();
-      
+
             /**
              * Operations.
              */
-            
-            
-            
-            Condition::Pointer Create( IndexType NewId, 
-                                       NodesArrayType const& ThisNodes,  
+
+
+
+            Condition::Pointer Create( IndexType NewId,
+                                       NodesArrayType const& ThisNodes,
                                        PropertiesType::Pointer pProperties) const;
-            
+
             /**
              * Calculates the local system contributions for this contact element
              */
-            void CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, 
-                                       VectorType& rRightHandSideVector, 
+            void CalculateLocalSystem( MatrixType& rLeftHandSideMatrix,
+                                       VectorType& rRightHandSideVector,
                                        ProcessInfo& rCurrentProcessInfo);
-            
-            void CalculateRightHandSide( VectorType& rRightHandSideVector, 
+
+            void CalculateRightHandSide( VectorType& rRightHandSideVector,
                                          ProcessInfo& rCurrentProcessInfo);
 //    	    void DampMatrix(MatrixType& rDampMatrix, ProcessInfo& rCurrentProcessInfo);
 
-            void EquationIdVector( EquationIdVectorType& rResult, 
+            void EquationIdVector( EquationIdVectorType& rResult,
                                    ProcessInfo& rCurrentProcessInfo);
-            
+
             void GetDofList( DofsVectorType& ConditionalDofList,
                              ProcessInfo& CurrentProcessInfo);
-            
 
-            void Initialize();
+
+            void Initialize(const ProcessInfo& rCurrentProcessInfo);
             /**
              * Turn back information as a string.
              * (DEACTIVATED)
              */
             //std::string Info();
-      
+
             /**
              * Print information about this object.
              * (DEACTIVATED)
@@ -148,10 +148,10 @@ namespace Kratos
              * (DEACTIVATED)
              */
             //virtual void PrintData(std::ostream& rOStream) const;
-      
+
         protected:
-        
-        
+
+
         private:
 
       friend class Serializer;
@@ -165,7 +165,7 @@ namespace Kratos
       {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS ( rSerializer, Condition )
       }
-            void CalculateAll( MatrixType& rLeftHandSideMatrix, 
+            void CalculateAll( MatrixType& rLeftHandSideMatrix,
                                VectorType& rRightHandSideVector,
                                ProcessInfo& rCurrentProcessInfo,
                                bool CalculateStiffnessMatrixFlag,
@@ -196,14 +196,14 @@ namespace Kratos
 	   Vector GetRelativTangentialVelocity(Matrix& T);
 
 	   Vector GetRelativVelocity();
-            
+
             void UpdateTipLocalPoint( );
      	    Point<3>& GlobalCoordinatesSoil(Element::Pointer tip_soilElements, Point<3>& rResult, Point<3> const& LocalCoordinates);
      	    Point<3>& GlobalCoordinatesPile(Element::Pointer FoundationElements, Point<3>& rResult, Point<3> const& LocalCoordinates);*/
      	 //   Vector& GlobalCoordinatesTPileVector(Element::Pointer FoundationElements, Vector& rResult, Point<3> const& LocalCoordinates);
-    }; // Class FoundationCondition 
+    }; // Class FoundationCondition
 }  // namespace Kratos.
-  
 
-#endif // KRATOS_PILE_CONDITION_H_INCLUDED defined 
+
+#endif // KRATOS_PILE_CONDITION_H_INCLUDED defined
 

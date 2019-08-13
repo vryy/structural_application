@@ -138,7 +138,7 @@ public:
 
     virtual Element::Pointer Create( IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties ) const;
 
-    void Initialize();
+    void Initialize(const ProcessInfo& rCurrentProcessInfo);
 
     void ResetConstitutiveLaw();
 
@@ -390,7 +390,7 @@ private:
     //CALCULATE FORCEVECTORS WATER
 
     void AddInternalForcesToRHSW( Vector& Help_R_U, const Matrix& DN_DX_DISP, const Matrix& DN_DX_PRESS, Vector& N_PRESS, double capillaryPressure, double Weight, double DetJ );
-    
+
     void AddInternalForcesToRHSWs(Vector& Help_R_W, Vector& N_PRESS, Vector& N_PRESS_averaged, double capillaryPressure_dt, double averageCapillaryPressure_dt, double Weight, double DetJ );
 
     //************************************************************************************
@@ -403,7 +403,7 @@ private:
     void CalculateStiffnesMatrixWU( Matrix& Help_K_WU, const Matrix& DN_DX, const Matrix& DN_DX_PRESS, Vector& N, double capillaryPressure, double Weight, double DetJ );
 
     void CalculateStiffnesMatrixWW( Matrix& Help_K_WW, const Matrix& DN_DX_DISP, const Matrix& DN_DX_PRESS, Vector& N_PRESS, double capillaryPressure, double Weight, double DetJ );
-    
+
     void CalculateStiffnesMatrixWWs( Matrix& Help_K_WW, Vector& N_PRESS, Vector& N_PRESS_averaged, double Weight, double DetJ );
 
     //************************************************************************************
@@ -418,7 +418,7 @@ private:
     void CalculateDampingMatrixWW( Matrix& Help_D_WW, const Matrix& DN_DX_DISP, Vector& N_PRESS, double capillaryPressure, double Weight, double DetJ );
 
     void CalculateDampingMatrixWWs( Matrix& Help_D_WW, const Matrix& DN_DX_DISP, Vector& N_PRESS, Vector& N_PRESS_averaged, double Weight, double DetJ );
-        
+
     //************************************************************************************
     //************************************************************************************
     //************************************************************************************
@@ -597,6 +597,6 @@ private:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_UNSATURATED_SOILS_ELEMENT_INCLUDED defined 
+#endif // KRATOS_UNSATURATED_SOILS_ELEMENT_INCLUDED defined
 
 

@@ -1856,7 +1856,7 @@ void ShellIsotropic::InvertMatrix(const boost::numeric::ublas::bounded_matrix<do
 
 //************************************************************************************
 //************************************************************************************
-void ShellIsotropic::Initialize()
+void ShellIsotropic::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
     //calculate local coordinates and rotation matrix

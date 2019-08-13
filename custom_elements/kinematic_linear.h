@@ -138,10 +138,10 @@ public:
     IntegrationMethod GetIntegrationMethod() const;
 
     virtual Element::Pointer Create( IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties ) const;
-    
+
     virtual Element::Pointer Create( IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties ) const;
 
-    void Initialize();
+    void Initialize(const ProcessInfo& rCurrentProcessInfo);
 
     void ResetConstitutiveLaw();
 
@@ -249,7 +249,6 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    bool mIsInitialized;
     Matrix mInitialDisp;
     IntegrationMethod mThisIntegrationMethod;
     std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector;
@@ -263,7 +262,7 @@ protected:
     ///@{
 
     void InitializeMaterial();
-    
+
     ///@}
     ///@name Serialization
     ///@{
@@ -276,7 +275,6 @@ protected:
     virtual void save( Serializer& rSerializer ) const
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer,  Element );
-        rSerializer.save( "mIsInitialized", mIsInitialized );
         rSerializer.save( "mInitialDisp", mInitialDisp );
 //        rSerializer.save( "mThisIntegrationMethod", mThisIntegrationMethod );
         rSerializer.save( "mConstitutiveLawVector", mConstitutiveLawVector );
@@ -285,7 +283,6 @@ protected:
     virtual void load( Serializer& rSerializer )
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer,  Element );
-        rSerializer.load( "mIsInitialized", mIsInitialized );
         rSerializer.load( "mInitialDisp", mInitialDisp );
 //        rSerializer.load( "mThisIntegrationMethod", mThisIntegrationMethod );
         rSerializer.load( "mConstitutiveLawVector", mConstitutiveLawVector );
@@ -340,7 +337,7 @@ private:
     //CALCULATE FORCEVECTORS DISPLACEMENT
 
     void AddBodyForcesToRHS( Vector& R, const Vector& N_DISP, double Weight, double detJ );
-    
+
     void CalculateAndAdd_ExtForceContribution( const Vector& N, const ProcessInfo& CurrentProcessInfo,
                                                const Vector& BodyForce, VectorType& rRightHandSideVector,
                                                double weight, double detJ);
@@ -419,6 +416,6 @@ private:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_KINEMATIC_LINEAR2_INCLUDED defined 
+#endif // KRATOS_KINEMATIC_LINEAR2_INCLUDED defined
 
 

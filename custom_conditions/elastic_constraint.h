@@ -206,8 +206,8 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
-    void CalculateAll( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, 
-                       const ProcessInfo& rCurrentProcessInfo, bool CalculateStiffnessMatrixFlag, 
+    void CalculateAll( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector,
+                       const ProcessInfo& rCurrentProcessInfo, bool CalculateStiffnessMatrixFlag,
                        bool CalculateResidualVectorFlag );
 
 
@@ -265,7 +265,7 @@ private:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_ELASTIC_POINT_CONSTRAINT_CONDITION_H_INCLUDED  defined 
+#endif // KRATOS_ELASTIC_POINT_CONSTRAINT_CONDITION_H_INCLUDED  defined
 
 
 

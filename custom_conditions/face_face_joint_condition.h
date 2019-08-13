@@ -94,7 +94,7 @@ public:
     FaceFaceJointCondition( IndexType NewId, GeometryType::Pointer geom1, GeometryType::Pointer geom2, PropertiesType::Pointer pProperties );
 
     FaceFaceJointCondition( IndexType NewId, BaseType::Pointer cond1, BaseType::Pointer cond2, PropertiesType::Pointer pProperties );
-    
+
 
     /**
      * Destructor.
@@ -112,7 +112,7 @@ public:
                                BaseType::Pointer cond1, BaseType::Pointer cond2,
                                PropertiesType::Pointer pProperties) const;
 
-    void Initialize();
+    void Initialize(const ProcessInfo& rCurrentProcessInfo);
 
     void CalculateLocalSystem( MatrixType& rLeftHandSideMatrix,
                                VectorType& rRightHandSideVector,
@@ -127,7 +127,7 @@ public:
     void GetDofList( DofsVectorType& ConditionalDofList,
                      ProcessInfo& CurrentProcessInfo);
 
-    
+
 private:
 
     IntegrationMethod mThisIntegrationMethod;
@@ -158,4 +158,4 @@ private:
 }; // Class FaceFaceJointCondition
 }  // namespace Kratos.
 
-#endif // KRATOS_FACE_FACE_JOINT_CONDITION_H_INCLUDED  defined 
+#endif // KRATOS_FACE_FACE_JOINT_CONDITION_H_INCLUDED  defined

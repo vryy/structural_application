@@ -106,7 +106,7 @@ namespace Kratos
     //THIS IS THE INITIALIZATION OF THE ELEMENT (CALLED AT THE BEGIN OF EACH CALCULATION)
     //************************************************************************************
 
-    void TimoshenkoBeamElement::Initialize()
+    void TimoshenkoBeamElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY
 

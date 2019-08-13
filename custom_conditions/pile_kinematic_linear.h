@@ -107,7 +107,7 @@ namespace Kratos
              * Operations.
              */
 
-            void Initialize();
+            void Initialize(const ProcessInfo& rCurrentProcessInfo);
 
             void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo);
 
@@ -204,12 +204,12 @@ namespace Kratos
             Point<3>& GetGlobalCoordinates( Element::Pointer rElement, Point<3>& rResult, const Point<3>& LocalCoordinates );
 
             Matrix CalculateTangentVectors( const Element::Pointer rElement, const Matrix& DN );
-            
+
             Matrix TangentialVectors( Element::Pointer rElement,
                                       const GeometryType::CoordinatesArrayType& LocalPoint );
 
             Matrix TangentialVectorsTotal( Element::Pointer rElement,
-                                           const GeometryType::CoordinatesArrayType& LocalPoint );          
+                                           const GeometryType::CoordinatesArrayType& LocalPoint );
 
             Matrix TangentialVectorsGlobal( Element::Pointer rElement,
                                             const GeometryType::CoordinatesArrayType& LocalPoint );
@@ -221,5 +221,5 @@ namespace Kratos
 }  // namespace Kratos.
 
 
-#endif // KRATOS_PILE_KINEMATIC_LINEAR_H_INCLUDED defined 
+#endif // KRATOS_PILE_KINEMATIC_LINEAR_H_INCLUDED defined
 

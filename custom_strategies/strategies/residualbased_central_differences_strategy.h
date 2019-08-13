@@ -804,7 +804,7 @@ public:
             for (ElementsArrayType::iterator it= it_begin; it!=it_end; ++it)
             {
                 Element::GeometryType& geom = it->GetGeometry(); // Nodos del elemento
-                (it)->Initialize();
+                (it)->Initialize(CurrentProcessInfo);
                 (it)->GetValue(IS_INACTIVE) = false;
                 (it)->CalculateMassMatrix(MassMatrix, CurrentProcessInfo);
                 const unsigned int& dim   = geom.WorkingSpaceDimension();
@@ -834,7 +834,7 @@ public:
         KRATOS_TRY
 
         ModelPart& r_model_part          = BaseType::GetModelPart();
-        //ProcessInfo& CurrentProcessInfo  = r_model_part.GetProcessInfo();
+        ProcessInfo& CurrentProcessInfo  = r_model_part.GetProcessInfo();
         ConditionsArrayType& pConditions = r_model_part.Conditions();
 
 #ifdef _OPENMP
@@ -854,7 +854,7 @@ public:
 
             for (ConditionsArrayType::iterator it= it_begin; it!=it_end; ++it)
             {
-                (it) -> Initialize();
+                (it) -> Initialize(CurrentProcessInfo);
             }
 
         }

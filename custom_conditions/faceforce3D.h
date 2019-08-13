@@ -226,4 +226,4 @@ private:
 
 } // namespace Kratos.
 
-#endif // KRATOS_FACEFORCE3D_H_INCLUDED  defined 
+#endif // KRATOS_FACEFORCE3D_H_INCLUDED  defined

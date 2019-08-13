@@ -114,7 +114,7 @@ public:
     void GetFirstDerivativesVector(Vector& values, int Step = 0);
     void GetSecondDerivativesVector(Vector& values, int Step = 0);
 
-    void Initialize();
+    void Initialize(const ProcessInfo& rCurrentProcessInfo);
 
     ///@}
     ///@name Access
@@ -286,6 +286,6 @@ private:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_RIGID_BODY_3D_INCLUDED  defined 
+#endif // KRATOS_RIGID_BODY_3D_INCLUDED  defined
 
 

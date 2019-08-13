@@ -1,14 +1,14 @@
 /*
 ==============================================================================
-KratosR1StructuralApplication 
+KratosR1StructuralApplication
 A library based on:
 Kratos
 A General Purpose Software for Multi-Physics Finite Element Analysis
 Version 1.0 (Released on march 05, 2007).
 
 Copyright 2007
-Pooyan Dadvand, Riccardo Rossi, Janosch Stascheit, Felix Nagel 
-pooyan@cimne.upc.edu 
+Pooyan Dadvand, Riccardo Rossi, Janosch Stascheit, Felix Nagel
+pooyan@cimne.upc.edu
 rrossi@cimne.upc.edu
 janosch.stascheit@rub.de
 nagel@sd.rub.de
@@ -41,8 +41,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ==============================================================================
 */
-//   
-//   Project Name:        Kratos       
+//
+//   Project Name:        Kratos
 //   Last Modified by:    $Author: hbui $
 //   Date:                $Date: 14 Jul 16 $
 //   Last Modified by:    $Author: jelena $
@@ -54,7 +54,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define  KRATOS_EMBEDDED_POINT_LAGRANGE_TYING_CONDITION_H_INCLUDED
 
 
-// External includes 
+// External includes
 #include "boost/smart_ptr.hpp"
 
 // Project includes
@@ -82,8 +82,8 @@ namespace Kratos
         public:
             // Counted pointer of EmbeddedPointLagrangeTyingCondition
             KRATOS_CLASS_POINTER_DEFINITION(EmbeddedPointLagrangeTyingCondition);
-            
-            /** 
+
+            /**
              * Default constructor.
              */
             EmbeddedPointLagrangeTyingCondition();
@@ -99,42 +99,42 @@ namespace Kratos
              * Destructor.
              */
             virtual ~EmbeddedPointLagrangeTyingCondition();
-      
+
             /**
              * Operations.
              */
-            
-            Condition::Pointer Create( IndexType NewId, 
+
+            Condition::Pointer Create( IndexType NewId,
                                        GeometryType::Pointer pGeometry,
                                        Element::Pointer pMasterElement,
                                        Element::Pointer pSlaveElement,
                                        Point<3>& rMasterLocalPoint,
                                        Point<3>& rSlaveLocalPoint ) const;
-            
+
             /**
              * Calculates the local system contributions for this contact element
              */
-            void CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, 
-                                       VectorType& rRightHandSideVector, 
+            void CalculateLocalSystem( MatrixType& rLeftHandSideMatrix,
+                                       VectorType& rRightHandSideVector,
                                        ProcessInfo& rCurrentProcessInfo);
-            
-            void CalculateRightHandSide( VectorType& rRightHandSideVector, 
+
+            void CalculateRightHandSide( VectorType& rRightHandSideVector,
                                          ProcessInfo& rCurrentProcessInfo);
 
-            void EquationIdVector( EquationIdVectorType& rResult, 
+            void EquationIdVector( EquationIdVectorType& rResult,
                                    ProcessInfo& rCurrentProcessInfo);
-            
+
             void GetDofList( DofsVectorType& ConditionalDofList,
                              ProcessInfo& CurrentProcessInfo);
-            
 
-            void Initialize();
+
+            void Initialize(const ProcessInfo& rCurrentProcessInfo);
             /**
              * Turn back information as a string.
              * (DEACTIVATED)
              */
             //std::string Info();
-      
+
             /**
              * Print information about this object.
              * (DEACTIVATED)
@@ -146,10 +146,10 @@ namespace Kratos
              * (DEACTIVATED)
              */
             //virtual void PrintData(std::ostream& rOStream) const;
-      
+
         protected:
-        
-        
+
+
         private:
 
             friend class Serializer;
@@ -164,7 +164,7 @@ namespace Kratos
                 KRATOS_SERIALIZE_LOAD_BASE_CLASS ( rSerializer, Condition )
             }
 
-            void CalculateAll( MatrixType& rLeftHandSideMatrix, 
+            void CalculateAll( MatrixType& rLeftHandSideMatrix,
                                VectorType& rRightHandSideVector,
                                ProcessInfo& rCurrentProcessInfo,
                                bool CalculateStiffnessMatrixFlag,
@@ -176,9 +176,9 @@ namespace Kratos
             Element::Pointer mpSlaveElement; //mpTipElement;
             Element::Pointer mpMasterElement; //mpTipSoilElement;
 
-    }; // Class EmbeddedPointLagrangeTyingCondition 
+    }; // Class EmbeddedPointLagrangeTyingCondition
 }  // namespace Kratos.
-  
 
-#endif // KRATOS_EMBEDDED_POINT_LAGRANGE_TYING_CONDITION_H_INCLUDED defined 
+
+#endif // KRATOS_EMBEDDED_POINT_LAGRANGE_TYING_CONDITION_H_INCLUDED defined
 

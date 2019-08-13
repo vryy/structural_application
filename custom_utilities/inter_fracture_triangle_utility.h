@@ -720,7 +720,7 @@ public:
         for(WeakPointerVector< Element >::iterator reset_elem = mResetingElements.begin();
                 reset_elem != mResetingElements.end(); reset_elem++)
         {
-            reset_elem->Initialize();
+            reset_elem->Initialize(CurrentProcessInfo);
             reset_elem->InitializeSolutionStep(CurrentProcessInfo);
             reset_elem->FinalizeSolutionStep(CurrentProcessInfo);
         }
@@ -771,7 +771,7 @@ public:
                                 KRATOS_WATCH(it->Id() )
                                 KRATOS_WATCH(Variable_Value[0])
                                 it->ResetConstitutiveLaw();
-                                it->Initialize();
+                                it->Initialize(CurrentProcessInfo);
                                 it->InitializeSolutionStep(CurrentProcessInfo);
                                 it->FinalizeSolutionStep(CurrentProcessInfo);
                             }

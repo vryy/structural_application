@@ -208,7 +208,7 @@ UnsaturatedSoilsElement_2phase_SmallStrain_Scale_WaterPressure::~UnsaturatedSoil
 
 //************************************************************************************
 //************************************************************************************
-void UnsaturatedSoilsElement_2phase_SmallStrain_Scale_WaterPressure::Initialize()
+void UnsaturatedSoilsElement_2phase_SmallStrain_Scale_WaterPressure::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 

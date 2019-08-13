@@ -219,4 +219,4 @@ private:
 }; // Class PointSegmentContactLink
 }  // namespace Kratos.
 
-#endif // KRATOS_CONTACT_FACE_3D_CONDITION_H_INCLUDED  defined 
+#endif // KRATOS_CONTACT_FACE_3D_CONDITION_H_INCLUDED  defined

@@ -80,13 +80,13 @@ PointBeddingCondition::PointBeddingCondition( IndexType NewId, GeometryType::Poi
 }
 
 PointBeddingCondition::PointBeddingCondition( IndexType NewId, Node<3>::Pointer const& pNode,
-        PropertiesType::Pointer pProperties ) 
+        PropertiesType::Pointer pProperties )
     : Condition( NewId, GeometryType::Pointer( new Point3D<Node<3> >( pNode ) ), pProperties )
 {
 }
 
 PointBeddingCondition::PointBeddingCondition( IndexType NewId, NodesArrayType const& ThisNodes,
-        PropertiesType::Pointer pProperties ) 
+        PropertiesType::Pointer pProperties )
     : Condition( NewId, GeometryType::Pointer( new Point3D<Node<3> >( ThisNodes ) ), pProperties )
 {
 }

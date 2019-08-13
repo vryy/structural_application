@@ -108,7 +108,7 @@ Condition::Pointer ElasticConstraint::Create(IndexType NewId, GeometryType::Poin
 void ElasticConstraint::CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
-    
+
     //calculation flags
     bool CalculateStiffnessMatrixFlag = false;
     bool CalculateResidualVectorFlag = true;
@@ -116,7 +116,7 @@ void ElasticConstraint::CalculateRightHandSide(VectorType& rRightHandSideVector,
 
     CalculateAll( temp, rRightHandSideVector, rCurrentProcessInfo,
                   CalculateStiffnessMatrixFlag, CalculateResidualVectorFlag );
-    
+
     KRATOS_CATCH("")
 }
 
@@ -125,14 +125,14 @@ void ElasticConstraint::CalculateRightHandSide(VectorType& rRightHandSideVector,
 void ElasticConstraint::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
-    
+
     //calculation flags
     bool CalculateStiffnessMatrixFlag = true;
     bool CalculateResidualVectorFlag = true;
 
     CalculateAll( rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo,
                   CalculateStiffnessMatrixFlag, CalculateResidualVectorFlag );
-        
+
     KRATOS_CATCH("")
 }
 
@@ -145,7 +145,7 @@ void ElasticConstraint::CalculateAll( MatrixType& rLeftHandSideMatrix, VectorTyp
                                       bool CalculateResidualVectorFlag )
 {
     KRATOS_TRY
-    
+
     unsigned int number_of_nodes = GetGeometry().size();
     unsigned int dim = 3;
 
@@ -239,7 +239,7 @@ void ElasticConstraint::CalculateAll( MatrixType& rLeftHandSideMatrix, VectorTyp
         const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( ThisIntegrationMethod );
         const GeometryType::ShapeFunctionsGradientsType& DN_De = GetGeometry().ShapeFunctionsLocalGradients( ThisIntegrationMethod );
         const Matrix& Ncontainer = GetGeometry().ShapeFunctionsValues( ThisIntegrationMethod );
-        
+
         array_1d<double, 3> tangent_1;
         array_1d<double, 3> tangent_2;
         array_1d<double, 3> normal_vector;
@@ -312,9 +312,9 @@ void ElasticConstraint::CalculateAll( MatrixType& rLeftHandSideMatrix, VectorTyp
 //        if( CalculateStiffnessMatrixFlag )
 //            KRATOS_WATCH( rLeftHandSideMatrix )
     }
-    
+
     KRATOS_CATCH("")
-    
+
 }
 
 

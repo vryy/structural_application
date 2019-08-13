@@ -102,7 +102,7 @@ public:
      * Custom constructor.
      */
     PointPointLagrangeCondition( IndexType NewId, Node<3>::Pointer const& node1, Node<3>::Pointer const& node2, PropertiesType::Pointer pProperties );
-    
+
     PointPointLagrangeCondition( IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties );
 
 
@@ -137,7 +137,7 @@ public:
 
 //     void SetValue( const Variable<Matrix>& rThisVariable, const Matrix& rValue, const ProcessInfo& rCurrentProcessInfo );
 
-    
+
 private:
     void CalculateAll( MatrixType& rLeftHandSideMatrix,
                        VectorType& rRightHandSideVector,
@@ -165,4 +165,4 @@ private:
 }; // Class PointPointLagrangeCondition
 }  // namespace Kratos.
 
-#endif // KRATOS_POINT_POINT_LAGRANGE_CONDITION_H_INCLUDED  defined 
+#endif // KRATOS_POINT_POINT_LAGRANGE_CONDITION_H_INCLUDED  defined

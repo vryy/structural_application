@@ -138,7 +138,7 @@ TrussElement::~TrussElement()
 //************************************************************************************
 //THIS IS THE INITIALIZATION OF THE ELEMENT (CALLED AT THE BEGIN OF EACH CALCULATION)
 //************************************************************************************
-void TrussElement::Initialize()
+void TrussElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
     //Material Porperties

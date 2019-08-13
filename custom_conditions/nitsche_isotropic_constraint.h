@@ -108,7 +108,7 @@ public:
                                NodesArrayType const& ThisNodes,
                                PropertiesType::Pointer pProperties) const;
 
-    virtual void Initialize();
+    virtual void Initialize(const ProcessInfo& rCurrentProcessInfo);
 
     virtual void CalculateLocalSystem( MatrixType& rLeftHandSideMatrix,
                                VectorType& rRightHandSideVector,

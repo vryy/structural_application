@@ -109,7 +109,7 @@ public:
         std::cout << "VariableTransferUtility created" << std::endl;
         mEchoLevel = 0;
     }
-    
+
     /**
      * Destructor.
      */
@@ -120,7 +120,7 @@ public:
     {
         mEchoLevel = Level;
     }
-    
+
     int GetEchoLevel()
     {
         return mEchoLevel;
@@ -133,10 +133,12 @@ public:
                  */
     void InitializeModelPart( ModelPart& rTarget )
     {
+        ProcessInfo& CurrentProcessInfo = rTarget.GetProcessInfo();
+
         for( ModelPart::ElementIterator it = rTarget.ElementsBegin();
                 it!= rTarget.ElementsEnd(); it++ )
         {
-            (*it).Initialize();
+            (*it).Initialize(CurrentProcessInfo);
         }
     }
 
@@ -343,7 +345,7 @@ public:
     {
         TransferSpecificVariable( rSource, rTarget, PRESTRESS );
     }
-    
+
     /**
      * Transfer of PRESTRESS.
      * This transfers the in-situ stress from rSource to rTarget.
@@ -1227,7 +1229,7 @@ public:
 
 //        }//END firstvalue
 //    }
-    
+
         // omp version
     void TransferVariablesToNodes(ModelPart& model_part, Variable<Kratos::Vector>& rThisVariable)
     {
@@ -1276,7 +1278,7 @@ public:
         {
             ElementsArrayType::ptr_iterator it_begin = ElementsArray.ptr_begin() + element_partition[k];
             ElementsArrayType::ptr_iterator it_end = ElementsArray.ptr_begin() + element_partition[k+1];
-                
+
             for( ElementsArrayType::ptr_iterator it = it_begin; it != it_end; ++it )
             {
                 const IntegrationPointsArrayType& integration_points
@@ -1311,7 +1313,7 @@ public:
 #endif
                     }
                 }
-                
+
                 ++show_progress;
             }
         }
@@ -1325,7 +1327,7 @@ public:
             // see Jiao + Heath "Common-refinement-based data tranfer ..."
             // International Journal for numerical methods in engineering 61 (2004) 2402--2427
             // for general description of L_2-Minimization
-            
+
 //            Timer::Start("Assemble Transferred rhs vector");
 #ifdef _OPENMP
             #pragma omp parallel for
@@ -1334,7 +1336,7 @@ public:
             {
                 ElementsArrayType::ptr_iterator it_begin = ElementsArray.ptr_begin() + element_partition[k];
                 ElementsArrayType::ptr_iterator it_end = ElementsArray.ptr_begin() + element_partition[k+1];
-            
+
                 for( ElementsArrayType::ptr_iterator it = it_begin;
                         it != it_end;
                         ++it )
@@ -1388,7 +1390,7 @@ public:
 //            Timer::Stop("Transfer result");
 
         }//END firstvalue
-        
+
 #ifdef _OPENMP
         for(unsigned int i = 0; i < M_size; ++i)
             omp_destroy_lock(&lock_array[i]);
@@ -1472,7 +1474,7 @@ public:
         {
             typename TElementsArrayType::ptr_iterator it_begin = ElementsArray.ptr_begin() + element_partition[k];
             typename TElementsArrayType::ptr_iterator it_end = ElementsArray.ptr_begin() + element_partition[k+1];
-                
+
             for( typename TElementsArrayType::ptr_iterator it = it_begin; it != it_end; ++it )
             {
                 if( ((*it)->GetValue(IS_INACTIVE) == true) && !(*it)->Is(ACTIVE) )
@@ -1511,7 +1513,7 @@ public:
 #endif
                     }
                 }
-                
+
                 ++show_progress;
             }
         }
@@ -1525,7 +1527,7 @@ public:
             // see Jiao + Heath "Common-refinement-based data tranfer ..."
             // International Journal for numerical methods in engineering 61 (2004) 2402--2427
             // for general description of L_2-Minimization
-            
+
 //            Timer::Start("Assemble Transferred rhs vector");
 #ifdef _OPENMP
             #pragma omp parallel for
@@ -1534,7 +1536,7 @@ public:
             {
                 typename TElementsArrayType::ptr_iterator it_begin = ElementsArray.ptr_begin() + element_partition[k];
                 typename TElementsArrayType::ptr_iterator it_end = ElementsArray.ptr_begin() + element_partition[k+1];
-            
+
                 for( typename TElementsArrayType::ptr_iterator it = it_begin; it != it_end; ++it )
                 {
                     if( ((*it)->GetValue(IS_INACTIVE) == true) && !(*it)->Is(ACTIVE) )
@@ -1585,7 +1587,7 @@ public:
             }
 //            Timer::Stop("Transfer result");
         }//END firstvalue
-        
+
 #ifdef _OPENMP
         for(unsigned int i = 0; i < M_size; ++i)
             omp_destroy_lock(&lock_array[i]);
@@ -1619,7 +1621,7 @@ public:
 //            it->GetSolutionStepValue(rThisVariable)
 //            = 0.0;
 //        }
-// 
+//
 //        //SetUpEquationSystem
 //        SpaceType::MatrixType M(model_part.NumberOfNodes(),model_part.NumberOfNodes());
 //        noalias(M)= ZeroMatrix(model_part.NumberOfNodes(),model_part.NumberOfNodes());
@@ -1637,23 +1639,23 @@ public:
 //        {
 //            const IntegrationPointsArrayType& integration_points
 //            = (*it)->GetGeometry().IntegrationPoints((*it)->GetIntegrationMethod());
-// 
+//
 //            GeometryType::JacobiansType J(integration_points.size());
 //            J = (*it)->GetGeometry().Jacobian(J, (*it)->GetIntegrationMethod());
-// 
+//
 //            std::vector<double> ValuesOnIntPoint(integration_points.size());
-// 
+//
 //            (*it)->GetValueOnIntegrationPoints(rThisVariable, ValuesOnIntPoint, model_part.GetProcessInfo());
-// 
+//
 //            const Matrix& Ncontainer = (*it)->GetGeometry().ShapeFunctionsValues((*it)->GetIntegrationMethod());
-// 
+//
 //            Matrix InvJ(3,3);
 //            double DetJ;
-// 
+//
 //            for(unsigned int point=0; point< integration_points.size(); point++)
 //            {
 //                MathUtils<double>::InvertMatrix(J[point],InvJ,DetJ);
-// 
+//
 //                double dV= DetJ*integration_points[point].Weight();
 //                for(unsigned int prim=0 ; prim<(*it)->GetGeometry().size(); prim++)
 //                {
@@ -1725,7 +1727,7 @@ public:
 //        {
 //            ElementsArrayType::ptr_iterator it_begin = ElementsArray.ptr_begin() + element_partition[k];
 //            ElementsArrayType::ptr_iterator it_end = ElementsArray.ptr_begin() + element_partition[k+1];
-//                
+//
 //            for( ElementsArrayType::ptr_iterator it = it_begin; it != it_end; ++it )
 //            {
 //                const IntegrationPointsArrayType& integration_points
@@ -1760,7 +1762,7 @@ public:
 //#endif
 //                    }
 //                }
-//                
+//
 //                ++show_progress;
 //            }
 //        }
@@ -1772,7 +1774,7 @@ public:
 //            // see Jiao + Heath "Common-refinement-based data tranfer ..."
 //            // International Journal for numerical methods in engineering 61 (2004) 2402--2427
 //            // for general description of L_2-Minimization
-//            
+//
 ////            Timer::Start("Assemble Transferred rhs vector");
 //#ifdef _OPENMP
 //            #pragma omp parallel for
@@ -1781,7 +1783,7 @@ public:
 //            {
 //                ElementsArrayType::ptr_iterator it_begin = ElementsArray.ptr_begin() + element_partition[k];
 //                ElementsArrayType::ptr_iterator it_end = ElementsArray.ptr_begin() + element_partition[k+1];
-//            
+//
 //                for( ElementsArrayType::ptr_iterator it = it_begin;
 //                        it != it_end;
 //                        ++it )
@@ -1906,7 +1908,7 @@ public:
         {
             ElementsArrayType::ptr_iterator it_begin = ElementsArray.ptr_begin() + element_partition[k];
             ElementsArrayType::ptr_iterator it_end = ElementsArray.ptr_begin() + element_partition[k+1];
-                
+
             for( ElementsArrayType::ptr_iterator it = it_begin; it != it_end; ++it )
             {
                 if( ! ( ( (*it)->GetValue(IS_INACTIVE) == false ) || (*it)->Is(ACTIVE) ) )
@@ -1954,7 +1956,7 @@ public:
             // see Jiao + Heath "Common-refinement-based data tranfer ..."
             // International Journal for numerical methods in engineering 61 (2004) 2402--2427
             // for general description of L_2-Minimization
-            
+
 //            Timer::Start("Assemble Transferred rhs vector");
 #ifdef _OPENMP
             #pragma omp parallel for
@@ -1963,7 +1965,7 @@ public:
             {
                 ElementsArrayType::ptr_iterator it_begin = ElementsArray.ptr_begin() + element_partition[k];
                 ElementsArrayType::ptr_iterator it_end = ElementsArray.ptr_begin() + element_partition[k+1];
-            
+
                 for( ElementsArrayType::ptr_iterator it = it_begin; it != it_end; ++it )
                 {
                     if( ! ( ( (*it)->GetValue(IS_INACTIVE) == false ) || (*it)->Is(ACTIVE) ) )
@@ -2115,7 +2117,7 @@ public:
         {
             typename TElementsArrayType::ptr_iterator it_begin = ElementsArray.ptr_begin() + element_partition[k];
             typename TElementsArrayType::ptr_iterator it_end = ElementsArray.ptr_begin() + element_partition[k+1];
-                
+
             for( typename TElementsArrayType::ptr_iterator it = it_begin; it != it_end; ++it )
             {
                 if( ((*it)->GetValue(IS_INACTIVE) == true) && !(*it)->Is(ACTIVE) )
@@ -2178,7 +2180,7 @@ public:
             // see Jiao + Heath "Common-refinement-based data tranfer ..."
             // International Journal for numerical methods in engineering 61 (2004) 2402--2427
             // for general description of L_2-Minimization
-            
+
 //            Timer::Start("Assemble Transferred rhs vector");
 #ifdef _OPENMP
             #pragma omp parallel for
@@ -2187,7 +2189,7 @@ public:
             {
                 typename TElementsArrayType::ptr_iterator it_begin = ElementsArray.ptr_begin() + element_partition[k];
                 typename TElementsArrayType::ptr_iterator it_end = ElementsArray.ptr_begin() + element_partition[k+1];
-            
+
                 for( typename TElementsArrayType::ptr_iterator it = it_begin; it != it_end; ++it )
                 {
                     if( ((*it)->GetValue(IS_INACTIVE) == true) && !(*it)->Is(ACTIVE) )
@@ -2701,7 +2703,7 @@ public:
 
         Vector shape_functions_values;
         shape_functions_values = oldElement.GetGeometry().ShapeFunctionsValues(shape_functions_values, localPoint);
-        
+
         for(unsigned int i=0; i< oldElement.GetGeometry().size(); i++)
         {
             noalias(temp) = oldElement.GetGeometry()[i].GetSolutionStepValue(rThisVariable);
@@ -2737,7 +2739,7 @@ public:
 
         Vector shape_functions_values;
         shape_functions_values = oldElement.GetGeometry().ShapeFunctionsValues(shape_functions_values, localPoint);
-        
+
         for(unsigned int i=0; i<oldElement.GetGeometry().size(); i++)
         {
             noalias(temp)= oldElement.GetGeometry()[i].GetSolutionStepValue(rThisVariable);
@@ -2782,7 +2784,7 @@ public:
 
         Vector shape_functions_values;
         shape_functions_values = pPressureGeometry->ShapeFunctionsValues(shape_functions_values, targetPoint);
-        
+
         for(unsigned int i= 0; i< pPressureGeometry->size(); i++)
         {
             newValue += shape_functions_values[i] * sourceElement.GetGeometry()[i].GetSolutionStepValue(rThisVariable);
@@ -2811,7 +2813,7 @@ public:
 
         Vector shape_functions_values;
         shape_functions_values = sourceElement.GetGeometry().ShapeFunctionsValues(shape_functions_values, targetPoint);
-        
+
         for(unsigned int i= 0; i< sourceElement.GetGeometry().size(); i++)
         {
             newValue += shape_functions_values[i] * sourceElement.GetGeometry()[i].GetSolutionStepValue(rThisVariable);
@@ -2836,7 +2838,7 @@ public:
 
         Vector shape_functions_values;
         shape_functions_values = sourceElement.GetGeometry().ShapeFunctionsValues(shape_functions_values, targetPoint);
-        
+
         for(unsigned int i=0; i<sourceElement.GetGeometry().size(); i++)
         {
             newValue += shape_functions_values[i] * sourceElement.GetGeometry()[i].GetSolutionStepValue(rThisVariable);
@@ -3005,17 +3007,17 @@ public:
         double newValue = 0.0;
         Vector shape_functions_values;
         shape_functions_values = oldElement.GetGeometry().ShapeFunctionsValues(shape_functions_values, localPoint);
-        
+
         for(unsigned int i = 0; i < oldElement.GetGeometry().size(); ++i)
         {
             newValue += shape_functions_values[i] * oldElement.GetGeometry()[i].GetSolutionStepValue(rThisVariable)(firstvalue);
         }
         return newValue;
     }
-    
+
 protected:
     LinearSolverType::Pointer mpLinearSolver;
-    
+
     //**********AUXILIARY FUNCTION**************************************************************
     //******************************************************************************************
     void ConstructMatrixStructure (
@@ -3202,7 +3204,7 @@ protected:
         }
 
     }
-    
+
     //**********AUXILIARY FUNCTION**************************************************************
     //******************************************************************************************
     inline void CreatePartition(unsigned int number_of_threads,const int number_of_rows, vector<unsigned int>& partitions)
@@ -3217,10 +3219,10 @@ protected:
 
 private:
     int mEchoLevel;
-    
-    
-    
-    
+
+
+
+
 };//Class Scheme
 }//namespace Kratos.
 

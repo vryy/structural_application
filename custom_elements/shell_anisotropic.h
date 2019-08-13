@@ -142,7 +142,7 @@ public:
 
     void Calculate(const Variable<Matrix >& rVariable, Matrix& Output, const ProcessInfo& rCurrentProcessInfo);
 
-    void Initialize();
+    void Initialize(const ProcessInfo& rCurrentProcessInfo);
 
     void FinalizeNonLinearIteration(ProcessInfo& CurrentProcessInfo);
 
@@ -538,6 +538,6 @@ return rOStream;
 ///@}
 
 }  // namespace Kratos.
-#endif // KRATOS_SHELL_ANISOTROPIC_H_INCLUDED  defined 
+#endif // KRATOS_SHELL_ANISOTROPIC_H_INCLUDED  defined
 
 

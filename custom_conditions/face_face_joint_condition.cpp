@@ -117,7 +117,7 @@ FaceFaceJointCondition::~FaceFaceJointCondition()
 {
 }
 
-void FaceFaceJointCondition::Initialize()
+void FaceFaceJointCondition::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     // integration rule
     if(this->Has( INTEGRATION_ORDER ))

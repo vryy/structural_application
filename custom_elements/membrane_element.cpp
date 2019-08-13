@@ -147,7 +147,7 @@ namespace Kratos
     //***********************************************************************************
     //***********************************************************************************
 
-    void MembraneElement::Initialize()
+    void MembraneElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
 
     {
         KRATOS_TRY
@@ -381,26 +381,26 @@ namespace Kratos
                     Output[PointNumber]( 0, ii ) = mStressesVector[PointNumber][ii];
             }
             // VM
-            else if(rVariable==CAUCHY_STRESS_TENSOR)  // to compute Cauchy_Stress  
+            else if(rVariable==CAUCHY_STRESS_TENSOR)  // to compute Cauchy_Stress
 	    {
 		  if(Output[PointNumber].size2() != 6)
 		      Output[PointNumber].resize(1,6);
-		  
+
                 boost::numeric::ublas::bounded_matrix<double, 2, 2> msF;
 	      	noalias(msF) = ZeroMatrix(2,2); //VM
 		noalias(msF)=tmp; //VM
 		Vector CauchyStressVector( 3 );
-		  
-	      mConstitutiveLawVector[PointNumber]->CalculateCauchyStresses(CauchyStressVector, msF, StressVector, StrainVector); // VM para calculo cauchy	
+
+	      mConstitutiveLawVector[PointNumber]->CalculateCauchyStresses(CauchyStressVector, msF, StressVector, StrainVector); // VM para calculo cauchy
 	      noalias(mCauchyStressesVector[PointNumber])= ZeroVector(6);
 	      Calculate_GlobalStressVector(mCauchyStressesVector[PointNumber], CauchyStressVector, mV1[PointNumber], mV2[PointNumber]);	//saving the stress vector
-		
+
 		   for(unsigned int ii = 0; ii<6; ii++)
 					Output[PointNumber](0,ii) = mCauchyStressesVector[PointNumber][ii];
 				 ////KRATOS_WATCH(Output[PointNumber]);
 	     }
         // VM
-        
+
         }
 
     }
@@ -1016,34 +1016,34 @@ namespace Kratos
         array_1d<double, 3> BodyForce;
 
 //         double elem_positive_face_pressure = 0.0;
-// 
+//
 //         double elem_negative_face_pressure = 0.0;
-// 
+//
 //         bool zero_positive_nodal_pressure = false;
-// 
+//
 //         bool zero_negative_nodal_pressure = false;
-// 
+//
 //         for ( unsigned int k = 0; k < GetGeometry().size();k++ )
 //         {
 //             double temp = GetGeometry()[k].FastGetSolutionStepValue( NEGATIVE_FACE_PRESSURE );
 //             elem_negative_face_pressure += temp;
-// 
+//
 //             if ( temp == 0 )
 //                 zero_negative_nodal_pressure = true;
-// 
+//
 //             temp = GetGeometry()[k].FastGetSolutionStepValue( POSITIVE_FACE_PRESSURE );
-// 
+//
 //             elem_positive_face_pressure += temp;
-// 
+//
 //             if ( temp == 0 )
 //                 zero_positive_nodal_pressure = true;
 //         }
-// 
+//
 //         if ( zero_negative_nodal_pressure == true )
 //             elem_negative_face_pressure = 0.0;
 //         else
 //             elem_negative_face_pressure /= ( double ) GetGeometry().size();
-// 
+//
 //         if ( zero_positive_nodal_pressure == true )
 //             elem_positive_face_pressure = 0.0;
 //         else
@@ -1289,7 +1289,7 @@ namespace Kratos
         //verify that the constitutive law has the correct dimension
         if ( this->GetProperties().GetValue( CONSTITUTIVE_LAW )->GetStrainSize() != 3 )
                 KRATOS_THROW_ERROR( std::logic_error, "wrong constitutive law used. This is a 3D element with expected strain size is 3 (el id = ) ", this->Id() );
-        
+
         //check constitutive law
         for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); i++ )
         {

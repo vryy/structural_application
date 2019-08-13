@@ -135,7 +135,7 @@ public:
 
     Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const;
 
-    void Initialize();
+    void Initialize(const ProcessInfo& rCurrentProcessInfo);
 
     void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
 
@@ -333,6 +333,6 @@ private:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_UNSATURATED_SOILS_ELEMENT_INCLUDED defined 
+#endif // KRATOS_UNSATURATED_SOILS_ELEMENT_INCLUDED defined
 
 

@@ -141,7 +141,7 @@ public:
     virtual Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,
                            PropertiesType::Pointer pProperties) const;
 
-    void Initialize();
+    void Initialize(const ProcessInfo& rCurrentProcessInfo);
 
     virtual void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo);
 

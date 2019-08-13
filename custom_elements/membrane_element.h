@@ -1,14 +1,14 @@
 /*
 ==============================================================================
-KratosStructuralApplication 
+KratosStructuralApplication
 A library based on:
 Kratos
 A General Purpose Software for Multi-Physics Finite Element Analysis
 Version 1.0 (Released on march 05, 2007).
 
 Copyright 2007
-Pooyan Dadvand, Riccardo Rossi, Janosch Stascheit, Felix Nagel 
-pooyan@cimne.upc.edu 
+Pooyan Dadvand, Riccardo Rossi, Janosch Stascheit, Felix Nagel
+pooyan@cimne.upc.edu
 rrossi@cimne.upc.edu
 janosch.stascheit@rub.de
 nagel@sd.rub.de
@@ -41,9 +41,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ==============================================================================
 */
- 
-/* *********************************************************   
-*          
+
+/* *********************************************************
+*
 *   Last Modified by:    $Author: rrossi $
 *   Date:                $Date: 2008-10-13 07:00:53 $
 *   Revision:            $Revision: 1.4 $
@@ -56,10 +56,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
 
-// System includes 
+// System includes
 
 
-// External includes 
+// External includes
 #include "boost/smart_ptr.hpp"
 
 
@@ -80,9 +80,9 @@ class MembraneElement
 	public:
 
 		// Counted pointer of MembraneElement
-		KRATOS_CLASS_POINTER_DEFINITION(MembraneElement);  
+		KRATOS_CLASS_POINTER_DEFINITION(MembraneElement);
 
-		// Constructor using an array of nodes 
+		// Constructor using an array of nodes
 		MembraneElement(IndexType NewId, GeometryType::Pointer pGeometry);
 
 		// Constructor using an array of nodes with properties
@@ -91,7 +91,7 @@ class MembraneElement
 		// Destructor
 		virtual ~MembraneElement();
 
-		
+
 		// Name Operations
 
 		Element::Pointer Create(
@@ -107,7 +107,7 @@ class MembraneElement
 			DofsVectorType& ElementalDofList,
 			ProcessInfo& rCurrentProcessInfo);
 
-		void Initialize ();
+		void Initialize (const ProcessInfo& rCurrentProcessInfo);
 
 		void CalculateRightHandSide(
 			VectorType& rRightHandSideVector,
@@ -145,10 +145,10 @@ class MembraneElement
 		void GetSecondDerivativesVector(
 			Vector& values,
 			int Step = 0);
-	
+
 		void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable,
 				std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo);
-	//	///////////serve qui? non l'ho visto nel membrane element$$$$$$$$$$$$$$$$$$$$$ 
+	//	///////////serve qui? non l'ho visto nel membrane element$$$$$$$$$$$$$$$$$$$$$
 //		ConstitutiveLaws::Pointer GetConstitutiveLaw(int GaussPointNumber)
 //			{return mConstitutiveLawVector[GaussPointNumber];}
 
@@ -158,7 +158,7 @@ class MembraneElement
 
 
 	private:
-		///@name Static Member Variables 
+		///@name Static Member Variables
 
 // 		static Matrix                                             msB;
 // 		static boost::numeric::ublas::bounded_matrix<double,3,3>  msQ;
@@ -171,10 +171,10 @@ class MembraneElement
 		/// privat variables
 
 		std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector;
-		Geometry< Point<3,double> >::Pointer  mpReferenceGeometry; 
+		Geometry< Point<3,double> >::Pointer  mpReferenceGeometry;
 
 		Vector mDetJ0;
-		
+
 		double mTotalDomainInitialSize;
 		double mdensity;
 		double mThickness0; //thickness in the reference configuration
@@ -238,7 +238,7 @@ class MembraneElement
 
 		void SubtractMatrix(
 			MatrixType& Destination,
-			boost::numeric::ublas::bounded_matrix<double,3,3>& InputMatrix, 
+			boost::numeric::ublas::bounded_matrix<double,3,3>& InputMatrix,
 			int InitialRow,
 			int InitialCol);
 
@@ -296,14 +296,14 @@ class MembraneElement
 			array_1d<double,3>& b);
 
 		int  Check( const ProcessInfo& rCurrentProcessInfo);
-	
-	    ///@} 
-	    ///@name Serialization
-	    ///@{ 
-    
-	    friend class Serializer; 
 
-	    // A private default constructor necessary for serialization 
+	    ///@}
+	    ///@name Serialization
+	    ///@{
+
+	    friend class Serializer;
+
+	    // A private default constructor necessary for serialization
 	    MembraneElement(){}
 
 	    virtual void save(Serializer& rSerializer) const
@@ -316,10 +316,10 @@ class MembraneElement
 	       KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer,  Element );
 	    }
 
-	    ///@} 
+	    ///@}
 
 	};	// class MembraneElement.
 
 }	// namespace Kratos.
 
-#endif // KRATOS_MEMBRANE_BEPPE_ELEMENT_H_INCLUDED  defined 
+#endif // KRATOS_MEMBRANE_BEPPE_ELEMENT_H_INCLUDED  defined

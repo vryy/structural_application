@@ -1,14 +1,14 @@
 /*
 ==============================================================================
-KratosR1StructuralApplication 
+KratosR1StructuralApplication
 A library based on:
 Kratos
 A General Purpose Software for Multi-Physics Finite Element Analysis
 Version 1.0 (Released on march 05, 2007).
 
 Copyright 2007
-Pooyan Dadvand, Riccardo Rossi, Janosch Stascheit, Felix Nagel 
-pooyan@cimne.upc.edu 
+Pooyan Dadvand, Riccardo Rossi, Janosch Stascheit, Felix Nagel
+pooyan@cimne.upc.edu
 rrossi@cimne.upc.edu
 janosch.stascheit@rub.de
 nagel@sd.rub.de
@@ -41,18 +41,18 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ==============================================================================
 */
-//   
-//   Project Name:        Kratos       
+//
+//   Project Name:        Kratos
 //   Last Modified by:    $Author: nagel $
 //   Date:                $Date: 2009-03-25 08:20:14 $
 //   Revision:            $Revision: 1.5 $
 //
 //
-// System includes 
+// System includes
 
-// External includes 
+// External includes
 
-// Project includes 
+// Project includes
 #include "custom_conditions/foundation_condition.h"
 #include "structural_application.h"
 #include "custom_utilities/sd_math_utils.h"
@@ -61,25 +61,25 @@ namespace Kratos
 {
     //************************************************************************************
     //************************************************************************************
-    FoundationCondition::FoundationCondition( IndexType NewId, 
+    FoundationCondition::FoundationCondition( IndexType NewId,
                                   GeometryType::Pointer pGeometry)
     : Condition( NewId, pGeometry)
     {
         //DO NOT ADD DOFS HERE!!!
     }
-    
+
     //************************************************************************************
     //**** life cycle ********************************************************************
     //************************************************************************************
-    FoundationCondition::FoundationCondition( IndexType NewId, GeometryType::Pointer pGeometry,  
+    FoundationCondition::FoundationCondition( IndexType NewId, GeometryType::Pointer pGeometry,
                                   PropertiesType::Pointer pProperties
                                 )
     : Condition( NewId, pGeometry, pProperties )
     {
 
     }
-    
-    FoundationCondition::FoundationCondition( IndexType NewId, GeometryType::Pointer pGeometry,  
+
+    FoundationCondition::FoundationCondition( IndexType NewId, GeometryType::Pointer pGeometry,
                                   	PropertiesType::Pointer pProperties,
 					Element::Pointer& soilElement,
 					Element::Pointer& foundationElement,
@@ -87,27 +87,27 @@ namespace Kratos
 					Point<3>& rFoundationLocalPoint)
 	: Condition( NewId, pGeometry, pProperties )
 	{
-       		mSoilLocalPoint = rSoilLocalPoint;	
+       		mSoilLocalPoint = rSoilLocalPoint;
 		mFoundationLocalPoint = rFoundationLocalPoint;
-		mpSoilElement = soilElement;	
+		mpSoilElement = soilElement;
 		mpFoundationElement = foundationElement;
 		//Test for calculating coordinates at time step midpoint
         	//mSoilGlobalPoint = GlobalCoordinates(mpSoilElement, mSoilGlobalPoint, mSoilLocalPoint );
 		//Test for calculating coordinates at time step midpoint
-        	//mTipGlobalPoint = GlobalCoordinates(mpFoundationElement, mTipGlobalPoint, mFoundationLocalPoint );  
+        	//mTipGlobalPoint = GlobalCoordinates(mpFoundationElement, mTipGlobalPoint, mFoundationLocalPoint );
 //
 	}
 
     //********************************************************
     //**** Operations ****************************************
     //********************************************************
-            
-    
-    Condition::Pointer FoundationCondition::Create( IndexType NewId, 
-                                              NodesArrayType const& ThisNodes,  
+
+
+    Condition::Pointer FoundationCondition::Create( IndexType NewId,
+                                              NodesArrayType const& ThisNodes,
                                               PropertiesType::Pointer pProperties) const
     {
-        return Condition::Pointer( new FoundationCondition(NewId, GetGeometry().Create(ThisNodes), 
+        return Condition::Pointer( new FoundationCondition(NewId, GetGeometry().Create(ThisNodes),
                                    pProperties));
     }
     /**
@@ -118,7 +118,7 @@ namespace Kratos
     }
 
 
-    void FoundationCondition::Initialize()
+    void FoundationCondition::Initialize(const ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY
         KRATOS_CATCH("")
@@ -129,26 +129,26 @@ namespace Kratos
     /**
      * calculates only the RHS vector (certainly to be removed due to contact algorithm)
      */
-    void FoundationCondition::CalculateRightHandSide( VectorType& rRightHandSideVector, 
+    void FoundationCondition::CalculateRightHandSide( VectorType& rRightHandSideVector,
             ProcessInfo& rCurrentProcessInfo)
     {
         //calculation flags
         bool CalculateStiffnessMatrixFlag = false;
         bool CalculateResidualVectorFlag = true;
         MatrixType matrix = Matrix();
-        CalculateAll( matrix, rRightHandSideVector, 
+        CalculateAll( matrix, rRightHandSideVector,
                       rCurrentProcessInfo,
-                      CalculateStiffnessMatrixFlag, 
+                      CalculateStiffnessMatrixFlag,
                       CalculateResidualVectorFlag);
     }
-    
+
     //************************************************************************************
     //************************************************************************************
     /**
      * calculates this contact element's local contributions
      */
-    void FoundationCondition::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, 
-                                              VectorType& rRightHandSideVector, 
+    void FoundationCondition::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix,
+                                              VectorType& rRightHandSideVector,
                                               ProcessInfo& rCurrentProcessInfo)
     {
         //calculation flags
@@ -162,10 +162,10 @@ namespace Kratos
     /**
      * This function calculates all system contributions due to the contact problem
      * with regard to the current master and slave partners.
-     * All Conditions are assumed to be defined in 3D space and havin 3 DOFs per node 
+     * All Conditions are assumed to be defined in 3D space and havin 3 DOFs per node
      */
-    void FoundationCondition::CalculateAll( MatrixType& rLeftHandSideMatrix, 
-                                      VectorType& rRightHandSideVector, 
+    void FoundationCondition::CalculateAll( MatrixType& rLeftHandSideMatrix,
+                                      VectorType& rRightHandSideVector,
                                       ProcessInfo& rCurrentProcessInfo,
                                       bool CalculateStiffnessMatrixFlag,
                                       bool CalculateResidualVectorFlag)
@@ -194,7 +194,7 @@ namespace Kratos
         unsigned int foundationNN = mpFoundationElement->GetGeometry().size();
         unsigned int dimension = 3;
         unsigned int MatSize = (soilNN+foundationNN)*dimension+3;
-	///	KRATOS_WATCH(foundationNN); 
+	///	KRATOS_WATCH(foundationNN);
         //resizing as needed the RHS
         if (CalculateResidualVectorFlag == true) //calculation of the matrix is required
         {
@@ -206,19 +206,19 @@ namespace Kratos
         {
             if(rLeftHandSideMatrix.size1() != MatSize || rLeftHandSideMatrix.size2() != MatSize)
                 rLeftHandSideMatrix.resize(MatSize,MatSize);
-            noalias(rLeftHandSideMatrix) = ZeroMatrix(MatSize,MatSize); 
+            noalias(rLeftHandSideMatrix) = ZeroMatrix(MatSize,MatSize);
         }
         else return;
 
 	//subtracting relDisp*penalty from soil nodes' reaction vector
- 
+
 	for( unsigned int node=0; node < soilNN; node++ )
 	{
 		rRightHandSideVector[3*node]   -= relDisp[0];///(mpSoilElement->GetGeometry().ShapeFunctionValue(node,mSoilLocalPoint));
 		rRightHandSideVector[3*node+1] -= relDisp[1];///(mpSoilElement->GetGeometry().ShapeFunctionValue(node,mSoilLocalPoint));
 		rRightHandSideVector[3*node+2] -= relDisp[2];////(mpSoilElement->GetGeometry().ShapeFunctionValue(node,mSoilLocalPoint));
 	}
-	
+
 	for( unsigned int node=0; node < foundationNN; node++ )
 	{
 
@@ -226,8 +226,8 @@ namespace Kratos
 		rRightHandSideVector[3*soilNN+3*node+1] += relDisp[1];////(mpFoundationElement->GetGeometry().ShapeFunctionValue(node, mFoundationLocalPoint));
 		rRightHandSideVector[3*soilNN+3*node+2] += relDisp[2];////(mpFoundationElement->GetGeometry().ShapeFunctionValue(node, mFoundationLocalPoint));
 	}
-	
-//	KRATOS_WATCH(Id()) 
+
+//	KRATOS_WATCH(Id())
 //	KRATOS_WATCH(rRightHandSideVector)
 /*	for ( unsigned int i = (soilNN+foundationNN)*3 ; i < (soilNN+foundationNN+1)*3; i++ )
         {
@@ -236,15 +236,15 @@ namespace Kratos
 
 
 // std::cout<<"#################### THIS IS IN CALCULATE ALL ####################"<<std::endl;
-        
-        Vector soil_local_shape = ZeroVector(soilNN);  
+
+        Vector soil_local_shape = ZeroVector(soilNN);
     	Vector side_local_shape = ZeroVector(foundationNN);
-        
+
 //         interface_local_shape= mpInterfaceElement->GetShapeFunctionValues(mSurfaceIntegrationPointIndex, mLeftOrRight);
 
 //		double soil_incremental_area= mpSoilElement->GetIncrementalArea(mSurfaceIntegrationPointIndex, mLeftOrRight);
 
-		
+
 
         for( IndexType PointNumber = 0; PointNumber < mpFoundationElement->GetGeometry().size(); PointNumber++ )
         {
@@ -256,7 +256,7 @@ namespace Kratos
                 for ( unsigned int foundation_node = 0; foundation_node < foundationNN; foundation_node++ )
                 {
                     for (  unsigned int soil_node = 0; soil_node < soilNN; soil_node++ )
-		      
+
                     {	//KRATOS_WATCH (mpSoilElement->GetGeometry().ShapeFunctionValue(soil_node,mSoilLocalPoint))
                         //rLeftHandSideMatrix( soil_node * 3 + i, soilNN * 3 + foundationNN * 3 + i ) -= 4.0*(mpSoilElement->GetGeometry().ShapeFunctionValue(soil_node,mSoilLocalPoint));
                        // rLeftHandSideMatrix( soilNN * 3 + foundationNN * 3 + i, soil_node * 3 + i ) -= 4.0*(mpSoilElement->GetGeometry().ShapeFunctionValue(soil_node,mSoilLocalPoint));
@@ -291,7 +291,7 @@ namespace Kratos
 //        KRATOS_WATCH(rLeftHandSideMatrix);
    		KRATOS_CATCH("")
 	}
-	
+
 
 
 
@@ -300,11 +300,11 @@ namespace Kratos
 //************************************************************************************
 //************************************************************************************
 /**
-* Setting up the EquationIdVector for the current partners.	
+* Setting up the EquationIdVector for the current partners.
 * All conditions are assumed to be defined in 3D space with 3 DOFs per node.
 * All Equation IDs are given Master first, Slave second
 */
-	void FoundationCondition::EquationIdVector( EquationIdVectorType& rResult, 
+	void FoundationCondition::EquationIdVector( EquationIdVectorType& rResult,
                                           ProcessInfo& CurrentProcessInfo)
 	{
         //determining size of DOF list
@@ -370,7 +370,7 @@ namespace Kratos
             ConditionalDofList[index+2] = mpFoundationElement->GetGeometry()[node].pGetDof(DISPLACEMENT_Z);
  //           ConditionalDofList[index+3] = mpFoundationElement->GetGeometry()[node].pGetDof(ROTATION_X);
    //         ConditionalDofList[index+4] = mpFoundationElement->GetGeometry()[node].pGetDof(ROTATION_Y);
-     //       ConditionalDofList[index+5] = mpFoundationElement->GetGeometry()[node].pGetDof(ROTATION_Z);		
+     //       ConditionalDofList[index+5] = mpFoundationElement->GetGeometry()[node].pGetDof(ROTATION_Z);
         }
 	index = soilNN*3+foundationNN*3;
 	ConditionalDofList[index] = mpFoundationElement->GetGeometry()[0].pGetDof(LAGRANGE_DISPLACEMENT_X);

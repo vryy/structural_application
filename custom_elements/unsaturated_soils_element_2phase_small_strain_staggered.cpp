@@ -105,7 +105,7 @@ UnsaturatedSoilsElement_2phase_SmallStrain_Staggered::~UnsaturatedSoilsElement_2
 
 //************************************************************************************
 //************************************************************************************
-void UnsaturatedSoilsElement_2phase_SmallStrain_Staggered::Initialize()
+void UnsaturatedSoilsElement_2phase_SmallStrain_Staggered::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -167,7 +167,7 @@ void UnsaturatedSoilsElement_2phase_SmallStrain_Staggered::Initialize()
     noalias( mDetJ0 ) = ZeroVector( integration_points.size() );
 
     mTotalDomainInitialSize = 0.0;
-    
+
     GeometryType::JacobiansType J0( integration_points.size() );
 
     // calculating the Jacobian
@@ -702,9 +702,9 @@ void UnsaturatedSoilsElement_2phase_SmallStrain_Staggered::FinalizeSolutionStep(
     }
 
 //    Vector Dummy_Vector( 9 );
-// 
+//
 //    noalias( Dummy_Vector ) = mConstitutiveLawVector[0]->GetValue( INTERNAL_VARIABLES, Dummy_Vector );
-// 
+//
 //    for ( unsigned int i = 0; i < GetGeometry().size(); i++ )
 //    {
 //        GetGeometry()[i].GetSolutionStepValue( MOMENTUM_X ) = Dummy_Vector( 0 );
@@ -1389,7 +1389,7 @@ Vector UnsaturatedSoilsElement_2phase_SmallStrain_Staggered::GetFlowWater( const
     Vector grad_water( dim );
 
     noalias( grad_water ) = GetGradientWater( DN_DX_PRESS );
-    
+
     for ( unsigned int i = 0; i < dim; ++i )
     {
         result( i ) = -relPerm * GetValue(PERMEABILITY_WATER) /
@@ -1522,7 +1522,7 @@ void UnsaturatedSoilsElement_2phase_SmallStrain_Staggered::CalculateBoperator( M
 void UnsaturatedSoilsElement_2phase_SmallStrain_Staggered::CalculateBBaroperator( Matrix& B_Operator, const Matrix& DN_DX, const Matrix& Bdil_bar )
 {
     unsigned int number_of_nodes_disp = GetGeometry().size();
-    
+
     noalias( B_Operator ) = ZeroMatrix( 6, number_of_nodes_disp * 3 );
 
     double aux = (1.0 / 3);
@@ -1534,7 +1534,7 @@ void UnsaturatedSoilsElement_2phase_SmallStrain_Staggered::CalculateBBaroperator
         tmp1 = aux * (Bdil_bar( i, 0 ) - DN_DX( i, 0 ));
         tmp2 = aux * (Bdil_bar( i, 1 ) - DN_DX( i, 1 ));
         tmp3 = aux * (Bdil_bar( i, 2 ) - DN_DX( i, 2 ));
-        
+
         B_Operator( 0, i*3 ) = DN_DX( i, 0 ) + tmp1;
         B_Operator( 1, i*3 ) = tmp1;
         B_Operator( 2, i*3 ) = tmp1;
@@ -1542,11 +1542,11 @@ void UnsaturatedSoilsElement_2phase_SmallStrain_Staggered::CalculateBBaroperator
         B_Operator( 0, i*3 + 1)  = tmp2;
         B_Operator( 1, i*3 + 1 ) = DN_DX( i, 1 ) + tmp2;
         B_Operator( 2, i*3 + 1 ) = tmp2;
-        
+
         B_Operator( 0, i*3 + 2)  = tmp3;
         B_Operator( 1, i*3 + 2 ) = tmp3;
         B_Operator( 2, i*3 + 2 ) = DN_DX( i, 2 ) + tmp3;
-        
+
         B_Operator( 3, i*3 )     = DN_DX( i, 1 );
         B_Operator( 3, i*3 + 1 ) = DN_DX( i, 0 );
         B_Operator( 4, i*3 + 1 ) = DN_DX( i, 2 );
@@ -1625,7 +1625,7 @@ void UnsaturatedSoilsElement_2phase_SmallStrain_Staggered::GetValueOnIntegration
             noalias( rValues[i] ) = mConstitutiveLawVector[i]->GetValue( PRESTRESS, rValues[i] );
         }
     }
-    
+
     if ( rVariable == PLASTIC_STRAIN_VECTOR )
     {
         for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); i++ )
@@ -1646,7 +1646,7 @@ void UnsaturatedSoilsElement_2phase_SmallStrain_Staggered::GetValueOnIntegration
                 rValues[i].resize( 9 );
 
             noalias( rValues[i] ) = mConstitutiveLawVector[i]->GetValue( INTERNAL_VARIABLES, rValues[i] );
-            
+
         }
     }
 
@@ -1804,7 +1804,7 @@ void UnsaturatedSoilsElement_2phase_SmallStrain_Staggered::GetValueOnIntegration
 void UnsaturatedSoilsElement_2phase_SmallStrain_Staggered::GetValueOnIntegrationPoints( const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
-    
+
     if( rVariable == PLASTICITY_INDICATOR )
     {
         if ( rValues.size() != GetGeometry().IntegrationPoints().size() )
@@ -1817,17 +1817,17 @@ void UnsaturatedSoilsElement_2phase_SmallStrain_Staggered::GetValueOnIntegration
         }
         return;
     }
-    
+
     if( rVariable == K0 )
     {
         if ( rValues.size() != GetGeometry().IntegrationPoints().size() )
             rValues.resize( GetGeometry().IntegrationPoints().size() );
-        
+
         for ( unsigned int Point = 0; Point < mConstitutiveLawVector.size(); Point++ )
         {
             rValues[Point] = GetValue( K0 );
         }
-        
+
         return;
     }
 
@@ -1952,7 +1952,7 @@ void UnsaturatedSoilsElement_2phase_SmallStrain_Staggered::SetValueOnIntegration
     {
         SetValue( K0, rValues[0] );
     }
-    
+
     else if( rVariable == REFERENCE_WATER_PRESSURE )
     {
         for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); i++ )

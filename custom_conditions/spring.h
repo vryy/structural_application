@@ -258,7 +258,7 @@ private:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_Spring2D_CONDITION_H_INCLUDED  defined 
+#endif // KRATOS_Spring2D_CONDITION_H_INCLUDED  defined
 
 
 

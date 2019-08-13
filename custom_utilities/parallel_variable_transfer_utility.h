@@ -107,10 +107,12 @@ public:
                  */
     void InitializeModelPart( ModelPart& rTarget )
     {
+        ProcessInfo& CurrentProcessInfo = rTarget.GetProcessInfo();
+
         for( ModelPart::ElementIterator it = rTarget.ElementsBegin();
                 it!= rTarget.ElementsEnd(); it++ )
         {
-            (*it).Initialize();
+            (*it).Initialize(CurrentProcessInfo);
         }
     }
 

@@ -83,17 +83,17 @@ namespace Kratos
     public:
         // Counted pointer of Contact_Link_3D_Lagrange_Tying
         KRATOS_CLASS_POINTER_DEFINITION(Contact_Link_3D_Lagrange_Tying);
-        
+
         /**
          * Default constructor.
          */
         Contact_Link_3D_Lagrange_Tying( IndexType NewId, GeometryType::Pointer pGeometry);
-        
+
         Contact_Link_3D_Lagrange_Tying( IndexType NewId, GeometryType::Pointer pGeometry,
                                        PropertiesType::Pointer pProperties
                                        );
-        
-        
+
+
         Contact_Link_3D_Lagrange_Tying( IndexType NewId, GeometryType::Pointer pGeometry,
                                        PropertiesType::Pointer pProperties,
                                        Condition::Pointer Master,
@@ -106,13 +106,13 @@ namespace Kratos
          * Destructor.
          */
         virtual ~Contact_Link_3D_Lagrange_Tying();
-        
+
         /**
          * Operations.
          */
-        
-        
-        
+
+
+
         Condition::Pointer Create( IndexType NewId,
                                   NodesArrayType const& ThisNodes,
                                   PropertiesType::Pointer pProperties) const;
@@ -123,45 +123,45 @@ namespace Kratos
         void CalculateLocalSystem( MatrixType& rLeftHandSideMatrix,
                                   VectorType& rRightHandSideVector,
                                   ProcessInfo& rCurrentProcessInfo);
-        
+
         void CalculateRightHandSide( VectorType& rRightHandSideVector,
                                     ProcessInfo& rCurrentProcessInfo);
-        
+
         void CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo);
-        
+
         void EquationIdVector( EquationIdVectorType& rResult,
                               ProcessInfo& rCurrentProcessInfo);
-        
+
         void GetDofList( DofsVectorType& ConditionalDofList,
                         ProcessInfo& CurrentProcessInfo);
-        
+
         /**
          * Turn back information as a string.
          * (DEACTIVATED)
          */
         //std::string Info();
-        
+
         /**
          * Print information about this object.
          */
         virtual void PrintInfo(std::ostream& rOStream) const;
-        
+
         /**
          * Print object's data.
          */
         virtual void PrintData(std::ostream& rOStream) const;
-        
+
     protected:
-        
-        
+
+
     private:
         void CalculateAll( MatrixType& rLeftHandSideMatrix,
                           VectorType& rRightHandSideVector,
                           ProcessInfo& rCurrentProcessInfo,
                           bool CalculateStiffnessMatrixFlag,
                           bool CalculateResidualVectorFlag);
-        
-        
+
+
         /////////////////////////
         /////
         //////////////////////////
@@ -173,7 +173,7 @@ namespace Kratos
          double normalStress,
          double SlaveIntegrationWeight,
          double dASlave ); */
-        
+
         void CalculateAndAdd_RHS( Vector& residualvector,
                                  const Vector& NMaster,
                                  const Vector& NSlave,
@@ -184,71 +184,71 @@ namespace Kratos
                                  double normalStress,
                                  double SlaveIntegrationWeight,
                                  double dASlave);
-        
-        
-        
-        
+
+
+
+
         /**
          * This function calculates updates the local and global coordinates
          * of the master contact partner in order to follow the movement of
          * the slave surface along the master surface
          */
         void UpdateMasterLocalPoint( );
-        
-        
+
+
         Vector NormalVector( Condition::Pointer Surface,
                             const GeometryType::CoordinatesArrayType& LocalPoint );
-        
+
         Matrix TangentialVectors( Condition::Pointer Surface,
                                  const GeometryType::CoordinatesArrayType& LocalPoint );
-        
+
         Matrix TangentialVectorsGlobal( Condition::Pointer Surface,
                                        const GeometryType::CoordinatesArrayType& LocalPoint );
-        
+
         Matrix TangentialVectors_inOrigin( Condition::Pointer Surface,
                                           const GeometryType::CoordinatesArrayType& rPoint );
-        
+
         Point<3>& GlobalCoordinates(Condition::Pointer Surface, Point<3>& rResult, Point<3> const& LocalCoordinates);
-        
-        
+
+
         Vector GetRelativTangentialVelocity(Matrix& T);
-        
+
         Vector GetRelativVelocity();
         /**
          * Assignment operator.
          * (DEACTIVATED)
          */
         //Contact_Link_3D_Lagrange_Tying& operator=(const Contact_Link_3D_Lagrange_Tying& rOther);
-        
+
         /**
          * Copy constructor.
          * (DEACTIVATED)
          */
         //Contact_Link_3D_Lagrange_Tying(const Contact_Link_3D_Lagrange_Tying& rOther);
-        
-        
+
+
         /**
          * private members
          */
-        
+
         ///@}
         ///@name Serialization
         ///@{
         friend class Serializer;
-        
+
         // A private default constructor necessary for serialization
         Contact_Link_3D_Lagrange_Tying() {};
-        
+
         virtual void save(Serializer& rSerializer) const
         {
             KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Condition );
         }
-        
+
         virtual void load(Serializer& rSerializer)
         {
             KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Condition );
         }
-        
+
         Vector mvMaster;
         Matrix mTMaster;
         //             Condition::Pointer mpSlave;
@@ -260,4 +260,4 @@ namespace Kratos
     }; // Class Contact_Link_3D_Lagrange_Tying
 }  // namespace Kratos.
 
-#endif // KRATOS_CONTACT_LINK_3D_LAGRANGE_TYING_CONDITION_H_INCLUDED  defined 
+#endif // KRATOS_CONTACT_LINK_3D_LAGRANGE_TYING_CONDITION_H_INCLUDED  defined

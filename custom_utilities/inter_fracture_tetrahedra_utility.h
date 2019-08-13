@@ -277,6 +277,7 @@ public:
     {
         KRATOS_TRY
 
+        ProcessInfo& CurrentProcessInfo =  this_model_part.GetProcessInfo();
 
         WeakPointerVector< Element > Negative_Elements;
         WeakPointerVector< Element > Positive_Elements;
@@ -359,7 +360,7 @@ public:
             for(WeakPointerVector< Element >::iterator neighb_elem = neighb_elems.begin();
                     neighb_elem != neighb_elems.end(); neighb_elem++)
             {
-                neighb_elem->Initialize();
+                neighb_elem->Initialize(CurrentProcessInfo);
             }
 
             // creating new nodes

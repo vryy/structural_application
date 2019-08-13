@@ -1031,7 +1031,7 @@ unsigned int Ebst::NumberOfActiveNeighbours(WeakPointerVector< Node < 3 > >& nei
 //***********************************************************************************
 //***********************************************************************************
 
-void Ebst::Initialize()
+void Ebst::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 

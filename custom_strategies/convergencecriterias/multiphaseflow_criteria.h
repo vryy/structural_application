@@ -395,7 +395,7 @@ public:
 
             if(disp_converged && water_converged && air_converged)
             {
-                std::cout << "Congratulations the time step solution is converged." << std::endl;
+                std::cout << "Congratulations the solution strategy is converged." << std::endl;
                 std::cout << "Reason for converged displacement:";
                 if(disp_reason_1) std::cout << " {(energy = " << EnergyNorm << ") <= (expected energy = " << mRatioTolerance << ")}";
                 if(disp_reason_2) std::cout << " {(change = " << mFinalCorrectionNorm << ") <= (expected change = " << mAlwaysConvergedNorm << ")}";

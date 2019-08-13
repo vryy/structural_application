@@ -1,17 +1,17 @@
 /*
 see license.txt
 */
-//   
-//   Project Name:        Kratos       
+//
+//   Project Name:        Kratos
 //   Last Modified by:    $Author: hbui $
 //   Date:                $Date: 6 Jul 2016 $
 //
 //
-// System includes 
+// System includes
 
-// External includes 
+// External includes
 
-// Project includes 
+// Project includes
 #include "custom_conditions/embedded_node_penalty_tying_condition.h"
 #include "custom_utilities/sd_math_utils.h"
 #include "includes/kratos_flags.h"
@@ -32,7 +32,7 @@ namespace Kratos
     {
         //DO NOT ADD DOFS HERE!!!
     }
-    
+
     EmbeddedNodePenaltyTyingCondition::EmbeddedNodePenaltyTyingCondition( IndexType NewId,
                 GeometryType::Pointer pGeometry,
                 NodeType::Pointer& pSlaveNode,
@@ -59,27 +59,27 @@ namespace Kratos
     {
     }
 
-    void EmbeddedNodePenaltyTyingCondition::Initialize()
+    void EmbeddedNodePenaltyTyingCondition::Initialize(const ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY
         KRATOS_CATCH("")
     }
 
-    //************************************************************************************    
+    //************************************************************************************
     //************************************************************************************
     /**
      * calculates only the RHS vector (certainly to be removed due to contact algorithm)
      */
-    void EmbeddedNodePenaltyTyingCondition::CalculateRightHandSide( VectorType& rRightHandSideVector, 
+    void EmbeddedNodePenaltyTyingCondition::CalculateRightHandSide( VectorType& rRightHandSideVector,
             ProcessInfo& rCurrentProcessInfo)
     {
         //calculation flags
         bool CalculateStiffnessMatrixFlag = false;
         bool CalculateResidualVectorFlag = true;
         MatrixType dummy;
-        CalculateAll( dummy, rRightHandSideVector, 
+        CalculateAll( dummy, rRightHandSideVector,
                       rCurrentProcessInfo,
-                      CalculateStiffnessMatrixFlag, 
+                      CalculateStiffnessMatrixFlag,
                       CalculateResidualVectorFlag);
     }
 
@@ -88,8 +88,8 @@ namespace Kratos
     /**
      * calculates this contact element's local contributions
      */
-    void EmbeddedNodePenaltyTyingCondition::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, 
-                                              VectorType& rRightHandSideVector, 
+    void EmbeddedNodePenaltyTyingCondition::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix,
+                                              VectorType& rRightHandSideVector,
                                               ProcessInfo& rCurrentProcessInfo)
     {
         //calculation flags
@@ -104,10 +104,10 @@ namespace Kratos
     /**
      * This function calculates all system contributions due to the contact problem
      * with regard to the current master and slave partners.
-     * All Conditions are assumed to be defined in 3D space and havin 3 DOFs per node 
+     * All Conditions are assumed to be defined in 3D space and havin 3 DOFs per node
      */
-    void EmbeddedNodePenaltyTyingCondition::CalculateAll( MatrixType& rLeftHandSideMatrix, 
-                                      VectorType& rRightHandSideVector, 
+    void EmbeddedNodePenaltyTyingCondition::CalculateAll( MatrixType& rLeftHandSideMatrix,
+                                      VectorType& rRightHandSideVector,
                                       ProcessInfo& rCurrentProcessInfo,
                                       bool CalculateStiffnessMatrixFlag,
                                       bool CalculateResidualVectorFlag)
@@ -141,7 +141,7 @@ namespace Kratos
         {
             if(rLeftHandSideMatrix.size1() != ndofs || rLeftHandSideMatrix.size2() != ndofs)
                 rLeftHandSideMatrix.resize(ndofs, ndofs, false);
-            noalias(rLeftHandSideMatrix) = ZeroMatrix(ndofs,ndofs); 
+            noalias(rLeftHandSideMatrix) = ZeroMatrix(ndofs,ndofs);
         }
 
         // Calculate the relative displacement
@@ -205,11 +205,11 @@ namespace Kratos
     //************************************************************************************
     //************************************************************************************
     /**
-    * Setting up the EquationIdVector for the current partners.    
+    * Setting up the EquationIdVector for the current partners.
     * All conditions are assumed to be defined in 3D space with 3 DOFs per node.
     * All Equation IDs are given Master first, Slave second
     */
-    void EmbeddedNodePenaltyTyingCondition::EquationIdVector( EquationIdVectorType& rResult, 
+    void EmbeddedNodePenaltyTyingCondition::EquationIdVector( EquationIdVectorType& rResult,
                                           ProcessInfo& CurrentProcessInfo)
     {
 //        if( mpMasterElement->GetValue(IS_INACTIVE) || !mpMasterElement->Is(ACTIVE) )

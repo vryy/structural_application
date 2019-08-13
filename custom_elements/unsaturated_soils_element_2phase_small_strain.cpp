@@ -213,7 +213,7 @@ UnsaturatedSoilsElement_2phase_SmallStrain::~UnsaturatedSoilsElement_2phase_Smal
 
 //************************************************************************************
 //************************************************************************************
-void UnsaturatedSoilsElement_2phase_SmallStrain::Initialize()
+void UnsaturatedSoilsElement_2phase_SmallStrain::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 

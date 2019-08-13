@@ -451,7 +451,7 @@ void RigidBody3D::CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo
 
 //************************************************************************************
 //************************************************************************************
-void RigidBody3D::Initialize()
+void RigidBody3D::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     //saving the last rotation used in the database
     noalias(GetGeometry()[0].GetValue(ROTATION)) = ZeroVector(3);

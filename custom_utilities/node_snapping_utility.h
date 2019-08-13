@@ -560,6 +560,7 @@ public:
     bool MoveNode( ModelPart& model_part, WeakPointerVector<Element>& adjacent_elems, Node<3>& rNode, Point<3>& newPosition )
     {
         int elem_id = 0;
+        ProcessInfo& CurrentProcessInfo = model_part.GetProcessInfo();
 
         Point<3> newLocalPoint;
         //find element, the new point lies within
@@ -574,7 +575,7 @@ public:
             //move node to new undeformed_point
             rNode.SetInitialPosition( undeformed_point );
             //reset element
-            ResetElements( rNode.GetValue(NEIGHBOUR_ELEMENTS) );
+            ResetElements( rNode.GetValue(NEIGHBOUR_ELEMENTS), CurrentProcessInfo );
             return true;
         }
         else
@@ -709,7 +710,7 @@ public:
      * Resets an element after the reference configuration has been changed
      * @param elements_set contains the elements which should be reseted
      */
-    void ResetElements( WeakPointerVector<Element>& elements_set )
+    void ResetElements( WeakPointerVector<Element>& elements_set, ProcessInfo& rCurrentProcessInfo )
     {
         for( WeakPointerVector<Element>::iterator it = elements_set.begin();
                 it != elements_set.end(); ++it )
@@ -722,7 +723,7 @@ public:
                 (*it).GetGeometry()[i].Z() = (*it).GetGeometry()[i].Z0();
             }
             //re-initialize element
-            it->Initialize();
+            it->Initialize(rCurrentProcessInfo);
 
             //restore node positions
             for( unsigned int i=0; i<(*it).GetGeometry().size(); i++ )

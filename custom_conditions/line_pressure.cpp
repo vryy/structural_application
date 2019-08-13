@@ -190,7 +190,7 @@ void LinePressure::CalculateRightHandSide( VectorType& rRightHandSideVector,
         }
 //        KRATOS_WATCH(t)
 
-        //calculating load 
+        //calculating load
         Load[0] = -P*t[1];
         Load[1] = P*t[0];
 //        KRATOS_WATCH(Load)

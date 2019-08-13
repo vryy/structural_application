@@ -108,7 +108,7 @@ class EASElementQ4E4 : public Element
 public:
     ///@name Type Definitions
     ///@{
-    
+
     typedef GeometryData::IntegrationMethod IntegrationMethod;
 
     typedef ConstitutiveLaw ConstitutiveLawType;
@@ -141,7 +141,7 @@ public:
 
     Element::Pointer Create( IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties ) const;
 
-    void Initialize();
+    void Initialize(const ProcessInfo& rCurrentProcessInfo);
 
     void ResetConstitutiveLaw();
 
@@ -160,7 +160,7 @@ public:
     void FinalizeSolutionStep( ProcessInfo& CurrentProcessInfo );
 
     void InitializeSolutionStep( ProcessInfo& CurrentProcessInfo );
-    
+
     void InitializeNonLinearIteration(ProcessInfo& CurrentProcessInfo);
 
     void GetValueOnIntegrationPoints( const Variable<Matrix>& rVariable, std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo );
@@ -412,6 +412,6 @@ private:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_KINEMATIC_LINEAR_Q4E4_INCLUDED defined 
+#endif // KRATOS_KINEMATIC_LINEAR_Q4E4_INCLUDED defined
 
 

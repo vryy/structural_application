@@ -261,4 +261,4 @@ private:
 }; // Class ContactLink3DNewmark
 }  // namespace Kratos.
 
-#endif // KRATOS_CONTACT_FACE3D_CONDITION_H_INCLUDED  defined 
+#endif // KRATOS_CONTACT_FACE3D_CONDITION_H_INCLUDED  defined

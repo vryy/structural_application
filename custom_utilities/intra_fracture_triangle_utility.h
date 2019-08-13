@@ -1020,7 +1020,7 @@ public:
         for(PointerVector< Element >::iterator it_new = New_Elements.begin(); it_new!=New_Elements.end(); it_new++)
         {
             //KRATOS_WATCH(it_new->Id());
-            it_new->Initialize();
+            it_new->Initialize(rCurrentProcessInfo);
             it_new->InitializeSolutionStep(rCurrentProcessInfo);
             it_new->FinalizeSolutionStep(rCurrentProcessInfo);
             rElements.push_back(*(it_new.base()));

@@ -145,7 +145,7 @@ public:
     * Initialization of the Crisfield truss element.
     * This initializes the cross-section, length, position vector and matrix A for the element
     */
-    void Initialize();
+    void Initialize(const ProcessInfo& rCurrentProcessInfo);
 
     /**
     * Calculation of the local system.
@@ -495,6 +495,6 @@ private:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_TOTAL_CRISFIELD_ELEMENT_H_INCLUDED  defined 
+#endif // KRATOS_TOTAL_CRISFIELD_ELEMENT_H_INCLUDED  defined
 
 

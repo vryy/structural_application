@@ -71,7 +71,6 @@ namespace Kratos
     KinematicLinear::KinematicLinear( IndexType NewId, GeometryType::Pointer pGeometry )
         : Element( NewId, pGeometry )
     {
-        mIsInitialized = false;
         //DO NOT ADD DOFS HERE!!!
         //THIS IS THE DEFAULT CONSTRUCTOR
     }
@@ -87,7 +86,6 @@ namespace Kratos
             GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties )
         : Element( NewId, pGeometry, pProperties )
     {
-        mIsInitialized = false;
         mThisIntegrationMethod = GetGeometry().GetDefaultIntegrationMethod();//default method
     }
 
@@ -109,86 +107,138 @@ namespace Kratos
      * Initialization of the element, called at the begin of each simulation.
      * Member variables and the Material law are initialized here
      */
-    void KinematicLinear::Initialize()
+    void KinematicLinear::Initialize(const ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY//EXCEPTION HANDLING (see corresponding KRATOS_CATCH("") )
 
         //dimension of the problem
         unsigned int dim = GetGeometry().WorkingSpaceDimension();
 
-        // integration rule
-        if(this->Has( INTEGRATION_ORDER ))
+        if (rCurrentProcessInfo[RESET_CONFIGURATION] == 0)
         {
-            if(this->GetValue(INTEGRATION_ORDER) == 1)
+            // integration rule
+            if(this->Has( INTEGRATION_ORDER ))
             {
-                mThisIntegrationMethod = GeometryData::GI_GAUSS_1;
+                if(this->GetValue(INTEGRATION_ORDER) == 1)
+                {
+                    mThisIntegrationMethod = GeometryData::GI_GAUSS_1;
+                }
+                else if(this->GetValue(INTEGRATION_ORDER) == 2)
+                {
+                    mThisIntegrationMethod = GeometryData::GI_GAUSS_2;
+                }
+                else if(this->GetValue(INTEGRATION_ORDER) == 3)
+                {
+                    mThisIntegrationMethod = GeometryData::GI_GAUSS_3;
+                }
+                else if(this->GetValue(INTEGRATION_ORDER) == 4)
+                {
+                    mThisIntegrationMethod = GeometryData::GI_GAUSS_4;
+                }
+                else if(this->GetValue(INTEGRATION_ORDER) == 5)
+                {
+                    mThisIntegrationMethod = GeometryData::GI_GAUSS_5;
+                }
+                else
+                    KRATOS_THROW_ERROR(std::logic_error, "KinematicLinear element does not support for integration rule", this->GetValue(INTEGRATION_ORDER))
             }
-            else if(this->GetValue(INTEGRATION_ORDER) == 2)
+            else if(GetProperties().Has( INTEGRATION_ORDER ))
             {
-                mThisIntegrationMethod = GeometryData::GI_GAUSS_2;
-            }
-            else if(this->GetValue(INTEGRATION_ORDER) == 3)
-            {
-                mThisIntegrationMethod = GeometryData::GI_GAUSS_3;
-            }
-            else if(this->GetValue(INTEGRATION_ORDER) == 4)
-            {
-                mThisIntegrationMethod = GeometryData::GI_GAUSS_4;
-            }
-            else if(this->GetValue(INTEGRATION_ORDER) == 5)
-            {
-                mThisIntegrationMethod = GeometryData::GI_GAUSS_5;
+                if(GetProperties()[INTEGRATION_ORDER] == 1)
+                {
+                    mThisIntegrationMethod = GeometryData::GI_GAUSS_1;
+                }
+                else if(GetProperties()[INTEGRATION_ORDER] == 2)
+                {
+                    mThisIntegrationMethod = GeometryData::GI_GAUSS_2;
+                }
+                else if(GetProperties()[INTEGRATION_ORDER] == 3)
+                {
+                    mThisIntegrationMethod = GeometryData::GI_GAUSS_3;
+                }
+                else if(GetProperties()[INTEGRATION_ORDER] == 4)
+                {
+                    mThisIntegrationMethod = GeometryData::GI_GAUSS_4;
+                }
+                else if(GetProperties()[INTEGRATION_ORDER] == 5)
+                {
+                    mThisIntegrationMethod = GeometryData::GI_GAUSS_5;
+                }
+                else
+                    KRATOS_THROW_ERROR(std::logic_error, "KinematicLinear element does not support for integration points", GetProperties()[INTEGRATION_ORDER])
             }
             else
-                KRATOS_THROW_ERROR(std::logic_error, "KinematicLinear element does not support for integration rule", this->GetValue(INTEGRATION_ORDER))
-        }
-        else if(GetProperties().Has( INTEGRATION_ORDER ))
-        {
-            if(GetProperties()[INTEGRATION_ORDER] == 1)
-            {
-                mThisIntegrationMethod = GeometryData::GI_GAUSS_1;
-            }
-            else if(GetProperties()[INTEGRATION_ORDER] == 2)
-            {
-                mThisIntegrationMethod = GeometryData::GI_GAUSS_2;
-            }
-            else if(GetProperties()[INTEGRATION_ORDER] == 3)
-            {
-                mThisIntegrationMethod = GeometryData::GI_GAUSS_3;
-            }
-            else if(GetProperties()[INTEGRATION_ORDER] == 4)
-            {
-                mThisIntegrationMethod = GeometryData::GI_GAUSS_4;
-            }
-            else if(GetProperties()[INTEGRATION_ORDER] == 5)
-            {
-                mThisIntegrationMethod = GeometryData::GI_GAUSS_5;
-            }
-            else
-                KRATOS_THROW_ERROR(std::logic_error, "KinematicLinear element does not support for integration points", GetProperties()[INTEGRATION_ORDER])
-        }
-        else
-            mThisIntegrationMethod = GetGeometry().GetDefaultIntegrationMethod(); // default method
+                mThisIntegrationMethod = GetGeometry().GetDefaultIntegrationMethod(); // default method
 
-        // use the default integration rule in the case of finite cell geometry
-        std::string geo_name = typeid(GetGeometry()).name();
-        if ( geo_name.find("FiniteCellGeometry") != std::string::npos )
-            mThisIntegrationMethod = GetGeometry().GetDefaultIntegrationMethod();
+            // use the default integration rule in the case of finite cell geometry
+            std::string geo_name = typeid(GetGeometry()).name();
+            if ( geo_name.find("FiniteCellGeometry") != std::string::npos )
+                mThisIntegrationMethod = GetGeometry().GetDefaultIntegrationMethod();
 
-        //number of integration points used, mThisIntegrationMethod refers to the
-        //integration method defined in the constructor
-        const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
+            //number of integration points used, mThisIntegrationMethod refers to the
+            //integration method defined in the constructor
+            const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
 
-        //Initialization of the constitutive law vector and
-        // declaration, definition and initialization of the material
-        // laws at each integration point
-        if ( mConstitutiveLawVector.size() != integration_points.size() )
-        {
+            //Initialization of the constitutive law vector and
+            // declaration, definition and initialization of the material
+            // laws at each integration point
             mConstitutiveLawVector.resize( integration_points.size() );
             InitializeMaterial();
-        }
 
-        if ( mIsInitialized )
+            //Set Up Initial displacement for StressFreeActivation of Elements
+            mInitialDisp.resize( GetGeometry().size(), dim, false );
+
+            for ( unsigned int node = 0; node < GetGeometry().size(); ++node )
+                for ( unsigned int i = 0; i < dim; ++i )
+                    mInitialDisp( node, i ) = GetGeometry()[node].GetSolutionStepValue( DISPLACEMENT )[i];
+
+            #ifdef ENABLE_DEBUG_CONSTITUTIVE_LAW
+    //            std::cout << "Element " << Id() << " mInitialDisp is reinitialized to " << mInitialDisp << std::endl;
+            #endif
+
+            //initializing the Jacobian in the reference configuration
+            GeometryType::JacobiansType J0;
+            Matrix DeltaPosition(GetGeometry().size(), 3);
+
+            for ( unsigned int node = 0; node < GetGeometry().size(); ++node )
+            {
+                noalias( row( DeltaPosition, node ) ) = GetGeometry()[node].Coordinates() - GetGeometry()[node].GetInitialPosition();
+            }
+
+            J0 = GetGeometry().Jacobian( J0, mThisIntegrationMethod, DeltaPosition );
+
+            //calculating the domain size
+            double TotalDomainInitialSize = 0.00;
+            for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); ++PointNumber )
+            {
+                //getting informations for integration
+                double IntegrationWeight = integration_points[PointNumber].Weight();
+                //calculating the total domain size
+                TotalDomainInitialSize += MathUtils<double>::Det(J0[PointNumber]) * IntegrationWeight;
+            }
+    //        KRATOS_WATCH(TotalDomainInitialSize)
+            if ( TotalDomainInitialSize < 0.0 )
+            {
+                if ( TotalDomainInitialSize < -1.0e-10 )
+                {
+                    std::stringstream ss;
+                    ss << "Error on element -> " << this->Id();
+                    ss << ". Domain size can not be less than 0, TotalDomainInitialSize = " << TotalDomainInitialSize;
+                    KRATOS_THROW_ERROR( std::logic_error, ss.str(), "" );
+                }
+                else
+                {
+                    std::cout << "Warning on element -> " << this->Id();
+                    std::cout << ". Domain size is small, TotalDomainInitialSize = " << TotalDomainInitialSize << " < -1e-10";
+                    std::cout << ". This element will be deactivated." << std::endl;
+                    this->SetValue(ACTIVATION_LEVEL, -1);
+                    this->SetValue(IS_INACTIVE, true);
+                    this->Set(ACTIVE, false);
+                }
+            }
+            this->SetValue(GEOMETRICAL_DOMAIN_SIZE, TotalDomainInitialSize);
+        }
+        else if (rCurrentProcessInfo[RESET_CONFIGURATION] == 1)
         {
             //Set Up Initial displacement for StressFreeActivation of Elements
             mInitialDisp.resize( GetGeometry().size(), dim, false );
@@ -198,66 +248,9 @@ namespace Kratos
                     mInitialDisp( node, i ) = GetGeometry()[node].GetSolutionStepValue( DISPLACEMENT )[i];
 
             #ifdef ENABLE_DEBUG_CONSTITUTIVE_LAW
-//            std::cout << "Element " << Id() << " mInitialDisp is reinitialized to " << mInitialDisp << std::endl;
+    //        std::cout << "Element " << Id() << " mInitialDisp is initialized to " << mInitialDisp << std::endl;
             #endif
-
-            return;
         }
-
-        //initializing the Jacobian in the reference configuration
-        GeometryType::JacobiansType J0;
-        Matrix DeltaPosition(GetGeometry().size(), 3);
-
-        for ( unsigned int node = 0; node < GetGeometry().size(); ++node )
-        {
-            noalias( row( DeltaPosition, node ) ) = GetGeometry()[node].Coordinates() - GetGeometry()[node].GetInitialPosition();
-        }
-
-        J0 = GetGeometry().Jacobian( J0, mThisIntegrationMethod, DeltaPosition );
-
-        //calculating the domain size
-        double TotalDomainInitialSize = 0.00;
-        for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); ++PointNumber )
-        {
-            //getting informations for integration
-            double IntegrationWeight = integration_points[PointNumber].Weight();
-            //calculating the total domain size
-            TotalDomainInitialSize += MathUtils<double>::Det(J0[PointNumber]) * IntegrationWeight;
-        }
-//        KRATOS_WATCH(TotalDomainInitialSize)
-        if ( TotalDomainInitialSize < 0.0 )
-        {
-            if ( TotalDomainInitialSize < -1.0e-10 )
-            {
-                std::stringstream ss;
-                ss << "Error on element -> " << this->Id();
-                ss << ". Domain size can not be less than 0, TotalDomainInitialSize = " << TotalDomainInitialSize;
-                KRATOS_THROW_ERROR( std::logic_error, ss.str(), "" );
-            }
-            else
-            {
-                std::cout << "Warning on element -> " << this->Id();
-                std::cout << ". Domain size is small, TotalDomainInitialSize = " << TotalDomainInitialSize << " < -1e-10";
-                std::cout << ". This element will be deactivated." << std::endl;
-                this->SetValue(ACTIVATION_LEVEL, -1);
-                this->SetValue(IS_INACTIVE, true);
-                this->Set(ACTIVE, false);
-            }
-        }
-        this->SetValue(GEOMETRICAL_DOMAIN_SIZE, TotalDomainInitialSize);
-
-        //Set Up Initial displacement for StressFreeActivation of Elements
-        mInitialDisp.resize( GetGeometry().size(), dim, false );
-
-        for ( unsigned int node = 0; node < GetGeometry().size(); ++node )
-            for ( unsigned int i = 0; i < dim; ++i )
-                mInitialDisp( node, i ) = GetGeometry()[node].GetSolutionStepValue( DISPLACEMENT )[i];
-
-        #ifdef ENABLE_DEBUG_CONSTITUTIVE_LAW
-//        std::cout << "Element " << Id() << " mInitialDisp is initialized to " << mInitialDisp << std::endl;
-        #endif
-
-        mIsInitialized = true;
 
         KRATOS_CATCH( "" )
     }
@@ -664,7 +657,6 @@ namespace Kratos
             std::cout << "StrainVector: " << StrainVector << std::endl;
             #endif
 
-            //calculate stress and consistent tangent
             mConstitutiveLawVector[PointNumber]->CalculateMaterialResponse(
                 StrainVector,
                 ZeroMatrix( 1 ),

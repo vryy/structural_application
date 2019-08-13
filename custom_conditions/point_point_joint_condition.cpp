@@ -80,13 +80,13 @@ PointPointJointCondition::PointPointJointCondition( IndexType NewId, GeometryTyp
 }
 
 PointPointJointCondition::PointPointJointCondition( IndexType NewId, Node<3>::Pointer const& node1, Node<3>::Pointer const& node2,
-        PropertiesType::Pointer pProperties ) 
+        PropertiesType::Pointer pProperties )
     : Condition( NewId, GeometryType::Pointer( new Line3D2<Node<3> >( node1, node2 ) ), pProperties )
 {
 }
 
 PointPointJointCondition::PointPointJointCondition( IndexType NewId, NodesArrayType const& ThisNodes,
-        PropertiesType::Pointer pProperties ) 
+        PropertiesType::Pointer pProperties )
     : Condition( NewId, GeometryType::Pointer( new Line3D2<Node<3> >( ThisNodes ) ), pProperties )
 {
 }
@@ -100,7 +100,7 @@ PointPointJointCondition::PointPointJointCondition( IndexType NewId, NodesArrayT
 // {
 //     mStiffnessMatrix = ZeroMatrix(6,6);
 // }
-// 
+//
 Condition::Pointer PointPointJointCondition::Create( IndexType NewId,
         NodesArrayType const& ThisNodes,
         PropertiesType::Pointer pProperties) const
@@ -175,7 +175,7 @@ void PointPointJointCondition::CalculateAll( MatrixType& rLeftHandSideMatrix,
         bool CalculateResidualVectorFlag)
 {
     unsigned int MatSize = 6;
-    
+
     if ( CalculateResidualVectorFlag == true || CalculateStiffnessMatrixFlag == true ) //calculation of the matrix is required
     {
         //resize the LHS=StiffnessMatrix if its size is not correct
@@ -194,7 +194,7 @@ void PointPointJointCondition::CalculateAll( MatrixType& rLeftHandSideMatrix,
 
         noalias( rRightHandSideVector ) = ZeroVector( MatSize ); //resetting RHS
     }
-    
+
 //     noalias(rLeftHandSideMatrix) = mStiffnessMatrix;
 //    noalias(rLeftHandSideMatrix) = GetValue( JOINT_STIFFNESS );
     noalias(rLeftHandSideMatrix) = GetProperties()[ JOINT_STIFFNESS ];

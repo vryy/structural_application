@@ -393,6 +393,7 @@ public:
                     += Dx[dof_iterator->EquationId()];
                 }
             }
+            #ifdef ENABLE_ROTATION
             else if (dof_iterator->GetVariable() == ROTATION_X)
             {
                 if (dof_iterator->IsFree())
@@ -417,6 +418,7 @@ public:
                     += Dx[dof_iterator->EquationId()];
                 }
             }
+            #endif
         }
 
         KRATOS_CATCH("")
@@ -597,6 +599,7 @@ public:
                 = mAlpha*i->GetSolutionStepValue(AIR_PRESSURE_NULL)
                   +(1.0-mAlpha)*i->GetSolutionStepValue(AIR_PRESSURE_EINS);
             }
+            #ifdef ENABLE_ROTATION
             if( i->HasDofFor(ROTATION_X) )
             {
                 i->GetSolutionStepValue(ANGULAR_ACCELERATION_EINS_X)
@@ -690,6 +693,7 @@ public:
                 = mAlpha*i->GetSolutionStepValue(ROTATION_NULL_Z)
                   +(1.0-mAlpha)*i->GetSolutionStepValue(ROTATION_EINS_Z);
             }
+            #endif
         }
 
         //For total Lagrangian
@@ -954,6 +958,7 @@ public:
                         = i->GetSolutionStepValue(AIR_PRESSURE_EINS_ACCELERATION);
                     }
                 }
+                #ifdef ENABLE_ROTATION
                 if( i->HasDofFor(ROTATION_X))
                 {
                     if(CurrentProcessInfo[FIRST_TIME_STEP])
@@ -999,6 +1004,7 @@ public:
                         i->GetSolutionStepValue(ANGULAR_ACCELERATION_NULL_Z)=i->GetSolutionStepValue(ANGULAR_ACCELERATION_EINS_Z);
                     }
                 }
+                #endif
             }
         }
     }
@@ -1248,6 +1254,8 @@ private:
     /*@{ */
 }; /* Class Scheme */
 }  /* namespace Kratos.*/
+
+#undef ENABLE_ROTATION
 
 #endif /* KRATOS_RESIDUALBASED_PREDICTOR_CORRECTOR_BOSSAK_SCHEME  defined */
 

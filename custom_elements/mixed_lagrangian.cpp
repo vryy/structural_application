@@ -100,7 +100,7 @@ MixedLagrangian::~MixedLagrangian()
 
 //************************************************************************************
 //************************************************************************************
-void MixedLagrangian::Initialize()
+void MixedLagrangian::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 

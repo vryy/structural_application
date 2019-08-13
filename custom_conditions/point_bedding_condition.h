@@ -100,7 +100,7 @@ public:
      * Custom constructor.
      */
     PointBeddingCondition( IndexType NewId, Node<3>::Pointer const& pNode, PropertiesType::Pointer pProperties );
-    
+
     PointBeddingCondition( IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties );
 
 
@@ -158,4 +158,4 @@ private:
 }; // Class PointBeddingCondition
 }  // namespace Kratos.
 
-#endif // KRATOS_POINT_BEDDING_CONDITION_H_INCLUDED  defined 
+#endif // KRATOS_POINT_BEDDING_CONDITION_H_INCLUDED  defined

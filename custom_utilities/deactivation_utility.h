@@ -73,6 +73,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/element.h"
 #include "includes/model_part.h"
 #include "includes/variables.h"
+#include "includes/legacy_structural_app_vars.h"
 #include "includes/kratos_flags.h"
 #include "utilities/openmp_utils.h"
 #include "structural_application.h"
@@ -154,7 +155,7 @@ public:
                 (*it)->SetValue(IS_INACTIVE, false);
                 (*it)->Set(ACTIVE, true);
             }
-            (*it)->Initialize();
+            // (*it)->Initialize(); // elements shall not be initialized here. They should be initialized by the nonlinear solver.
         }
         for ( ConditionsArrayType::ptr_iterator it=model_part.Conditions().ptr_begin();
                 it != model_part.Conditions().ptr_end(); ++it )
@@ -173,7 +174,7 @@ public:
                 (*it)->SetValue(IS_INACTIVE, false);
                 (*it)->Set(ACTIVE, true);
             }
-            (*it)->Initialize();
+            // (*it)->Initialize(); // conditions shall not be initialized here. They should be initialized by the nonlinear solver.
         }
         #else
         if(mEchoLevel > 0)
@@ -205,8 +206,7 @@ public:
                     (*it)->SetValue(IS_INACTIVE, false);
                     (*it)->Set(ACTIVE, true);
                 }
-//                std::cout << "element of type " << typeid(*(*it)).name() << " Id = " << (*it)->Id() << " is going to be initialized" << std::endl;
-                (*it)->Initialize();
+                // (*it)->Initialize(); // elements shall not be initialized here. They should be initialized by the nonlinear solver.
             }
         }
 
@@ -232,8 +232,7 @@ public:
                     (*it)->SetValue(IS_INACTIVE, false);
                     (*it)->Set(ACTIVE, true);
                 }
-//                std::cout << "condition of type " << typeid(*(*it)).name() << " Id = " << (*it)->Id() << " is going to be initialized" << std::endl;
-                (*it)->Initialize();
+                // (*it)->Initialize(); // conditions shall not be initialized here. They should be initialized by the nonlinear solver.
             }
         }
         #endif
@@ -352,6 +351,9 @@ public:
     {
         KRATOS_TRY;
 
+        ProcessInfo& CurrentProcessInfo = model_part.GetProcessInfo();
+        CurrentProcessInfo[RESET_CONFIGURATION] = 1;
+
         for ( ElementsArrayType::ptr_iterator it=model_part.Elements().ptr_begin();
                 it!=model_part.Elements().ptr_end(); ++it)
         {
@@ -359,7 +361,7 @@ public:
             if( (*it)->GetValue( ACTIVATION_LEVEL ) >= from_level
                     && (*it)->GetValue( ACTIVATION_LEVEL ) <= to_level)
             {
-                (*it)->Initialize();
+                (*it)->Initialize(CurrentProcessInfo);
                 (*it)->SetValue(ACTIVATION_LEVEL, 0 );
             }
         }
@@ -375,6 +377,8 @@ public:
                 }
             }
         }
+
+        CurrentProcessInfo[RESET_CONFIGURATION] = 0;
 
         KRATOS_CATCH("");
     }

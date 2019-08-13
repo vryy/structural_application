@@ -68,7 +68,7 @@ BeamElement::~BeamElement()
 //************************************************************************************
 
 
-void BeamElement::Initialize()
+void BeamElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
     CalculateSectionProperties();

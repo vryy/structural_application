@@ -108,7 +108,7 @@ Condition::Pointer ElasticFaceSprings::Create(IndexType NewId, GeometryType::Poi
 void ElasticFaceSprings::CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
-    
+
     //calculation flags
     bool CalculateStiffnessMatrixFlag = false;
     bool CalculateResidualVectorFlag = true;
@@ -116,7 +116,7 @@ void ElasticFaceSprings::CalculateRightHandSide(VectorType& rRightHandSideVector
 
     CalculateAll( temp, rRightHandSideVector, rCurrentProcessInfo,
                   CalculateStiffnessMatrixFlag, CalculateResidualVectorFlag );
-    
+
     KRATOS_CATCH("")
 }
 
@@ -125,14 +125,14 @@ void ElasticFaceSprings::CalculateRightHandSide(VectorType& rRightHandSideVector
 void ElasticFaceSprings::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
-    
+
     //calculation flags
     bool CalculateStiffnessMatrixFlag = true;
     bool CalculateResidualVectorFlag = true;
 
     CalculateAll( rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo,
                   CalculateStiffnessMatrixFlag, CalculateResidualVectorFlag );
-        
+
     KRATOS_CATCH("")
 }
 
@@ -145,7 +145,7 @@ void ElasticFaceSprings::CalculateAll( MatrixType& rLeftHandSideMatrix, VectorTy
                                       bool CalculateResidualVectorFlag )
 {
     KRATOS_TRY
-    
+
     unsigned int number_of_nodes = GetGeometry().size();
     unsigned int dim = 3;
 
@@ -328,9 +328,9 @@ void ElasticFaceSprings::CalculateAll( MatrixType& rLeftHandSideMatrix, VectorTy
 //        if( CalculateStiffnessMatrixFlag )
 //            KRATOS_WATCH( rLeftHandSideMatrix )
     }
-    
+
     KRATOS_CATCH("")
-    
+
 }
 
 

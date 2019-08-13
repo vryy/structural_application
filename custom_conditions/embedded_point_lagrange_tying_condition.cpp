@@ -1,14 +1,14 @@
 /*
 ==============================================================================
-KratosR1StructuralApplication 
+KratosR1StructuralApplication
 A library based on:
 Kratos
 A General Purpose Software for Multi-Physics Finite Element Analysis
 Version 1.0 (Released on march 05, 2007).
 
 Copyright 2007
-Pooyan Dadvand, Riccardo Rossi, Janosch Stascheit, Felix Nagel 
-pooyan@cimne.upc.edu 
+Pooyan Dadvand, Riccardo Rossi, Janosch Stascheit, Felix Nagel
+pooyan@cimne.upc.edu
 rrossi@cimne.upc.edu
 janosch.stascheit@rub.de
 nagel@sd.rub.de
@@ -41,8 +41,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ==============================================================================
 */
-//   
-//   Project Name:        Kratos       
+//
+//   Project Name:        Kratos
 //   Last Modified by:    $Author: hbui $
 //   Date:                $Date: 15 Jul 2016$
 //   Last Modified by:    $Author: jelena $
@@ -50,11 +50,11 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //   Revision:            $Revision: 1.2 $
 //
 //
-// System includes 
+// System includes
 
-// External includes 
+// External includes
 
-// Project includes 
+// Project includes
 #include "custom_conditions/embedded_point_lagrange_tying_condition.h"
 #include "custom_utilities/sd_math_utils.h"
 #include "includes/kratos_flags.h"
@@ -68,22 +68,22 @@ namespace Kratos
     {
     }
 
-    EmbeddedPointLagrangeTyingCondition::EmbeddedPointLagrangeTyingCondition( IndexType NewId, 
+    EmbeddedPointLagrangeTyingCondition::EmbeddedPointLagrangeTyingCondition( IndexType NewId,
                                   GeometryType::Pointer pGeometry)
     : Condition( NewId, pGeometry)
     {
         //DO NOT ADD DOFS HERE!!!
     }
-    
+
     EmbeddedPointLagrangeTyingCondition::EmbeddedPointLagrangeTyingCondition( IndexType NewId,
-                                GeometryType::Pointer pGeometry,  
+                                GeometryType::Pointer pGeometry,
                                 Element::Pointer pMasterElement,
                                 Element::Pointer pSlaveElement,
                                 Point<3>& rMasterLocalPoint,
                                 Point<3>& rSlaveLocalPoint )
     : Condition( NewId, pGeometry )
     {
-        mMasterLocalPoint = rMasterLocalPoint;    
+        mMasterLocalPoint = rMasterLocalPoint;
         mSlaveLocalPoint = rSlaveLocalPoint;
         mpMasterElement = pMasterElement;
         mpSlaveElement = pSlaveElement;
@@ -92,9 +92,9 @@ namespace Kratos
     //********************************************************
     //**** Operations ****************************************
     //********************************************************
-            
-    
-    Condition::Pointer EmbeddedPointLagrangeTyingCondition::Create( IndexType NewId, 
+
+
+    Condition::Pointer EmbeddedPointLagrangeTyingCondition::Create( IndexType NewId,
                                        GeometryType::Pointer pGeometry,
                                        Element::Pointer pMasterElement,
                                        Element::Pointer pSlaveElement,
@@ -112,39 +112,39 @@ namespace Kratos
     }
 
 
-    void EmbeddedPointLagrangeTyingCondition::Initialize()
+    void EmbeddedPointLagrangeTyingCondition::Initialize(const ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY
         KRATOS_CATCH("")
     }
 
-    //************************************************************************************ 
+    //************************************************************************************
     //************************************************************************************
     //************************************************************************************
     //************************************************************************************
     /**
      * calculates only the RHS vector (certainly to be removed due to contact algorithm)
      */
-    void EmbeddedPointLagrangeTyingCondition::CalculateRightHandSide( VectorType& rRightHandSideVector, 
+    void EmbeddedPointLagrangeTyingCondition::CalculateRightHandSide( VectorType& rRightHandSideVector,
             ProcessInfo& rCurrentProcessInfo)
     {
         //calculation flags
         bool CalculateStiffnessMatrixFlag = false;
         bool CalculateResidualVectorFlag = true;
         MatrixType matrix = Matrix();
-        CalculateAll( matrix, rRightHandSideVector, 
+        CalculateAll( matrix, rRightHandSideVector,
                       rCurrentProcessInfo,
-                      CalculateStiffnessMatrixFlag, 
+                      CalculateStiffnessMatrixFlag,
                       CalculateResidualVectorFlag);
     }
-    
+
     //************************************************************************************
     //************************************************************************************
     /**
      * calculates this contact element's local contributions
      */
-    void EmbeddedPointLagrangeTyingCondition::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, 
-                                              VectorType& rRightHandSideVector, 
+    void EmbeddedPointLagrangeTyingCondition::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix,
+                                              VectorType& rRightHandSideVector,
                                               ProcessInfo& rCurrentProcessInfo)
     {
         //calculation flags
@@ -158,10 +158,10 @@ namespace Kratos
     /**
      * This function calculates all system contributions due to the contact problem
      * with regard to the current master and slave partners.
-     * All Conditions are assumed to be defined in 3D space and havin 3 DOFs per node 
+     * All Conditions are assumed to be defined in 3D space and havin 3 DOFs per node
      */
-    void EmbeddedPointLagrangeTyingCondition::CalculateAll( MatrixType& rLeftHandSideMatrix, 
-                                      VectorType& rRightHandSideVector, 
+    void EmbeddedPointLagrangeTyingCondition::CalculateAll( MatrixType& rLeftHandSideMatrix,
+                                      VectorType& rRightHandSideVector,
                                       ProcessInfo& rCurrentProcessInfo,
                                       bool CalculateStiffnessMatrixFlag,
                                       bool CalculateResidualVectorFlag)
@@ -197,8 +197,8 @@ namespace Kratos
         unsigned int MasterNN = mpMasterElement->GetGeometry().size();
         unsigned int SlaveNN = mpSlaveElement->GetGeometry().size();
         unsigned int MatSize = (MasterNN+SlaveNN)*3 + 3;
-        KRATOS_WATCH(MatSize); 
-     
+        KRATOS_WATCH(MatSize);
+
         //resizing as needed the RHS
         if (CalculateResidualVectorFlag == true) //calculation of the matrix is required
         {
@@ -210,7 +210,7 @@ namespace Kratos
         {
             if(rLeftHandSideMatrix.size1() != MatSize || rLeftHandSideMatrix.size2() != MatSize)
                 rLeftHandSideMatrix.resize(MatSize,MatSize);
-            noalias(rLeftHandSideMatrix) = ZeroMatrix(MatSize, MatSize); 
+            noalias(rLeftHandSideMatrix) = ZeroMatrix(MatSize, MatSize);
         }
         else return;
 
@@ -250,11 +250,11 @@ namespace Kratos
     //************************************************************************************
     //************************************************************************************
     /**
-    * Setting up the EquationIdVector for the current partners.    
+    * Setting up the EquationIdVector for the current partners.
     * All conditions are assumed to be defined in 3D space with 3 DOFs per node.
     * All Equation IDs are given Master first, Slave second
     */
-    void EmbeddedPointLagrangeTyingCondition::EquationIdVector( EquationIdVectorType& rResult, 
+    void EmbeddedPointLagrangeTyingCondition::EquationIdVector( EquationIdVectorType& rResult,
                                           ProcessInfo& CurrentProcessInfo)
     {
 //        if(   ( mpMasterElement->GetValue(IS_INACTIVE) || !mpMasterElement->Is(ACTIVE) )

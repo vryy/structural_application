@@ -104,7 +104,7 @@ namespace Kratos
 //************************************************************************************
 //************************************************************************************
 
-    void TotalLagrangian::Initialize()
+    void TotalLagrangian::Initialize(const ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY
 

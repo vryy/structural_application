@@ -149,4 +149,4 @@ private:
 
 } // namespace Kratos.
 
-#endif // KRATOS_FACE3D_H_INCLUDED  defined 
+#endif // KRATOS_FACE3D_H_INCLUDED  defined

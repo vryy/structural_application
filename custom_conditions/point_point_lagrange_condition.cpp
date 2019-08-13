@@ -97,7 +97,7 @@ PointPointLagrangeCondition::PointPointLagrangeCondition(
 }
 
 
-// 
+//
 Condition::Pointer PointPointLagrangeCondition::Create( IndexType NewId,
         NodesArrayType const& ThisNodes,
         PropertiesType::Pointer pProperties) const
@@ -172,7 +172,7 @@ void PointPointLagrangeCondition::CalculateAll( MatrixType& rLeftHandSideMatrix,
         bool CalculateResidualVectorFlag)
 {
     unsigned int MatSize = 9;
-    
+
     if ( CalculateStiffnessMatrixFlag == true ) //calculation of the matrix is required
     {
         //resize the LHS=StiffnessMatrix if its size is not correct

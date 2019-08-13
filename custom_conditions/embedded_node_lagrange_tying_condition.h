@@ -1,8 +1,8 @@
 /*
 see license.txt
 */
-//   
-//   Project Name:        Kratos       
+//
+//   Project Name:        Kratos
 //   Last Modified by:    $Author: hbui $
 //   Date:                $Date: 6 Jul 2016 $
 //   Last Modified by:    $Author: Marwan $
@@ -14,7 +14,7 @@ see license.txt
 #if !defined(KRATOS_EMBEDDED_NODE_LAGRANGE_TYING_CONDITION_H_INCLUDED )
 #define  KRATOS_EMBEDDED_NODE_LAGRANGE_TYING_CONDITION_H_INCLUDED
 
-// External includes 
+// External includes
 #include "boost/smart_ptr.hpp"
 
 // Project includes
@@ -43,7 +43,7 @@ namespace Kratos
             // Counted pointer of TipCondition
             KRATOS_CLASS_POINTER_DEFINITION(EmbeddedNodeLagrangeTyingCondition);
 
-            /** 
+            /**
              * Default constructor.
              */
             EmbeddedNodeLagrangeTyingCondition( );
@@ -64,7 +64,7 @@ namespace Kratos
             Condition::Pointer Create( IndexType NewId, GeometryType::Pointer pGeometry,
                         NodeType::Pointer& pSlaveNode, Element::Pointer& pParentElement, PointType& rSolidLocalPoint ) const;
 
-            void Initialize();
+            void Initialize(const ProcessInfo& rCurrentProcessInfo);
 
             void CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
 
@@ -83,7 +83,7 @@ namespace Kratos
              * (DEACTIVATED)
              */
             //std::string Info();
-      
+
             /**
              * Print information about this object.
              * (DEACTIVATED)
@@ -95,7 +95,7 @@ namespace Kratos
              * (DEACTIVATED)
              */
             //virtual void PrintData(std::ostream& rOStream) const;
-      
+
         private:
 
             friend class Serializer;
@@ -112,10 +112,10 @@ namespace Kratos
 
             NodeType::Pointer mpSlaveNode;
             Element::Pointer mpMasterElement;
-            PointType mLocalPoint; 
+            PointType mLocalPoint;
 
     }; // Class EmbeddedNodeLagrangeTyingCondition
 }  // namespace Kratos.
-  
-#endif // KRATOS_EMBEDDED_NODE_LAGRANGE_TYING_CONDITION_H_INCLUDED defined 
+
+#endif // KRATOS_EMBEDDED_NODE_LAGRANGE_TYING_CONDITION_H_INCLUDED defined
 

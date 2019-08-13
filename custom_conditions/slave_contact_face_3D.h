@@ -282,4 +282,4 @@ private:
 }; // Class SlaveContactFace3D
 }  // namespace Kratos.
 
-#endif // KRATOS_SLAVE_CONTACT_FACE_3D_CONDITION_H_INCLUDED  defined 
+#endif // KRATOS_SLAVE_CONTACT_FACE_3D_CONDITION_H_INCLUDED  defined

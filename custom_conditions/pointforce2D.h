@@ -256,7 +256,7 @@ private:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_PointForce2D_CONDITION_H_INCLUDED  defined 
+#endif // KRATOS_PointForce2D_CONDITION_H_INCLUDED  defined
 
 
 

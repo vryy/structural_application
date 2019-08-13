@@ -256,7 +256,7 @@ private:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_NODE_TYING_LAGRANGE_Z_H_INCLUDED defined 
+#endif // KRATOS_NODE_TYING_LAGRANGE_Z_H_INCLUDED defined
 
 
 

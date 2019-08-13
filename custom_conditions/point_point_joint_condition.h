@@ -100,7 +100,7 @@ public:
      * Custom constructor.
      */
     PointPointJointCondition( IndexType NewId, Node<3>::Pointer const& node1, Node<3>::Pointer const& node2, PropertiesType::Pointer pProperties );
-    
+
     PointPointJointCondition( IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties );
 
 
@@ -135,7 +135,7 @@ public:
 
 //     void SetValue( const Variable<Matrix>& rThisVariable, const Matrix& rValue, const ProcessInfo& rCurrentProcessInfo );
 
-    
+
 private:
     void CalculateAll( MatrixType& rLeftHandSideMatrix,
                        VectorType& rRightHandSideVector,
@@ -163,4 +163,4 @@ private:
 }; // Class PointPointJointCondition
 }  // namespace Kratos.
 
-#endif // KRATOS_POINT_POINT_JOINT_CONDITION_H_INCLUDED  defined 
+#endif // KRATOS_POINT_POINT_JOINT_CONDITION_H_INCLUDED  defined

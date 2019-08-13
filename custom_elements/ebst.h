@@ -111,7 +111,7 @@ public:
         DofsVectorType& ElementalDofList,
         ProcessInfo& rCurrentProcessInfo);
 
-    virtual void Initialize();
+    virtual void Initialize(const ProcessInfo& rCurrentProcessInfo);
 
     virtual void CalculateRightHandSide(
         VectorType& rRightHandSideVector,
@@ -291,4 +291,4 @@ private:
 
 } // namespace Kratos.
 
-#endif // KRATOS_EBST_H_INCLUDED  defined 
+#endif // KRATOS_EBST_H_INCLUDED  defined

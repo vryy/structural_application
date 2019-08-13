@@ -107,7 +107,7 @@ NitscheIsotropicConstraint::~NitscheIsotropicConstraint()
  * Initialization of the element, called at the begin of each simulation.
  * Member variables and the Material law are initialized here
  */
-void NitscheIsotropicConstraint::Initialize()
+void NitscheIsotropicConstraint::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY//EXCEPTION HANDLING (see corresponding KRATOS_CATCH("") )
 
@@ -249,7 +249,7 @@ void NitscheIsotropicConstraint::CalculateAll( MatrixType& rLeftHandSideMatrix,
     Vector t1(dim), t2(dim), n(dim);
     Matrix Aux1, Aux2, Aux3;
     Vector aux;
-    
+
 
     //resize the LHS=StiffnessMatrix if its size is not correct
     if ( CalculateStiffnessMatrixFlag == true ) //calculation of the matrix is required
@@ -320,7 +320,7 @@ void NitscheIsotropicConstraint::CalculateAll( MatrixType& rLeftHandSideMatrix,
     {
         CurrentGlobalCoords = GetGeometry().GlobalCoordinates( CurrentGlobalCoords, integration_points[PointNumber], DeltaPosition );
 //KRATOS_WATCH(CurrentGlobalCoords)
-        CurrentLocalCoords = rGeometry.PointLocalCoordinates( CurrentLocalCoords, CurrentGlobalCoords, DeltaPosition ); 
+        CurrentLocalCoords = rGeometry.PointLocalCoordinates( CurrentLocalCoords, CurrentGlobalCoords, DeltaPosition );
 //KRATOS_WATCH(CurrentLocalCoords)
 
         Ncontainer = rGeometry.ShapeFunctionsValues( Ncontainer, CurrentLocalCoords );
@@ -399,7 +399,7 @@ void NitscheIsotropicConstraint::CalculateAll( MatrixType& rLeftHandSideMatrix,
 //                noalias( rRightHandSideVector ) -= prod( rLeftHandSideMatrix, CurrentDisp );
             }
 
-            
+
         }
     }
 

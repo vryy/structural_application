@@ -331,6 +331,6 @@ private:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_FACE2D_CONDITION_H_INCLUDED  defined 
+#endif // KRATOS_FACE2D_CONDITION_H_INCLUDED  defined
 
 
