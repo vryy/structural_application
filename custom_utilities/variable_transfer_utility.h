@@ -1845,11 +1845,18 @@ public:
 //#endif
 //        std::cout << "TransferVariablesToNodes for " << rThisVariable.Name() << " completed" << std::endl;
 //    }
-
     void TransferVariablesToNodes(ModelPart& model_part, Variable<double>& rThisVariable)
     {
-        ElementsArrayType& ElementsArray = model_part.Elements();
+        TransferDoubleVariablesToNodes(model_part, model_part.Elements(), rThisVariable);
+    }
 
+    void TransferVariablesToNodes(ModelPart& model_part, ElementsArrayType& ElementsArray, Variable<double>& rThisVariable)
+    {
+        TransferDoubleVariablesToNodes(model_part, ElementsArray, rThisVariable);
+    }
+
+    void TransferDoubleVariablesToNodes(ModelPart& model_part, ElementsArrayType& ElementsArray, Variable<double>& rThisVariable)
+    {
         // count all the nodes at all the active elements
         std::set<std::size_t> active_nodes;
         std::map<std::size_t, std::size_t> node_row_id;

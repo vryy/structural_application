@@ -211,6 +211,18 @@ void DoubleTransferVariablesToNodes(VariableTransferUtility& dummy,
     dummy.TransferVariablesToNodes(model_part, rThisVariable);
 }
 
+void DoubleTransferVariablesToNodesForElementsAsList(VariableTransferUtility& dummy,
+        ModelPart& model_part, boost::python::list& listElements, Variable<double>& rThisVariable)
+{
+    ModelPart::ElementsContainerType rElements;
+    typedef boost::python::stl_input_iterator<Element::Pointer> iterator_type;
+    BOOST_FOREACH(const iterator_type::value_type& v,
+                  std::make_pair(iterator_type(listElements), // begin
+                    iterator_type() ) ) // end
+        rElements.push_back(v);
+    dummy.TransferVariablesToNodes(model_part, rElements, rThisVariable);
+}
+
 void Array1DTransferVariablesToNodes(VariableTransferUtility& dummy,
         ModelPart& model_part, Variable<array_1d<double, 3> >& rThisVariable)
 {
@@ -447,6 +459,7 @@ void  AddCustomUtilitiesToPython()
     .def( "TransferSpecificVariableWithComponents", &VariableTransferUtility::TransferSpecificVariableWithComponents )
     .def( "InitializeModelPart", &VariableTransferUtility::InitializeModelPart )
     .def("TransferVariablesToNodes", &DoubleTransferVariablesToNodes)
+    .def("TransferVariablesToNodesForElements", &DoubleTransferVariablesToNodesForElementsAsList)
     .def("TransferVariablesToNodes", &Array1DTransferVariablesToNodes)
     .def("TransferVariablesToNodes", &Array1DTransferVariablesToNodesForElements)
     .def("TransferVariablesToNodesForElements", &Array1DTransferVariablesToNodesForElementsAsList)
