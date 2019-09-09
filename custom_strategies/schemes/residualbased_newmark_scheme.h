@@ -439,8 +439,36 @@ public:
     {
         KRATOS_TRY
 
-        ProcessInfo CurrentProcessInfo= r_model_part.GetProcessInfo();
-        BaseType::InitializeNonLinIteration(r_model_part, A, Dx, b);
+        ProcessInfo CurrentProcessInfo = r_model_part.GetProcessInfo();
+
+        ElementsArrayType& pElements = r_model_part.Elements();
+        bool element_is_active;
+        for (typename ElementsArrayType::iterator it = pElements.begin(); it != pElements.end(); ++it)
+        {
+            element_is_active = true;
+            if(it->IsDefined(ACTIVE))
+                element_is_active = it->Is(ACTIVE);
+            if (it->Has(IS_INACTIVE))
+                element_is_active |= (!it->GetValue(IS_INACTIVE));
+
+            if (element_is_active)
+                it->InitializeNonLinearIteration(CurrentProcessInfo);
+        }
+
+        bool condition_is_active;
+        ConditionsArrayType& pConditions = r_model_part.Conditions();
+        for (typename ConditionsArrayType::iterator it = pConditions.begin(); it != pConditions.end(); ++it)
+        {
+            condition_is_active = true;
+            if( it->IsDefined( ACTIVE ) )
+                condition_is_active = it->Is(ACTIVE);
+            if (it->Has(IS_INACTIVE))
+                condition_is_active |= (!it->GetValue(IS_INACTIVE));
+
+            if (condition_is_active)
+                it->InitializeNonLinearIteration(CurrentProcessInfo);
+        }
+
         //Update nodal values and nodal velocities at mAlpha
         for(ModelPart::NodeIterator i = r_model_part.NodesBegin() ;
                 i != r_model_part.NodesEnd() ; i++)
@@ -716,7 +744,37 @@ public:
         TSystemVectorType& b)
     {
         KRATOS_TRY
-        BaseType::FinalizeNonLinIteration(r_model_part, A, Dx, b);
+
+        ProcessInfo CurrentProcessInfo = r_model_part.GetProcessInfo();
+
+        ElementsArrayType& pElements = r_model_part.Elements();
+        bool element_is_active;
+        for (typename ElementsArrayType::iterator it = pElements.begin(); it != pElements.end(); ++it)
+        {
+            element_is_active = true;
+            if(it->IsDefined(ACTIVE))
+                element_is_active = it->Is(ACTIVE);
+            if (it->Has(IS_INACTIVE))
+                element_is_active |= (!it->GetValue(IS_INACTIVE));
+
+            if (element_is_active)
+                it->FinalizeNonLinearIteration(CurrentProcessInfo);
+        }
+
+        bool condition_is_active;
+        ConditionsArrayType& pConditions = r_model_part.Conditions();
+        for (typename ConditionsArrayType::iterator it = pConditions.begin(); it != pConditions.end(); ++it)
+        {
+            condition_is_active = true;
+            if( it->IsDefined( ACTIVE ) )
+                condition_is_active = it->Is(ACTIVE);
+            if (it->Has(IS_INACTIVE))
+                condition_is_active |= (!it->GetValue(IS_INACTIVE));
+
+            if (condition_is_active)
+                it->FinalizeNonLinearIteration(CurrentProcessInfo);
+        }
+
         KRATOS_CATCH("")
     }
 
