@@ -509,8 +509,8 @@ void FacePressure3D::CalculateAll(
 
     for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); ++PointNumber )
     {
-        t1 = ZeroVector( 3 );//first tangential vector
-        t2 = ZeroVector( 3 );//second tangential vector
+        noalias(t1) = ZeroVector( 3 );//first tangential vector
+        noalias(t2) = ZeroVector( 3 );//second tangential vector
         for ( unsigned int n = 0; n < GetGeometry().size(); ++n )
         {
             t1[0] += GetGeometry().GetPoint( n ).X0() * DN_De[PointNumber]( n, 0 );
