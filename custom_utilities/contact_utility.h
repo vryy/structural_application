@@ -1456,7 +1456,7 @@ private:
             T(1,1) += (Surface->GetGeometry().GetPoint(n).Y0()
                        +Surface->GetGeometry().GetPoint(n).GetSolutionStepValue(DISPLACEMENT_Y))
                       *DN(n,1);
-            T(1,2) += (Surface->GetGeometry().GetPoint(n).Z()
+            T(1,2) += (Surface->GetGeometry().GetPoint(n).Z0()
                        +Surface->GetGeometry().GetPoint(n).GetSolutionStepValue(DISPLACEMENT_Z))
                       *DN(n,1);
         }
