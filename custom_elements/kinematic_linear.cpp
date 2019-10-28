@@ -222,8 +222,9 @@ namespace Kratos
                 if ( TotalDomainInitialSize < -1.0e-10 )
                 {
                     std::stringstream ss;
-                    ss << "Error on element -> " << this->Id();
-                    ss << ". Domain size can not be less than 0, TotalDomainInitialSize = " << TotalDomainInitialSize;
+                    ss << "Error on element -> " << this->Id() << std::endl;
+                    ss << "Properties " << GetProperties().Id() << ": " << GetProperties() << std::endl;
+                    ss << "Domain size can not be less than 0, TotalDomainInitialSize = " << TotalDomainInitialSize;
                     KRATOS_THROW_ERROR( std::logic_error, ss.str(), "" );
                 }
                 else
@@ -1238,17 +1239,16 @@ namespace Kratos
 
         unsigned int dim = GetGeometry().WorkingSpaceDimension();
 
-        Vector gravity( dim );
+        array_1d<double, 3> gravity;
+        noalias( gravity ) = GetProperties()[GRAVITY];
 
         double density = 0.0;
         if( GetValue( USE_DISTRIBUTED_PROPERTIES ) )
         {
-            noalias( gravity ) = GetValue(GRAVITY);
             density = GetValue(DENSITY);
         }
         else
         {
-            noalias( gravity ) = GetProperties()[GRAVITY];
             density = GetProperties()[DENSITY];
         }
 
