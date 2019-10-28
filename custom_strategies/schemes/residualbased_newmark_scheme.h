@@ -439,7 +439,7 @@ public:
     {
         KRATOS_TRY
 
-        ProcessInfo CurrentProcessInfo = r_model_part.GetProcessInfo();
+        ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
 
         ElementsArrayType& pElements = r_model_part.Elements();
         bool element_is_active;
@@ -745,7 +745,7 @@ public:
     {
         KRATOS_TRY
 
-        ProcessInfo CurrentProcessInfo = r_model_part.GetProcessInfo();
+        ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
 
         ElementsArrayType& pElements = r_model_part.Elements();
         bool element_is_active;
@@ -866,21 +866,21 @@ public:
         TSystemVectorType& Dx,
         TSystemVectorType& b)
     {
-        ProcessInfo CurrentProcessInfo= r_model_part.GetProcessInfo();
+        ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
 
         // we manually FinalizeSolutionStep for each entities because the parent function is multithreaded
         ElementsArrayType& pElements = r_model_part.Elements();
         for (typename ElementsArrayType::ptr_iterator it = pElements.ptr_begin(); it != pElements.ptr_end(); ++it)
         {
             if ( (*it)->Is(ACTIVE) )
-                (*it)->FinalizeSolutionStep(r_model_part.GetProcessInfo());
+                (*it)->FinalizeSolutionStep(CurrentProcessInfo);
         }
 
         ConditionsArrayType& pConditions = r_model_part.Conditions();
         for (typename ConditionsArrayType::ptr_iterator it = pConditions.ptr_begin(); it != pConditions.ptr_end(); ++it)
         {
             if ( (*it)->Is(ACTIVE) )
-                (*it)->FinalizeSolutionStep(r_model_part.GetProcessInfo());
+                (*it)->FinalizeSolutionStep(CurrentProcessInfo);
         }
 
         if(CurrentProcessInfo[CALCULATE_INSITU_STRESS])
