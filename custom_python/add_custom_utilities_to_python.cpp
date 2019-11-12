@@ -337,6 +337,20 @@ void VectorTransferVariablesToGaussPointsElementComponentsIdentically(VariableTr
     dummy.TransferVariablesToGaussPointsIdentically(source_model_part, pTargetElement, rThisVariable, ncomponents);
 }
 
+void DoubleTransferVariablesToGaussPointsElementComponentsIdentically(VariableTransferUtility& dummy,
+        ModelPart::ElementsContainerType& source_elements, ModelPart::ElementsContainerType& target_elements,
+        Variable<double>& rThisVariable, const ProcessInfo& CurrentProcessInfo)
+{
+    dummy.TransferVariablesToGaussPointsIdentically(source_elements, target_elements, rThisVariable, CurrentProcessInfo);
+}
+
+void VectorTransferVariablesToGaussPointsElementComponentsIdentically2(VariableTransferUtility& dummy,
+        ModelPart::ElementsContainerType& source_elements, ModelPart::ElementsContainerType& target_elements,
+        Variable<Vector>& rThisVariable, const ProcessInfo& CurrentProcessInfo)
+{
+    dummy.TransferVariablesToGaussPointsIdentically(source_elements, target_elements, rThisVariable, CurrentProcessInfo);
+}
+
 void DoubleTransferVariablesBetweenMeshes(VariableTransferUtility& dummy,
         ModelPart& rSource, ModelPart& rTarget, Variable<double>& rThisVariable)
 {
@@ -474,7 +488,9 @@ void  AddCustomUtilitiesToPython()
     .def("TransferVariablesToGaussPoints", &DoubleTransferVariablesToGaussPoints)
     .def("TransferVariablesToGaussPoints", &VectorTransferVariablesToGaussPoints)
     .def("TransferVariablesToGaussPoints", &VectorTransferVariablesToGaussPointsElementComponents)
+    .def("TransferVariablesToGaussPointsIdentically", &DoubleTransferVariablesToGaussPointsElementComponentsIdentically)
     .def("TransferVariablesToGaussPointsIdentically", &VectorTransferVariablesToGaussPointsElementComponentsIdentically)
+    .def("TransferVariablesToGaussPointsIdentically", &VectorTransferVariablesToGaussPointsElementComponentsIdentically2)
     .def("TransferVariablesFromNodeToNode", &VariableTransferUtility::TransferVariablesFromNodeToNode<Variable<Vector> >)
     .def("TransferVariablesFromNodeToNode", &VariableTransferUtility::TransferVariablesFromNodeToNode<Variable<array_1d<double, 3> > >)
     .def("TransferVariablesFromNodeToNode", &VariableTransferUtility::TransferVariablesFromNodeToNode<Variable<double> >)

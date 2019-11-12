@@ -907,6 +907,29 @@ public:
     }
 
     /**
+     * Transfer of variables between two list of elements.
+     * This transfers the in-situ stress from rSource to rTarget.
+     * rSource and rTarget must be identical. Otherwise it will generate errors.
+     * @param rSource the source model part
+     * @param rTarget the target model part
+     */
+    template<typename TVariableType>
+    void TransferVariablesToGaussPointsIdentically( ModelPart::ElementsContainerType& rSource, ModelPart::ElementsContainerType& rTarget,
+        const TVariableType& rVariable, const ProcessInfo& CurrentProcessInfo)
+    {
+        std::vector<typename TVariableType::Type> Values;
+        ModelPart::ElementsContainerType::ptr_iterator it1 = rSource.ptr_begin();
+        ModelPart::ElementsContainerType::ptr_iterator it2 = rTarget.ptr_begin();
+        for( std::size_t i = 0; i < rSource.size(); ++i )
+        {
+            (*it1)->GetValueOnIntegrationPoints(rVariable, Values, CurrentProcessInfo);
+            (*it2)->SetValueOnIntegrationPoints(rVariable, Values, CurrentProcessInfo);
+            ++it1;
+            ++it2;
+        }
+    }
+
+    /**
      * Transfer of rThisVariable stored on nodes in source mesh to integration point of target
      * mesh via approximation by shape functions
      * @param rSource
