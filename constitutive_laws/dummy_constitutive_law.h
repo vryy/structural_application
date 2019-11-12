@@ -136,24 +136,34 @@ public:
     /**
      * Material parameters are inizialized
      */
-    void InitializeMaterial( const Properties& props,
+    virtual void InitializeMaterial( const Properties& props,
                              const GeometryType& geom,
                              const Vector& ShapeFunctionsValues );
+
+    virtual void InitializeNonLinearIteration(const Properties& rMaterialProperties,
+                          const GeometryType& rElementGeometry,
+                          const Vector& rShapeFunctionsValues,
+                          const ProcessInfo& rCurrentProcessInfo);
 
     /**
      * As this constitutive law describes only linear elastic material properties
      * this function is rather useless and in fact does nothing
      */
-    void InitializeSolutionStep( const Properties& props,
+    virtual void InitializeSolutionStep( const Properties& props,
                                  const GeometryType& geom, //this is just to give the array of nodes
                                  const Vector& ShapeFunctionsValues,
                                  const ProcessInfo& CurrentProcessInfo );
 
-    void ResetMaterial( const Properties& props,
+    virtual void ResetMaterial( const Properties& props,
                         const GeometryType& geom,
                         const Vector& ShapeFunctionsValues );
 
-    void FinalizeSolutionStep( const Properties& props,
+    virtual void FinalizeNonLinearIteration(const Properties& rMaterialProperties,
+                        const GeometryType& rElementGeometry,
+                        const Vector& rShapeFunctionsValues,
+                        const ProcessInfo& rCurrentProcessInfo);
+
+    virtual void FinalizeSolutionStep( const Properties& props,
                                const GeometryType& geom, //this is just to give the array of nodes
                                const Vector& ShapeFunctionsValues,
                                const ProcessInfo& CurrentProcessInfo );
@@ -172,7 +182,7 @@ public:
                        const GeometryType& geom,
                        const ProcessInfo& CurrentProcessInfo );
 
-    void CalculateMaterialResponse( const Vector& StrainVector,
+    virtual void CalculateMaterialResponse( const Vector& StrainVector,
                                     const Matrix& DeformationGradient,
                                     Vector& StressVector,
                                     Matrix& AlgorithmicTangent,
@@ -221,6 +231,8 @@ protected:
      * there are no protected class members
      */
 private:
+
+    int mElemId, mGaussId;
 
     ///@}
     ///@name Serialization

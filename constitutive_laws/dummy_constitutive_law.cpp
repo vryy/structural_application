@@ -109,19 +109,20 @@ bool DummyConstitutiveLaw::Has( const Variable<Matrix>& rThisVariable )
 
 int& DummyConstitutiveLaw::GetValue( const Variable<int>& rThisVariable, int& rValue )
 {
-//    KRATOS_THROW_ERROR( std::logic_error, "this variable is not supported", "" );
+    if(rThisVariable == PARENT_ELEMENT_ID)
+        rValue = mElemId;
+    if(rThisVariable == INTEGRATION_POINT_INDEX)
+        rValue = mGaussId;
     return rValue;
 }
 
 double& DummyConstitutiveLaw::GetValue( const Variable<double>& rThisVariable, double& rValue )
 {
-//    KRATOS_THROW_ERROR( std::logic_error, "this variable is not supported", "" );
     return rValue;
 }
 
 Vector& DummyConstitutiveLaw::GetValue( const Variable<Vector>& rThisVariable, Vector& rValue )
 {
-//    KRATOS_THROW_ERROR( std::logic_error, "Vector Variable case not considered", "" );
     return rValue;
 }
 
@@ -134,6 +135,10 @@ Matrix& DummyConstitutiveLaw::GetValue( const Variable<Matrix>& rThisVariable, M
 void DummyConstitutiveLaw::SetValue( const Variable<int>& rThisVariable, const int& rValue,
                                      const ProcessInfo& rCurrentProcessInfo )
 {
+    if(rThisVariable == PARENT_ELEMENT_ID)
+        mElemId = rValue;
+    if(rThisVariable == INTEGRATION_POINT_INDEX)
+        mGaussId = rValue;
 }
 
 void DummyConstitutiveLaw::SetValue( const Variable<double>& rThisVariable, const double& rValue,
@@ -175,6 +180,38 @@ void DummyConstitutiveLaw::InitializeSolutionStep( const Properties& props,
         const Vector& ShapeFunctionsValues ,
         const ProcessInfo& CurrentProcessInfo )
 {
+    // std::stringstream ss;
+    // ss << "Error calling DummyConstitutiveLaw::" << __FUNCTION__
+    //    << ", Properties: " << props.Id()
+    //    << ", Element: " << mElemId
+    //    << ", Point: " << mGaussId;
+    // KRATOS_THROW_ERROR(std::runtime_error, ss.str(), "")
+}
+
+void DummyConstitutiveLaw::InitializeNonLinearIteration(const Properties& rMaterialProperties,
+        const GeometryType& rElementGeometry,
+        const Vector& rShapeFunctionsValues,
+        const ProcessInfo& rCurrentProcessInfo)
+{
+    std::stringstream ss;
+    ss << "Error calling DummyConstitutiveLaw::" << __FUNCTION__
+       << ", Properties: " << rMaterialProperties.Id()
+       << ", Element: " << mElemId
+       << ", Point: " << mGaussId;
+    KRATOS_THROW_ERROR(std::runtime_error, ss.str(), "")
+}
+
+void DummyConstitutiveLaw::FinalizeNonLinearIteration(const Properties& rMaterialProperties,
+        const GeometryType& rElementGeometry,
+        const Vector& rShapeFunctionsValues,
+        const ProcessInfo& rCurrentProcessInfo)
+{
+    std::stringstream ss;
+    ss << "Error calling DummyConstitutiveLaw::" << __FUNCTION__
+       << ", Properties: " << rMaterialProperties.Id()
+       << ", Element: " << mElemId
+       << ", Point: " << mGaussId;
+    KRATOS_THROW_ERROR(std::runtime_error, ss.str(), "")
 }
 
 void DummyConstitutiveLaw::FinalizeSolutionStep( const Properties& props,
@@ -182,8 +219,13 @@ void DummyConstitutiveLaw::FinalizeSolutionStep( const Properties& props,
         const Vector& ShapeFunctionsValues ,
         const ProcessInfo& CurrentProcessInfo )
 {
+    // std::stringstream ss;
+    // ss << "Error calling DummyConstitutiveLaw::" << __FUNCTION__
+    //    << ", Properties: " << props.Id()
+    //    << ", Element: " << mElemId
+    //    << ", Point: " << mGaussId;
+    // KRATOS_THROW_ERROR(std::runtime_error, ss.str(), "")
 }
-
 
 void  DummyConstitutiveLaw::CalculateMaterialResponse( const Vector& StrainVector,
         const Matrix& DeformationGradient,
@@ -197,6 +239,12 @@ void  DummyConstitutiveLaw::CalculateMaterialResponse( const Vector& StrainVecto
         int CalculateTangent,
         bool SaveInternalVariables )
 {
+    std::stringstream ss;
+    ss << "Error calling DummyConstitutiveLaw::" << __FUNCTION__
+       << ", Properties: " << props.Id()
+       << ", Element: " << mElemId
+       << ", Point: " << mGaussId;
+    KRATOS_THROW_ERROR(std::runtime_error, ss.str(), "")
 }
 
 //**********************************************************************
