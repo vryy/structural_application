@@ -313,16 +313,109 @@ void VectorTransferVariablesToNodesComponentsForConditionsAsList(VariableTransfe
     dummy.TransferVariablesToNodes(model_part, rConditions, rThisVariable, ncomponents);
 }
 
+boost::python::list DoubleComputeExtrapolatedNodalValues(VariableTransferUtility& dummy,
+        Element& source_element, Variable<double>& rThisVariable,
+        const ProcessInfo& CurrentProcessInfo)
+{
+    std::vector<double> values;
+    dummy.ComputeExtrapolatedNodalValues(values, source_element, rThisVariable, CurrentProcessInfo);
+    boost::python::list output;
+    for (std::size_t i = 0; i < values.size(); ++i)
+        output.append(values[i]);
+    return output;
+}
+
+boost::python::list Array1DComputeExtrapolatedNodalValues(VariableTransferUtility& dummy,
+        Element& source_element, Variable<array_1d<double, 3> >& rThisVariable,
+        const ProcessInfo& CurrentProcessInfo)
+{
+    std::vector<array_1d<double, 3> > values;
+    dummy.ComputeExtrapolatedNodalValues(values, source_element, rThisVariable, CurrentProcessInfo);
+    boost::python::list output;
+    for (std::size_t i = 0; i < values.size(); ++i)
+        output.append(values[i]);
+    return output;
+}
+
+boost::python::list VectorComputeExtrapolatedNodalValues(VariableTransferUtility& dummy,
+        Element& source_element, Variable<Vector>& rThisVariable,
+        const ProcessInfo& CurrentProcessInfo, const std::size_t& ncomponents)
+{
+    std::vector<Vector> values;
+    dummy.ComputeExtrapolatedNodalValues(values, source_element, rThisVariable, CurrentProcessInfo, ncomponents);
+    boost::python::list output;
+    for (std::size_t i = 0; i < values.size(); ++i)
+        output.append(values[i]);
+    return output;
+}
+
+void DoubleTransferVariablesToGaussPointsFromNodalValues(VariableTransferUtility& dummy,
+        boost::python::list& list_values, Element& target_element, Variable<double>& rThisVariable,
+        const ProcessInfo& CurrentProcessInfo)
+{
+    std::vector<double> values;
+    typedef boost::python::stl_input_iterator<double> iterator_type;
+    BOOST_FOREACH(const iterator_type::value_type& v,
+            std::make_pair(iterator_type(list_values), iterator_type() ) )
+        values.push_back(v);
+    dummy.TransferVariablesToGaussPoints(values, target_element, rThisVariable, CurrentProcessInfo);
+}
+
+void Array1DTransferVariablesToGaussPointsFromNodalValues(VariableTransferUtility& dummy,
+        boost::python::list& list_values, Element& target_element, Variable<array_1d<double, 3> >& rThisVariable,
+        const ProcessInfo& CurrentProcessInfo)
+{
+    std::vector<array_1d<double, 3> > values;
+    typedef boost::python::stl_input_iterator<array_1d<double, 3> > iterator_type;
+    BOOST_FOREACH(const iterator_type::value_type& v,
+            std::make_pair(iterator_type(list_values), iterator_type() ) )
+        values.push_back(v);
+    dummy.TransferVariablesToGaussPoints(values, target_element, rThisVariable, CurrentProcessInfo);
+}
+
+void VectorTransferVariablesToGaussPointsFromNodalValues(VariableTransferUtility& dummy,
+        boost::python::list& list_values, Element& target_element, Variable<Vector>& rThisVariable,
+        const ProcessInfo& CurrentProcessInfo, const std::size_t& ncomponents)
+{
+    std::vector<Vector> values;
+    typedef boost::python::stl_input_iterator<Vector> iterator_type;
+    BOOST_FOREACH(const iterator_type::value_type& v,
+            std::make_pair(iterator_type(list_values), iterator_type() ) )
+        values.push_back(v);
+    dummy.TransferVariablesToGaussPoints(values, target_element, rThisVariable, CurrentProcessInfo, ncomponents);
+}
+
 void DoubleTransferVariablesToGaussPoints(VariableTransferUtility& dummy,
         ModelPart& source_model_part, ModelPart& target_model_part, Variable<double>& rThisVariable)
 {
     dummy.TransferVariablesToGaussPoints(source_model_part, target_model_part, rThisVariable);
 }
 
+void DoubleTransferVariablesToGaussPointsLocal(VariableTransferUtility& dummy,
+        Element& source_element, Element& target_element, Variable<double>& rThisVariable,
+        const ProcessInfo& CurrentProcessInfo)
+{
+    dummy.TransferVariablesToGaussPoints(source_element, target_element, rThisVariable, CurrentProcessInfo);
+}
+
+void Array1DTransferVariablesToGaussPointsLocal(VariableTransferUtility& dummy,
+        Element& source_element, Element& target_element, Variable<array_1d<double, 3> >& rThisVariable,
+        const ProcessInfo& CurrentProcessInfo)
+{
+    dummy.TransferVariablesToGaussPoints(source_element, target_element, rThisVariable, CurrentProcessInfo);
+}
+
 void VectorTransferVariablesToGaussPoints(VariableTransferUtility& dummy,
         ModelPart& source_model_part, ModelPart& target_model_part, Variable<Vector>& rThisVariable)
 {
     dummy.TransferVariablesToGaussPoints(source_model_part, target_model_part, rThisVariable);
+}
+
+void VectorTransferVariablesToGaussPointsLocal(VariableTransferUtility& dummy,
+        Element& source_element, Element& target_element, Variable<Vector>& rThisVariable,
+        const ProcessInfo& CurrentProcessInfo, const std::size_t& ncomponents)
+{
+    dummy.TransferVariablesToGaussPoints(source_element, target_element, rThisVariable, CurrentProcessInfo, ncomponents);
 }
 
 void VectorTransferVariablesToGaussPointsElementComponents(VariableTransferUtility& dummy,
@@ -459,6 +552,9 @@ void  AddCustomUtilitiesToPython()
     .def( "SetAssociatedElement", &SetAssociatedElement )
     ;
 
+    void(VariableTransferUtility::*pointer_to_TransferPrestressIdentically)(ModelPart&, ModelPart&) = &VariableTransferUtility::TransferPrestressIdentically;
+    void(VariableTransferUtility::*pointer_to_TransferPrestressIdenticallyForElement)(Element&, Element&, const ProcessInfo&) = &VariableTransferUtility::TransferPrestressIdentically;
+
     class_<VariableTransferUtility, boost::noncopyable >
     ( "VariableTransferUtility", init<>() )
     .def(init<VariableTransferUtility::LinearSolverType::Pointer>())
@@ -468,7 +564,8 @@ void  AddCustomUtilitiesToPython()
     .def( "TransferConstitutiveLawVariables", &VariableTransferUtility::TransferConstitutiveLawVariables )
     .def( "TransferInSituStress", &VariableTransferUtility::TransferInSituStress )
     .def( "TransferPrestress", &VariableTransferUtility::TransferPrestress )
-    .def( "TransferPrestressIdentically", &VariableTransferUtility::TransferPrestressIdentically )
+    .def( "TransferPrestressIdentically", pointer_to_TransferPrestressIdentically )
+    .def( "TransferPrestressIdentically", pointer_to_TransferPrestressIdenticallyForElement )
     .def( "TransferSpecificVariable", &VariableTransferUtility::TransferSpecificVariable )
     .def( "TransferSpecificVariableWithComponents", &VariableTransferUtility::TransferSpecificVariableWithComponents )
     .def( "InitializeModelPart", &VariableTransferUtility::InitializeModelPart )
@@ -485,9 +582,18 @@ void  AddCustomUtilitiesToPython()
     .def("TransferVariablesToNodesForElements", &VectorTransferVariablesToNodesComponentsForElementsAsList)
     .def("TransferVariablesToNodes", &VectorTransferVariablesToNodesComponentsForConditions)
     .def("TransferVariablesToNodesForConditions", &VectorTransferVariablesToNodesComponentsForConditionsAsList)
+    .def("ComputeExtrapolatedNodalValues", &DoubleComputeExtrapolatedNodalValues)
+    .def("ComputeExtrapolatedNodalValues", &Array1DComputeExtrapolatedNodalValues)
+    .def("ComputeExtrapolatedNodalValues", &VectorComputeExtrapolatedNodalValues)
     .def("TransferVariablesToGaussPoints", &DoubleTransferVariablesToGaussPoints)
+    .def("TransferVariablesToGaussPoints", &DoubleTransferVariablesToGaussPointsLocal)
+    .def("TransferVariablesToGaussPoints", &Array1DTransferVariablesToGaussPointsLocal)
     .def("TransferVariablesToGaussPoints", &VectorTransferVariablesToGaussPoints)
+    .def("TransferVariablesToGaussPoints", &VectorTransferVariablesToGaussPointsLocal)
     .def("TransferVariablesToGaussPoints", &VectorTransferVariablesToGaussPointsElementComponents)
+    .def("TransferVariablesToGaussPoints", &DoubleTransferVariablesToGaussPointsFromNodalValues)
+    .def("TransferVariablesToGaussPoints", &Array1DTransferVariablesToGaussPointsFromNodalValues)
+    .def("TransferVariablesToGaussPoints", &VectorTransferVariablesToGaussPointsFromNodalValues)
     .def("TransferVariablesToGaussPointsIdentically", &DoubleTransferVariablesToGaussPointsElementComponentsIdentically)
     .def("TransferVariablesToGaussPointsIdentically", &VectorTransferVariablesToGaussPointsElementComponentsIdentically)
     .def("TransferVariablesToGaussPointsIdentically", &VectorTransferVariablesToGaussPointsElementComponentsIdentically2)

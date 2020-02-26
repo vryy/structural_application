@@ -353,6 +353,20 @@ public:
      * @param rSource the source model part
      * @param rTarget the target model part
      */
+    void TransferPrestressIdentically( Element& rSource, Element& rTarget, const ProcessInfo& CurrentProcessInfo )
+    {
+        std::vector<Vector> PreStresses;
+        rSource.GetValueOnIntegrationPoints(PRESTRESS, PreStresses, CurrentProcessInfo);
+        rTarget.SetValueOnIntegrationPoints(PRESTRESS, PreStresses, CurrentProcessInfo);
+    }
+
+    /**
+     * Transfer of PRESTRESS.
+     * This transfers the in-situ stress from rSource to rTarget.
+     * rSource and rTarget must be identical. Otherwise it will generate errors.
+     * @param rSource the source model part
+     * @param rTarget the target model part
+     */
     void TransferPrestressIdentically( ModelPart& rSource, ModelPart& rTarget )
     {
         std::vector<Vector> PreStresses;
@@ -974,15 +988,15 @@ public:
     }
 
     /**
-                 * Transfer of rThisVariable stored on nodes in source mesh to integration point of target
-                 * mesh via approximation by shape functions
-                 * @param rSource
-                 * @param rTarget
-                 * @param rThisVariable double-Variable which should be transferred
-                 * @see TransferVariablesToGaussPoints(ModelPart& source_model_part, ModelPart&
-                source_model_part, Variable<Kratos::Matrix>& rThisVariable)
-                 * @see TransferVariablesToGaussPoints(ModelPart& source_model_part, ModelPart&
-                source_model_part, Variable<Kratos::Vector>& rThisVariable)
+     * Transfer of rThisVariable stored on nodes in source mesh to integration point of target
+     * mesh via approximation by shape functions
+     * @param rSource
+     * @param rTarget
+     * @param rThisVariable double-Variable which should be transferred
+     * @see TransferVariablesToGaussPoints(ModelPart& source_model_part, ModelPart&
+    source_model_part, Variable<Kratos::Matrix>& rThisVariable)
+     * @see TransferVariablesToGaussPoints(ModelPart& source_model_part, ModelPart&
+    source_model_part, Variable<Kratos::Vector>& rThisVariable)
      */
     void TransferVariablesToGaussPoints(ModelPart& rSource, ModelPart& rTarget,
                                         Variable<double>& rThisVariable)
@@ -1019,6 +1033,321 @@ public:
                                                 rTarget.GetProcessInfo());
         }
     }
+
+    void ComputeExtrapolatedNodalValues(std::vector<double>& rValues, Element& rSource,
+            Variable<double>& rThisVariable, const ProcessInfo& CurrentProcessInfo)
+    {
+        // compute the nodal values of the source element
+        const std::size_t num_of_nodes = rSource.GetGeometry().size();
+
+        Matrix M = ZeroMatrix(num_of_nodes, num_of_nodes);
+        Vector b = ZeroVector(num_of_nodes);
+
+        const IntegrationPointsArrayType& integration_points = rSource.GetGeometry().IntegrationPoints(rSource.GetIntegrationMethod());
+
+        GeometryType::JacobiansType J(integration_points.size());
+        J = rSource.GetGeometry().Jacobian(J, rSource.GetIntegrationMethod());
+
+        const Matrix& Ncontainer = rSource.GetGeometry().ShapeFunctionsValues(rSource.GetIntegrationMethod());
+
+        std::vector<double> ValuesOnIntPoint(integration_points.size());
+        rSource.GetValueOnIntegrationPoints(rThisVariable, ValuesOnIntPoint, CurrentProcessInfo);
+
+        double DetJ;
+        for(std::size_t point = 0; point< integration_points.size(); ++point)
+        {
+            DetJ = MathUtils<double>::Det(J[point]);
+            double dV= DetJ*integration_points[point].Weight();
+
+            for(std::size_t row = 0; row < num_of_nodes; ++row)
+            {
+                b(row) += ValuesOnIntPoint[point] * Ncontainer(point, row) * dV;
+
+                for(std::size_t col = 0; col < num_of_nodes; ++col)
+                {
+                    M(row, col) += Ncontainer(point, row)*Ncontainer(point, col) * dV;
+                }
+            }
+        }
+
+        boost::numeric::ublas::permutation_matrix<> pm(M.size1());
+        Matrix Mcopy = M;
+        Vector g = b;
+        boost::numeric::ublas::lu_factorize(Mcopy, pm);
+        boost::numeric::ublas::lu_substitute(Mcopy, pm, g);
+
+        if (rValues.size() != num_of_nodes)
+            rValues.resize(num_of_nodes);
+
+        for (std::size_t i = 0; i < num_of_nodes; ++i)
+            rValues[i] = g[i];
+    }
+
+    void TransferVariablesToGaussPoints(const std::vector<double>& rValues, Element& rTarget,
+                                        Variable<double>& rThisVariable,
+                                        const ProcessInfo& CurrentProcessInfo)
+    {
+        const std::size_t num_of_nodes = rTarget.GetGeometry().size();
+
+        // compute the integration point values for target element
+        const IntegrationPointsArrayType& target_integration_points = rTarget.GetGeometry().IntegrationPoints(rTarget.GetIntegrationMethod());
+
+        std::vector<double> target_values(target_integration_points.size());
+
+        Vector N(num_of_nodes);
+        for (std::size_t point = 0; point < target_integration_points.size(); ++point)
+        {
+            N = rTarget.GetGeometry().ShapeFunctionsValues(N, target_integration_points[point]);
+
+            target_values[point] = 0.0;
+            for (std::size_t i = 0; i < num_of_nodes; ++i)
+                target_values[point] += N[i] * rValues[i];
+        }
+
+        rTarget.SetValueOnIntegrationPoints(rThisVariable, target_values, CurrentProcessInfo);
+    }
+
+    /**
+     * Transfer of rThisVariable stored on nodes in source element to integration point of target element
+     * via local projection
+     * @param rSource
+     * @param rTarget
+     * @param rThisVariable double-Variable which should be transferred
+     */
+    void TransferVariablesToGaussPoints(Element& rSource, Element& rTarget,
+                                        Variable<double>& rThisVariable,
+                                        const ProcessInfo& CurrentProcessInfo)
+    {
+        if (rTarget.GetGeometry().GetGeometryType() != rSource.GetGeometry().GetGeometryType())
+            KRATOS_THROW_ERROR(std::logic_error, "Source and target element do not have the same geometry type", "")
+
+        std::vector<double> values;
+
+        this->ComputeExtrapolatedNodalValues(values, rSource, rThisVariable, CurrentProcessInfo);
+        this->TransferVariablesToGaussPoints(values, rTarget, rThisVariable, CurrentProcessInfo);
+    }
+
+    void ComputeExtrapolatedNodalValues(std::vector<array_1d<double, 3> >& rValues, Element& rSource,
+        Variable<array_1d<double, 3> >& rThisVariable, const ProcessInfo& CurrentProcessInfo)
+    {
+        // compute the nodal values of the source element
+        const std::size_t num_of_nodes = rSource.GetGeometry().size();
+
+        Matrix M = ZeroMatrix(num_of_nodes, num_of_nodes);
+        std::vector<Vector> b(3);
+        for (std::size_t i = 0; i < 3; ++i)
+        {
+            b[i].resize(num_of_nodes, false);
+            noalias(b[i]) = ZeroVector(num_of_nodes);
+        }
+
+        const IntegrationPointsArrayType& integration_points = rSource.GetGeometry().IntegrationPoints(rSource.GetIntegrationMethod());
+
+        GeometryType::JacobiansType J(integration_points.size());
+        J = rSource.GetGeometry().Jacobian(J, rSource.GetIntegrationMethod());
+
+        const Matrix& Ncontainer = rSource.GetGeometry().ShapeFunctionsValues(rSource.GetIntegrationMethod());
+
+        std::vector<array_1d<double, 3> > ValuesOnIntPoint(integration_points.size());
+        rSource.GetValueOnIntegrationPoints(rThisVariable, ValuesOnIntPoint, CurrentProcessInfo);
+
+        double DetJ;
+        for(std::size_t point = 0; point< integration_points.size(); ++point)
+        {
+            DetJ = MathUtils<double>::Det(J[point]);
+            double dV = DetJ*integration_points[point].Weight();
+
+            for(std::size_t row = 0; row < num_of_nodes; ++row)
+            {
+                for(std::size_t i = 0; i < 3; ++i)
+                    b[i](row) += ValuesOnIntPoint[point][i] * Ncontainer(point, row) * dV;
+
+                for(std::size_t col = 0; col < num_of_nodes; ++col)
+                {
+                    M(row, col) += Ncontainer(point, row)*Ncontainer(point, col) * dV;
+                }
+            }
+        }
+
+        boost::numeric::ublas::permutation_matrix<> pm(M.size1());
+        Matrix Mcopy = M;
+        boost::numeric::ublas::lu_factorize(Mcopy, pm);
+        for (std::size_t i = 0; i < 3; ++i)
+            boost::numeric::ublas::lu_substitute(Mcopy, pm, b[i]);
+
+        if (rValues.size() != num_of_nodes)
+            rValues.resize(num_of_nodes);
+
+        for (std::size_t i = 0; i < num_of_nodes; ++i)
+            for (std::size_t j = 0; j < 3; ++j)
+                rValues[i][j] = b[j][i];
+    }
+
+    void TransferVariablesToGaussPoints(const std::vector<array_1d<double, 3> >& rValues,
+        Element& rTarget, Variable<array_1d<double, 3> >& rThisVariable,
+        const ProcessInfo& CurrentProcessInfo)
+    {
+        const std::size_t num_of_nodes = rTarget.GetGeometry().size();
+
+        // compute the integration point values for target element
+        const IntegrationPointsArrayType& target_integration_points = rTarget.GetGeometry().IntegrationPoints(rTarget.GetIntegrationMethod());
+
+        std::vector<array_1d<double, 3> > target_values(target_integration_points.size());
+
+        Vector N(num_of_nodes);
+        for (std::size_t point = 0; point < target_integration_points.size(); ++point)
+        {
+            N = rTarget.GetGeometry().ShapeFunctionsValues(N, target_integration_points[point]);
+
+            for (std::size_t i = 0; i < 3; ++i)
+            {
+                target_values[point][i] = 0.0;
+
+                for (std::size_t j = 0; j < num_of_nodes; ++j)
+                    target_values[point][i] += N[j] * rValues[j][i];
+            }
+        }
+
+        rTarget.SetValueOnIntegrationPoints(rThisVariable, target_values, CurrentProcessInfo);
+    }
+
+    /**
+     * Transfer of rThisVariable stored on nodes in source element to integration point of target element
+     * via local projection
+     * @param rSource
+     * @param rTarget
+     * @param rThisVariable double-Variable which should be transferred
+     */
+    void TransferVariablesToGaussPoints(Element& rSource, Element& rTarget,
+                                        Variable<array_1d<double, 3> >& rThisVariable,
+                                        const ProcessInfo& CurrentProcessInfo)
+    {
+        if (rTarget.GetGeometry().GetGeometryType() != rSource.GetGeometry().GetGeometryType())
+            KRATOS_THROW_ERROR(std::logic_error, "Source and target element do not have the same geometry type", "")
+
+        std::vector<array_1d<double, 3> > values;
+
+        this->ComputeExtrapolatedNodalValues(values, rSource, rThisVariable, CurrentProcessInfo);
+        this->TransferVariablesToGaussPoints(values, rTarget, rThisVariable, CurrentProcessInfo);
+    }
+
+    void ComputeExtrapolatedNodalValues(std::vector<Vector>& rValues, Element& rSource,
+        Variable<Vector>& rThisVariable, const ProcessInfo& CurrentProcessInfo,
+        const std::size_t& ncomponents)
+    {
+        // compute the nodal values of the source element
+        const std::size_t num_of_nodes = rSource.GetGeometry().size();
+
+        Matrix M = ZeroMatrix(num_of_nodes, num_of_nodes);
+        std::vector<Vector> b(ncomponents);
+        for (std::size_t i = 0; i < ncomponents; ++i)
+        {
+            b[i].resize(num_of_nodes, false);
+            noalias(b[i]) = ZeroVector(num_of_nodes);
+        }
+
+        const IntegrationPointsArrayType& integration_points = rSource.GetGeometry().IntegrationPoints(rSource.GetIntegrationMethod());
+
+        GeometryType::JacobiansType J(integration_points.size());
+        J = rSource.GetGeometry().Jacobian(J, rSource.GetIntegrationMethod());
+
+        const Matrix& Ncontainer = rSource.GetGeometry().ShapeFunctionsValues(rSource.GetIntegrationMethod());
+
+        std::vector<Vector> ValuesOnIntPoint(integration_points.size());
+        rSource.GetValueOnIntegrationPoints(rThisVariable, ValuesOnIntPoint, CurrentProcessInfo);
+        // std::cout << "ValuesOnIntPoint:" << std::endl;
+        // for (std::size_t i = 0; i < ValuesOnIntPoint.size(); ++i)
+        //     std::cout << " " << ValuesOnIntPoint[i] << std::endl;
+
+        double DetJ;
+        for(std::size_t point = 0; point< integration_points.size(); ++point)
+        {
+            DetJ = MathUtils<double>::Det(J[point]);
+            double dV = DetJ*integration_points[point].Weight();
+
+            for(std::size_t row = 0; row < num_of_nodes; ++row)
+            {
+                for(std::size_t i = 0; i < ncomponents; ++i)
+                    b[i](row) += ValuesOnIntPoint[point][i] * Ncontainer(point, row) * dV;
+
+                for(std::size_t col = 0; col < num_of_nodes; ++col)
+                {
+                    M(row, col) += Ncontainer(point, row)*Ncontainer(point, col) * dV;
+                }
+            }
+        }
+
+        // for (std::size_t i = 0; i < ncomponents; ++i)
+        //     KRATOS_WATCH(b[i])
+
+        boost::numeric::ublas::permutation_matrix<> pm(M.size1());
+        Matrix Mcopy = M;
+        boost::numeric::ublas::lu_factorize(Mcopy, pm);
+        for (std::size_t i = 0; i < ncomponents; ++i)
+            boost::numeric::ublas::lu_substitute(Mcopy, pm, b[i]);
+
+        if (rValues.size() != num_of_nodes)
+            rValues.resize(num_of_nodes);
+
+        for (std::size_t i = 0; i < num_of_nodes; ++i)
+        {
+            rValues[i].resize(ncomponents, false);
+            for (std::size_t j = 0; j < ncomponents; ++j)
+                rValues[i][j] = b[j][i];
+        }
+    }
+
+    void TransferVariablesToGaussPoints(const std::vector<Vector>& rValues, Element& rTarget,
+                                        Variable<Vector>& rThisVariable,
+                                        const ProcessInfo& CurrentProcessInfo,
+                                        const std::size_t& ncomponents)
+    {
+        const std::size_t num_of_nodes = rTarget.GetGeometry().size();
+
+        // compute the integration point values for target element
+        const IntegrationPointsArrayType& target_integration_points = rTarget.GetGeometry().IntegrationPoints(rTarget.GetIntegrationMethod());
+
+        std::vector<Vector> target_values(target_integration_points.size());
+
+        Vector N(num_of_nodes);
+        for (std::size_t point = 0; point < target_integration_points.size(); ++point)
+        {
+            N = rTarget.GetGeometry().ShapeFunctionsValues(N, target_integration_points[point]);
+
+            target_values[point].resize(ncomponents, false);
+            for (std::size_t i = 0; i < ncomponents; ++i)
+            {
+                target_values[point][i] = 0.0;
+
+                for (std::size_t j = 0; j < num_of_nodes; ++j)
+                    target_values[point][i] += N[j] * rValues[j][i];
+            }
+        }
+
+        rTarget.SetValueOnIntegrationPoints(rThisVariable, target_values, CurrentProcessInfo);
+    }
+
+    /**
+     * Transfer of rThisVariable stored on nodes in source element to integration point of target element
+     * via local projection
+     * @param rSource
+     * @param rTarget
+     * @param rThisVariable double-Variable which should be transferred
+     */
+    void TransferVariablesToGaussPoints(Element& rSource, Element& rTarget,
+                                        Variable<Vector>& rThisVariable,
+                                        const ProcessInfo& CurrentProcessInfo,
+                                        const std::size_t& ncomponents)
+    {
+        if (rTarget.GetGeometry().GetGeometryType() != rSource.GetGeometry().GetGeometryType())
+            KRATOS_THROW_ERROR(std::logic_error, "Source and target element do not have the same geometry type", "")
+
+        std::vector<Vector> values;
+
+        this->ComputeExtrapolatedNodalValues(values, rSource, rThisVariable, CurrentProcessInfo, ncomponents);
+        this->TransferVariablesToGaussPoints(values, rTarget, rThisVariable, CurrentProcessInfo, ncomponents);
+    }
+
     /**
      * Transfer of rThisVariable defined on integration points to corresponding
      * nodal values. The transformation is done in a form that ensures a minimization
