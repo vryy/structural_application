@@ -85,6 +85,7 @@ public:
     typedef Geometry<Node<3> >::IntegrationPointsArrayType IntegrationPointsArrayType;
     typedef Geometry<Node<3> > GeometryType;
     typedef Properties PropertiesType;
+    typedef std::size_t IndexType;
 
     /**
      * class pointer definition

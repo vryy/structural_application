@@ -1,14 +1,14 @@
 /*
 ==============================================================================
-KratosR1StructuralApplication 
+KratosR1StructuralApplication
 A library based on:
 Kratos
 A General Purpose Software for Multi-Physics Finite Element Analysis
 Version 1.0 (Released on march 05, 2007).
 
 Copyright 2007
-Pooyan Dadvand, Riccardo Rossi, Janosch Stascheit, Felix Nagel 
-pooyan@cimne.upc.edu 
+Pooyan Dadvand, Riccardo Rossi, Janosch Stascheit, Felix Nagel
+pooyan@cimne.upc.edu
 rrossi@cimne.upc.edu
 janosch.stascheit@rub.de
 nagel@sd.rub.de
@@ -41,9 +41,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ==============================================================================
 */
- 
-//   
-//   Project Name:        Kratos       
+
+//
+//   Project Name:        Kratos
 //   Last Modified by:    $Author: hurga $
 //   Date:                $Date: 2008-09-17 07:11:02 $
 //   Revision:            $Revision: 1.5 $
@@ -56,7 +56,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 // System includes
 
-// External includes 
+// External includes
 #include "boost/smart_ptr.hpp"
 #include "boost/timer.hpp"
 // Project includes
@@ -87,6 +87,7 @@ namespace Kratos
             typedef Geometry<Node<3> >::IntegrationPointsArrayType IntegrationPointsArrayType;
             typedef Geometry<Node<3> > GeometryType;
             typedef Properties PropertiesType;
+            typedef std::size_t IndexType;
 
             /**
              * class pointer definition
@@ -138,7 +139,7 @@ namespace Kratos
                 {
                     soil_elems->push_back( model_part.GetElement( soil_elements[it]) );
                 }
-                for( ElementsArrayType::ptr_iterator it = foundations->ptr_begin(); 
+                for( ElementsArrayType::ptr_iterator it = foundations->ptr_begin();
                                  it != foundations->ptr_end(); ++it )
                 {
                     /******KRATOS_WATCH(it);*/
@@ -195,8 +196,8 @@ namespace Kratos
              * TODO: find a faster method for outside search (hextree? etc.), maybe outside this
              * function by restriction of OldMeshElementsArray
              */
-            bool FindPartnerElement( Point<3>& sourcePoint, 
-                                     const ElementsArrayType::Pointer& FoundationSoilElements, 
+            bool FindPartnerElement( Point<3>& sourcePoint,
+                                     const ElementsArrayType::Pointer& FoundationSoilElements,
                                      Element::Pointer& TargetElement, Point<3>& rResult)
             {
                 bool partner_found= false;
@@ -212,7 +213,7 @@ namespace Kratos
                     newMinDistFound= false;
                     SoilElementsCandidates->clear();
                 // (global search)
-                    for( ElementsArrayType::ptr_iterator it = FoundationSoilElements->ptr_begin(); 
+                    for( ElementsArrayType::ptr_iterator it = FoundationSoilElements->ptr_begin();
                          it != FoundationSoilElements->ptr_end(); ++it )
                     {
             //loop over all nodes in tested element
@@ -231,7 +232,7 @@ namespace Kratos
                             else if( dist < minDist )
                             {
                                 bool alreadyUsed= false;
-                                for(unsigned int old_dist= 0; old_dist<OldMinDist.size(); old_dist++)  
+                                for(unsigned int old_dist= 0; old_dist<OldMinDist.size(); old_dist++)
                                 {
                                     if(fabs(dist- OldMinDist[old_dist])< 1e-7 )
                                         alreadyUsed= true;
@@ -250,7 +251,7 @@ namespace Kratos
                     OldMinDist.push_back(minDist);
 //                     KRATOS_WATCH(OldElementsSet->size());
 
-                    for( ElementsArrayType::ptr_iterator it = SoilElementsCandidates->ptr_begin(); 
+                    for( ElementsArrayType::ptr_iterator it = SoilElementsCandidates->ptr_begin();
                          it != SoilElementsCandidates->ptr_end(); ++it )
                     {
 //                         std::cout << "checking elements list" << std::endl;
@@ -273,7 +274,7 @@ namespace Kratos
                 return partner_found;
             }
    /**
-    * Calculates for given Loacal coordinates the global coordinates 
+    * Calculates for given Loacal coordinates the global coordinates
     * @param Surface surface
     * @param rResult global coordinates
     * @param LocalCoordinates local coordinates
@@ -288,20 +289,20 @@ namespace Kratos
         {
             double shape_func= FoundationSoilElements->GetGeometry().ShapeFunctionValue(i,LocalCoordinates);
 
-            rResult(0) += shape_func* 
+            rResult(0) += shape_func*
                 ((FoundationSoilElements->GetGeometry()[i]).X0()
                 +(FoundationSoilElements->GetGeometry()[i]).GetSolutionStepValue(DISPLACEMENT_X));
 
-            rResult(1) += shape_func* 
+            rResult(1) += shape_func*
                 ((FoundationSoilElements->GetGeometry()[i]).Y0()
                 +(FoundationSoilElements->GetGeometry()[i]).GetSolutionStepValue(DISPLACEMENT_Y));
 
-            rResult(2) += shape_func* 
+            rResult(2) += shape_func*
                 ((FoundationSoilElements->GetGeometry()[i]).Z0()
                 +(FoundationSoilElements->GetGeometry()[i]).GetSolutionStepValue(DISPLACEMENT_Z));
         }
         return rResult;
-        }      
+        }
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
          GeometryType::CoordinatesArrayType& GlobalCoordinatesFoundation(const Element::Pointer FoundationElements, GeometryType::CoordinatesArrayType& rResult, GeometryType::CoordinatesArrayType const& LocalCoordinates)
         {
@@ -311,21 +312,21 @@ namespace Kratos
         {
             double shape_func= FoundationElements->GetGeometry().ShapeFunctionValue(i,LocalCoordinates);
 
-            rResult(0) += shape_func* 
+            rResult(0) += shape_func*
                 ((FoundationElements->GetGeometry()[i]).X0()
                 +(FoundationElements->GetGeometry()[i]).GetSolutionStepValue(DISPLACEMENT_X));
 
-            rResult(1) += shape_func* 
+            rResult(1) += shape_func*
                 ((FoundationElements->GetGeometry()[i]).Y0()
                 +(FoundationElements->GetGeometry()[i]).GetSolutionStepValue(DISPLACEMENT_Y));
 
-            rResult(2) += shape_func* 
+            rResult(2) += shape_func*
                 ((FoundationElements->GetGeometry()[i]).Z0()
                 +(FoundationElements->GetGeometry()[i]).GetSolutionStepValue(DISPLACEMENT_Z));
         }
         return rResult;
-        } 
+        }
     };//class TipUtility
 }  // namespace Kratos.
 
-#endif // KRATOS_PILE_UTILITY_INCLUDED defined 
+#endif // KRATOS_PILE_UTILITY_INCLUDED defined

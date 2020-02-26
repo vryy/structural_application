@@ -1728,7 +1728,7 @@ public:
     * @param E Young modulus
     * @param NU Poisson ratio
     */
-    static inline void CalculateElasticTensor( Fourth_Order_Tensor& C, const double E, const double NU )
+    static inline void CalculateElasticTensor( Fourth_Order_Tensor& C, const double& E, const double& NU )
     {
         MatrixType kronecker(3, 3);
         noalias(kronecker) = ZeroMatrix(3, 3);
