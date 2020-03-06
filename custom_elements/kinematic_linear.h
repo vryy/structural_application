@@ -261,7 +261,7 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    void InitializeMaterial();
+    void InitializeMaterial(const ProcessInfo& rCurrentProcessInfo);
 
     ///@}
     ///@name Serialization
@@ -326,8 +326,6 @@ private:
     void CalculateBodyForces( Vector& BodyForce, const ProcessInfo& CurrentProcessInfo );
 
     void InitializeVariables();
-
-    void InitializeMaterial( std::vector<std::vector<Matrix> >& C );
 
     //************************************************************************************
     //************************************************************************************
