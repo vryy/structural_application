@@ -71,6 +71,7 @@ set( KRATOS_STRUCTURAL_APPLICATION_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/constitutive_laws/isotropic_rankine_damage_3d.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/constitutive_laws/tutorial_damage_model.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/constitutive_laws/cam_clay_3d.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/constitutive_laws/values_container_constitutive_law.cpp
     #rankine_yield_function.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/fluency_criteria/isotropic_rankine_yield_function.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/fluency_criteria/morh_coulomb_yield_function.cpp
