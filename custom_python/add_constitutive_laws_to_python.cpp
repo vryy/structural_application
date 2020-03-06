@@ -110,6 +110,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "fluency_criteria/fluency_criteria.h"
 #include "constitutive_laws/von_mises_3d.h"
 #include "constitutive_laws/mohr_coulomb_plane_strain.h"
+#include "constitutive_laws/values_container_constitutive_law.h"
 
 
 namespace Kratos
@@ -251,7 +252,7 @@ void  AddConstitutiveLawsToPython()
       init<>() )
     .def( init<>() )
     ;
-    
+
     class_< VonMises3D, bases< ConstitutiveLawBaseType >,  boost::noncopyable >
     ( "VonMises3D",
       init<>() )
@@ -296,6 +297,11 @@ void  AddConstitutiveLawsToPython()
     class_< CamClay3D, bases< ConstitutiveLawBaseType >, boost::noncopyable >
     ( "CamClay3D",
       init<>() )
+    ;
+
+    class_< ValuesContainerConstitutiveLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
+    ( "ValuesContainerConstitutiveLaw", init<>() )
+    .def(init<ConstitutiveLawBaseType::Pointer>())
     ;
 
     /*
