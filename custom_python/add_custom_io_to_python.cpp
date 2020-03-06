@@ -176,6 +176,7 @@ void  AddCustomIOToPython()
 
     .def("Flush",&GidIOType::Flush)
     .def("CloseResultFile",&GidIOType::CloseResultFile)
+    .def("Reset",&GidIOType::Reset)
     //.def("",&DatafileIO::)
     //.def(self_ns::str(self))
     ;
