@@ -103,6 +103,11 @@ public:
         NodesArrayType const& ThisNodes,
         PropertiesType::Pointer pProperties ) const;
 
+    Condition::Pointer Create(
+        IndexType NewId,
+        GeometryType::Pointer pGeom,
+        PropertiesType::Pointer pProperties) const;
+
     void EquationIdVector(
         EquationIdVectorType& rResult,
         ProcessInfo& rCurrentProcessInfo );

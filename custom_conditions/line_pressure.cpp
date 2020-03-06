@@ -100,6 +100,15 @@ Condition::Pointer LinePressure::Create( IndexType NewId,
 
 //***********************************************************************************
 //***********************************************************************************
+Condition::Pointer LinePressure::Create( IndexType NewId,
+                                        GeometryType::Pointer pGeom,
+                                        PropertiesType::Pointer pProperties ) const
+{
+    return Condition::Pointer( new LinePressure( NewId, pGeom, pProperties ) );
+}
+
+//***********************************************************************************
+//***********************************************************************************
 // Destructor
 LinePressure::~LinePressure()
 {
