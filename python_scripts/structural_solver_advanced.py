@@ -97,8 +97,8 @@ def AddDofsForNode(node):
     node.AddDof(DISPLACEMENT_X, REACTION_X)
     node.AddDof(DISPLACEMENT_Y, REACTION_Y)
     node.AddDof(DISPLACEMENT_Z, REACTION_Z)
-    node.AddDof(WATER_PRESSURE)
-    node.AddDof(AIR_PRESSURE)
+    node.AddDof(WATER_PRESSURE, REACTION_WATER_PRESSURE)
+    node.AddDof(AIR_PRESSURE, REACTION_AIR_PRESSURE)
 #        node.AddDof(LAGRANGE_DISPLACEMENT_X, REACTION_LAGRANGE_DISPLACEMENT_X)
 #        node.AddDof(LAGRANGE_DISPLACEMENT_Y, REACTION_LAGRANGE_DISPLACEMENT_Y)
 #        node.AddDof(LAGRANGE_DISPLACEMENT_Z, REACTION_LAGRANGE_DISPLACEMENT_Z)
@@ -228,6 +228,10 @@ class SolverAdvanced(structural_solver_static.StaticStructuralSolver):
             #builder_and_solver = BuiMultiPhaseBuilderAndSolver(self.structure_linear_solver)
             #builder_and_solver = ParallelResidualBasedEliminationBuilderAndSolverDeactivation(self.structure_linear_solver)
             #builder_and_solver = ResidualBasedEliminationBuilderAndSolver(self.structure_linear_solver)
+            elif(self.analysis_parameters['builder_and_solver_type'] == "residual-based block with constraints deactivation"):
+                builder_and_solver = ResidualBasedBlockBuilderAndSolverWithConstraintsDeactivation(self.structure_linear_solver)
+            elif(self.analysis_parameters['builder_and_solver_type'] == "residual-based block with constraints deactivation element-wise"):
+                builder_and_solver = ResidualBasedBlockBuilderAndSolverWithConstraintsDeactivationElementWise(self.structure_linear_solver)
         else:
             if(self.analysis_parameters['builder_and_solver_type'] == "residual-based elimination deactivation"):
                 builder_and_solver = ResidualBasedEliminationBuilderAndSolverDeactivation(LinearSolver())
