@@ -92,9 +92,11 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Short class definition.
-/** Detail class definition.
-*/
+/// Class for calculating the internal forces
+/** As the name said, this class supports for calculation of the nodal internal forces. If the d.o.f is fixed, the reaction value
+ * is equivalent to the internal force value, otherwise it reflect the pure internal force of the d.o.f. This class must be called
+ * before the final solve to compute the correct unbalanced forces.
+ */
 class CalculateReactionProcess : public Process
 {
 public:
@@ -104,6 +106,7 @@ public:
     typedef GeometryType::PointType NodeType;
     typedef GeometryType::PointType::PointType PointType;
     typedef ModelPart::ElementsContainerType ElementsContainerType;
+    typedef ModelPart::ConditionsContainerType ConditionsContainerType;
 
     typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
@@ -168,10 +171,38 @@ public:
                         i_dof != ElementalDofList.end(); ++i_dof, ++i)
                 {
                     (*i_dof)->GetSolutionStepReactionValue() -= RHS_Contribution[i];
+                    // std::cout << "dof " << (*i_dof)->GetVariable().Name() << " of node " << (*i_dof)->Id() << " is added with " << RHS_Contribution[i] << std::endl;
                 }
+
+                // std::cout << "element " << (*i_element)->Id() << " reaction is computed, RHS_Contribution = " << RHS_Contribution << std::endl;
 
                 // clean local elemental memory
                 mr_scheme.CleanMemory(*i_element);
+            }
+        }
+
+        for(ConditionsContainerType::ptr_iterator i_condition = mr_model_part.Conditions().ptr_begin();
+                i_condition != mr_model_part.Conditions().ptr_end(); ++i_condition)
+        {
+            if( (*i_condition)->GetValue(IS_MARKED_FOR_REACTION) )
+            {
+                // get the list of elemental dofs
+                (*i_condition)->GetDofList(ElementalDofList, CurrentProcessInfo);
+
+                // get the elemental rhs
+                (*i_condition)->CalculateRightHandSide(RHS_Contribution, CurrentProcessInfo);
+
+                i = 0;
+                for(typename Element::DofsVectorType::iterator i_dof = ElementalDofList.begin();
+                        i_dof != ElementalDofList.end(); ++i_dof, ++i)
+                {
+                    (*i_dof)->GetSolutionStepReactionValue() -= RHS_Contribution[i];
+                }
+
+                // std::cout << "condition " << (*i_condition)->Id() << " reaction is computed, RHS_Contribution = " << RHS_Contribution << std::endl;
+
+                // clean local elemental memory
+                mr_scheme.CleanMemory(*i_condition);
             }
         }
     }
