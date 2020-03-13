@@ -91,6 +91,11 @@ Condition::Pointer Face2D::Create( IndexType NewId, NodesArrayType const& ThisNo
     return Condition::Pointer( new Face2D( NewId, GetGeometry().Create( ThisNodes ), pProperties ) );
 }
 
+Condition::Pointer Face2D::Create( IndexType NewId, GeometryType::Pointer pGeom,  PropertiesType::Pointer pProperties ) const
+{
+    return Condition::Pointer( new Face2D( NewId, pGeom, pProperties ) );
+}
+
 Face2D::~Face2D()
 {
 }

@@ -98,6 +98,13 @@ Condition::Pointer FaceForce3D::Create( IndexType NewId,
     return Condition::Pointer( new FaceForce3D( NewId, GetGeometry().Create( ThisNodes ), pProperties ) );
 }
 
+Condition::Pointer FaceForce3D::Create( IndexType NewId,
+                                        GeometryType::Pointer pGeom,
+                                        PropertiesType::Pointer pProperties ) const
+{
+    return Condition::Pointer( new FaceForce3D( NewId, pGeom, pProperties ) );
+}
+
 //***********************************************************************************
 //***********************************************************************************
 // Destructor
@@ -450,7 +457,6 @@ void FaceForce3D::CalculateAll( MatrixType& rLeftHandSideMatrix,
         for ( unsigned int n = 0; n < GetGeometry().size(); n++ )
         {
             noalias( temp ) = ( GetGeometry()[n] ).GetSolutionStepValue( FACE_LOAD );
-
             for ( unsigned int i = 0; i < 3; i++ )
             {
                 Load( i ) += temp( i ) * Ncontainer( PointNumber, n );

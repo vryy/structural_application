@@ -104,6 +104,14 @@ Condition::Pointer CollinearConstraint2D::Create( IndexType NewId,
                                 pProperties));
 }
 
+Condition::Pointer CollinearConstraint2D::Create( IndexType NewId,
+        GeometryType::Pointer pGeom,
+        PropertiesType::Pointer pProperties) const
+{
+     return Condition::Pointer( new CollinearConstraint2D(NewId, pGeom,
+                                pProperties));
+}
+
 /**
  * Destructor. Never to be called manually
  */

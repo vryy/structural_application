@@ -116,6 +116,10 @@ public:
                                NodesArrayType const& ThisNodes,
                                PropertiesType::Pointer pProperties) const;
 
+    Condition::Pointer Create( IndexType NewId,
+                               GeometryType::Pointer pGeom,
+                               PropertiesType::Pointer pProperties) const;
+
     /**
      * Calculates the local system contributions for this contact element
      */

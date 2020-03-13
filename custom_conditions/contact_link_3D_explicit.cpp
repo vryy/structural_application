@@ -140,6 +140,15 @@ Condition::Pointer ContactLink3DExplicit::Create( IndexType NewId,
     return Condition::Pointer( new ContactLink3DExplicit(NewId, GetGeometry().Create(ThisNodes),
                                pProperties));
 }
+
+Condition::Pointer ContactLink3DExplicit::Create( IndexType NewId,
+        GeometryType::Pointer pGeom,
+        PropertiesType::Pointer pProperties) const
+{
+    return Condition::Pointer( new ContactLink3DExplicit(NewId, pGeom,
+                               pProperties));
+}
+
 /**
  * Destructor. Never to be called manually
  */

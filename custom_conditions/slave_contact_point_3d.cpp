@@ -100,6 +100,14 @@ Condition::Pointer SlaveContactPoint3D::Create( IndexType NewId,
                                pProperties));
 }
 
+Condition::Pointer SlaveContactPoint3D::Create( IndexType NewId,
+        GeometryType::Pointer pGeom,
+        PropertiesType::Pointer pProperties) const
+{
+    return Condition::Pointer( new SlaveContactPoint3D(NewId, pGeom,
+                               pProperties));
+}
+
 // nodearraytype is equal to PointerVector<TPointType>
 SlaveContactPoint3D::SlaveContactPoint3D(IndexType NewId, NodesArrayType& ThisNodes)
 {

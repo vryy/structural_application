@@ -92,6 +92,14 @@ Condition::Pointer NitscheIsotropicConstraint::Create( IndexType NewId,
                                 pProperties));
 }
 
+Condition::Pointer NitscheIsotropicConstraint::Create( IndexType NewId,
+        GeometryType::Pointer pGeom,
+        PropertiesType::Pointer pProperties) const
+{
+     return Condition::Pointer( new NitscheIsotropicConstraint(NewId, pGeom,
+                                pProperties));
+}
+
 /**
  * Destructor. Never to be called manually
  */

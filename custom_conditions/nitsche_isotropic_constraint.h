@@ -108,6 +108,10 @@ public:
                                NodesArrayType const& ThisNodes,
                                PropertiesType::Pointer pProperties) const;
 
+    Condition::Pointer Create( IndexType NewId,
+                               GeometryType::Pointer pGeom,
+                               PropertiesType::Pointer pProperties) const;
+
     virtual void Initialize(const ProcessInfo& rCurrentProcessInfo);
 
     virtual void CalculateLocalSystem( MatrixType& rLeftHandSideMatrix,

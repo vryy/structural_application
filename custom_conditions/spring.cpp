@@ -87,6 +87,12 @@ Condition::Pointer Spring2D::Create(IndexType NewId, NodesArrayType
                                            GetGeometry().Create(ThisNodes), pProperties));
 }
 
+Condition::Pointer Spring2D::Create(IndexType NewId, GeometryType::Pointer pGeom,  PropertiesType::Pointer pProperties) const
+{
+    return Condition::Pointer(new Spring2D(NewId,
+                                           pGeom, pProperties));
+}
+
 Spring2D::~Spring2D()
 {
 }

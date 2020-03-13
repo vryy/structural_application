@@ -125,6 +125,15 @@ Condition::Pointer ContactLink3DNewmark::Create( IndexType NewId,
     return Condition::Pointer( new ContactLink3DNewmark(NewId, GetGeometry().Create(ThisNodes),
                                pProperties));
 }
+
+Condition::Pointer ContactLink3DNewmark::Create( IndexType NewId,
+        GeometryType::Pointer pGeom,
+        PropertiesType::Pointer pProperties) const
+{
+    return Condition::Pointer( new ContactLink3DNewmark(NewId, pGeom,
+                               pProperties));
+}
+
 /**
  * Destructor. Never to be called manually
  */

@@ -136,6 +136,14 @@ Condition::Pointer ContactLink3D_Kinematic_Linear::Create( IndexType NewId,
                                pProperties ) );
 }
 
+Condition::Pointer ContactLink3D_Kinematic_Linear::Create( IndexType NewId,
+        GeometryType::Pointer pGeom,
+        PropertiesType::Pointer pProperties ) const
+{
+    return Condition::Pointer( new ContactLink3D_Kinematic_Linear( NewId, pGeom,
+                               pProperties ) );
+}
+
 /**
  * Destructor. Never to be called manually
  */

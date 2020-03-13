@@ -96,6 +96,14 @@ Condition::Pointer MasterContactPoint2D::Create( IndexType NewId,
                                pProperties));
 }
 
+Condition::Pointer MasterContactPoint2D::Create( IndexType NewId,
+        GeometryType::Pointer pGeom,
+        PropertiesType::Pointer pProperties) const
+{
+    return Condition::Pointer( new MasterContactPoint2D(NewId, pGeom,
+                               pProperties));
+}
+
 // nodearraytype is equal to PointerVector<TPointType>
 MasterContactPoint2D::MasterContactPoint2D(IndexType NewId, NodesArrayType& ThisNodes)
 {

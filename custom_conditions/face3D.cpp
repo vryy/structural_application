@@ -111,6 +111,14 @@ Condition::Pointer Face3D::Create(
     return Condition::Pointer(new Face3D(NewId, GetGeometry().Create(ThisNodes), pProperties));
 }
 
+Condition::Pointer Face3D::Create(
+    IndexType NewId,
+    GeometryType::Pointer pGeom,
+    PropertiesType::Pointer pProperties) const
+{
+    return Condition::Pointer(new Face3D(NewId, pGeom, pProperties));
+}
+
 //***********************************************************************************
 //***********************************************************************************
 // Destructor

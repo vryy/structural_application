@@ -133,6 +133,11 @@ public:
     Condition::Pointer Create( IndexType NewId,
                                NodesArrayType const& ThisNodes,
                                PropertiesType::Pointer pProperties) const;
+
+    Condition::Pointer Create( IndexType NewId,
+                               GeometryType::Pointer pGeom,
+                               PropertiesType::Pointer pProperties) const;
+
     /**
                                 * Turns back information on whether it is a contact type condition
      */

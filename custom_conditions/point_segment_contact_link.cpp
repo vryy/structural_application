@@ -94,6 +94,14 @@ namespace Kratos
                                    pProperties));
     }
 
+    Condition::Pointer PointSegmentContactLink::Create( IndexType NewId,
+                                              GeometryType::Pointer pGeom,
+                                              PropertiesType::Pointer pProperties) const
+    {
+        return Condition::Pointer( new PointSegmentContactLink(NewId, pGeom,
+                                   pProperties));
+    }
+
     PointSegmentContactLink::PointSegmentContactLink(IndexType NewId, NodesArrayType& ThisNodes)
     {
     }

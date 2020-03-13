@@ -84,6 +84,11 @@ Condition::Pointer PointMoment3D::Create(IndexType NewId, NodesArrayType const& 
     return Condition::Pointer(new PointMoment3D(NewId, GetGeometry().Create(ThisNodes), pProperties));
 }
 
+Condition::Pointer PointMoment3D::Create(IndexType NewId, GeometryType::Pointer pGeom,  PropertiesType::Pointer pProperties) const
+{
+    return Condition::Pointer(new PointMoment3D(NewId, pGeom, pProperties));
+}
+
 PointMoment3D::~PointMoment3D()
 {
 }
