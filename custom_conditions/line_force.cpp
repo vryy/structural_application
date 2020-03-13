@@ -98,6 +98,13 @@ Condition::Pointer LineForce::Create( IndexType NewId,
     return Condition::Pointer( new LineForce( NewId, GetGeometry().Create( ThisNodes ), pProperties ) );
 }
 
+Condition::Pointer LineForce::Create( IndexType NewId,
+                                        GeometryType::Pointer pGeom,
+                                        PropertiesType::Pointer pProperties ) const
+{
+    return Condition::Pointer( new LineForce( NewId, pGeom, pProperties ) );
+}
+
 //***********************************************************************************
 //***********************************************************************************
 // Destructor

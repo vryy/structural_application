@@ -87,6 +87,12 @@ Condition::Pointer PointForce2D::Create(IndexType NewId, NodesArrayType
                               GetGeometry().Create(ThisNodes), pProperties));
 }
 
+Condition::Pointer PointForce2D::Create(IndexType NewId, GeometryType::Pointer pGeom,  PropertiesType::Pointer pProperties) const
+{
+    return Condition::Pointer(new PointForce2D(NewId,
+                              pGeom, pProperties));
+}
+
 PointForce2D::~PointForce2D()
 {
 }

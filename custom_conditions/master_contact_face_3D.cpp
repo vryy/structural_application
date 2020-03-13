@@ -115,6 +115,14 @@ Condition::Pointer MasterContactFace3D::Create( IndexType NewId,
                                pProperties ) );
 }
 
+Condition::Pointer MasterContactFace3D::Create( IndexType NewId,
+        GeometryType::Pointer pGeom,
+        PropertiesType::Pointer pProperties ) const
+{
+    return Condition::Pointer( new MasterContactFace3D( NewId, pGeom,
+                               pProperties ) );
+}
+
 /**
  * Destructor. Never to be called manually
  */

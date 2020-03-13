@@ -87,6 +87,12 @@ Condition::Pointer NodeTyingLagrangeZ::Create(IndexType NewId, NodesArrayType
                               GetGeometry().Create(ThisNodes), pProperties));
 }
 
+Condition::Pointer NodeTyingLagrangeZ::Create(IndexType NewId, GeometryType::Pointer pGeom,  PropertiesType::Pointer pProperties) const
+{
+    return Condition::Pointer(new NodeTyingLagrangeZ(NewId,
+                              pGeom, pProperties));
+}
+
 NodeTyingLagrangeZ::~NodeTyingLagrangeZ()
 {
 }

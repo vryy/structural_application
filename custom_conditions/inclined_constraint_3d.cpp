@@ -100,6 +100,14 @@ Condition::Pointer InclinedConstraint3D::Create( IndexType NewId,
                                 pProperties));
 }
 
+Condition::Pointer InclinedConstraint3D::Create( IndexType NewId,
+        GeometryType::Pointer pGeom,
+        PropertiesType::Pointer pProperties) const
+{
+     return Condition::Pointer( new InclinedConstraint3D(NewId, pGeom,
+                                pProperties));
+}
+
 /**
  * Destructor. Never to be called manually
  */

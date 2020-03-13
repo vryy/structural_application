@@ -98,8 +98,6 @@ Condition::Pointer FaceForce3D::Create( IndexType NewId,
     return Condition::Pointer( new FaceForce3D( NewId, GetGeometry().Create( ThisNodes ), pProperties ) );
 }
 
-//***********************************************************************************
-//***********************************************************************************
 Condition::Pointer FaceForce3D::Create( IndexType NewId,
                                         GeometryType::Pointer pGeom,
                                         PropertiesType::Pointer pProperties ) const

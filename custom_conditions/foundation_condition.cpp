@@ -110,6 +110,15 @@ namespace Kratos
         return Condition::Pointer( new FoundationCondition(NewId, GetGeometry().Create(ThisNodes),
                                    pProperties));
     }
+
+    Condition::Pointer FoundationCondition::Create( IndexType NewId,
+                                              GeometryType::Pointer pGeom,
+                                              PropertiesType::Pointer pProperties) const
+    {
+        return Condition::Pointer( new FoundationCondition(NewId, pGeom,
+                                   pProperties));
+    }
+
     /**
      * Destructor. Never to be called manually
      */

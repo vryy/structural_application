@@ -112,6 +112,15 @@ Condition::Pointer MasterContactFace3DNewmark::Create( IndexType NewId,
     return Condition::Pointer( new MasterContactFace3DNewmark(NewId, GetGeometry().Create(ThisNodes),
                                pProperties));
 }
+
+Condition::Pointer MasterContactFace3DNewmark::Create( IndexType NewId,
+        GeometryType::Pointer pGeom,
+        PropertiesType::Pointer pProperties) const
+{
+    return Condition::Pointer( new MasterContactFace3DNewmark(NewId, pGeom,
+                               pProperties));
+}
+
 /**
  * Destructor. Never to be called manually
  */

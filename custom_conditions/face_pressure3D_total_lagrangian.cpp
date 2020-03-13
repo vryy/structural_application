@@ -105,9 +105,16 @@ Condition::Pointer FacePressure3D::Create(
     IndexType NewId,
     NodesArrayType const& ThisNodes,
     PropertiesType::Pointer pProperties ) const
-
 {
     return Condition::Pointer( new FacePressure3D( NewId, GetGeometry().Create( ThisNodes ), pProperties ) );
+}
+
+Condition::Pointer FacePressure3D::Create(
+    IndexType NewId,
+    GeometryType::Pointer pGeom,
+    PropertiesType::Pointer pProperties ) const
+{
+    return Condition::Pointer( new FacePressure3D( NewId, pGeom, pProperties ) );
 }
 
 //***********************************************************************************

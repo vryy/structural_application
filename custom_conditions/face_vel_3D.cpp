@@ -113,6 +113,18 @@ Condition::Pointer FaceVel3D::Create(
     KRATOS_CATCH( "" )
 }
 
+Condition::Pointer FaceVel3D::Create(
+    IndexType NewId,
+    GeometryType::Pointer pGeom,
+    PropertiesType::Pointer pProperties ) const
+
+{
+    KRATOS_TRY
+
+    return Condition::Pointer( new FaceVel3D( NewId, pGeom, pProperties ) );
+    KRATOS_CATCH( "" )
+}
+
 //***********************************************************************************
 //***********************************************************************************
 // Destructor

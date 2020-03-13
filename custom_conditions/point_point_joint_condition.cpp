@@ -109,8 +109,13 @@ Condition::Pointer PointPointJointCondition::Create( IndexType NewId,
                                 pProperties));
 }
 
-
-
+Condition::Pointer PointPointJointCondition::Create( IndexType NewId,
+        GeometryType::Pointer pGeom,
+        PropertiesType::Pointer pProperties) const
+{
+     return Condition::Pointer( new PointPointJointCondition(NewId, pGeom,
+                                pProperties));
+}
 
 /**
  * Destructor. Never to be called manually

@@ -94,6 +94,14 @@ Condition::Pointer PointPointContactLink::Create( IndexType NewId,
                                pProperties));
 }
 
+Condition::Pointer PointPointContactLink::Create( IndexType NewId,
+        GeometryType::Pointer pGeom,
+        PropertiesType::Pointer pProperties) const
+{
+    return Condition::Pointer( new PointPointContactLink(NewId, pGeom,
+                               pProperties));
+}
+
 PointPointContactLink::PointPointContactLink(IndexType NewId, NodesArrayType& ThisNodes)
 {
 }

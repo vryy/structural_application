@@ -130,6 +130,9 @@ public:
                                NodesArrayType const& ThisNodes,
                                PropertiesType::Pointer pProperties) const;
 
+    Condition::Pointer Create( IndexType NewId,
+                               GeometryType::Pointer pGeom,
+                               PropertiesType::Pointer pProperties) const;
 
     /**
      * searches the contact partner for a given integration point of the current

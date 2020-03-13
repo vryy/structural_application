@@ -136,6 +136,14 @@ namespace Kratos
                                                                       pProperties ) );
     }
 
+    Condition::Pointer Contact_Link_3D_Lagrange_Tying::Create( IndexType NewId,
+                                                              GeometryType::Pointer pGeom,
+                                                              PropertiesType::Pointer pProperties ) const
+    {
+        return Condition::Pointer( new Contact_Link_3D_Lagrange_Tying( NewId, pGeom,
+                                                                      pProperties ) );
+    }
+
     /**
      * Destructor. Never to be called manually
      */
