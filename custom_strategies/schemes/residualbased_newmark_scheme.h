@@ -353,46 +353,6 @@ public:
                     += Dx[dof_iterator->EquationId()];
                 }
             }
-            else if (dof_iterator->GetVariable() == LAGRANGE_DISPLACEMENT_X)
-            {
-                if (dof_iterator->IsFree())
-                {
-                    rNode.GetSolutionStepValue(LAGRANGE_DISPLACEMENT_X)
-                    += Dx[dof_iterator->EquationId()];
-                }
-            }
-            else if (dof_iterator->GetVariable() == LAGRANGE_DISPLACEMENT_Y)
-            {
-                if (dof_iterator->IsFree())
-                {
-                    rNode.GetSolutionStepValue(LAGRANGE_DISPLACEMENT_Y)
-                    += Dx[dof_iterator->EquationId()];
-                }
-            }
-            else if (dof_iterator->GetVariable() == LAGRANGE_DISPLACEMENT_Z)
-            {
-                if (dof_iterator->IsFree())
-                {
-                    rNode.GetSolutionStepValue(LAGRANGE_DISPLACEMENT_Z)
-                    += Dx[dof_iterator->EquationId()];
-                }
-            }
-            else if (dof_iterator->GetVariable() == LAGRANGE_WATER_PRESSURE)
-            {
-                if (dof_iterator->IsFree())
-                {
-                    rNode.GetSolutionStepValue(LAGRANGE_WATER_PRESSURE)
-                    += Dx[dof_iterator->EquationId()];
-                }
-            }
-            else if (dof_iterator->GetVariable() == LAGRANGE_AIR_PRESSURE)
-            {
-                if (dof_iterator->IsFree())
-                {
-                    rNode.GetSolutionStepValue(LAGRANGE_AIR_PRESSURE)
-                    += Dx[dof_iterator->EquationId()];
-                }
-            }
             #ifdef ENABLE_ROTATION
             else if (dof_iterator->GetVariable() == ROTATION_X)
             {
@@ -419,6 +379,15 @@ public:
                 }
             }
             #endif
+            else
+            {
+                // update for non-dynamics variable, i.e. Lagrange multiplier
+                if (dof_iterator->IsFree())
+                {
+                    dof_iterator->GetSolutionStepValue()
+                    += Dx[dof_iterator->EquationId()];
+                }
+            }
         }
 
         KRATOS_CATCH("")
