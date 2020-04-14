@@ -68,7 +68,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "structural_application.h"
 
 #define DEBUG_CAM_CLAY
-#define DEBUG_ELEMENT_ID 902
+#define DEBUG_ELEMENT_ID 1
 #define DEBUG_POINT_ID 0
 // #define LOG_CAM_CLAY
 //#define ENABLE_YIELD_PLOT
@@ -278,8 +278,8 @@ void CamClay3D::SetValue( const Variable<double>& rThisVariable, const double& r
 
         mPck = rValue;
 
-//        mKm = (1.0 + mVoidRatio) * mPck / mKappa;
-//        mGm = 3.0 * mKm * (1.0 - 2.0 * mNU) / 2.0 / (1.0 + mNU);
+        mKm = (1.0 + mVoidRatio) * mPck / mKappa;
+        mGm = 3.0 * mKm * (1.0 - 2.0 * mNU) / 2.0 / (1.0 + mNU);
 
         #ifdef DEBUG_CAM_CLAY_PRECONSOLIDATION
         std::cout << "At PRECONSOLIDATION_PRESSURE_DEF, material point elem = "
@@ -582,6 +582,8 @@ void CamClay3D::StressIntegration(const Vector& StrainVector, Vector& StressVect
         std::cout << " mCurrentStrain: " << mCurrentStrain << std::endl;
         std::cout << " strainIncr: " << strainIncr << std::endl;
         std::cout << " mLastStress: " << mLastStress << std::endl;
+        std::cout << " mKm: " << mKm << std::endl;
+        std::cout << " mGm: " << mGm << std::endl;
     }
     #endif
 
@@ -1057,6 +1059,18 @@ int CamClay3D::returnMapping(double pTr, double qTr)
 //        KRATOS_THROW_ERROR(std::runtime_error, "returnMapping does not converge in 30 steps", "")
         return RETURN_MAPPING_NOT_CONVERGED;
     }
+
+    #ifdef DEBUG_CAM_CLAY
+    if(mParentElementId == 1 && mIntegrationPointIndex == 0)
+    {
+        std::cout << "  After return mapping:" << std::endl;
+        std::cout << "   mDGamma = " << mDGamma << std::endl;
+        std::cout << "   mPk = " << mPk << std::endl;
+        std::cout << "   mQk = " << mQk << std::endl;
+        std::cout << "   mPck = " << mPck << std::endl;
+        std::cout << "---------------------------------------------" << std::endl;
+    }
+    #endif
 
     return 0;
 }

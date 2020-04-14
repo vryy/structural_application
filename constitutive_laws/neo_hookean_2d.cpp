@@ -370,7 +370,17 @@ void NeoHookean2D::CalculateStress( Vector& StressVector, const Vector& StrainVe
     double mu = mE / (2 * (1.0 + mNU));
     double lambda = mE * mNU / ((1.0 + mNU) * (1.0 - 2*mNU));
 
+
     double aux = 4*e_11*e_22 + 4*e_11*e_33 + 2*e_11 - pow(e_12, 2) - pow(e_13, 2) + 4*e_22*e_33 + 2*e_22 - pow(e_23, 2) + 2*e_33 + 1;
+
+    if (aux < 0)
+    {
+        KRATOS_WATCH(mE)
+        KRATOS_WATCH(mNU)
+        KRATOS_WATCH(StrainVector)
+        KRATOS_WATCH(aux)
+        KRATOS_THROW_ERROR(std::logic_error, "Error encounting negative NaN value", "")
+    }
 
     StressVector(0) = (lambda*(2*e_22 + 2*e_33 + 1)*log(aux)/2 - mu*(2*e_22 + 2*e_33 + 1) + mu*aux) / aux;
 

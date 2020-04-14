@@ -150,6 +150,9 @@ void BeamElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
     bool CalculateResidualVectorFlag = true;
     CalculateAll(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo,
                  CalculateStiffnessMatrixFlag,CalculateResidualVectorFlag);
+    // KRATOS_WATCH(Id())
+    // KRATOS_WATCH(rLeftHandSideMatrix)
+    // KRATOS_WATCH(rRightHandSideVector)
 }
 
 //************************************************************************************

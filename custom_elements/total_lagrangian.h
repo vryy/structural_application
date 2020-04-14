@@ -252,7 +252,7 @@ protected:
     ///@}
     ///@name Protected Operators
     ///@{
-	TotalLagrangian() : Element()
+    TotalLagrangian() : Element()
     {
     }
 
