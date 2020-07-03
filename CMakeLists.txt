@@ -10,6 +10,8 @@ set( KRATOS_STRUCTURAL_APPLICATION_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/shell_anisotropic.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/beam_element.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/timoshenko_beam_element.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/timoshenko_linear_beam_element.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/corotational_linear_beam_element.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/shell_anisotropic_linear.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/shell_isotropic.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/membrane_element.cpp     

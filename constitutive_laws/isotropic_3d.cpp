@@ -265,14 +265,10 @@ void Isotropic3D::SetValue( const Variable<Vector>& rThisVariable, const Vector&
 {
     if ( rThisVariable == INSITU_STRESS || rThisVariable == PRESTRESS )
     {
-        if(mPrestress.size() != rValue.size())
-            mPrestress.resize(rValue.size(), false);
         noalias(mPrestress) = rValue;
     }
-    else if ( rThisVariable == STRESSES )
+    else if ( rThisVariable == STRESSES || rThisVariable == INITIAL_STRESS )
     {
-        if(mCurrentStress.size() != rValue.size())
-            mCurrentStress.resize(rValue.size(), false);
         noalias(mCurrentStress) = rValue;
     }
 }

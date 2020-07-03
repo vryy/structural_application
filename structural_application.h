@@ -75,6 +75,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_elements/mixed_lagrangian.h"
 #include "custom_elements/beam_element.h"
 #include "custom_elements/timoshenko_beam_element.h"
+#include "custom_elements/timoshenko_linear_beam_element.h"
+#include "custom_elements/corotational_linear_beam_element.h"
 #include "custom_elements/kinematic_linear.h"
 #include "custom_elements/membrane_element.h"
 #include "custom_elements/unsaturated_soils_element_2phase_small_strain.h"
@@ -153,7 +155,7 @@ typedef Matrix fix_matrix_33;
 typedef Vector array3;
 //typedef array_1d<double,3> array3;
 
-//     KRATOS_DEFINE_VARIABLE( ConstitutiveLaw::Pointer, CONSTITUTIVE_LAW );
+KRATOS_DEFINE_VARIABLE( ConstitutiveLaw::Pointer, CONSTITUTIVE_LAW_NO_INITIALIZE );
 
 KRATOS_DEFINE_VARIABLE( fix_matrix_33 , MATRIX_A )
 KRATOS_DEFINE_VARIABLE( fix_matrix_33 , MATRIX_B )
@@ -256,6 +258,7 @@ KRATOS_DEFINE_VARIABLE(Matrix, CONSTRAINT_MATRIX)
 KRATOS_DEFINE_VARIABLE(Vector, PRESTRESS)
 KRATOS_DEFINE_VARIABLE(double, PRESTRESS_ZZ)
 KRATOS_DEFINE_VARIABLE(double, PRESTRESS_FACTOR )
+KRATOS_DEFINE_VARIABLE(Vector, INITIAL_STRESS)
 KRATOS_DEFINE_VARIABLE(Vector, CONSTRAINT_VECTOR)
 KRATOS_DEFINE_VARIABLE(double, DISIPATION)
 KRATOS_DEFINE_VARIABLE(int,     NODAL_VALUES)
@@ -524,6 +527,10 @@ private:
     const BeamElement mBeamElement3D3N;
     const TimoshenkoBeamElement mTimoshenkoBeamElement3D2N;
     const TimoshenkoBeamElement mTimoshenkoBeamElement3D3N;
+    const TimoshenkoLinearBeamElement mTimoshenkoLinearBeamElement2D2N;
+    const TimoshenkoLinearBeamElement mTimoshenkoLinearBeamElement3D2N;
+    const CorotationalLinearBeamElement mCorotationalLinearBeamElement2D2N;
+    const CorotationalLinearBeamElement mCorotationalLinearBeamElement3D2N;
     const ShellIsotropic mIsoShellElement;
     const ShellAnisotropic mAnisoShellElement;
     const ShellAnisotropicLinear mAnisoLinearShellElement;

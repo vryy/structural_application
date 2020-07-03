@@ -111,7 +111,7 @@ KRATOS_CREATE_VARIABLE( double , LINING_JOINT_STIFFNESS )
 KRATOS_CREATE_VARIABLE( double, DAMAGE_E0 )
 KRATOS_CREATE_VARIABLE( double, DAMAGE_EF )
 
-//     KRATOS_CREATE_VARIABLE( ConstitutiveLaw::Pointer, CONSTITUTIVE_LAW )
+KRATOS_CREATE_VARIABLE( ConstitutiveLaw::Pointer, CONSTITUTIVE_LAW_NO_INITIALIZE )
 
 //KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(VAUX);
 
@@ -129,7 +129,6 @@ KRATOS_CREATE_VARIABLE( double, RETRACTION_TIME )
 // KRATOS_CREATE_VARIABLE(double, POSITIVE_FACE_PRESSURE )
 
 
-//  KRATOS_CREATE_VARIABLE(ConstitutiveLaw<Node<3> >::Pointer, CONSTITUTIVE_LAW)
 //  KRATOS_CREATE_VARIABLE(double, DP_EPSILON)
 //  KRATOS_CREATE_VARIABLE(Vector, INSITU_STRESS )
 //  KRATOS_CREATE_VARIABLE(double, DP_ALPHA1 )
@@ -223,6 +222,7 @@ KRATOS_CREATE_VARIABLE( Matrix, CONSTRAINT_MATRIX )
 KRATOS_CREATE_VARIABLE( Vector, PRESTRESS )
 KRATOS_CREATE_VARIABLE( double, PRESTRESS_ZZ )
 KRATOS_CREATE_VARIABLE( double, PRESTRESS_FACTOR )
+KRATOS_CREATE_VARIABLE( Vector, INITIAL_STRESS )
 KRATOS_CREATE_VARIABLE( Vector, CONSTRAINT_VECTOR )
 KRATOS_CREATE_VARIABLE( int,    NODAL_VALUES )
 KRATOS_CREATE_VARIABLE( double, NODAL_DAMAGE )
@@ -397,6 +397,10 @@ KratosStructuralApplication::KratosStructuralApplication():
     mBeamElement3D3N( 0, Element::GeometryType::Pointer( new Line3D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
     mTimoshenkoBeamElement3D2N( 0, Element::GeometryType::Pointer( new Line3D2 <Node<3> >( Element::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) ),
     mTimoshenkoBeamElement3D3N( 0, Element::GeometryType::Pointer( new Line3D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
+    mCorotationalLinearBeamElement2D2N( 0, Element::GeometryType::Pointer( new Line2D2 <Node<3> >( Element::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) ),
+    mCorotationalLinearBeamElement3D2N( 0, Element::GeometryType::Pointer( new Line3D2 <Node<3> >( Element::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) ),
+    mTimoshenkoLinearBeamElement2D2N( 0, Element::GeometryType::Pointer( new Line2D2 <Node<3> >( Element::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) ),
+    mTimoshenkoLinearBeamElement3D2N( 0, Element::GeometryType::Pointer( new Line3D2 <Node<3> >( Element::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) ),
     mIsoShellElement( 0, Element::GeometryType::Pointer( new Triangle3D3<Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
     mAnisoShellElement( 0, Element::GeometryType::Pointer( new Triangle3D3<Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
     mAnisoLinearShellElement( 0, Element::GeometryType::Pointer( new Triangle3D3<Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
@@ -603,7 +607,7 @@ void KratosStructuralApplication::Register()
 //  KRATOS_REGISTER_VARIABLE(POSITIVE_FACE_PRESSURE )
 
     //KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(VAUX);
-    KRATOS_REGISTER_VARIABLE( CONSTITUTIVE_LAW )
+    KRATOS_REGISTER_VARIABLE( CONSTITUTIVE_LAW_NO_INITIALIZE )
 //     KRATOS_REGISTER_VARIABLE(DP_EPSILON)
 //     KRATOS_REGISTER_VARIABLE(INSITU_STRESS)
 //     KRATOS_REGISTER_VARIABLE(DP_ALPHA1)
@@ -676,6 +680,7 @@ void KratosStructuralApplication::Register()
     KRATOS_REGISTER_VARIABLE( PRESTRESS )
     KRATOS_REGISTER_VARIABLE( PRESTRESS_ZZ )
     KRATOS_REGISTER_VARIABLE( PRESTRESS_FACTOR )
+    KRATOS_REGISTER_VARIABLE( INITIAL_STRESS )
     KRATOS_REGISTER_VARIABLE( MAX_FRECUENCY )
 
     KRATOS_REGISTER_VARIABLE( DISIPATION )
@@ -866,6 +871,10 @@ void KratosStructuralApplication::Register()
     KRATOS_REGISTER_ELEMENT( "BeamElement3D3N",     mBeamElement3D3N )
     KRATOS_REGISTER_ELEMENT( "TimoshenkoBeamElement3D2N", mTimoshenkoBeamElement3D2N )
     KRATOS_REGISTER_ELEMENT( "TimoshenkoBeamElement3D3N", mTimoshenkoBeamElement3D3N )
+    KRATOS_REGISTER_ELEMENT( "CorotationalLinearBeamElement2D2N", mCorotationalLinearBeamElement2D2N )
+    KRATOS_REGISTER_ELEMENT( "CorotationalLinearBeamElement3D2N", mCorotationalLinearBeamElement3D2N )
+    KRATOS_REGISTER_ELEMENT( "TimoshenkoLinearBeamElement2D2N", mTimoshenkoLinearBeamElement2D2N )
+    KRATOS_REGISTER_ELEMENT( "TimoshenkoLinearBeamElement3D2N", mTimoshenkoLinearBeamElement3D2N )
     KRATOS_REGISTER_ELEMENT( "TotalLagrangian3D4N", mTotalLagrangian3D4N )
     KRATOS_REGISTER_ELEMENT( "TotalLagrangian3D10N", mTotalLagrangian3D10N )
     KRATOS_REGISTER_ELEMENT( "TotalLagrangian3D6N", mTotalLagrangian3D6N )

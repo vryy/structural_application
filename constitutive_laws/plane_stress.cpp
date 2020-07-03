@@ -130,7 +130,7 @@ void PlaneStress::SetValue( const Variable<double>& rThisVariable, const double&
 void PlaneStress::SetValue( const Variable<Vector>& rThisVariable, const Vector& rValue,
                             const ProcessInfo& rCurrentProcessInfo )
 {
-    if ( rThisVariable == STRESSES )
+    if ( rThisVariable == STRESSES || rThisVariable == INITIAL_STRESS )
     {
         if(mCurrentStress.size() != rValue.size())
             mCurrentStress.resize(rValue.size(), false);

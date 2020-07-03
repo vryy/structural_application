@@ -322,27 +322,27 @@ namespace Kratos
         KRATOS_TRY
 
         // verify that the area is given by properties
-        if (this->GetProperties().Has(AREA) == true)
+        if (this->GetProperties().Has(AREA) == false)
         {
-            if( this->GetProperties()[AREA] == 0.0 )
+            // if( this->GetProperties()[AREA] == 0.0 )
                 KRATOS_THROW_ERROR(std::logic_error, "AREA not provided for this element", this->Id());
         }
 
         // verify that the inertia is given by properties
-        if (this->GetProperties().Has(INERTIA_X) == true)
+        if (this->GetProperties().Has(INERTIA_X) == false)
         {
-            if( GetProperties()[INERTIA_X] == 0.0 )
+            // if( GetProperties()[INERTIA_X] == 0.0 )
                 KRATOS_THROW_ERROR(std::logic_error, "INERTIA_X not provided for this element ", this->Id());
         }
 
-        if (this->GetProperties().Has(INERTIA_Y) == true)
+        if (this->GetProperties().Has(INERTIA_Y) == false)
         {
-            if( GetProperties()[INERTIA_Y] == 0.0 )
+            // if( GetProperties()[INERTIA_Y] == 0.0 )
                 KRATOS_THROW_ERROR(std::logic_error, "INERTIA_Y not provided for this element ", this->Id());
         }
-        if (this->GetProperties().Has(INERTIA_Z) == true)
+        if (this->GetProperties().Has(INERTIA_Z) == false)
         {
-            if( GetProperties()[INERTIA_Z] == 0.0 )
+            // if( GetProperties()[INERTIA_Z] == 0.0 )
                 KRATOS_THROW_ERROR(std::logic_error, "INERTIA_Z not provided for this element ", this->Id());
         }
 
@@ -371,10 +371,10 @@ namespace Kratos
         double  cosine;
 
         array_1d<double, 3> Weight;
-//        const Vector& Gravity = GetProperties()[GRAVITY];
-//        const double density = GetProperties()[DENSITY];
-        Vector Gravity(3);
-        double density = 0.0;
+        const Vector& Gravity = GetProperties()[GRAVITY];
+        const double density = GetProperties()[DENSITY];
+        // Vector Gravity(3);
+        // double density = 0.0;
         noalias(Weight) = density * Gravity;
 
         array_1d<double, 3> Distr_load;
@@ -584,24 +584,24 @@ namespace Kratos
 
         double nx, ny, nz, theta;
 
-        if(number_of_nodes == 2)
-        {
+        // if(number_of_nodes == 2)
+        // {
             x_zero(0) = GetGeometry()[0].X0();
             x_zero(1) = GetGeometry()[0].Y0();
             x_zero(2) = GetGeometry()[0].Z0();
             x_zero(3) = GetGeometry()[1].X0();
             x_zero(4) = GetGeometry()[1].Y0();
             x_zero(5) = GetGeometry()[1].Z0();
-        }
-        else
-        {
-            x_zero(0) = GetGeometry()[0].X0();
-            x_zero(1) = GetGeometry()[0].Y0();
-            x_zero(2) = GetGeometry()[0].Z0();
-            x_zero(3) = GetGeometry()[2].X0();
-            x_zero(4) = GetGeometry()[2].Y0();
-            x_zero(5) = GetGeometry()[2].Z0();
-        }
+        // }
+        // else
+        // {
+        //     x_zero(0) = GetGeometry()[0].X0();
+        //     x_zero(1) = GetGeometry()[0].Y0();
+        //     x_zero(2) = GetGeometry()[0].Z0();
+        //     x_zero(3) = GetGeometry()[2].X0();
+        //     x_zero(4) = GetGeometry()[2].Y0();
+        //     x_zero(5) = GetGeometry()[2].Z0();
+        // }
 
         for (unsigned int i=0; i < 3; ++i)
         {
@@ -652,6 +652,7 @@ namespace Kratos
                 }
             }
         }
+
         KRATOS_CATCH("")
     }
 

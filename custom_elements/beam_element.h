@@ -41,7 +41,8 @@ class BeamElement
 private:
     ///@name Static Member Variables
 
-
+    Matrix mInitialDisp;
+    Matrix mInitialRot;
 
     double mArea;                            // Area de la seccion tranversal de la viga.
     double mInertia_x;                       // Momento de Inercia alredor del eje Ix local.
@@ -64,7 +65,7 @@ private:
     double CalculateInternalShear(  const double& Vo, const double& Load, const double& X);
     double CalculateInternalMoment( const double& Mo, const double& Vo,   const double& Load, const double& X);
 
-    void CalculateDistrubuitedBodyForce(const int Direction, Vector& Load);
+    void CalculateDistributedBodyForce(const int Direction, Vector& Load);
 
 
 public:

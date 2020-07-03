@@ -237,7 +237,8 @@ namespace Kratos
         else if (rCurrentProcessInfo[RESET_CONFIGURATION] == 1)
         {
             //Set Up Initial displacement for StressFreeActivation of Elements
-            mInitialDisp.resize( GetGeometry().size(), dim, false );
+            if (mInitialDisp.size1() != GetGeometry().size() || mInitialDisp.size2() != dim)
+                mInitialDisp.resize( GetGeometry().size(), dim, false );
 
             for ( unsigned int node = 0; node < GetGeometry().size(); ++node )
                 for ( unsigned int i = 0; i < dim; ++i )
@@ -481,8 +482,12 @@ namespace Kratos
             GetGeometry().Initialize(mThisIntegrationMethod);
             #endif
 
+            ProcessInfo DummyProcessInfo;
+
             for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); ++i )
             {
+                mConstitutiveLawVector[i]->SetValue( PARENT_ELEMENT_ID, this->Id(), DummyProcessInfo);
+                mConstitutiveLawVector[i]->SetValue( INTEGRATION_POINT_INDEX, i, DummyProcessInfo);
                 mConstitutiveLawVector[i]->ResetMaterial( GetProperties(), GetGeometry(), row( GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod ), i ) );
             }
 
@@ -2024,6 +2029,26 @@ namespace Kratos
             {
                 mConstitutiveLawVector[i] = rValues[i];
                 mConstitutiveLawVector[i]->InitializeMaterial( GetProperties(), GetGeometry(), row( GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod ), i ) );
+            }
+
+            #ifdef ENABLE_BEZIER_GEOMETRY
+            GetGeometry().Clean();
+            #endif
+        }
+        else if ( rVariable == CONSTITUTIVE_LAW_NO_INITIALIZE )
+        {
+            #ifdef ENABLE_BEZIER_GEOMETRY
+            GetGeometry().Initialize(mThisIntegrationMethod);
+            #endif
+
+            if( mConstitutiveLawVector.size() != rValues.size() )
+            {
+                mConstitutiveLawVector.resize( rValues.size() );
+            }
+
+            for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); ++i )
+            {
+                mConstitutiveLawVector[i] = rValues[i];
             }
 
             #ifdef ENABLE_BEZIER_GEOMETRY

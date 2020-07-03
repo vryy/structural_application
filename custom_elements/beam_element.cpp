@@ -71,7 +71,34 @@ BeamElement::~BeamElement()
 void BeamElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
+
+    if (rCurrentProcessInfo[RESET_CONFIGURATION] == 0)
+    {
+        mInitialDisp.resize(GetGeometry().size(), 3, false);
+        noalias(mInitialDisp) = ZeroMatrix(GetGeometry().size(), 3);
+        mInitialRot.resize(GetGeometry().size(), 3, false);
+        noalias(mInitialRot) = ZeroMatrix(GetGeometry().size(), 3);
+    }
+    else if (rCurrentProcessInfo[RESET_CONFIGURATION] == 1)
+    {
+        if (mInitialDisp.size1() != GetGeometry().size() || mInitialDisp.size2() != 3)
+            mInitialDisp.resize( GetGeometry().size(), 3, false );
+
+        if (mInitialRot.size1() != GetGeometry().size() || mInitialRot.size2() != 3)
+            mInitialRot.resize( GetGeometry().size(), 3, false );
+
+        for ( unsigned int node = 0; node < GetGeometry().size(); ++node )
+        {
+            for ( unsigned int i = 0; i < 3; ++i )
+            {
+                mInitialDisp( node, i ) = GetGeometry()[node].GetSolutionStepValue( DISPLACEMENT )[i];
+                mInitialRot( node, i ) = GetGeometry()[node].GetSolutionStepValue( ROTATION )[i];
+            }
+        }
+    }
+
     CalculateSectionProperties();
+
     KRATOS_CATCH("")
 }
 
@@ -273,18 +300,18 @@ void BeamElement::CalculateRHS(Vector& rRightHandSideVector)
     CalculateBodyForce(Rotation, LocalBody, rRightHandSideVector);
 
 
-    CurrentDisplacement(0)		=   GetGeometry()[0].GetSolutionStepValue(DISPLACEMENT_X);
-    CurrentDisplacement(1)		=   GetGeometry()[0].GetSolutionStepValue(DISPLACEMENT_Y);
-    CurrentDisplacement(2)		=   GetGeometry()[0].GetSolutionStepValue(DISPLACEMENT_Z);
-    CurrentDisplacement(3)		=   GetGeometry()[0].GetSolutionStepValue(ROTATION_X);
-    CurrentDisplacement(4)		=   GetGeometry()[0].GetSolutionStepValue(ROTATION_Y);
-    CurrentDisplacement(5)		=   GetGeometry()[0].GetSolutionStepValue(ROTATION_Z);
-    CurrentDisplacement(6)		=   GetGeometry()[1].GetSolutionStepValue(DISPLACEMENT_X);
-    CurrentDisplacement(7)		=   GetGeometry()[1].GetSolutionStepValue(DISPLACEMENT_Y);
-    CurrentDisplacement(8)		=   GetGeometry()[1].GetSolutionStepValue(DISPLACEMENT_Z);
-    CurrentDisplacement(9)		=   GetGeometry()[1].GetSolutionStepValue(ROTATION_X);
-    CurrentDisplacement(10)	        =   GetGeometry()[1].GetSolutionStepValue(ROTATION_Y);
-    CurrentDisplacement(11)	        =   GetGeometry()[1].GetSolutionStepValue(ROTATION_Z);
+    CurrentDisplacement(0)		=   GetGeometry()[0].GetSolutionStepValue(DISPLACEMENT_X) - mInitialDisp(0, 0);
+    CurrentDisplacement(1)		=   GetGeometry()[0].GetSolutionStepValue(DISPLACEMENT_Y) - mInitialDisp(0, 1);
+    CurrentDisplacement(2)		=   GetGeometry()[0].GetSolutionStepValue(DISPLACEMENT_Z) - mInitialDisp(0, 2);
+    CurrentDisplacement(3)		=   GetGeometry()[0].GetSolutionStepValue(ROTATION_X) - mInitialRot(0, 0);
+    CurrentDisplacement(4)		=   GetGeometry()[0].GetSolutionStepValue(ROTATION_Y) - mInitialRot(0, 1);
+    CurrentDisplacement(5)		=   GetGeometry()[0].GetSolutionStepValue(ROTATION_Z) - mInitialRot(0, 2);
+    CurrentDisplacement(6)		=   GetGeometry()[1].GetSolutionStepValue(DISPLACEMENT_X) - mInitialDisp(1, 0);
+    CurrentDisplacement(7)		=   GetGeometry()[1].GetSolutionStepValue(DISPLACEMENT_Y) - mInitialDisp(1, 1);
+    CurrentDisplacement(8)		=   GetGeometry()[1].GetSolutionStepValue(DISPLACEMENT_Z) - mInitialDisp(1, 2);
+    CurrentDisplacement(9)		=   GetGeometry()[1].GetSolutionStepValue(ROTATION_X) - mInitialRot(1, 0);
+    CurrentDisplacement(10)	    =   GetGeometry()[1].GetSolutionStepValue(ROTATION_Y) - mInitialRot(1, 1);
+    CurrentDisplacement(11)	    =   GetGeometry()[1].GetSolutionStepValue(ROTATION_Z) - mInitialRot(1, 2);
 
     CalculateLHS(GlobalMatrix);
     noalias(rRightHandSideVector) -= prod(GlobalMatrix, CurrentDisplacement);
@@ -358,12 +385,12 @@ void BeamElement::CalculateSectionProperties()
 //        mArea        = b * h;
 
 
-    x_0( 0 ) = GetGeometry()[0].X0();
-    x_0( 1 ) = GetGeometry()[0].Y0();
-    x_0( 2 ) = GetGeometry()[0].Z0();
-    x_1( 0 ) = GetGeometry()[1].X0();
-    x_1( 1 ) = GetGeometry()[1].Y0();
-    x_1( 2 ) = GetGeometry()[1].Z0();
+    x_0( 0 ) = GetGeometry()[0].X0() + mInitialDisp(0, 0);
+    x_0( 1 ) = GetGeometry()[0].Y0() + mInitialDisp(0, 1);
+    x_0( 2 ) = GetGeometry()[0].Z0() + mInitialDisp(0, 2);
+    x_1( 0 ) = GetGeometry()[1].X0() + mInitialDisp(1, 0);
+    x_1( 1 ) = GetGeometry()[1].Y0() + mInitialDisp(1, 1);
+    x_1( 2 ) = GetGeometry()[1].Z0() + mInitialDisp(1, 2);
 
     noalias( length ) = x_1 - x_0;
     mlength = std::sqrt( inner_prod( length, length ) );
@@ -869,9 +896,9 @@ void BeamElement::CalculateOnIntegrationPoints( const Variable<array_1d<double,3
     else
         factor = 1; //-1;
 
-    CalculateDistrubuitedBodyForce(1, Load1);
-    CalculateDistrubuitedBodyForce(2, Load2);
-    CalculateDistrubuitedBodyForce(3, Load3);
+    CalculateDistributedBodyForce(1, Load1);
+    CalculateDistributedBodyForce(2, Load2);
+    CalculateDistributedBodyForce(3, Load3);
 
 
     if(rVariable==MOMENT)
@@ -975,7 +1002,7 @@ void BeamElement::CalculateLocalNodalStress(Vector& Stress)
     return;
 }
 
-void BeamElement::CalculateDistrubuitedBodyForce(const int Direction, Vector& Load)
+void BeamElement::CalculateDistributedBodyForce(const int Direction, Vector& Load)
 {
     array_1d<double, 3> Weight;
     Load.resize(2, false);
