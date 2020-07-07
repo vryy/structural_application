@@ -1781,7 +1781,7 @@ namespace Kratos
             return;
         }
 
-        if( rVariable == INTEGRATION_POINT_GLOBAL )
+        if( rVariable == INTEGRATION_POINT_GLOBAL || rVariable == INTEGRATION_POINT_GLOBAL_IN_CURRENT_CONFIGURATION )
         {
             const GeometryType::IntegrationPointsArrayType& integration_points =
                     GetGeometry().IntegrationPoints( mThisIntegrationMethod );
@@ -1789,6 +1789,25 @@ namespace Kratos
             for(std::size_t point = 0; point < integration_points.size(); ++point)
             {
                 rValues[point] = GetGeometry().GlobalCoordinates(rValues[point], integration_points[point]);
+            }
+
+            return;
+        }
+
+        if( rVariable == INTEGRATION_POINT_GLOBAL_IN_REFERENCE_CONFIGURATION )
+        {
+            const GeometryType::IntegrationPointsArrayType& integration_points =
+                    GetGeometry().IntegrationPoints( mThisIntegrationMethod );
+
+            Vector N( GetGeometry().size() );
+
+            for(std::size_t point = 0; point < integration_points.size(); ++point)
+            {
+                GetGeometry().ShapeFunctionsValues( N, integration_points[point] );
+
+                noalias( rValues[point] ) = ZeroVector(3);
+                for(std::size_t i = 0 ; i < GetGeometry().size() ; ++i)
+                    noalias( rValues[point] ) += N[i] * GetGeometry()[i].GetInitialPosition();
             }
 
             return;
