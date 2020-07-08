@@ -295,8 +295,7 @@ void Isotropic3D::ResetMaterial( const Properties& props,
                                  const GeometryType& geom,
                                  const Vector& ShapeFunctionsValues )
 {
-    mPrestress = ZeroVector( 6 );
-    mPrestressFactor = 1.0;
+    noalias(mCurrentStress) = mPrestressFactor*mPrestress;
 }
 
 void Isotropic3D::InitializeSolutionStep( const Properties& props,
