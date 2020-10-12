@@ -59,6 +59,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "utilities/math_utils.h"
 #include "custom_utilities/sd_math_utils.h"
 
+// #define DEBUG_CONTACT_LINK
+
 namespace Kratos
 {
 //************************************************************************************
@@ -443,7 +445,37 @@ void ContactLink3D_Kinematic_Linear::CalculateAll( MatrixType& rLeftHandSideMatr
     //calculating normal contact stress
     double normalStress = ( GetValue( CONTACT_LINK_SLAVE )->GetValue( LAMBDAS )[GetValue( CONTACT_SLAVE_INTEGRATION_POINT_INDEX )] )
                           + Penalty * Gap;
-
+#ifdef DEBUG_CONTACT_LINK
+if (Id() == 623)
+{
+    KRATOS_WATCH(Id())
+    KRATOS_WATCH(GetValue( MASTER_CONTACT_LOCAL_POINT ))
+    KRATOS_WATCH(GetValue( MASTER_CONTACT_GLOBAL_POINT ))
+    KRATOS_WATCH(vMaster)
+    KRATOS_WATCH(Gap)
+    KRATOS_WATCH(dASlave)
+    KRATOS_WATCH(Penalty)
+    double lambda = GetValue( CONTACT_LINK_SLAVE )->GetValue( LAMBDAS )[GetValue( CONTACT_SLAVE_INTEGRATION_POINT_INDEX )];
+    KRATOS_WATCH(lambda)
+    KRATOS_WATCH(normalStress)
+    KRATOS_WATCH(SlaveShapeFunctionValues)
+    KRATOS_WATCH(MasterShapeFunctionValues)
+    std::cout << "slave displacements:" << std::endl;
+    for (int i = 0; i < GetValue( CONTACT_LINK_SLAVE )->GetGeometry().size(); ++i)
+        std::cout << " " << GetValue( CONTACT_LINK_SLAVE )->GetGeometry()[i].Id() << ":"
+                  << " " << GetValue( CONTACT_LINK_SLAVE )->GetGeometry()[i].GetSolutionStepValue(DISPLACEMENT_X)
+                  << " " << GetValue( CONTACT_LINK_SLAVE )->GetGeometry()[i].GetSolutionStepValue(DISPLACEMENT_Y)
+                  << " " << GetValue( CONTACT_LINK_SLAVE )->GetGeometry()[i].GetSolutionStepValue(DISPLACEMENT_Z)
+                  << std::endl;
+    std::cout << "master displacements:" << std::endl;
+    for (int i = 0; i < GetValue( CONTACT_LINK_MASTER )->GetGeometry().size(); ++i)
+        std::cout << " " << GetValue( CONTACT_LINK_MASTER )->GetGeometry()[i].Id() << ":"
+                  << " " << GetValue( CONTACT_LINK_MASTER )->GetGeometry()[i].GetSolutionStepValue(DISPLACEMENT_X)
+                  << " " << GetValue( CONTACT_LINK_MASTER )->GetGeometry()[i].GetSolutionStepValue(DISPLACEMENT_Y)
+                  << " " << GetValue( CONTACT_LINK_MASTER )->GetGeometry()[i].GetSolutionStepValue(DISPLACEMENT_Z)
+                  << std::endl;
+}
+#endif
     if ( normalStress <= 0.0 )
     {
         normalStress = 0.0;
@@ -566,6 +598,22 @@ void ContactLink3D_Kinematic_Linear::CalculateAll( MatrixType& rLeftHandSideMatr
         }
     }
 
+#ifdef DEBUG_CONTACT_LINK
+if (Id() == 623)
+{
+    KRATOS_WATCH(SlaveIntegrationWeight)
+    // KRATOS_WATCH(rRightHandSideVector)
+    std::cout << "Rs:";
+    for (int i = 0; i < dim*SlaveNN; ++i)
+        std::cout << " " << rRightHandSideVector[i+dim*MasterNN];
+    std::cout << std::endl;
+    std::cout << "Rm:";
+    for (int i = 0; i < dim*MasterNN; ++i)
+        std::cout << " " << rRightHandSideVector[i];
+    std::cout << std::endl;
+}
+#endif
+
     //END OF ADDING RESIDUAL CONTRIBUTIONS
     //************************************
 
@@ -658,6 +706,40 @@ void ContactLink3D_Kinematic_Linear::CalculateAll( MatrixType& rLeftHandSideMatr
             }
         }
     }
+
+    // #ifdef DEBUG_CONTACT_LINK
+    // if (Id() == 623)
+    // {
+    //     std::cout << "Kss:" << std::endl;
+    //     for (int i = 0; i < 3*SlaveNN; ++i)
+    //     {
+    //         for (int j = 0; j < 3*SlaveNN; ++j)
+    //             std::cout << ", " << rLeftHandSideMatrix(i+3*MasterNN, j+3*MasterNN);
+    //         std::cout << std::endl;
+    //     }
+    //     std::cout << "Ksm:" << std::endl;
+    //     for (int i = 0; i < 3*SlaveNN; ++i)
+    //     {
+    //         for (int j = 0; j < 3*MasterNN; ++j)
+    //             std::cout << ", " << rLeftHandSideMatrix(i+3*MasterNN, j);
+    //         std::cout << std::endl;
+    //     }
+    //     std::cout << "Kms:" << std::endl;
+    //     for (int i = 0; i < 3*MasterNN; ++i)
+    //     {
+    //         for (int j = 0; j < 3*SlaveNN; ++j)
+    //             std::cout << ", " << rLeftHandSideMatrix(i, j+3*MasterNN);
+    //         std::cout << std::endl;
+    //     }
+    //     std::cout << "Kmm:" << std::endl;
+    //     for (int i = 0; i < 3*MasterNN; ++i)
+    //     {
+    //         for (int j = 0; j < 3*MasterNN; ++j)
+    //             std::cout << ", " << rLeftHandSideMatrix(i, j);
+    //         std::cout << std::endl;
+    //     }
+    // }
+    // #endif
 
     //END OF CONTRIBUTION: SLAVE-SLAVE
     //END OF CONTRIBUTION DUE TO DISPLACEMENTS ON CONTACT SURFACES
@@ -821,6 +903,10 @@ void ContactLink3D_Kinematic_Linear::CalculateAll( MatrixType& rLeftHandSideMatr
             }
         }
     }
+
+#ifdef DEBUG_CONTACT_LINK
+    std::cout << "--------------------------------------- " << std::endl;
+#endif
 
     //BEGIN OF CONTRIBUTION: SLAVE -SLAVE
 //             //*****************************************************************
@@ -1758,3 +1844,5 @@ void ContactLink3D_Kinematic_Linear::PrintData( std::ostream& rOStream ) const
     rOStream << "ContactLink3D_Kinematic_Linear" << std::endl;
 }
 } // Namespace Kratos
+
+#undef DEBUG_CONTACT_LINK

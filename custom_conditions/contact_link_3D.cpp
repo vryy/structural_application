@@ -59,6 +59,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "utilities/math_utils.h"
 #include "custom_utilities/sd_math_utils.h"
 
+#define DEBUG_CONTACT_LINK
+
 namespace Kratos
 {
 //************************************************************************************
@@ -182,7 +184,7 @@ Matrix ContactLink3D::TangentialVectors( Condition::Pointer Surface,
         T( 1, 1 ) += ( Surface->GetGeometry().GetPoint( n ).Y0()
                        + Surface->GetGeometry().GetPoint( n ).GetSolutionStepValue( DISPLACEMENT_Y ) )
                      * DN( n, 1 );
-        T( 1, 2 ) += ( Surface->GetGeometry().GetPoint( n ).Z()
+        T( 1, 2 ) += ( Surface->GetGeometry().GetPoint( n ).Z0()
                        + Surface->GetGeometry().GetPoint( n ).GetSolutionStepValue( DISPLACEMENT_Z ) )
                      * DN( n, 1 );
     }
@@ -425,6 +427,19 @@ void ContactLink3D::CalculateAll( MatrixType& rLeftHandSideMatrix,
     double normalStress = ( GetValue( CONTACT_LINK_SLAVE )->GetValue( LAMBDAS )[GetValue( CONTACT_SLAVE_INTEGRATION_POINT_INDEX )] )
                           + Penalty * Gap;
 
+    #ifdef DEBUG_CONTACT_LINK
+    KRATOS_WATCH(Id())
+    KRATOS_WATCH(GetValue( MASTER_CONTACT_LOCAL_POINT ))
+    KRATOS_WATCH(Gap)
+    KRATOS_WATCH(dASlave)
+    KRATOS_WATCH(vMaster)
+    KRATOS_WATCH(GetValue( SLAVE_CONTACT_GLOBAL_POINT ))
+    KRATOS_WATCH(GetValue( MASTER_CONTACT_GLOBAL_POINT ))
+    KRATOS_WATCH(Penalty)
+    KRATOS_WATCH(GetValue( CONTACT_LINK_SLAVE )->GetProperties()[FRICTION_COEFFICIENT])
+    KRATOS_WATCH(normalStress)
+    #endif
+
     if ( normalStress <= 0.0 )
     {
         normalStress = 0.0;
@@ -525,9 +540,24 @@ void ContactLink3D::CalculateAll( MatrixType& rLeftHandSideMatrix,
         }
     }
 
+    #ifdef DEBUG_CONTACT_LINK
+    KRATOS_WATCH(relativTangentialVelocity)
+    KRATOS_WATCH(m)
+    double slip = (relativTangentialVelocity(0)*m(0,0)*relativTangentialVelocity(0)
+                 + relativTangentialVelocity(0)*m(0,1)*relativTangentialVelocity(1)
+                 + relativTangentialVelocity(1)*m(1,0)*relativTangentialVelocity(0)
+                 + relativTangentialVelocity(1)*m(1,1)*relativTangentialVelocity(1));
+    KRATOS_WATCH(slip)
+    std::cout << "Stick at CalculateAll: " << Stick << std::endl;
+    #endif
+
     //Calculating slave element's current integration weight
     double SlaveIntegrationWeight = GetValue( CONTACT_LINK_SLAVE )->GetGeometry().IntegrationPoints()[
                                         GetValue( CONTACT_SLAVE_INTEGRATION_POINT_INDEX )].Weight();
+
+    #ifdef DEBUG_CONTACT_LINK
+    KRATOS_WATCH(SlaveIntegrationWeight)
+    #endif
 
     //BEGIN OF ADDING RESIDUAL CONTRIBUTIONS
     if ( CalculateResidualVectorFlag == true )
@@ -1788,9 +1818,19 @@ void ContactLink3D::CalculateDampingMatrix( MatrixType& rDampingMatrix, ProcessI
     double normalStress = ( GetValue( CONTACT_LINK_SLAVE )->GetValue( LAMBDAS )[GetValue( CONTACT_SLAVE_INTEGRATION_POINT_INDEX )] )
                           + Penalty * Gap;
 
+    #ifdef DEBUG_CONTACT_LINK
+    std::cout << Id() << " at CalculateDampingMatrix" << std::endl;
+    KRATOS_WATCH(Penalty)
+    KRATOS_WATCH(Penalty_T)
+    KRATOS_WATCH(Gap)
+    KRATOS_WATCH(dASlave)
+    KRATOS_WATCH(normalStress)
+    #endif
+
     if ( normalStress < 0.0 )
     {
         normalStress = 0.0;
+        std::cout << "-------------------------" << std::endl;
         return;
     }
 
@@ -1863,6 +1903,14 @@ void ContactLink3D::CalculateDampingMatrix( MatrixType& rDampingMatrix, ProcessI
         tangentialStresses[1] = tangentialStresses_trial[1];
         Stick = true;
     }
+
+    #ifdef DEBUG_CONTACT_LINK
+    KRATOS_WATCH(Stick)
+    KRATOS_WATCH(tangentialVelocity)
+    KRATOS_WATCH(m)
+    KRATOS_WATCH(T)
+    KRATOS_WATCH(norm_T)
+    #endif
 
     //Calculating slave element's current integration weight
     double SlaveIntegrationWeight = GetValue( CONTACT_LINK_SLAVE )->GetGeometry().IntegrationPoints()[
@@ -2203,6 +2251,10 @@ void ContactLink3D::CalculateDampingMatrix( MatrixType& rDampingMatrix, ProcessI
             }
         }
     }
+
+    #ifdef DEBUG_CONTACT_LINK
+    std::cout << "-------------------------" << std::endl;
+    #endif
 
     KRATOS_CATCH( "" )
 }
@@ -2694,3 +2746,5 @@ void ContactLink3D::PrintData( std::ostream& rOStream ) const
 }
 
 } // Namespace Kratos
+
+#undef DEBUG_CONTACT_LINK
