@@ -51,8 +51,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 * ***********************************************************/
 
 
-#if !defined(KRATOS_FACE_PRESSURE3D_H_INCLUDED )
-#define  KRATOS_FACE_PRESSURE3D_H_INCLUDED
+#if !defined(KRATOS_FACE_PRESSURE3D_TOTAL_LAGRANGIAN_H_INCLUDED )
+#define  KRATOS_FACE_PRESSURE3D_TOTAL_LAGRANGIAN_H_INCLUDED
 
 
 
@@ -60,7 +60,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
 // External includes
-#include "boost/smart_ptr.hpp"
 
 
 // Project includes
@@ -74,26 +73,26 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 namespace Kratos
 {
 
-class FacePressure3D
+class FacePressure3DTotalLagrangian
     : public Condition
 {
 public:
 
-    // Counted pointer of FacePressure3D
-    KRATOS_CLASS_POINTER_DEFINITION( FacePressure3D );
+    // Counted pointer of FacePressure3DTotalLagrangian
+    KRATOS_CLASS_POINTER_DEFINITION( FacePressure3DTotalLagrangian );
 
 
     // Constructor void
-    FacePressure3D();
+    FacePressure3DTotalLagrangian();
 
     // Constructor using an array of nodes
-    FacePressure3D( IndexType NewId, GeometryType::Pointer pGeometry );
+    FacePressure3DTotalLagrangian( IndexType NewId, GeometryType::Pointer pGeometry );
 
     // Constructor using an array of nodes with properties
-    FacePressure3D( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties );
+    FacePressure3DTotalLagrangian( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties );
 
     // Destructor
-    virtual ~FacePressure3D();
+    virtual ~FacePressure3DTotalLagrangian();
 
 
     // Name Operations
@@ -226,8 +225,8 @@ private:
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Condition );
     }
 
-}; // class FacePressure3D.
+}; // class FacePressure3DTotalLagrangian.
 
 } // namespace Kratos.
 
-#endif // KRATOS_FACE_PRESSURE3D_H_INCLUDED  defined
+#endif // KRATOS_FACE_PRESSURE3D_TOTAL_LAGRANGIAN_H_INCLUDED  defined

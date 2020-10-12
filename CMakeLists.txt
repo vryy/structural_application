@@ -4,6 +4,9 @@ message("**** configuring KratosStructuralApplication ****")
 
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 
+##include cotire (CMake module to hep generating precompiled header to speed-up the build process)
+#include(cotire)
+
 ## generate variables with the sources
 set( KRATOS_STRUCTURAL_APPLICATION_SOURCES  
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/rigid_body_3D.cpp
@@ -12,7 +15,7 @@ set( KRATOS_STRUCTURAL_APPLICATION_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/timoshenko_beam_element.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/timoshenko_linear_beam_element.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/corotational_linear_beam_element.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/shell_anisotropic_linear.cpp
+    # ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/shell_anisotropic_linear.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/shell_isotropic.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/membrane_element.cpp     
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/total_lagrangian.cpp
@@ -23,6 +26,7 @@ set( KRATOS_STRUCTURAL_APPLICATION_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/unsaturated_soils_element_2phase_small_strain_scale_water_pressure.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/unsaturated_soils_element_3phase_small_strain.cpp    
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/crisfield_truss_element.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/truss_element.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/ebst.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/ebst_vel.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/eas_element_q4e4.cpp
@@ -40,8 +44,8 @@ set( KRATOS_STRUCTURAL_APPLICATION_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_processes_to_python.cpp
 
     ${CMAKE_CURRENT_SOURCE_DIR}/constitutive_laws/dummy_constitutive_law.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/constitutive_laws/hooks_law.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/constitutive_laws/external_isotropic_3d.cpp
+    # ${CMAKE_CURRENT_SOURCE_DIR}/constitutive_laws/hooks_law.cpp
+    # ${CMAKE_CURRENT_SOURCE_DIR}/constitutive_laws/external_isotropic_3d.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/constitutive_laws/isotropic_damage_2d.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/constitutive_laws/isotropic_damage_3d.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/constitutive_laws/isotropic_damage_implex.cpp
@@ -100,6 +104,7 @@ set( KRATOS_STRUCTURAL_APPLICATION_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/face2D.cpp 
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/face3D.cpp 
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/face_pressure3D.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/face_pressure3D_total_lagrangian.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/faceforce3D.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/line_force.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/line_pressure.cpp
@@ -147,6 +152,8 @@ endif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 	set_target_properties(KratosStructuralApplication PROPERTIES SUFFIX .so)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+
+#cotire(KratosStructuralApplication)
 
 install(TARGETS KratosStructuralApplication DESTINATION libs )
 

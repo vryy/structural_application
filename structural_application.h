@@ -87,6 +87,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_elements/shell_anisotropic.h"
 #include "custom_elements/shell_anisotropic_linear.h"
 #include "custom_elements/crisfield_truss_element.h"
+#include "custom_elements/truss_element.h"
 #include "custom_elements/ebst.h"
 #include "custom_elements/ebst_vel.h"
 #include "custom_elements/eas_element_q4e4.h"
@@ -97,6 +98,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_conditions/face2D.h"
 #include "custom_conditions/face3D.h"
 #include "custom_conditions/face_pressure3D.h"
+#include "custom_conditions/face_pressure3D_total_lagrangian.h"
 #include "custom_conditions/faceforce3D.h"
 #include "custom_conditions/line_force.h"
 #include "custom_conditions/line_pressure.h"
@@ -523,6 +525,8 @@ private:
 
     const CrisfieldTrussElement mCrisfieldTrussElement3D2N;
     const CrisfieldTrussElement mCrisfieldTrussElement3D3N;
+    const TrussElement mTrussElement3D2N;
+    const TrussElement mTrussElement3D3N;
     const BeamElement mBeamElement3D2N;
     const BeamElement mBeamElement3D3N;
     const TimoshenkoBeamElement mTimoshenkoBeamElement3D2N;
@@ -533,7 +537,7 @@ private:
     const CorotationalLinearBeamElement mCorotationalLinearBeamElement3D2N;
     const ShellIsotropic mIsoShellElement;
     const ShellAnisotropic mAnisoShellElement;
-    const ShellAnisotropicLinear mAnisoLinearShellElement;
+    // const ShellAnisotropicLinear mAnisoLinearShellElement;
     const MembraneElement mMembraneElement;
 
     //const LinearIncompresibleElement mLinearIncompresibleElement2D3N;
@@ -603,6 +607,11 @@ private:
     const FacePressure3D  mFacePressure3D4N;
     const FacePressure3D  mFacePressure3D8N;
     const FacePressure3D  mFacePressure3D9N;
+    const FacePressure3DTotalLagrangian  mFacePressureTotalLagrangian3D3N;
+    const FacePressure3DTotalLagrangian  mFacePressureTotalLagrangian3D6N;
+    const FacePressure3DTotalLagrangian  mFacePressureTotalLagrangian3D4N;
+    const FacePressure3DTotalLagrangian  mFacePressureTotalLagrangian3D8N;
+    const FacePressure3DTotalLagrangian  mFacePressureTotalLagrangian3D9N;
     const LineForce mLineForce2D2N;
     const LineForce mLineForce2D3N;
     const LineForce mLineForce3D2N;

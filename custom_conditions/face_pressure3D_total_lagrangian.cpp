@@ -57,9 +57,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
 // Project includes
-#include "includes/define.h"
-#include "custom_conditions/face_pressure3D.h"
-#include "structural_application.h"
+#include "custom_conditions/face_pressure3D_total_lagrangian.h"
+// #include "structural_application.h"
 #include "utilities/math_utils.h"
 #include "custom_utilities/sd_math_utils.h"
 
@@ -73,18 +72,18 @@ namespace Kratos
 // -------- //
 
 // Constructor
-FacePressure3D::FacePressure3D()
+FacePressure3DTotalLagrangian::FacePressure3DTotalLagrangian()
 {
 }
 
 // Constructor
-FacePressure3D::FacePressure3D( IndexType NewId, GeometryType::Pointer pGeometry )
+FacePressure3DTotalLagrangian::FacePressure3DTotalLagrangian( IndexType NewId, GeometryType::Pointer pGeometry )
     : Condition( NewId, pGeometry )
 {
 }
 
 // Constructor
-FacePressure3D::FacePressure3D( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties )
+FacePressure3DTotalLagrangian::FacePressure3DTotalLagrangian( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties )
     : Condition( NewId, pGeometry, pProperties )
 
 {
@@ -101,33 +100,33 @@ FacePressure3D::FacePressure3D( IndexType NewId, GeometryType::Pointer pGeometry
 //***********************************************************************************
 //***********************************************************************************
 
-Condition::Pointer FacePressure3D::Create(
+Condition::Pointer FacePressure3DTotalLagrangian::Create(
     IndexType NewId,
     NodesArrayType const& ThisNodes,
     PropertiesType::Pointer pProperties ) const
 {
-    return Condition::Pointer( new FacePressure3D( NewId, GetGeometry().Create( ThisNodes ), pProperties ) );
+    return Condition::Pointer( new FacePressure3DTotalLagrangian( NewId, GetGeometry().Create( ThisNodes ), pProperties ) );
 }
 
-Condition::Pointer FacePressure3D::Create(
+Condition::Pointer FacePressure3DTotalLagrangian::Create(
     IndexType NewId,
     GeometryType::Pointer pGeom,
     PropertiesType::Pointer pProperties ) const
 {
-    return Condition::Pointer( new FacePressure3D( NewId, pGeom, pProperties ) );
+    return Condition::Pointer( new FacePressure3DTotalLagrangian( NewId, pGeom, pProperties ) );
 }
 
 //***********************************************************************************
 //***********************************************************************************
 // Destructor
-FacePressure3D::~FacePressure3D()
+FacePressure3DTotalLagrangian::~FacePressure3DTotalLagrangian()
 {
 }
 
 //***********************************************************************************
 //***********************************************************************************
 
-void FacePressure3D::EquationIdVector(
+void FacePressure3DTotalLagrangian::EquationIdVector(
     EquationIdVectorType& rResult,
     ProcessInfo& rCurrentProcessInfo )
 
@@ -153,7 +152,7 @@ void FacePressure3D::EquationIdVector(
 //***********************************************************************************
 //***********************************************************************************
 
-void FacePressure3D::GetDofList(
+void FacePressure3DTotalLagrangian::GetDofList(
     DofsVectorType& ElementalDofList,
     ProcessInfo& rCurrentProcessInfo )
 
@@ -175,7 +174,7 @@ void FacePressure3D::GetDofList(
 //***********************************************************************************
 //***********************************************************************************
 
-void FacePressure3D::CalculateRightHandSide(
+void FacePressure3DTotalLagrangian::CalculateRightHandSide(
     VectorType& rRightHandSideVector,
     ProcessInfo& rCurrentProcessInfo )
 
@@ -191,7 +190,7 @@ void FacePressure3D::CalculateRightHandSide(
 //***********************************************************************************
 //***********************************************************************************
 
-void FacePressure3D::CalculateLocalSystem(
+void FacePressure3DTotalLagrangian::CalculateLocalSystem(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
     ProcessInfo& rCurrentProcessInfo )
@@ -208,7 +207,7 @@ void FacePressure3D::CalculateLocalSystem(
 //***********************************************************************************
 //***********************************************************************************
 
-void FacePressure3D::CalculateMassMatrix(
+void FacePressure3DTotalLagrangian::CalculateMassMatrix(
     MatrixType& rMassMatrix,
     ProcessInfo& rCurrentProcessInfo )
 
@@ -223,7 +222,7 @@ void FacePressure3D::CalculateMassMatrix(
 //***********************************************************************************
 //***********************************************************************************
 
-void FacePressure3D::CalculateDampingMatrix(
+void FacePressure3DTotalLagrangian::CalculateDampingMatrix(
     MatrixType& rDampingMatrix,
     ProcessInfo& rCurrentProcessInfo )
 
@@ -239,7 +238,7 @@ void FacePressure3D::CalculateDampingMatrix(
 //***********************************************************************************
 //***********************************************************************************
 
-void FacePressure3D::GetValuesVector(
+void FacePressure3DTotalLagrangian::GetValuesVector(
     Vector& values,
     int Step )
 
@@ -263,7 +262,7 @@ void FacePressure3D::GetValuesVector(
 //***********************************************************************************
 //***********************************************************************************
 
-void FacePressure3D::GetFirstDerivativesVector(
+void FacePressure3DTotalLagrangian::GetFirstDerivativesVector(
     Vector& values,
     int Step )
 
@@ -288,7 +287,7 @@ void FacePressure3D::GetFirstDerivativesVector(
 //***********************************************************************************
 //***********************************************************************************
 
-void FacePressure3D::GetSecondDerivativesVector(
+void FacePressure3DTotalLagrangian::GetSecondDerivativesVector(
     Vector& values,
     int Step )
 
@@ -319,7 +318,7 @@ void FacePressure3D::GetSecondDerivativesVector(
 //***********************************************************************************
 //***********************************************************************************
 
-void FacePressure3D::CalculateAndSubKp(
+void FacePressure3DTotalLagrangian::CalculateAndSubKp(
     Matrix& K,
     array_1d<double, 3>& ge,
     array_1d<double, 3>& gn,
@@ -366,7 +365,7 @@ void FacePressure3D::CalculateAndSubKp(
 //***********************************************************************************
 //***********************************************************************************
 
-void FacePressure3D::MakeCrossMatrix(
+void FacePressure3DTotalLagrangian::MakeCrossMatrix(
     boost::numeric::ublas::bounded_matrix<double, 3, 3>& M,
     array_1d<double, 3>& U )
 
@@ -385,7 +384,7 @@ void FacePressure3D::MakeCrossMatrix(
 //***********************************************************************************
 //***********************************************************************************
 
-void FacePressure3D::CrossProduct(
+void FacePressure3DTotalLagrangian::CrossProduct(
     array_1d<double, 3>& cross,
     array_1d<double, 3>& a,
     array_1d<double, 3>& b )
@@ -399,7 +398,7 @@ void FacePressure3D::CrossProduct(
 //***********************************************************************************
 //***********************************************************************************
 
-void  FacePressure3D::ExpandReducedMatrix(
+void  FacePressure3DTotalLagrangian::ExpandReducedMatrix(
     Matrix& Destination,
     Matrix& ReducedMatrix )
 
@@ -427,7 +426,7 @@ void  FacePressure3D::ExpandReducedMatrix(
 //***********************************************************************************
 //***********************************************************************************
 
-void  FacePressure3D::SubtractMatrix(
+void  FacePressure3DTotalLagrangian::SubtractMatrix(
     MatrixType& Destination,
     boost::numeric::ublas::bounded_matrix<double, 3, 3>& InputMatrix,
     int InitialRow,
@@ -449,7 +448,7 @@ void  FacePressure3D::SubtractMatrix(
 //***********************************************************************************
 //***********************************************************************************
 
-void FacePressure3D::CalculateAndAdd_PressureForce(
+void FacePressure3DTotalLagrangian::CalculateAndAdd_PressureForce(
     VectorType& residualvector,
     const Vector& N,
     const array_1d<double, 3>& v3,
@@ -477,7 +476,7 @@ void FacePressure3D::CalculateAndAdd_PressureForce(
 //***********************************************************************************
 //***********************************************************************************
 
-void FacePressure3D::CalculateAll(
+void FacePressure3DTotalLagrangian::CalculateAll(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo,
@@ -580,7 +579,7 @@ void FacePressure3D::CalculateAll(
     KRATOS_CATCH( "" )
 }
 
-int FacePressure3D::Check( const ProcessInfo& rCurrentProcessInfo )
+int FacePressure3DTotalLagrangian::Check( const ProcessInfo& rCurrentProcessInfo )
 {
     return 0;
 }
