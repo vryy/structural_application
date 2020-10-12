@@ -75,6 +75,9 @@ class SolvingStrategyPython:
 
         self.attached_processes = []
 
+        if 'update_lambda' not in self.Parameters:
+            self.Parameters['update_lambda'] = True
+
     #######################################################################
     def Initialize(self):
         if(self.scheme.SchemeIsInitialized() == False):
@@ -87,6 +90,9 @@ class SolvingStrategyPython:
             proc.ExecuteInitialize()
         self.InitializeWasPerformed = True
         print("SolvingStrategyPython.Initialize is called")
+
+        for prop in self.model_part.Properties:
+            prop.SetValue(FRICTION_COEFFICIENT, self.Parameters['friction'])
 
     #######################################################################
     def SolveLagrange( self ):
@@ -134,7 +140,8 @@ class SolvingStrategyPython:
         uzawaConverged = False
         ##  First step: reform DOF set and check if uzawa iteration is necessary
         self.PerformNewtonRaphsonIteration()
-        self.cu.Update( self.model_part, originalPosition, self.Parameters['friction'], self.Parameters['contact_ramp_penalties_flag'], self.Parameters['rampcriterion'], self.Parameters['fricrampcriterion'], self.Parameters['rampfactor'], self.Parameters['fricrampfactor'], self.Parameters['maxpenalty'], self.Parameters['fricmaxpenalty']  )
+        if self.Parameters['update_lambda']:
+            self.cu.Update( self.model_part, originalPosition, self.Parameters['friction'], self.Parameters['contact_ramp_penalties_flag'], self.Parameters['rampcriterion'], self.Parameters['fricrampcriterion'], self.Parameters['rampfactor'], self.Parameters['fricrampfactor'], self.Parameters['maxpenalty'], self.Parameters['fricmaxpenalty']  )
         if( self.cu.IsConverged( self.model_part, 0,  originalPosition, self.Parameters['friction'] ) == True ):
             uzawaConverged = True
             (self.builder_and_solver).SetReshapeMatrixFlag(self.ReformDofSetAtEachStep)
@@ -153,7 +160,8 @@ class SolvingStrategyPython:
             ## solving the standard newton-raphson iteration
             self.PerformNewtonRaphsonIteration()
             ## updating the lagrange multipliers
-            self.cu.Update( self.model_part, originalPosition, self.Parameters['friction'], self.Parameters['contact_ramp_penalties_flag'], self.Parameters['rampcriterion'], self.Parameters['fricrampcriterion'], self.Parameters['rampfactor'], self.Parameters['fricrampfactor'], self.Parameters['maxpenalty'], self.Parameters['fricmaxpenalty']  )
+            if self.Parameters['update_lambda']:
+                self.cu.Update( self.model_part, originalPosition, self.Parameters['friction'], self.Parameters['contact_ramp_penalties_flag'], self.Parameters['rampcriterion'], self.Parameters['fricrampcriterion'], self.Parameters['rampfactor'], self.Parameters['fricrampfactor'], self.Parameters['maxpenalty'], self.Parameters['fricmaxpenalty']  )
             ## checking convergence
             if( self.cu.IsConverged( self.model_part, uzawaStep, originalPosition, self.Parameters['friction'] ) == True ):
                 uzawaConverged = True
