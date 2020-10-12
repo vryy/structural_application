@@ -260,7 +260,12 @@ namespace Kratos
      */
     void KinematicLinear::CalculateOnIntegrationPoints( const Variable<double>& rVariable, std::vector<double>& Output, const ProcessInfo& rCurrentProcessInfo )
     {
-        GetValueOnIntegrationPoints( rVariable, Output, rCurrentProcessInfo );
+        this->GetValueOnIntegrationPoints( rVariable, Output, rCurrentProcessInfo );
+
+        for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); ++i )
+        {
+            mConstitutiveLawVector[i]->SetValue(rVariable, Output[i], rCurrentProcessInfo);
+        }
     }
 
     /**
@@ -271,7 +276,12 @@ namespace Kratos
      */
     void KinematicLinear::CalculateOnIntegrationPoints( const Variable<array_1d<double, 3> >& rVariable, std::vector<array_1d<double, 3> >& Output, const ProcessInfo& rCurrentProcessInfo )
     {
-        GetValueOnIntegrationPoints( rVariable, Output, rCurrentProcessInfo );
+        this->GetValueOnIntegrationPoints( rVariable, Output, rCurrentProcessInfo );
+
+        for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); ++i )
+        {
+            mConstitutiveLawVector[i]->SetValue(rVariable, Output[i], rCurrentProcessInfo);
+        }
     }
 
     /**
@@ -283,7 +293,12 @@ namespace Kratos
     void KinematicLinear::CalculateOnIntegrationPoints( const Variable<Vector>& rVariable,
             std::vector<Vector>& Output, const ProcessInfo& rCurrentProcessInfo )
     {
-        GetValueOnIntegrationPoints( rVariable, Output, rCurrentProcessInfo );
+        this->GetValueOnIntegrationPoints( rVariable, Output, rCurrentProcessInfo );
+
+        for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); ++i )
+        {
+            mConstitutiveLawVector[i]->SetValue(rVariable, Output[i], rCurrentProcessInfo);
+        }
     }
 
     /**
@@ -388,13 +403,6 @@ namespace Kratos
                 for ( unsigned int ii = 0; ii < StrainVector.size(); ++ii )
                     Output[PointNumber]( 0, ii ) = StressVector[ii];
             }
-            else if ( rVariable == INSITU_STRESS )
-            {
-                Vector dummy = row( Output[PointNumber], 0 );
-                row( Output[PointNumber], 0 ) = mConstitutiveLawVector[PointNumber]->GetValue( INSITU_STRESS, dummy );
-            }
-
-            //             std::cout << StressVector[2] << "\t";
         }
 
         #ifdef ENABLE_BEZIER_GEOMETRY
@@ -1569,45 +1577,7 @@ namespace Kratos
         unsigned int number_of_nodes = GetGeometry().size();
         unsigned int mat_size = dim * number_of_nodes;
 
-        if ( rVariable == MATERIAL_PARAMETERS )
-        {
-            if ( rValues.size() != mConstitutiveLawVector.size() )
-                rValues.resize( mConstitutiveLawVector.size() );
-
-            for ( unsigned int ii = 0; ii < mConstitutiveLawVector.size(); ++ii )
-                rValues[ii] = mConstitutiveLawVector[ii]->GetValue( rVariable, rValues[ii] );
-        }
-        else if ( rVariable == INSITU_STRESS || rVariable == PRESTRESS )
-        {
-            for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); ++i )
-            {
-                if ( rValues[i].size() != strain_size )
-                    rValues[i].resize( strain_size );
-
-                noalias( rValues[i] ) = mConstitutiveLawVector[i]->GetValue( PRESTRESS, rValues[i] );
-            }
-        }
-        else if ( rVariable == PLASTIC_STRAIN_VECTOR )
-        {
-            for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); ++i )
-            {
-                if ( rValues[i].size() != strain_size )
-                    rValues[i].resize( strain_size );
-
-                noalias( rValues[i] ) = mConstitutiveLawVector[i]->GetValue( PLASTIC_STRAIN_VECTOR, rValues[i] );
-            }
-        }
-        else if ( rVariable == STRESSES )
-        {
-            for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); ++i )
-            {
-//                if ( rValues[i].size() != strain_size )
-//                    rValues[i].resize( strain_size );
-
-                noalias( rValues[i] ) = mConstitutiveLawVector[i]->GetValue( STRESSES, rValues[i] );
-            }
-        }
-        else if ( rVariable == RECOVERY_STRESSES )
+        if ( rVariable == RECOVERY_STRESSES )
         {
             /////////////////////////////////////////////////////////////////////////
             //// Calculate recover stresses
@@ -1637,13 +1607,6 @@ namespace Kratos
             else
                 KRATOS_THROW_ERROR(std::logic_error, "The stress recovery method is not defined for element", Id());
 
-        }
-        else if ( rVariable == INTERNAL_VARIABLES )
-        {
-            for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); ++i )
-            {
-                noalias( rValues[i] ) = mConstitutiveLawVector[i]->GetValue( INTERNAL_VARIABLES, rValues[i] );
-            }
         }
         else if ( rVariable == STRAIN || rVariable == CURRENT_STRAIN_VECTOR )
         {
@@ -1701,7 +1664,7 @@ namespace Kratos
         else if ( rVariable == PRINCIPAL_STRESS )
         {
             std::vector<Vector> stresses;
-            this->GetValueOnIntegrationPoints( rVariable, stresses, rCurrentProcessInfo );
+            this->GetValueOnIntegrationPoints( STRESSES, stresses, rCurrentProcessInfo );
 
             Matrix sigma(3, 3);
             const double conv = 1.e-8;
@@ -1709,10 +1672,10 @@ namespace Kratos
             for(std::size_t i = 0; i < stresses.size(); ++i)
             {
                 if(rValues[i].size() != 3)
-                    rValues.resize(3);
+                    rValues[i].resize(3, false);
 
                 SD_MathUtils<double>::StressVectorToTensor(stresses[i], sigma);
-                Vector eigenvalues = SD_MathUtils<double>::EigenValues(sigma, conv, zero);
+                Vector eigenvalues = SD_MathUtils<double>::EigenValuesSym3x3(sigma);
 
                 noalias(rValues[i]) = SD_MathUtils<double>::OrganizeEigenvalues(eigenvalues);
             }
@@ -1720,7 +1683,7 @@ namespace Kratos
         else if ( rVariable == PRINCIPAL_STRAIN )
         {
             std::vector<Vector> strain;
-            this->GetValueOnIntegrationPoints( rVariable, strain, rCurrentProcessInfo );
+            this->GetValueOnIntegrationPoints( STRAIN, strain, rCurrentProcessInfo );
 
             Matrix epsilon(3, 3);
             const double conv = 1.e-8;
@@ -1728,16 +1691,19 @@ namespace Kratos
             for(std::size_t i = 0; i < strain.size(); ++i)
             {
                 if(rValues[i].size() != 3)
-                    rValues.resize(3);
+                    rValues[i].resize(3, false);
 
                 SD_MathUtils<double>::StrainVectorToTensor(strain[i], epsilon);
-                Vector eigenvalues = SD_MathUtils<double>::EigenValues(epsilon, conv, zero);
+                Vector eigenvalues = SD_MathUtils<double>::EigenValuesSym3x3(epsilon);
 
                 noalias(rValues[i]) = SD_MathUtils<double>::OrganizeEigenvalues(eigenvalues);
             }
         }
         else
         {
+            if ( rValues.size() != mConstitutiveLawVector.size() )
+                rValues.resize( mConstitutiveLawVector.size() );
+
             for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); ++i )
             {
                 rValues[i] = mConstitutiveLawVector[i]->GetValue( rVariable, rValues[i] );
