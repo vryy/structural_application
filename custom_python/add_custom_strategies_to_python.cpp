@@ -151,7 +151,7 @@ void  AddCustomStrategiesToPython()
 
     typedef MultiPhaseFlowCriteria< SparseSpaceType,  LocalSpaceType >
     MultiPhaseFlowCriteriaType;
-    
+
 //     typedef ResidualBasedMultiPhaseCriteria< SparseSpaceType, LocalSpaceType > ResidualBasedMultiPhaseCriteriaType;
 
     typedef BuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType>
@@ -237,8 +237,9 @@ void  AddCustomStrategiesToPython()
     class_< MultiPhaseFlowCriteriaType,
             bases< ConvergenceCriteriaBaseType >, boost::noncopyable >
             ("MultiPhaseFlowCriteria", init<double, double >() )
+            .def("SetType", &MultiPhaseFlowCriteriaType::SetType)
             ;
-            
+
 //             class_< ResidualBasedMultiPhaseCriteriaType,
 //             bases< ConvergenceCriteriaBaseType >, boost::noncopyable >
 //             ("ResidualBasedMultiPhaseCriteria", init<double, double >() )

@@ -7,9 +7,9 @@ A General Purpose Software for Multi-Physics Finite Element Analysis
 Version 1.0 (Released on march 05, 2007).
 
 Copyright 2007
-Pooyan Dadvand, Riccardo Rossi, Janosch Stascheit, Felix Nagel
-pooyan@cimne.upc.edu
-rrossi@cimne.upc.edu
+Pooyan Dxdvand, Riccardo Rossi, Janosch Stascheit, Felix Nagel
+pooyan@cimne.upc.eDx
+rrossi@cimne.upc.eDx
 janosch.stascheit@rub.de
 nagel@sd.rub.de
 - CIMNE (International Center for Numerical Methods in Engineering),
@@ -35,7 +35,7 @@ THE  SOFTWARE IS  PROVIDED  "AS  IS", WITHOUT  WARRANTY  OF ANY  KIND,
 EXPRESS OR  IMPLIED, INCLUDING  BUT NOT LIMITED  TO THE  WARRANTIES OF
 MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
 IN NO EVENT  SHALL THE AUTHORS OR COPYRIGHT HOLDERS  BE LIABLE FOR ANY
-CLAIM, DAMAGES OR  OTHER LIABILITY, WHETHER IN AN  ACTION OF CONTRACT,
+CLAIM, DxMAGES OR  OTHER LIABILITY, WHETHER IN AN  ACTION OF CONTRACT,
 TORT  OR OTHERWISE, ARISING  FROM, OUT  OF OR  IN CONNECTION  WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
@@ -44,7 +44,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 /* *********************************************************
  *
  *   Last Modified by:    $Author: janosch $
- *   Date:                $Date: 2007-04-13 15:59:32 $
+ *   Dxte:                $Dxte: 2007-04-13 15:59:32 $
  *   Revision:            $Revision: 1.2 $
  *
  * ***********************************************************/
@@ -144,20 +144,29 @@ public:
     /** Constructor.
      */
     MultiPhaseFlowCriteria(
-        TDataType NewRatioTolerance,
-        TDataType AlwaysConvergedNorm)
+        TDataType RelativeTolerance,
+        TDataType AbsoluteTolerance)
         : ConvergenceCriteria< TSparseSpace, TDenseSpace >()
     {
-        mRatioTolerance = NewRatioTolerance;
-        mAlwaysConvergedNorm = AlwaysConvergedNorm;
+        mRelativeTolerance = RelativeTolerance;
+        mAbsoluteTolerance = AbsoluteTolerance;
 
-        //mActualizeRHSIsNeeded = false;
+        // mCheckType = 1; // only check the absolute criteria
+        // mCheckType = 2; // only check the relative criteria
+        // mCheckType = 3; // check both
+        mCheckType = 4; // one of them
     }
 
     /** Destructor.
      */
     virtual ~MultiPhaseFlowCriteria()
     {
+    }
+
+
+    void SetType(const int& Type)
+    {
+        mCheckType = Type;
     }
 
 
@@ -189,19 +198,15 @@ public:
     {
         if (Dx.size() != 0) //if we are solving for something
         {
-
-            double mFinalCorrectionNorm = 0.0;
-            double EnergyNorm = 0.0;
-            double referenceNorm = 0.0;
-            int counter = 0;
-            double mFinalCorrectionNorm_WATER = 0.0;
-            double EnergyNorm_WATER = 0.0;
-            double referenceNorm_WATER = 0.0;
-            int counter_WATER = 0;
-            double mFinalCorrectionNorm_AIR = 0.0;
-            double EnergyNorm_AIR = 0.0;
-            double referenceNorm_AIR = 0.0;
-            int counter_AIR = 0;
+            double norm_Dx = 0.0;
+            double norm_b = 0.0;
+            double norm_x = 0.0;
+            double norm_Dx_WATER = 0.0;
+            double norm_b_WATER = 0.0;
+            double norm_x_WATER = 0.0;
+            double norm_Dx_AIR = 0.0;
+            double norm_b_AIR = 0.0;
+            double norm_x_AIR = 0.0;
 
             bool HasWaterPres = false;
             bool HasAirPres = false;
@@ -210,173 +215,148 @@ public:
             {
                 if (i_dof->IsFree())
                 {
-
                     if (i_dof->GetVariable() == DISPLACEMENT_X)
                     {
-                        mFinalCorrectionNorm +=
-                            Dx[i_dof->EquationId()] * Dx[i_dof->EquationId()];
-                        EnergyNorm += b[i_dof->EquationId()] * b[i_dof->EquationId()];
-                        referenceNorm +=
-                            i_dof->GetSolutionStepValue(DISPLACEMENT_EINS_X) * i_dof->GetSolutionStepValue(DISPLACEMENT_EINS_X);
-                        counter++;
+                        norm_Dx += Dx[i_dof->EquationId()] * Dx[i_dof->EquationId()];
+                        norm_b += b[i_dof->EquationId()] * b[i_dof->EquationId()];
+                        norm_x += i_dof->GetSolutionStepValue(DISPLACEMENT_X) * i_dof->GetSolutionStepValue(DISPLACEMENT_X);
                     }
                     if (i_dof->GetVariable() == DISPLACEMENT_Y)
                     {
-                        mFinalCorrectionNorm +=
-                            Dx[i_dof->EquationId()] * Dx[i_dof->EquationId()];
-                        EnergyNorm += b[i_dof->EquationId()] * b[i_dof->EquationId()];
-                        referenceNorm +=
-                            i_dof->GetSolutionStepValue(DISPLACEMENT_EINS_Y) * i_dof->GetSolutionStepValue(DISPLACEMENT_EINS_Y);
-                        counter++;
+                        norm_Dx += Dx[i_dof->EquationId()] * Dx[i_dof->EquationId()];
+                        norm_b += b[i_dof->EquationId()] * b[i_dof->EquationId()];
+                        norm_x += i_dof->GetSolutionStepValue(DISPLACEMENT_Y) * i_dof->GetSolutionStepValue(DISPLACEMENT_Y);
                     }
                     if (i_dof->GetVariable() == DISPLACEMENT_Z)
                     {
-                        mFinalCorrectionNorm +=
-                            Dx[i_dof->EquationId()] * Dx[i_dof->EquationId()];
-                        EnergyNorm += b[i_dof->EquationId()] * b[i_dof->EquationId()];
-                        referenceNorm +=
-                            i_dof->GetSolutionStepValue(DISPLACEMENT_EINS_Z) * i_dof->GetSolutionStepValue(DISPLACEMENT_EINS_Z);
-                        counter++;
+                        norm_Dx += Dx[i_dof->EquationId()] * Dx[i_dof->EquationId()];
+                        norm_b += b[i_dof->EquationId()] * b[i_dof->EquationId()];
+                        norm_x += i_dof->GetSolutionStepValue(DISPLACEMENT_Z) * i_dof->GetSolutionStepValue(DISPLACEMENT_Z);
                     }
                     if (i_dof->GetVariable() == WATER_PRESSURE)
                     {
                         HasWaterPres = true;
 
-                        mFinalCorrectionNorm_WATER +=
-                            Dx[i_dof->EquationId()] * Dx[i_dof->EquationId()];
-                        EnergyNorm_WATER += b[i_dof->EquationId()] * b[i_dof->EquationId()];
-                        referenceNorm_WATER +=
-                            i_dof->GetSolutionStepValue(WATER_PRESSURE_EINS) *
-                            i_dof->GetSolutionStepValue(WATER_PRESSURE_EINS);
-                        counter_WATER++;
+                        norm_Dx_WATER += Dx[i_dof->EquationId()] * Dx[i_dof->EquationId()];
+                        norm_b_WATER += b[i_dof->EquationId()] * b[i_dof->EquationId()];
+                        norm_x_WATER += i_dof->GetSolutionStepValue(WATER_PRESSURE) * i_dof->GetSolutionStepValue(WATER_PRESSURE);
                     }
                     if (i_dof->GetVariable() == AIR_PRESSURE)
                     {
                         HasAirPres = true;
 
-                        mFinalCorrectionNorm_AIR +=
-                            Dx[i_dof->EquationId()] * Dx[i_dof->EquationId()];
-                        EnergyNorm_AIR += b[i_dof->EquationId()] * b[i_dof->EquationId()];
-                        referenceNorm_AIR +=
-                            i_dof->GetSolutionStepValue(AIR_PRESSURE_EINS) * i_dof->GetSolutionStepValue(AIR_PRESSURE_EINS);
-                        counter_AIR++;
+                        norm_Dx_AIR += Dx[i_dof->EquationId()] * Dx[i_dof->EquationId()];
+                        norm_b_AIR += b[i_dof->EquationId()] * b[i_dof->EquationId()];
+                        norm_x_AIR += i_dof->GetSolutionStepValue(AIR_PRESSURE) * i_dof->GetSolutionStepValue(AIR_PRESSURE);
                     }
                 }
             }
 
-            referenceNorm = sqrt(referenceNorm / counter);
-            mFinalCorrectionNorm = sqrt(mFinalCorrectionNorm / counter);
-            EnergyNorm = sqrt(EnergyNorm / counter);
+            norm_x = sqrt(norm_x);
+            norm_Dx = sqrt(norm_Dx);
+            norm_b = sqrt(norm_b);
 
             if (HasWaterPres)
             {
-                referenceNorm_WATER = sqrt(referenceNorm_WATER / counter_WATER);
-                mFinalCorrectionNorm_WATER =
-                    sqrt(mFinalCorrectionNorm_WATER / counter_WATER);
-                EnergyNorm_WATER = sqrt(EnergyNorm_WATER / counter_WATER);
+                norm_x_WATER = sqrt(norm_x_WATER);
+                norm_Dx_WATER = sqrt(norm_Dx_WATER);
+                norm_b_WATER = sqrt(norm_b_WATER);
             }
 
             if (HasAirPres)
             {
-                referenceNorm_AIR = sqrt(referenceNorm_AIR / counter_AIR);
-                mFinalCorrectionNorm_AIR =
-                    sqrt(mFinalCorrectionNorm_AIR / counter_AIR);
-                EnergyNorm_AIR = sqrt(EnergyNorm_AIR / counter_AIR);
+                norm_x_AIR = sqrt(norm_x_AIR);
+                norm_Dx_AIR = sqrt(norm_Dx_AIR);
+                norm_b_AIR = sqrt(norm_b_AIR);
             }
 
             double ratioDisp = 1.0;
 
-            double ratioDisp_WATER = 1.0;
+            double ratioWater = 1.0;
 
-            double ratioDisp_AIR = 1.0;
+            double ratioAir = 1.0;
 
-            if (referenceNorm > 0)
-                ratioDisp = mFinalCorrectionNorm / referenceNorm;
+            if (norm_x > 0)
+                ratioDisp = norm_Dx / norm_x;
+            if (norm_Dx == 0.0)
+                ratioDisp = 0.0;
 
-            if (referenceNorm_WATER > 0)
-                ratioDisp_WATER = mFinalCorrectionNorm_WATER / referenceNorm_WATER;
+            if (norm_x_WATER > 0)
+                ratioWater = norm_Dx_WATER / norm_x_WATER;
+            if (norm_Dx_WATER == 0.0)
+                ratioWater = 0.0;
 
-            if (referenceNorm_AIR > 0)
-                ratioDisp_AIR = mFinalCorrectionNorm_AIR / referenceNorm_AIR;
+            if (norm_x_AIR > 0)
+                ratioAir = norm_Dx_AIR / norm_x_AIR;
+            if (norm_Dx_AIR == 0.0)
+                ratioAir = 0.0;
 
             std::cout << "********************************************CONVERGENCE CRITERIA FOR MULTIPHASE PROBLEMS********************************************" << std::endl;
             std::cout.precision(6);
             std::cout.setf(std::ios::scientific);
-            std::cout << "** expected values: \t\t\t\t\t\tchange= " << mAlwaysConvergedNorm << "\t\t\t\tenergy= " << mRatioTolerance << " **" << std::endl;
-            std::cout << "counter = " << counter << ", mFinalCorrectionNorm before: " << pow(mFinalCorrectionNorm, 2) * counter << ", referenceNorm before: " << pow(referenceNorm, 2) * counter << std::endl;
-            std::cout << "** obtained values displacement:\tratio= " << ratioDisp << "\tchange= " << mFinalCorrectionNorm << "\tabsolute= " << referenceNorm << "\tenergy= " << EnergyNorm << " **" << std::endl;
+            std::cout << "** expected values: \t\t\t\t\t\tabs_tol = " << mAbsoluteTolerance << "\t\t\t\trel_tol = " << mRelativeTolerance << " **" << std::endl;
+            std::cout << "** obtained values displacement:\tratio = " << ratioDisp << "\t||Dx|| = " << norm_Dx << "\t||x|| = " << norm_x << "\t||b|| = " << norm_b << " **" << std::endl;
             if (HasWaterPres)
             {
-                std::cout << "** obtained values water pressure:\tratio= " << ratioDisp_WATER << "\tchange= " << mFinalCorrectionNorm_WATER << "\tabsolute= " << referenceNorm_WATER << " \tenergy= " << EnergyNorm_WATER << " **" << std::endl;
+                std::cout << "** obtained values water pressure:\tratio = " << ratioWater << "\t||Dx|| = " << norm_Dx_WATER << "\t||x|| = " << norm_x_WATER << " \t||b|| = " << norm_b_WATER << " **" << std::endl;
                 if (HasAirPres)
                 {
-                    std::cout << "** obtained values air pressure:\tratio= " << ratioDisp_AIR << "\tchange= " << mFinalCorrectionNorm_AIR << "\tabsolute= " << referenceNorm_AIR << "\tenergy= " << EnergyNorm_AIR << " **" << std::endl;
+                    std::cout << "** obtained values air pressure:\tratio = " << ratioAir << "\t||Dx|| = " << norm_Dx_AIR << "\t||x|| = " << norm_x_AIR << "\t||b|| = " << norm_b_AIR << " **" << std::endl;
 
-                    std::cout << "** obtained values total:\t\tratio= " << ratioDisp_AIR + ratioDisp_WATER + ratioDisp << "\tchange= " << mFinalCorrectionNorm + mFinalCorrectionNorm_WATER + mFinalCorrectionNorm_AIR << "\tabsolute= " << referenceNorm_AIR + referenceNorm_WATER + referenceNorm << "\tenergy= " << EnergyNorm_AIR + EnergyNorm_WATER + EnergyNorm << " **" << std::endl;
+                    std::cout << "** obtained values total:\t\tratio = " << ratioAir + ratioWater + ratioDisp << "\tchange = " << norm_Dx + norm_Dx_WATER + norm_Dx_AIR << "\tabsolute = " << norm_x_AIR + norm_x_WATER + norm_x << "\tenergy = " << norm_b_AIR + norm_b_WATER + norm_b << " **" << std::endl;
                 }
                 else
                 {
-                    std::cout << "** obtained values total:\t\tratio= " << ratioDisp_WATER + ratioDisp << "\t change= " << mFinalCorrectionNorm + mFinalCorrectionNorm_WATER << "\tabsolute= " << referenceNorm_WATER + referenceNorm << "\tenergy= " << EnergyNorm_WATER + EnergyNorm << " **" << std::endl;
+                    std::cout << "** obtained values total:\t\tratio = " << ratioWater + ratioDisp << "\t change = " << norm_Dx + norm_Dx_WATER << "\tabsolute = " << norm_x_WATER + norm_x << "\tenergy = " << norm_b_WATER + norm_b << " **" << std::endl;
                 }
             }
             std::cout << "************************************************************************************************************************************" << std::endl;
 
-//            if ((EnergyNorm <= mRatioTolerance || mFinalCorrectionNorm <= mAlwaysConvergedNorm)
-//                    && (EnergyNorm_WATER <= mRatioTolerance || mFinalCorrectionNorm_WATER <= mAlwaysConvergedNorm)
-//                    && (EnergyNorm_AIR <= mRatioTolerance || mFinalCorrectionNorm_AIR <= mAlwaysConvergedNorm))
-//            if (EnergyNorm <= mRatioTolerance || mFinalCorrectionNorm <= mAlwaysConvergedNorm)
-//            {
-//                if (EnergyNorm <= mRatioTolerance)
-//                    std::cout << "Congratulations the time step solution is converged..."
-//                          << "reason: (energy = " << EnergyNorm << ") <= (expected energy = " << mRatioTolerance << ")"
-//                          << std::endl;
-//                else if (mFinalCorrectionNorm <= mAlwaysConvergedNorm)
-//                    std::cout << "Congratulations the time step solution is converged..."
-//                          << "reason: (change = " << mFinalCorrectionNorm << ") <= (expected change = " << mAlwaysConvergedNorm << ")"
-//                          << std::endl;
-//                return true;
-//            }
-//            else if (HasWaterPres && (EnergyNorm_WATER <= mRatioTolerance || mFinalCorrectionNorm_WATER <= mAlwaysConvergedNorm))
-//            {
-//                if (EnergyNorm_WATER <= mRatioTolerance)
-//                    std::cout << "Congratulations the time step solution is converged..."
-//                          << "reason: (energy (water) = " << EnergyNorm_WATER << ") <= (expected energy = " << mRatioTolerance << ")"
-//                          << std::endl;
-//                else if (mFinalCorrectionNorm_WATER <= mAlwaysConvergedNorm)
-//                    std::cout << "Congratulations the time step solution is converged..."
-//                          << "reason: (change (water) = " << mFinalCorrectionNorm_WATER << ") <= (expected change = " << mAlwaysConvergedNorm << ")"
-//                          << std::endl;
-//                return true;
-//            }
-//            else if (HasAirPres && (EnergyNorm_AIR <= mRatioTolerance || mFinalCorrectionNorm_AIR <= mAlwaysConvergedNorm))
-//            {
-//                if (EnergyNorm_AIR <= mRatioTolerance)
-//                    std::cout << "Congratulations the time step solution is converged..."
-//                          << "reason: (energy (air) = " << EnergyNorm_AIR << ") <= (expected energy = " << mRatioTolerance << ")"
-//                          << std::endl;
-//                else if (mFinalCorrectionNorm_AIR <= mAlwaysConvergedNorm)
-//                    std::cout << "Congratulations the time step solution is converged..."
-//                          << "reason: (change (air) = " << mFinalCorrectionNorm_AIR << ") <= (expected change = " << mAlwaysConvergedNorm << ")"
-//                          << std::endl;
-//                return true;
-//            }
-//            else
-//            {
-//                return false;
-//            }
+            bool disp_reason_1 = (norm_b <= mAbsoluteTolerance);
+            bool disp_reason_2 = false;
+            int disp_reason_2_case = 0;
+            if (ratioDisp <= mRelativeTolerance)
+            {
+                disp_reason_2 = true;
+                disp_reason_2_case = 1;
+            }
+            else
+            {
+                if (norm_x < mAbsoluteTolerance) // case that zero state is solved
+                {
+                    if (norm_Dx < mAbsoluteTolerance)
+                    {
+                        disp_reason_2 = true;
+                        disp_reason_2_case = 2;
+                    }
+                }
+            }
+            bool disp_converged;
 
-            bool disp_reason_1 = (EnergyNorm <= mRatioTolerance);
-            bool disp_reason_2 = (mFinalCorrectionNorm <= mAlwaysConvergedNorm);
-            bool disp_converged = disp_reason_1 || disp_reason_2;
+            if (mCheckType == 1)
+                disp_converged = disp_reason_1;
+            else if (mCheckType == 2)
+                disp_converged = disp_reason_2;
+            else if (mCheckType == 3)
+                disp_converged = disp_reason_1 && disp_reason_2;
+            else if (mCheckType == 4)
+                disp_converged = disp_reason_1 || disp_reason_2;
 
             bool water_converged;
             bool water_reason_1;
             bool water_reason_2;
             if(HasWaterPres)
             {
-                water_reason_1 = (EnergyNorm_WATER <= mRatioTolerance);
-                water_reason_2 = (mFinalCorrectionNorm_WATER <= mAlwaysConvergedNorm);
-                water_converged = water_reason_1 || water_reason_2;
+                water_reason_1 = (norm_b_WATER <= mAbsoluteTolerance);
+                water_reason_2 = (ratioWater <= mRelativeTolerance);
+                if (mCheckType == 1)
+                    water_converged = water_reason_1;
+                else if (mCheckType == 2)
+                    water_converged = water_reason_2;
+                else if (mCheckType == 3)
+                    water_converged = water_reason_1 && water_reason_2;
+                else if (mCheckType == 4)
+                    water_converged = water_reason_1 || water_reason_2;
             }
             else
                 water_converged = true;
@@ -386,9 +366,16 @@ public:
             bool air_reason_2;
             if(HasAirPres)
             {
-                air_reason_1 = (EnergyNorm_AIR <= mRatioTolerance);
-                air_reason_2 = (mFinalCorrectionNorm_AIR <= mAlwaysConvergedNorm);
-                air_converged = air_reason_1 || air_reason_2;
+                air_reason_1 = (norm_b_AIR <= mAbsoluteTolerance);
+                air_reason_2 = (ratioAir <= mRelativeTolerance);
+                if (mCheckType == 1)
+                    air_converged = air_reason_1;
+                else if (mCheckType == 2)
+                    air_converged = air_reason_2;
+                else if (mCheckType == 3)
+                    air_converged = air_reason_1 && air_reason_2;
+                else if (mCheckType == 4)
+                    air_converged = air_reason_1 || air_reason_2;
             }
             else
                 air_converged = true;
@@ -397,24 +384,87 @@ public:
             {
                 std::cout << "Congratulations the solution strategy is converged." << std::endl;
                 std::cout << "Reason for converged displacement:";
-                if(disp_reason_1) std::cout << " {(energy = " << EnergyNorm << ") <= (expected energy = " << mRatioTolerance << ")}";
-                if(disp_reason_2) std::cout << " {(change = " << mFinalCorrectionNorm << ") <= (expected change = " << mAlwaysConvergedNorm << ")}";
-                std::cout << std::endl;
+                if (mCheckType == 1)
+                {
+                    std::cout << " {(||b|| = " << norm_b << ") <= (expected ||b|| = " << mAbsoluteTolerance << ")}" << std::endl;
+                }
+                else if (mCheckType == 2)
+                {
+                    if (disp_reason_2_case == 1)
+                        std::cout << " {(||Dx||/||x|| = " << ratioDisp << ") <= (expected ||Dx||/||x|| = " << mRelativeTolerance << ")}" << std::endl;
+                    else if (disp_reason_2_case == 2)
+                        std::cout << " {(||Dx|| = " << norm_Dx << ") <= (abs_tol = " << mAbsoluteTolerance << ")}"
+                                  << " and {(||x|| = " << norm_x << ") <= (abs_tol = " << mAbsoluteTolerance << ")}"
+                                  << std::endl;
+                }
+                else if (mCheckType == 3)
+                {
+                    std::cout << " {(||b|| = " << norm_b << ") <= (expected ||b|| = " << mAbsoluteTolerance << ")}" << std::endl;
+                    if (disp_reason_2 == 1)
+                        std::cout << "and {(||Dx||/||x|| = " << ratioDisp << ") <= (expected ||Dx||/||x|| = " << mRelativeTolerance << ")}" << std::endl;
+                    else if (disp_reason_2_case == 2)
+                        std::cout << "and {(||Dx|| = " << norm_Dx << ") <= (abs_tol = " << mAbsoluteTolerance << ")}"
+                                  << " and {(||x|| = " << norm_x << ") <= (abs_tol = " << mAbsoluteTolerance << ")}"
+                                  << std::endl;
+                }
+                else if (mCheckType == 4)
+                {
+                    if(disp_reason_1) std::cout << " {(||b|| = " << norm_b << ") <= (expected ||b|| = " << mAbsoluteTolerance << ")}" << std::endl;
+                    if (disp_reason_2)
+                    {
+                        if (disp_reason_2_case == 1)
+                            std::cout << " {(||Dx||/||x|| = " << ratioDisp << ") <= (expected ||Dx||/||x|| = " << mRelativeTolerance << ")}" << std::endl;
+                        else if (disp_reason_2_case == 2)
+                            std::cout << " {(||Dx|| = " << norm_Dx << ") <= (abs_tol = " << mAbsoluteTolerance << ")}"
+                                      << " and {(||x|| = " << norm_x << ") <= (abs_tol = " << mAbsoluteTolerance << ")}"
+                                      << std::endl;
+                    }
+                }
 
                 if(HasWaterPres)
                 {
                     std::cout << "Reason for converged water pressure:";
-                    if(water_reason_1) std::cout << " {(energy (water) = " << EnergyNorm_WATER << ") <= (expected energy = " << mRatioTolerance << ")}";
-                    if(water_reason_2) std::cout << " {(change (water) = " << mFinalCorrectionNorm_WATER << ") <= (expected change = " << mAlwaysConvergedNorm << ")}";
-                    std::cout << std::endl;
+                    if (mCheckType == 1)
+                    {
+                        std::cout << " {(||b|| (water) = " << norm_b_WATER << ") <= (expected ||b|| = " << mRelativeTolerance << ")}" << std::endl;
+                    }
+                    else if (mCheckType == 2)
+                    {
+                        std::cout << " {(||Dx||/||x|| (water) = " << ratioWater << ") <= (expected ||Dx||/||x|| = " << mRelativeTolerance << ")}" << std::endl;
+                    }
+                    else if (mCheckType == 3)
+                    {
+                        std::cout << " {(||b|| (water) = " << norm_b_WATER << ") <= (expected ||b|| = " << mRelativeTolerance << ")}" << std::endl;
+                        std::cout << "and {(||Dx||/||x|| (water) = " << ratioWater << ") <= (expected ||Dx||/||x|| = " << mRelativeTolerance << ")}" << std::endl;
+                    }
+                    else if (mCheckType == 4)
+                    {
+                        if(water_reason_1) std::cout << " {(||b|| (water) = " << norm_b_WATER << ") <= (expected ||b|| = " << mAbsoluteTolerance << ")}" << std::endl;
+                        if(water_reason_2) std::cout << " {(||Dx||/||x|| (water) = " << ratioWater << ") <= (expected ||Dx||/||x|| = " << mRelativeTolerance << ")}" << std::endl;
+                    }
                 }
 
                 if(HasAirPres)
                 {
                     std::cout << "Reason for converged air pressure:";
-                    if(air_reason_1) std::cout << " {(energy (air) = " << EnergyNorm_AIR << ") <= (expected energy = " << mRatioTolerance << ")}";
-                    if(air_reason_2) std::cout << " {(change (air) = " << mFinalCorrectionNorm_AIR << ") <= (expected change = " << mAlwaysConvergedNorm << ")}";
-                    std::cout << std::endl;
+                    if (mCheckType == 4)
+                    {
+                        std::cout << " {(||b|| (air) = " << norm_b_AIR << ") <= (expected ||b|| = " << mAbsoluteTolerance << ")}" << std::endl;
+                    }
+                    else if (mCheckType == 2)
+                    {
+                        std::cout << " {(||Dx||/||x|| (air) = " << ratioAir << ") <= (expected ||Dx||/||x|| = " << mRelativeTolerance << ")}" << std::endl;
+                    }
+                    else if (mCheckType == 3)
+                    {
+                        std::cout << " {(||b|| (air) = " << norm_b_AIR << ") <= (expected ||b|| = " << mAbsoluteTolerance << ")}" << std::endl;
+                        std::cout << "and {(||Dx||/||x|| (air) = " << ratioAir << ") <= (expected ||Dx||/||x|| = " << mRelativeTolerance << ")}" << std::endl;
+                    }
+                    else if (mCheckType == 4)
+                    {
+                        if(air_reason_1) std::cout << " {(||b|| (air) = " << norm_b_AIR << ") <= (expected ||b|| = " << mAbsoluteTolerance << ")}" << std::endl;
+                        if(air_reason_2) std::cout << " {(||Dx||/||x|| (air) = " << ratioAir << ") <= (expected ||Dx||/||x|| = " << mRelativeTolerance << ")}" << std::endl;
+                    }
                 }
 
                 return true;
@@ -424,7 +474,6 @@ public:
         }
         else   //in this case all the displacements are imposed!
         {
-
             return true;
         }
 
@@ -527,133 +576,15 @@ private:
     /**@name Member Variables */
 
     /*@{ */
-    TDataType mRatioTolerance;
-    TDataType mAlwaysConvergedNorm;
 
+    TDataType mRelativeTolerance;
+    TDataType mAbsoluteTolerance;
+    int mCheckType;
 
-    TDataType mReferenceDispNorm;
     /*@} */
     /**@name Private Operators*/
     /*@{ */
 
-    void CalculateReferenceNorm(DofsArrayType& rDofSet)
-    {
-
-    }
-
-    double CalculateNormDisp(ModelPart& r_model_part)
-    {
-        double result = 0;
-        for (ModelPart::NodeIterator i = r_model_part.NodesBegin();
-                i != r_model_part.NodesEnd(); ++i)
-        {
-            array_1d<double, 3 > & OldDisp = (i)->GetSolutionStepValue(DISPLACEMENT_NULL);
-            array_1d<double, 3 > & CurrentDisp = (i)->GetSolutionStepValue(DISPLACEMENT);
-
-
-            if ((i->pGetDof(DISPLACEMENT_X))->IsFixed() == false)
-                result += (CurrentDisp[0] - OldDisp[0])*(CurrentDisp[0] - OldDisp[0]);
-            if (i->pGetDof(DISPLACEMENT_Y)->IsFixed() == false)
-                result += (CurrentDisp[1] - OldDisp[1])*(CurrentDisp[1] - OldDisp[1]);
-            if (i->HasDofFor(DISPLACEMENT_Z))
-
-                if (i->pGetDof(DISPLACEMENT_Z)->IsFixed() == false)
-                    result += (CurrentDisp[2] - OldDisp[2])*(CurrentDisp[2] - OldDisp[2]);
-        }
-        return result;
-    }
-
-    double CalculateNormWater(ModelPart& r_model_part)
-    {
-        double result = 0;
-        for (ModelPart::NodeIterator i = r_model_part.NodesBegin();
-                i != r_model_part.NodesEnd(); ++i)
-        {
-            if (i->HasDofFor(WATER_PRESSURE))
-            {
-                double& OldWaterPressure = (i)->GetSolutionStepValue(WATER_PRESSURE_NULL);
-                double& CurrentWaterPressure = (i)->GetSolutionStepValue(WATER_PRESSURE);
-
-                if (i->pGetDof(WATER_PRESSURE)->IsFixed() == false)
-                    result += (CurrentWaterPressure - OldWaterPressure)*(CurrentWaterPressure - OldWaterPressure);
-            }
-        }
-        return result;
-    }
-
-    double CalculateNormAir(ModelPart& r_model_part)
-    {
-        double result = 0;
-        for (ModelPart::NodeIterator i = r_model_part.NodesBegin();
-                i != r_model_part.NodesEnd(); ++i)
-        {
-            if (i->HasDofFor(AIR_PRESSURE))
-            {
-                double& OldAirPressure = (i)->GetSolutionStepValue(AIR_PRESSURE_NULL);
-                double& CurrentAirPressure = (i)->GetSolutionStepValue(AIR_PRESSURE);
-
-                if (i->pGetDof(AIR_PRESSURE)->IsFixed() == false)
-                    result += (CurrentAirPressure - OldAirPressure)*(CurrentAirPressure - OldAirPressure);
-            }
-        }
-        return result;
-    }
-
-    double CalculateRefNormDisp(ModelPart& r_model_part)
-    {
-        double result = 0;
-        for (ModelPart::NodeIterator i = r_model_part.NodesBegin();
-                i != r_model_part.NodesEnd(); ++i)
-        {
-
-            array_1d<double, 3 > & CurrentDisp = (i)->GetSolutionStepValue(DISPLACEMENT);
-
-            if ((i->pGetDof(DISPLACEMENT_X))->IsFixed() == false)
-                result += (CurrentDisp[0])*(CurrentDisp[0]);
-            if (i->pGetDof(DISPLACEMENT_Y)->IsFixed() == false)
-                result += (CurrentDisp[1])*(CurrentDisp[1]);
-            if (i->HasDofFor(DISPLACEMENT_Z))
-
-                if (i->pGetDof(DISPLACEMENT_Z)->IsFixed() == false)
-                    result += (CurrentDisp[2])*(CurrentDisp[2]);
-        }
-        return result;
-    }
-
-    double CalculateRefNormWater(ModelPart& r_model_part)
-    {
-        double result = 0;
-        for (ModelPart::NodeIterator i = r_model_part.NodesBegin();
-                i != r_model_part.NodesEnd(); ++i)
-        {
-            if (i->HasDofFor(WATER_PRESSURE))
-            {
-
-                double& CurrentWaterPressure = (i)->GetSolutionStepValue(WATER_PRESSURE);
-
-                if (i->pGetDof(WATER_PRESSURE)->IsFixed() == false)
-                    result += (CurrentWaterPressure)*(CurrentWaterPressure);
-            }
-        }
-        return result;
-    }
-
-    double CalculateRefNormAir(ModelPart& r_model_part)
-    {
-        double result = 0;
-        for (ModelPart::NodeIterator i = r_model_part.NodesBegin();
-                i != r_model_part.NodesEnd(); ++i)
-        {
-            if (i->HasDofFor(AIR_PRESSURE))
-            {
-
-                double& CurrentAirPressure = (i)->GetSolutionStepValue(AIR_PRESSURE);
-                if (i->pGetDof(AIR_PRESSURE)->IsFixed() == false)
-                    result += (CurrentAirPressure)*(CurrentAirPressure);
-            }
-        }
-        return result;
-    }
     /*@} */
     /**@name Private Operations*/
     /*@{ */
