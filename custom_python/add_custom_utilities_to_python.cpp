@@ -462,9 +462,25 @@ void ListDofs(DofUtility& dummy, ModelPart::DofsArrayType& rDofSet, std::size_t 
 }
 
 template<class TVariableType>
+void RemoveDof(DofUtility& dummy, ModelPart::DofsArrayType& rDofSet, const TVariableType& rThisVariable)
+{
+    dummy.RemoveDof(rDofSet, rThisVariable);
+}
+
+template<class TVariableType>
 void PrintKey(DofUtility& dummy, const TVariableType& rThisVariable)
 {
     dummy.PrintKey(rThisVariable);
+}
+
+void PrintMaxUnbalancedForce(DofUtility& dummy, ModelPart::DofsArrayType& rDofSet, const Vector& forces)
+{
+    dummy.PrintMaxUnbalancedForce(rDofSet, forces);
+}
+
+void PrintMinUnbalancedForce(DofUtility& dummy, ModelPart::DofsArrayType& rDofSet, const Vector& forces)
+{
+    dummy.PrintMinUnbalancedForce(rDofSet, forces);
 }
 
 void SetAssociatedElement(DeactivationUtility& rDummy, Condition::Pointer pCond, Element::Pointer pElem)
@@ -485,12 +501,12 @@ void InitializePileUtility( PileUtility& dummy, ModelPart& model_part,
     for ( int it = 0; it < len_pile_elements; it++ )
     {
        boost::python::extract<int> x( pile_elements[it] );
- 
+
        if ( x.check() )
            vec_pile_elements.push_back(( unsigned int )x );
        else break;
     }
- 
+
     for ( int it = 0; it < len_soil_elements; it++ )
     {
         boost::python::extract<int> x( soil_elements[it] );
@@ -499,7 +515,7 @@ void InitializePileUtility( PileUtility& dummy, ModelPart& model_part,
            vec_soil_elements.push_back(( unsigned int )x );
         else break;
     }
- 
+
     dummy.InitializePileUtility( model_part, vec_pile_elements, vec_soil_elements );
 }
 
@@ -516,12 +532,12 @@ void InitializeFoundationUtility( FoundationUtility& dummy, ModelPart& model_par
     for ( int it = 0; it < len_foundation_elements; it++ )
     {
        boost::python::extract<int> x( foundation_elements[it] );
- 
+
        if ( x.check() )
            vec_foundation_elements.push_back(( unsigned int )x );
        else break;
     }
- 
+
     for ( int it = 0; it < len_soil_elements; it++ )
     {
         boost::python::extract<int> x( soil_elements[it] );
@@ -530,7 +546,7 @@ void InitializeFoundationUtility( FoundationUtility& dummy, ModelPart& model_par
            vec_soil_elements.push_back(( unsigned int )x );
         else break;
     }
- 
+
     dummy.InitializeFoundationUtility( model_part, vec_foundation_elements, vec_soil_elements );
 }
 
@@ -738,8 +754,12 @@ void  AddCustomUtilitiesToPython()
     class_<DofUtility, boost::noncopyable >
     ( "DofUtility", init<>() )
     .def( "ListDofs", &ListDofs )
+    .def( "RemoveDof", &RemoveDof<Variable<double> > )
+    .def( "RemoveDof", &RemoveDof<VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > > )
     .def( "PrintKey", &PrintKey<Variable<double> > )
     .def( "PrintKey", &PrintKey<VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > > )
+    .def( "PrintMaxUnbalancedForce", &PrintMaxUnbalancedForce )
+    .def( "PrintMinUnbalancedForce", &PrintMinUnbalancedForce )
     ;
 
     typedef EmbeddedNodeTyingUtility<EmbeddedNodeLagrangeTyingCondition> EmbeddedNodeLagrangeTyingUtilityType;
@@ -792,4 +812,4 @@ void  AddCustomUtilitiesToPython()
 }  // namespace Python.
 }  // namespace Kratos.
 
-#endif // KRATOS_ADD_CUSTOM_UTILITIES_TO_PYTHON_H_INCLUDED  defined 
+#endif // KRATOS_ADD_CUSTOM_UTILITIES_TO_PYTHON_H_INCLUDED  defined

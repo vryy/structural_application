@@ -107,10 +107,75 @@ public:
         }
     }
 
+    /// Remove a dof from the list of dofs
+    template<class TVariableType>
+    static void RemoveDof(ModelPart::DofsArrayType& rDofSet, const TVariableType& rVariable)
+    {
+        for(ModelPart::DofsArrayType::iterator dof_iterator = rDofSet.begin(); dof_iterator != rDofSet.end();)
+        {
+            if(dof_iterator->GetVariable() == rVariable)
+                dof_iterator = rDofSet.erase(dof_iterator);
+            else
+                ++dof_iterator;
+        }
+        std::cout << "Dof " << rVariable.Name() << " is removed from the dof set" << std::endl;
+    }
+
+    /// Print the key of a variable
     template<class TVariableType>
     static void PrintKey(const TVariableType& rThisVariable)
     {
         std::cout << "Variable " << rThisVariable.Name() << " key: " << rThisVariable.Key() << std::endl;
+    }
+
+    /// Find and print the dof containing the maximum unbalanced force
+    static void PrintMaxUnbalancedForce(ModelPart::DofsArrayType& rDofSet, const Vector& forces)
+    {
+        double max_force = -1.0e99;
+        std::size_t imax;
+        for (std::size_t i = 0; i < forces.size(); ++i)
+        {
+            if (fabs(forces[i]) > max_force)
+            {
+                max_force = fabs(forces[i]);
+                imax = i;
+            }
+        }
+
+        for(ModelPart::DofsArrayType::iterator dof_iterator = rDofSet.begin(); dof_iterator != rDofSet.end(); ++dof_iterator)
+        {
+            if (dof_iterator->EquationId() == imax)
+            {
+                std::cout << "Max unbalanced force at node " << dof_iterator->Id()
+                          << ", dof " << imax << " (" << dof_iterator->GetVariable().Name() << "), value = " << max_force
+                          << std::endl;
+            }
+        }
+    }
+
+    /// Find and print the dof containing the minimum unbalanced force
+    static void PrintMinUnbalancedForce(ModelPart::DofsArrayType& rDofSet, const Vector& forces)
+    {
+        double min_force = 1.0e99;
+        std::size_t imin;
+        for (std::size_t i = 0; i < forces.size(); ++i)
+        {
+            if (fabs(forces[i]) < min_force && fabs(forces[i]) > 0.0)
+            {
+                min_force = fabs(forces[i]);
+                imin = i;
+            }
+        }
+
+        for(ModelPart::DofsArrayType::iterator dof_iterator = rDofSet.begin(); dof_iterator != rDofSet.end(); ++dof_iterator)
+        {
+            if (dof_iterator->EquationId() == imin)
+            {
+                std::cout << "Min unbalanced force at node " << dof_iterator->Id()
+                          << ", dof " << imin << " (" << dof_iterator->GetVariable().Name() << "), value = " << min_force
+                          << std::endl;
+            }
+        }
     }
 
 };//Class DofUtility
