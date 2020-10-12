@@ -67,6 +67,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/element.h"
 #include "structural_application.h"
 
+// #define ENABLE_ROTATION
+#define ENABLE_LAMBDA
+
 namespace Kratos
 {
 /**@name Kratos Globals */
@@ -375,6 +378,16 @@ public:
                 if (dof_iterator->IsFree())
                 {
                     rNode.GetSolutionStepValue(ROTATION_EINS_Z)
+                    += Dx[dof_iterator->EquationId()];
+                }
+            }
+            #endif
+            #ifdef ENABLE_LAMBDA
+            else if (dof_iterator->GetVariable() == LAMBDA)
+            {
+                if (dof_iterator->IsFree())
+                {
+                    rNode.GetSolutionStepValue(LAMBDA_EINS)
                     += Dx[dof_iterator->EquationId()];
                 }
             }
@@ -691,6 +704,39 @@ public:
                   +(1.0-mAlpha)*i->GetSolutionStepValue(ROTATION_EINS_Z);
             }
             #endif
+            #ifdef ENABLE_LAMBDA
+            if( i->HasDofFor(LAMBDA) )
+            {
+                i->GetSolutionStepValue(LAMBDA_EINS_DT2)
+                = 1.0/(mBeta*CurrentProcessInfo[DELTA_TIME]
+                       *CurrentProcessInfo[DELTA_TIME])
+                  * (i->GetSolutionStepValue(LAMBDA_EINS)
+                     -i->GetSolutionStepValue(LAMBDA_NULL))
+                  -1.0/(mBeta*CurrentProcessInfo[DELTA_TIME])
+                  *i->GetSolutionStepValue(LAMBDA_NULL_DT)
+                  -(1.0-2.0*mBeta)/(2.0*mBeta)*i->GetSolutionStepValue(LAMBDA_NULL_DT2);
+
+                i->GetSolutionStepValue(LAMBDA_EINS_DT)
+                = (i->GetSolutionStepValue(LAMBDA_EINS)
+                   -i->GetSolutionStepValue(LAMBDA_NULL))
+                  *mGamma/(mBeta*CurrentProcessInfo[DELTA_TIME])
+                  -(mGamma-mBeta)/mBeta*(i->GetSolutionStepValue(LAMBDA_NULL_DT))
+                  -(mGamma-2.0*mBeta)/(2.0*mBeta)*CurrentProcessInfo[DELTA_TIME]
+                  *(i->GetSolutionStepValue(LAMBDA_NULL_DT2));
+
+                i->GetSolutionStepValue(LAMBDA_DT2)
+                = mAlpha_m*i->GetSolutionStepValue(LAMBDA_NULL_DT2)
+                  +(1.0-mAlpha_m)*i->GetSolutionStepValue(LAMBDA_EINS_DT2);
+
+                i->GetSolutionStepValue(LAMBDA_DT)
+                = mAlpha*i->GetSolutionStepValue(LAMBDA_NULL_DT)
+                  +(1.0-mAlpha)*i->GetSolutionStepValue(LAMBDA_EINS_DT);
+
+                i->GetSolutionStepValue(LAMBDA)
+                = mAlpha*i->GetSolutionStepValue(LAMBDA_NULL)
+                  +(1.0-mAlpha)*i->GetSolutionStepValue(LAMBDA_EINS);
+            }
+            #endif
         }
 
         //For total Lagrangian
@@ -815,6 +861,17 @@ public:
                 i->GetSolutionStepValue(AIR_PRESSURE_EINS)=
                     i->GetSolutionStepValue(AIR_PRESSURE_NULL);
             }
+            #ifdef ENABLE_LAMBDA
+            if( i->HasDofFor(LAMBDA) &&  i->GetDof(LAMBDA).IsFree())
+            {
+                i->GetSolutionStepValue(LAMBDA_EINS_DT2)=
+                    i->GetSolutionStepValue(LAMBDA_NULL_DT2);
+                i->GetSolutionStepValue(LAMBDA_EINS_DT)=
+                    i->GetSolutionStepValue(LAMBDA_NULL_DT);
+                i->GetSolutionStepValue(LAMBDA_EINS )=
+                    i->GetSolutionStepValue(LAMBDA_NULL);
+            }
+            #endif
         }
 
         KRATOS_CATCH("")
@@ -836,6 +893,8 @@ public:
         TSystemVectorType& b)
     {
         ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
+
+        KRATOS_WATCH(CurrentProcessInfo[FIRST_TIME_STEP])
 
         // we manually FinalizeSolutionStep for each entities because the parent function is multithreaded
         ElementsArrayType& pElements = r_model_part.Elements();
@@ -1029,6 +1088,25 @@ public:
                         i->GetSolutionStepValue(ROTATION_NULL_Z)=i->GetSolutionStepValue(ROTATION_EINS_Z);
                         i->GetSolutionStepValue(ROTATION_NULL_DT_Z)=i->GetSolutionStepValue(ROTATION_EINS_DT_Z);
                         i->GetSolutionStepValue(ANGULAR_ACCELERATION_NULL_Z)=i->GetSolutionStepValue(ANGULAR_ACCELERATION_EINS_Z);
+                    }
+                }
+                #endif
+                #ifdef ENABLE_LAMBDA
+                if( i->HasDofFor(LAMBDA))
+                {
+                    i->GetSolutionStepValue(LAMBDA_OLD)= i->GetSolutionStepValue(LAMBDA);
+
+                    if(CurrentProcessInfo[FIRST_TIME_STEP])
+                    {
+                        i->GetSolutionStepValue(LAMBDA_NULL_DT2)=i->GetSolutionStepValue(LAMBDA_DT2);
+                        i->GetSolutionStepValue(LAMBDA_NULL_DT)= i->GetSolutionStepValue(LAMBDA_DT);
+                        i->GetSolutionStepValue(LAMBDA_NULL)= i->GetSolutionStepValue(LAMBDA);
+                    }
+                    else
+                    {
+                        i->GetSolutionStepValue(LAMBDA_NULL)= i->GetSolutionStepValue(LAMBDA_EINS);
+                        i->GetSolutionStepValue(LAMBDA_NULL_DT)= i->GetSolutionStepValue(LAMBDA_EINS_DT);
+                        i->GetSolutionStepValue(LAMBDA_NULL_DT2)=i->GetSolutionStepValue(LAMBDA_EINS_DT2);
                     }
                 }
                 #endif
@@ -1283,6 +1361,7 @@ private:
 }  /* namespace Kratos.*/
 
 #undef ENABLE_ROTATION
+#undef ENABLE_LAMBDA
 
 #endif /* KRATOS_RESIDUALBASED_PREDICTOR_CORRECTOR_BOSSAK_SCHEME  defined */
 
