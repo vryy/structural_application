@@ -58,9 +58,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <string.h>
 #include <cmath>
 
-#if !defined(isnan)
-#define isnan(x) ((x)!=(x))
-#endif
+// #if !defined(isnan)
+// #define isnan(x) ((x)!=(x))
+// #endif
 
 //External includes
 #include "boost/smart_ptr.hpp"
@@ -245,7 +245,7 @@ public:
                                 out+=c;
                             }
                             double value= std::atof((char*)out.c_str());
-                            if(isnan(value))
+                            if(std::isnan(value))
                             {
                                 std::cout<<"##### NaN FOUND ("<<it->Id()<<") ####"<<std::endl;
                                 continue;
@@ -268,7 +268,7 @@ public:
                                 out+=c;
                             }
                             double value= std::atof((char*)out.c_str());
-                            if(isnan(value))
+                            if(std::isnan(value))
                             {
                                 std::cout<<"##### NaN FOUND ("<<it->Id()<<") ####"<<std::endl;
                                 continue;
@@ -291,7 +291,7 @@ public:
                                 out+=c;
                             }
                             double value= std::atof((char*)out.c_str());
-                            if(isnan(value))
+                            if(std::isnan(value))
                             {
                                 std::cout<<"##### NaN FOUND ("<<it->Id()<<") ####"<<std::endl;
                                 continue;
@@ -314,7 +314,7 @@ public:
                                 out+=c;
                             }
                             double value= std::atof((char*)out.c_str());
-                            if(isnan(value))
+                            if(std::isnan(value))
                             {
                                 std::cout<<"##### NaN FOUND ("<<it->Id()<<") ####"<<std::endl;
                                 continue;
@@ -338,7 +338,7 @@ public:
                             out+=c;
                         }
                         double value= std::atof((char*)out.c_str());
-                        if(isnan(value))
+                        if(std::isnan(value))
                         {
                             std::cout<<"##### NaN FOUND ("<<it->Id()<<") ####"<<std::endl;
                         }
@@ -358,7 +358,7 @@ public:
                             out+=c;
                         }
                         value= std::atof((char*)out.c_str());
-                        if(isnan(value))
+                        if(std::isnan(value))
                         {
                             std::cout<<"##### NaN FOUND ("<<it->Id()<<") ####"<<std::endl;
                         }
@@ -378,7 +378,7 @@ public:
                             out+=c;
                         }
                         value= std::atof((char*)out.c_str());
-                        if(isnan(value))
+                        if(std::isnan(value))
                         {
                             std::cout<<"##### NaN FOUND ("<<it->Id()<<") ####"<<std::endl;
                         }
@@ -401,7 +401,7 @@ public:
                             out+=c;
                         }
                         double value= std::atof((char*)out.c_str());
-                        if(isnan(value))
+                        if(std::isnan(value))
                         {
                             std::cout<<"##### NaN FOUND ("<<it->Id()<<") ####"<<std::endl;
                         }
@@ -421,7 +421,7 @@ public:
                             out+=c;
                         }
                         value= std::atof((char*)out.c_str());
-                        if(isnan(value))
+                        if(std::isnan(value))
                         {
                             std::cout<<"##### NaN FOUND ("<<it->Id()<<") ####"<<std::endl;
                         }
@@ -441,7 +441,7 @@ public:
                             out+=c;
                         }
                         value= std::atof((char*)out.c_str());
-                        if(isnan(value))
+                        if(std::isnan(value))
                         {
                             std::cout<<"##### NaN FOUND ("<<it->Id()<<") ####"<<std::endl;
                         }
@@ -589,7 +589,7 @@ public:
                                 goto end_of_outer_loop;
                             }
                             double value= std::atof((char*)out.c_str());
-                            if(isnan(value))
+                            if(std::isnan(value))
                             {
                                 std::cout<<"##### NaN FOUND ("<<(*it)->Id()<<") ####"<<std::endl;
                                 goto end_of_outer_loop;
@@ -743,7 +743,7 @@ end_of_outer_loop://labeling outer loops end
                                     goto end_of_outer_loop;
                                 }
                                 double value= std::atof((char*)out.c_str());
-                                if(isnan(value))
+                                if(std::isnan(value))
                                 {
                                     std::cout<<"##### NaN FOUND ("<<(*it)->Id()<<") ####"<<std::endl;
                                     goto end_of_outer_loop;

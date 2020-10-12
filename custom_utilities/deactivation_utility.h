@@ -61,9 +61,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <fstream>
 #include <cmath>
 
-#if !defined(isnan)
-#define isnan(x) ((x)!=(x))
-#endif
+// #if !defined(isnan)
+// #define isnan(x) (x!=x)
+// #endif
 // External includes
 
 // Project includes
