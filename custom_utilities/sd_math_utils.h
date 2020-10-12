@@ -44,7 +44,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #if !defined(SD_MATH_UTILS)
 #define SD_MATH_UTILS
-#define PI 3.1415926535898
+#define PI 3.14159265358979323846
 
 #include "utilities/math_utils.h"
 #include "geometries/point.h"
@@ -244,14 +244,59 @@ public:
         return Result;
     }
 
+    // Given a real symmetric 3x3 matrix A, compute the eigenvalues
+    // Note that acos and cos operate on angles in radian
+    // REF: https://en.wikipedia.org/wiki/Eigenvalue_algorithm
+    static inline VectorType EigenValuesSym3x3(const MatrixType& A)
+    {
+        VectorType Result(3);
+
+        double p1 = pow(A(0, 1), 2) + pow(A(1, 2), 2) + pow(A(0, 2), 2);
+        if (p1 == 0)
+        {
+            // A is diagonal.
+            Result[0] = A(0, 0);
+            Result[1] = A(1, 1);
+            Result[2] = A(2, 2);
+        }
+        else
+        {
+            double q = (A(0, 0) + A(1, 1) + A(2, 2))/3; // trace(A) is the sum of all diagonal values
+            double p2 = pow(A(0, 0) - q, 2) + pow(A(1, 1) - q, 2) + pow(A(2, 2) - q, 2) + 2 * p1;
+            double p = sqrt(p2 / 6);
+            MatrixType B = (1 / p) * (A - q * IdentityMatrix(3));
+            double r = MathUtils<TDataType>::Det3(B) / 2;
+
+            // In exact arithmetic for a symmetric matrix  -1 <= r <= 1
+            // but computation error can leave it slightly outside this range.
+            double phi;
+            if (r <= -1)
+            {
+                phi = PI / 3;
+            }
+            else if (r >= 1)
+            {
+                phi = 0;
+            }
+            else
+                phi = acos(r) / 3;
+
+           // the eigenvalues satisfy eig3 <= eig2 <= eig1
+           Result[0] = q + 2 * p * cos(phi);
+           Result[2] = q + 2 * p * cos(phi + (2*PI/3));
+           Result[1] = 3 * q - Result[0] - Result[2];     // since trace(A) = eig1 + eig2 + eig3
+        }
+
+        return Result;
+    }
 
     /**
     Organize a 3D eigenvalues vector to the sequence 1 > 2 > 3
      */
     template<class TValuesContainerType>
-    static inline Vector OrganizeEigenvalues(const TValuesContainerType& rEigenvalues)
+    static inline VectorType OrganizeEigenvalues(const TValuesContainerType& rEigenvalues)
     {
-        Vector Result(3);
+        VectorType Result(3);
 
         if(rEigenvalues[0] >= rEigenvalues[1] && rEigenvalues[0] >= rEigenvalues[2])
         {
