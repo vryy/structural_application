@@ -285,7 +285,13 @@ public:
                         MasterConditionsArray.push_back( *it );
                     }
                 }
+
+                // if( (*it)->GetValue( IS_CONTACT_MASTER ) )
+                //     std::cout << "master condition " << (*it)->Id() << " with ACTIVATION_LEVEL = " << (*it)->GetValue(ACTIVATION_LEVEL) << std::endl;
             }
+
+            KRATOS_WATCH(__LINE__)
+            KRATOS_WATCH(MasterConditionsArray.size())
 
             GeometryType::Pointer tempGeometry =  GeometryType::Pointer( new Geometry<Node<3> >() );
 
@@ -302,6 +308,7 @@ public:
                 {
                     if( (*it)->GetValue( IS_CONTACT_SLAVE ) )
                     {
+                        // std::cout << "perform contact search for slave condition " << (*it)->Id() << std::endl;
                         for( IndexType i = 0; i < (*it)->GetGeometry().IntegrationPoints().size(); i++ )
                         {
                             Point<3> MasterContactLocalPoint;
@@ -322,7 +329,7 @@ public:
 //                                     KRATOS_WATCH( MasterContactLocalPoint );
                                 IndexType newId = (mr_model_part.Conditions().end()-1)->Id()+LinkingConditions.size()+1;
                                 //creating contact link element
-//                                 Condition::Pointer newLink = Condition::Pointer( new ContactLink3D(newId,
+                                // Condition::Pointer newLink = Condition::Pointer( new ContactLink3D(newId,
                                 Condition::Pointer newLink = Condition::Pointer( new ContactLink3D_Kinematic_Linear(newId,
                                                              tempGeometry,
                                                              tempProperties,
@@ -410,6 +417,7 @@ public:
                                                           mr_model_part.Conditions().end()-1)->Id()
                                                       +LinkingConditions.size()+1;
                                     Condition::Pointer newLink = Condition::Pointer(
+                                                                     // new ContactLink3D( newId,
                                                                      new ContactLink3D_Kinematic_Linear( newId,
                                                                              tempGeometry, tempProperties,
                                                                              CurrentMaster, *it,
@@ -918,7 +926,8 @@ public:
                              +(*it)->GetValue(CONTACT_LINK_SLAVE)->GetValue( DELTA_LAMBDAS_T )(i,1)
                              *m(1,1)*(*it)->GetValue(CONTACT_LINK_SLAVE)->GetValue( DELTA_LAMBDAS_T )(i,1));
 
-                    if((*it)->GetValue(CONTACT_LINK_SLAVE)-> GetValue(STICK)(i) > 0.5)
+                    // if((*it)->GetValue(CONTACT_LINK_SLAVE)-> GetValue(STICK)(i) > 0.5) // hbui: it is possibly wrong here, stick is true but why slip rate is calculated
+                    if((*it)->GetValue(CONTACT_LINK_SLAVE)-> GetValue(STICK)(i) < 0.5)
                     {
                         Vector relVelo(2);
                         noalias(relVelo)=GetRelativTangentialVelocity((*it)->GetValue(CONTACT_LINK_MASTER), (*it)->GetValue(CONTACT_LINK_SLAVE), (*it)->GetValue( SLAVE_CONTACT_LOCAL_POINT), (*it)->GetValue( MASTER_CONTACT_LOCAL_POINT));
