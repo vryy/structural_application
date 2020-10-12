@@ -118,17 +118,19 @@ int& DummyConstitutiveLaw::GetValue( const Variable<int>& rThisVariable, int& rV
 
 double& DummyConstitutiveLaw::GetValue( const Variable<double>& rThisVariable, double& rValue )
 {
+    rValue = 0.0;
     return rValue;
 }
 
 Vector& DummyConstitutiveLaw::GetValue( const Variable<Vector>& rThisVariable, Vector& rValue )
 {
+    rValue.clear();
     return rValue;
 }
 
 Matrix& DummyConstitutiveLaw::GetValue( const Variable<Matrix>& rThisVariable, Matrix& rValue )
 {
-//    KRATOS_THROW_ERROR( std::logic_error, "Vector Variable case not considered", "" );
+    rValue.clear();
     return rValue;
 }
 
