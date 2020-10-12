@@ -83,11 +83,11 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "constitutive_laws/plane_strain.h"
 #include "constitutive_laws/plane_stress.h"
 #include "constitutive_laws/fluid_2d.h"
-#include "constitutive_laws/external_isotropic_3d.h"
+// #include "constitutive_laws/external_isotropic_3d.h"
 #include "constitutive_laws/drucker_prager.h"
 #include "constitutive_laws/cam_clay_3d.h"
 //#include "constitutive_laws/isotropic_elastic_large_strain.h"
-#include "constitutive_laws/hooks_law.h"
+// #include "constitutive_laws/hooks_law.h"
 #include "constitutive_laws/isotropic_planestress_wrinkling.h"
 #include "constitutive_laws/isotropic_damage_2d.h"
 #include "constitutive_laws/isotropic_rankine_damage_2d.h"
@@ -268,15 +268,15 @@ void  AddConstitutiveLawsToPython()
       init<>() )
     ;
 
-    class_< ExternalIsotropic3D, bases< ConstitutiveLawBaseType >,  boost::noncopyable >
-    ( "ExternalIsotropic3D",
-      init<>() )
-    ;
+    // class_< ExternalIsotropic3D, bases< ConstitutiveLawBaseType >,  boost::noncopyable >
+    // ( "ExternalIsotropic3D",
+    //   init<>() )
+    // ;
 
-    class_< HooksLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
-    ( "HooksLaw",
-      init<>() )
-    ;
+    // class_< HooksLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
+    // ( "HooksLaw",
+    //   init<>() )
+    // ;
 
     class_< IsotropicPlaneStressWrinkling, bases< ConstitutiveLawBaseType >, boost::noncopyable >
     ( "IsotropicPlaneStressWrinkling",
