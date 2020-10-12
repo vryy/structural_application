@@ -43,9 +43,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 //
 //   Project Name:        Kratos
-//   Last Modified by:    $Author: janosch $
-//   Date:                $Date: 2007-09-20 11:54:06 $
-//   Revision:            $Revision: 1.1 $
+//   Last Modified by:    $Author: hbui $
+//   Date:                $Date: 21/8/2020 $
+//   Revision:            $Revision: 1.0 $
 //
 //
 
@@ -131,6 +131,7 @@ public:
     ///@}
     ///@name Operations
     ///@{
+
     IntegrationMethod GetIntegrationMethod() const;
 
     Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const;
@@ -141,16 +142,20 @@ public:
 
     void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
 
+    void CalculateMassMatrix( MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo );
+
+    void CalculateDampingMatrix( MatrixType& rDampMatrix, ProcessInfo& rCurrentProcessInfo );
+
     void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo);
 
     void GetDofList(DofsVectorType& ElementalDofList,ProcessInfo& CurrentProcessInfo);
 
-    void FinalizeSolutionStep(ProcessInfo& CurrentProcessInfo);
-    void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo);
-    void SetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo);
-    //************************************************************************************
-
     void GetValuesVector(Vector& values, int Step);
+
+    void GetFirstDerivativesVector(Vector& values, int Step);
+
+    void GetSecondDerivativesVector(Vector& values, int Step);
+
     ///@}
     ///@name Access
     ///@{
@@ -220,43 +225,18 @@ protected:
     ///@}
 
 private:
+
     ///@name Static Member Variables
     ///@{
-    Matrix mA_Matrix;
-    Vector mb_Vector;
-    double mArea;
-    double mYoungs;
-    double mReference_length;
-    Vector mCurrentDisplacement;
-    double mCurrentStrain;
-    Vector mAtimesU;
-    double mPrescribedStrain;
 
     void CalculateAll(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector,
                       ProcessInfo& rCurrentProcessInfo,
                       bool CalculateStiffnessMatrixFlag,
                       bool CalculateResidualVectorFlag);
-    void GreenStrain();
-    double VectorMatrixVector(Vector& vector);
-    Vector MatrixVector(Vector& vector);
-    Vector MatrixVector();
-    void CalcAtimesU();
-    void CalculateRHS(Vector& rRightHandSideVector);
 
-    void CalculateLHS(Matrix& rLeftHandSideMatrix);
     ///@}
     ///@name Member Variables
     ///@{
-
-    ///@}
-    ///@name Serialization
-    ///@{
-
-    friend class Serializer;
-
-    TrussElement()
-    {
-    }
 
     ///@}
     ///@name Private Operations
@@ -265,9 +245,11 @@ private:
     ///@}
     ///@name Serialization
     ///@{
+
     friend class Serializer;
 
     // A private default constructor necessary for serialization
+
     TrussElement() {}
 
     virtual void save(Serializer& rSerializer) const
@@ -333,6 +315,6 @@ private:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_UNSATURATED_SOILS_ELEMENT_INCLUDED defined
+#endif // KRATOS_TRUSS_ELEMENT_INCLUDED defined
 
 

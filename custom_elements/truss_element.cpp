@@ -57,8 +57,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // Project includes
 // #include "includes/define.h"
 #include "custom_elements/truss_element.h"
-#include "utilities/math_utils.h"
-#include "custom_utilities/sd_math_utils.h"
+#include "structural_application.h"
 
 namespace Kratos
 {
@@ -89,35 +88,6 @@ TrussElement::TrussElement(IndexType NewId,
     {
         std::cout<<"this element works only with a 2 node line"<<std::endl;
     }
-
-    GetGeometry()[0].pAddDof(DISPLACEMENT_X, REACTION_X);
-    GetGeometry()[0].pAddDof(DISPLACEMENT_Y, REACTION_Y);
-    GetGeometry()[0].pAddDof(DISPLACEMENT_Z, REACTION_Z);
-    GetGeometry()[1].pAddDof(DISPLACEMENT_X, REACTION_X);
-    GetGeometry()[1].pAddDof(DISPLACEMENT_Y, REACTION_Y);
-    GetGeometry()[1].pAddDof(DISPLACEMENT_Z, REACTION_Z);
-
-    //set up the Matrix A
-    if(mA_Matrix.size1()!=6 || mA_Matrix.size2()!=6)
-        mA_Matrix.resize(6,6,false);
-    noalias(mA_Matrix)= ZeroMatrix(6,6);
-    mA_Matrix(0,0)=0.25;
-    mA_Matrix(1,1)=0.25;
-    mA_Matrix(2,2)=0.25;
-    mA_Matrix(0,3)=-0.25;
-    mA_Matrix(1,4)=-0.25;
-    mA_Matrix(2,5)=-0.25;
-    mA_Matrix(3,0)=-0.25;
-    mA_Matrix(4,1)=-0.25;
-    mA_Matrix(5,2)=-0.25;
-    mA_Matrix(3,3)=0.25;
-    mA_Matrix(4,4)=0.25;
-    mA_Matrix(5,5)=0.25;
-
-    if(mCurrentDisplacement.size() != 6)
-        mCurrentDisplacement.resize(6,false);
-    if(mAtimesU.size() != 6)
-        mAtimesU.resize(6,false);
 }
 
 Element::Pointer TrussElement::Create(IndexType NewId,
@@ -141,50 +111,8 @@ TrussElement::~TrussElement()
 void TrussElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
-    //Material Porperties
-    mArea= 0.01;
-    mYoungs= GetProperties()[YOUNG_MODULUS];
-// mPrescribedStrain= 0.1;
-// 		initializing mb
-    Vector x_zero(6);
-
-    x_zero(0)= GetGeometry()[0].X0();
-    x_zero(1)= GetGeometry()[0].Y0();
-    x_zero(2)= GetGeometry()[0].Z0();
-    x_zero(3)= GetGeometry()[1].X0();
-    x_zero(4)= GetGeometry()[1].Y0();
-    x_zero(5)= GetGeometry()[1].Z0();
-// 		calculate reference length
-    mReference_length= 2*sqrt(VectorMatrixVector(x_zero));
-// 		initializing mb
-    //set up the Matrix b
-    if(mb_Vector.size()!=6)
-        mb_Vector.resize(6,false);
-
-    noalias(mb_Vector)= 4/(mReference_length*mReference_length)*MatrixVector(x_zero);
 
     KRATOS_CATCH("")
-}
-
-//************************************************************************************
-//************************************************************************************
-//this is to finalize the solution step ("time step")
-//************************************************************************************
-//************************************************************************************
-
-void TrussElement::InitializeSolutionStep(ProcessInfo& CurrentProcessInfo)
-{
-// 		mPrescribedStrain= GetProperties()[POISSON_RATIO];
-}
-//************************************************************************************
-//************************************************************************************
-//this is to finalize the solution step ("time step")
-//************************************************************************************
-//************************************************************************************
-
-void TrussElement::FinalizeSolutionStep(ProcessInfo& CurrentProcessInfo)
-{
-
 }
 
 //************************************************************************************
@@ -192,37 +120,64 @@ void TrussElement::FinalizeSolutionStep(ProcessInfo& CurrentProcessInfo)
 //************************************************************************************
 void TrussElement::CalculateAll(MatrixType& rLeftHandSideMatrix,
                                 VectorType& rRightHandSideVector,ProcessInfo& rCurrentProcessInfo,
-                                bool CalculateStiffnessMatrixFlag,bool CalculateResidualVectorFlag)
+                                bool CalculateStiffnessMatrixFlag, bool CalculateResidualVectorFlag)
 {
     KRATOS_TRY
-    //update the current displacement
-    mCurrentDisplacement(0)= GetGeometry()[0].GetSolutionStepValue(DISPLACEMENT_X);
-    mCurrentDisplacement(1)= GetGeometry()[0].GetSolutionStepValue(DISPLACEMENT_Y);
-    mCurrentDisplacement(2)= GetGeometry()[0].GetSolutionStepValue(DISPLACEMENT_Z);
-    mCurrentDisplacement(3)= GetGeometry()[1].GetSolutionStepValue(DISPLACEMENT_X);
-    mCurrentDisplacement(4)= GetGeometry()[1].GetSolutionStepValue(DISPLACEMENT_Y);
-    mCurrentDisplacement(5)= GetGeometry()[1].GetSolutionStepValue(DISPLACEMENT_Z);
-    //calculate AtimesU
-    CalcAtimesU();
-    //update the current strain
-    GreenStrain();
 
     //resizing and calculate the LHS contribution if needed
-    if (CalculateStiffnessMatrixFlag == true)
+    if (CalculateStiffnessMatrixFlag || CalculateResidualVectorFlag)
     {
-        if(rLeftHandSideMatrix.size1() != 6)
-            rLeftHandSideMatrix.resize(6,6,false);
-        noalias(rLeftHandSideMatrix) = ZeroMatrix(6,6);
-        CalculateLHS(rLeftHandSideMatrix);
+        if(rLeftHandSideMatrix.size1() != 6 || rLeftHandSideMatrix.size2() != 6)
+            rLeftHandSideMatrix.resize(6, 6, false);
+        noalias(rLeftHandSideMatrix) = ZeroMatrix(6, 6);
+
+        double lx = GetGeometry()[1].X0() - GetGeometry()[0].X0();
+        double ly = GetGeometry()[1].Y0() - GetGeometry()[0].Y0();
+        double lz = GetGeometry()[1].Z0() - GetGeometry()[0].Z0();
+        double l = sqrt(lx*lx + ly*ly + lz*lz);
+        double E = GetProperties()[YOUNG_MODULUS];
+        double A = GetProperties()[AREA];
+
+        Matrix T(2, 6);
+        noalias(T) = ZeroMatrix(2, 6);
+        T(0, 0) = lx/l;
+        T(0, 1) = ly/l;
+        T(0, 2) = lz/l;
+        T(1, 3) = lx/l;
+        T(1, 4) = ly/l;
+        T(1, 5) = lz/l;
+
+        Matrix ke(2, 2);
+        double k = E*A/l;
+        ke(0, 0) = k;
+        ke(0, 1) = -k;
+        ke(1, 0) = -k;
+        ke(1, 1) = k;
+
+        noalias(rLeftHandSideMatrix) += prod(trans(T), Matrix(prod(ke, T)));
     }
+
     //resizing and calculate the RHS contribution if needed
-    if (CalculateResidualVectorFlag == true)
+    if (CalculateResidualVectorFlag)
     {
         if(rRightHandSideVector.size() != 6)
-            rRightHandSideVector.resize(6,false);
+            rRightHandSideVector.resize(6, false);
         noalias(rRightHandSideVector) = ZeroVector(6);
-        CalculateRHS(rRightHandSideVector);
+
+        // get the current displacement
+        Vector CurrentDisplacement(6);
+        CurrentDisplacement(0) = GetGeometry()[0].GetSolutionStepValue(DISPLACEMENT_X);
+        CurrentDisplacement(1) = GetGeometry()[0].GetSolutionStepValue(DISPLACEMENT_Y);
+        CurrentDisplacement(2) = GetGeometry()[0].GetSolutionStepValue(DISPLACEMENT_Z);
+        CurrentDisplacement(3) = GetGeometry()[1].GetSolutionStepValue(DISPLACEMENT_X);
+        CurrentDisplacement(4) = GetGeometry()[1].GetSolutionStepValue(DISPLACEMENT_Y);
+        CurrentDisplacement(5) = GetGeometry()[1].GetSolutionStepValue(DISPLACEMENT_Z);
+
+        noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix, CurrentDisplacement);
     }
+
+    // KRATOS_WATCH(rLeftHandSideMatrix)
+    // KRATOS_WATCH(rRightHandSideVector)
 
     KRATOS_CATCH("")
 }
@@ -257,6 +212,54 @@ void TrussElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
     bool CalculateResidualVectorFlag = true;
     CalculateAll(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo,
                  CalculateStiffnessMatrixFlag,CalculateResidualVectorFlag);
+}
+
+//************************************************************************************
+//************************************************************************************
+//This method is called from outside the element
+//************************************************************************************
+//************************************************************************************
+
+void TrussElement::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
+{
+    if(rMassMatrix.size1() != 6 || rMassMatrix.size2() != 6)
+        rMassMatrix.resize(6, 6, false);
+    noalias(rMassMatrix) = ZeroMatrix(6, 6);
+
+    double lx = GetGeometry()[1].X0() - GetGeometry()[0].X0();
+    double ly = GetGeometry()[1].Y0() - GetGeometry()[0].Y0();
+    double lz = GetGeometry()[1].Z0() - GetGeometry()[0].Z0();
+    double l = sqrt(lx*lx + ly*ly + lz*lz);
+    double A = GetProperties()[AREA];
+    double rho = GetProperties()[DENSITY];
+    double m = rho*l*A/6;
+
+    subrange(rMassMatrix, 0, 3, 0, 3) = 2.0*m*IdentityMatrix(3);
+    subrange(rMassMatrix, 0, 3, 3, 6) = m*IdentityMatrix(3);
+    subrange(rMassMatrix, 3, 6, 0, 3) = m*IdentityMatrix(3);
+    subrange(rMassMatrix, 3, 6, 3, 6) = 2.0*m*IdentityMatrix(3);
+}
+
+//************************************************************************************
+//************************************************************************************
+//This method is called from outside the element
+//************************************************************************************
+//************************************************************************************
+
+void TrussElement::CalculateDampingMatrix(MatrixType& rDampMatrix, ProcessInfo& rCurrentProcessInfo)
+{
+    double alpha = GetProperties()[RAYLEIGH_DAMPING_ALPHA];
+    double beta = GetProperties()[RAYLEIGH_DAMPING_BETA];
+
+    this->CalculateMassMatrix(rDampMatrix, rCurrentProcessInfo);
+
+    rDampMatrix *= alpha;
+
+    Matrix K;
+    Vector dummy;
+    this->CalculateAll(K, dummy, rCurrentProcessInfo, true, false);
+
+    noalias(rDampMatrix) += beta*K;
 }
 
 //************************************************************************************
@@ -305,114 +308,52 @@ void TrussElement::GetDofList(DofsVectorType& ElementalDofList,ProcessInfo&
 
 //************************************************************************************
 //************************************************************************************
+
 void TrussElement::GetValuesVector(Vector& values, int Step)
 {
     if(values.size() != 6)
-        values.resize(6);
+        values.resize(6, false);
 
-    values(0) = GetGeometry()[0].GetSolutionStepValue(DISPLACEMENT_X,Step);
-    values(1) = GetGeometry()[0].GetSolutionStepValue(DISPLACEMENT_Y,Step);
-    values(2) = GetGeometry()[0].GetSolutionStepValue(DISPLACEMENT_Z,Step);
-    values(3) = GetGeometry()[1].GetSolutionStepValue(DISPLACEMENT_X,Step);
-    values(4) = GetGeometry()[1].GetSolutionStepValue(DISPLACEMENT_Y,Step);
-    values(5) = GetGeometry()[1].GetSolutionStepValue(DISPLACEMENT_Z,Step);
+    values(0) = GetGeometry()[0].GetSolutionStepValue(DISPLACEMENT_X, Step);
+    values(1) = GetGeometry()[0].GetSolutionStepValue(DISPLACEMENT_Y, Step);
+    values(2) = GetGeometry()[0].GetSolutionStepValue(DISPLACEMENT_Z, Step);
+    values(3) = GetGeometry()[1].GetSolutionStepValue(DISPLACEMENT_X, Step);
+    values(4) = GetGeometry()[1].GetSolutionStepValue(DISPLACEMENT_Y, Step);
+    values(5) = GetGeometry()[1].GetSolutionStepValue(DISPLACEMENT_Z, Step);
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////////////
+//************************************************************************************
+//************************************************************************************
 
-double TrussElement::VectorMatrixVector(Vector& vector)
+void TrussElement::GetFirstDerivativesVector(Vector& values, int Step)
 {
-    if(vector.size()!= 6)
-        std::cout<<"this works only for the displacementVectors together with the A-Matrix"<<std::endl;
+    if(values.size() != 6)
+        values.resize(6, false);
 
-    double result= 0.25*(
-                       vector(0)*(vector(0)-vector(3))+
-                       vector(1)*(vector(1)-vector(4))+
-                       vector(2)*(vector(2)-vector(5))+
-                       vector(3)*(-vector(0)+vector(3))+
-                       vector(4)*(-vector(1)+vector(4))+
-                       vector(5)*(-vector(2)+vector(5)));
-
-    return result;
+    values(0) = GetGeometry()[0].GetSolutionStepValue(DISPLACEMENT_DT_X, Step);
+    values(1) = GetGeometry()[0].GetSolutionStepValue(DISPLACEMENT_DT_Y, Step);
+    values(2) = GetGeometry()[0].GetSolutionStepValue(DISPLACEMENT_DT_Z, Step);
+    values(3) = GetGeometry()[1].GetSolutionStepValue(DISPLACEMENT_DT_X, Step);
+    values(4) = GetGeometry()[1].GetSolutionStepValue(DISPLACEMENT_DT_Y, Step);
+    values(5) = GetGeometry()[1].GetSolutionStepValue(DISPLACEMENT_DT_Z, Step);
 }
-//////////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////////////
 
-Vector TrussElement::MatrixVector(Vector& vector)
+//************************************************************************************
+//************************************************************************************
+
+void TrussElement::GetSecondDerivativesVector(Vector& values, int Step)
 {
-    Vector result(6);
+    if(values.size() != 6)
+        values.resize(6, false);
 
-    if(vector.size()!= 6)
-        std::cout<<"this works only for the displacementVectors together with the A-Matrix"<<std::endl;
-
-    result(0) = 0.25*(vector(0)-vector(3));
-    result(1) = 0.25*(vector(1)-vector(4));
-    result(2) = 0.25*(vector(2)-vector(5));
-    result(3) = 0.25*(-vector(0)+vector(3));
-    result(4) = 0.25*(-vector(1)+vector(4));
-    result(5) = 0.25*(-vector(2)+vector(5));
-
-    return result;
-}
-//////////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////////////
-
-void TrussElement::GreenStrain()
-{
-    mCurrentStrain= mb_Vector(0)*mCurrentDisplacement(0)+ mb_Vector(1)*mCurrentDisplacement(1) +mb_Vector(2)*mCurrentDisplacement(2)+mb_Vector(3)*mCurrentDisplacement(3)+ mb_Vector(4)*mCurrentDisplacement(4) +mb_Vector(5)*mCurrentDisplacement(5);
-
-    mCurrentStrain+= 2/(mReference_length*mReference_length)*VectorMatrixVector(mCurrentDisplacement);
-
-    mCurrentStrain-=mPrescribedStrain;
-}
-//////////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////////////
-void TrussElement::CalcAtimesU()
-{
-    mAtimesU(0) = 0.25*(mCurrentDisplacement(0)-mCurrentDisplacement(3));
-    mAtimesU(1) = 0.25*(mCurrentDisplacement(1)-mCurrentDisplacement(4));
-    mAtimesU(2) = 0.25*(mCurrentDisplacement(2)-mCurrentDisplacement(5));
-    mAtimesU(3) = 0.25*(-mCurrentDisplacement(0)+mCurrentDisplacement(3));
-    mAtimesU(4) = 0.25*(-mCurrentDisplacement(1)+mCurrentDisplacement(4));
-    mAtimesU(5) = 0.25*(-mCurrentDisplacement(2)+mCurrentDisplacement(5));
-}
-//////////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////////////
-void TrussElement::CalculateRHS(Vector& rRightHandSideVector)
-{
-    for(unsigned int prim=0; prim<6; prim++)
-    {
-        rRightHandSideVector(prim)+= mArea*mReference_length*mYoungs*(mb_Vector(prim)+4/(mReference_length*mReference_length)*mAtimesU(prim))*mCurrentStrain;
-    }
-    return;
-}
-//////////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////////////
-void TrussElement::CalculateLHS(Matrix& rLeftHandSideMatrix)
-{
-    for(unsigned int prim=0; prim<6; prim++)
-    {
-        for(unsigned int sec=0; sec<6; sec++)
-        {
-            rLeftHandSideMatrix(prim,sec)+= (-1)*mArea*mYoungs*4/mReference_length*mCurrentStrain*mA_Matrix(prim,sec);
-            rLeftHandSideMatrix(prim,sec)+= (-1)*mArea*mYoungs*mReference_length*(mb_Vector(prim)+4/(mReference_length*mReference_length)*mAtimesU(prim))*(mb_Vector(sec)+4/(mReference_length*mReference_length)*mAtimesU(sec));
-        }
-    }
-
-    return;
+    values(0) = GetGeometry()[0].GetSolutionStepValue(ACCELERATION_X, Step);
+    values(1) = GetGeometry()[0].GetSolutionStepValue(ACCELERATION_Y, Step);
+    values(2) = GetGeometry()[0].GetSolutionStepValue(ACCELERATION_Z, Step);
+    values(3) = GetGeometry()[1].GetSolutionStepValue(ACCELERATION_X, Step);
+    values(4) = GetGeometry()[1].GetSolutionStepValue(ACCELERATION_Y, Step);
+    values(5) = GetGeometry()[1].GetSolutionStepValue(ACCELERATION_Z, Step);
 }
 
-void TrussElement::SetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo)
-{
-    std::cout<<"hier isser"<<std::endl;
-    if( rVariable== THICKNESS)
-    {
-        std::cout<<"hier isser"<<std::endl;
-        mPrescribedStrain= rValues[0];
-        KRATOS_WATCH(mPrescribedStrain);
-    }
-}
 } // Namespace Kratos
 
 
