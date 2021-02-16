@@ -94,25 +94,25 @@ public:
 
     Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const;
 
-    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
+    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo);
 
-    void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
+    void CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo);
 
-    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo);
+    void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const;
 
-    void GetDofList(DofsVectorType& ElementalDofList,ProcessInfo& CurrentProcessInfo);
+    void GetDofList(DofsVectorType& ElementalDofList, const ProcessInfo& CurrentProcessInfo) const;
 
-    void FinalizeNonLinearIteration(ProcessInfo& CurrentProcessInfo);
-    void InitializeNonLinearIteration(ProcessInfo& CurrentProcessInfo);
+    void FinalizeNonLinearIteration(const ProcessInfo& CurrentProcessInfo);
+    void InitializeNonLinearIteration(const ProcessInfo& CurrentProcessInfo);
 
-// 	  void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo);
-// 	  void FinalizeSolutionStep(ProcessInfo& CurrentProcessInfo);
+// 	  void InitializeSolutionStep(const ProcessInfo& CurrentProcessInfo);
+// 	  void FinalizeSolutionStep(const ProcessInfo& CurrentProcessInfo);
 
-    void CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo);
-    void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo);
-    void GetValuesVector(Vector& values, int Step = 0);
-    void GetFirstDerivativesVector(Vector& values, int Step = 0);
-    void GetSecondDerivativesVector(Vector& values, int Step = 0);
+    void CalculateDampingMatrix(MatrixType& rDampingMatrix, const ProcessInfo& rCurrentProcessInfo);
+    void CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo);
+    void GetValuesVector(Vector& values, int Step = 0) const;
+    void GetFirstDerivativesVector(Vector& values, int Step = 0) const;
+    void GetSecondDerivativesVector(Vector& values, int Step = 0) const;
 
     void Initialize(const ProcessInfo& rCurrentProcessInfo);
 
@@ -155,8 +155,8 @@ protected:
     ///@}
     ///@name Protected member Variables
     ///@{
-    void CalculateForces(VectorType& rExtForces, ProcessInfo& rCurrentProcessInfo);
-    void UpdateExtShape(ProcessInfo& rCurrentProcessInfo);
+    void CalculateForces(VectorType& rExtForces, const ProcessInfo& rCurrentProcessInfo);
+    void UpdateExtShape(const ProcessInfo& rCurrentProcessInfo);
 
 
 

@@ -57,11 +57,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 // Project includes
 #include "includes/define.h"
-#include "custom_conditions/master_contact_face_3D_newmark.h"
-#include "structural_application.h"
+#include "custom_conditions/master_contact_face_3D.h"
+#include "structural_application_variables.h"
 #include "utilities/math_utils.h"
 #include "custom_utilities/sd_math_utils.h"
-#include "includes/deprecated_variables.h"
 
 namespace Kratos
 {
@@ -198,7 +197,7 @@ bool MasterContactFace3D::ClosestPoint( GeometryType::CoordinatesArrayType& rRes
  * calculates only the RHS vector (certainly to be removed due to contact algorithm)
  */
 void MasterContactFace3D::CalculateRightHandSide( VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo )
+        const ProcessInfo& rCurrentProcessInfo )
 {
     unsigned int ndof = GetGeometry().size() * 3;
 
@@ -217,7 +216,7 @@ void MasterContactFace3D::CalculateRightHandSide( VectorType& rRightHandSideVect
  */
 void MasterContactFace3D::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo )
+        const ProcessInfo& rCurrentProcessInfo )
 {
     unsigned int ndof = GetGeometry().size() * 3;
 
@@ -240,7 +239,7 @@ void MasterContactFace3D::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix,
  */
 void MasterContactFace3D::CalculateAll( MatrixType& rLeftHandSideMatrix,
                                         VectorType& rRightHandSideVector,
-                                        ProcessInfo& rCurrentProcessInfo,
+                                        const ProcessInfo& rCurrentProcessInfo,
                                         bool CalculateStiffnessMatrixFlag,
                                         bool CalculateResidualVectorFlag )
 {
@@ -282,8 +281,7 @@ void MasterContactFace3D::CalculateAndAdd_PressureForce( Vector& residualvector,
  * REMOVED: the DOFs are managed by the linking conditions
  */
 void MasterContactFace3D::EquationIdVector( EquationIdVectorType& rResult,
-        ProcessInfo& CurrentProcessInfo
-                                          )
+        const ProcessInfo& CurrentProcessInfo) const
 {
     KRATOS_TRY
     unsigned int number_of_nodes = GetGeometry().size();
@@ -309,7 +307,7 @@ void MasterContactFace3D::EquationIdVector( EquationIdVectorType& rResult,
  * REMOVED: the DOFs are managed by the linking conditions
  */
 void MasterContactFace3D::GetDofList( DofsVectorType& ConditionalDofList,
-                                      ProcessInfo& CurrentProcessInfo )
+                                      const ProcessInfo& CurrentProcessInfo ) const
 {
     ConditionalDofList.resize( 0 );
 
@@ -321,7 +319,7 @@ void MasterContactFace3D::GetDofList( DofsVectorType& ConditionalDofList,
     }
 }
 
-void MasterContactFace3D::GetValueOnIntegrationPoints( const Variable<array_1d<double, 3> >& rVariable, std::vector<array_1d<double, 3> >& rValues, const ProcessInfo& rCurrentProcessInfo )
+void MasterContactFace3D::CalculateOnIntegrationPoints( const Variable<array_1d<double, 3> >& rVariable, std::vector<array_1d<double, 3> >& rValues, const ProcessInfo& rCurrentProcessInfo )
 {
     const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints();
     const GeometryType::ShapeFunctionsGradientsType& sf_gradients = GetGeometry().ShapeFunctionsLocalGradients();
@@ -378,7 +376,7 @@ void MasterContactFace3D::GetValueOnIntegrationPoints( const Variable<array_1d<d
  * or that no common error is found.
  * @param rCurrentProcessInfo
  */
-int MasterContactFace3D::Check( const Kratos::ProcessInfo& rCurrentProcessInfo )
+int MasterContactFace3D::Check( const ProcessInfo& rCurrentProcessInfo )
 {
     return 0;
 }

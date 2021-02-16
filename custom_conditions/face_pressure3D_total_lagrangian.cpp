@@ -58,7 +58,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 // Project includes
 #include "custom_conditions/face_pressure3D_total_lagrangian.h"
-// #include "structural_application.h"
+// #include "structural_application_variables.h"
 #include "utilities/math_utils.h"
 #include "custom_utilities/sd_math_utils.h"
 
@@ -128,8 +128,7 @@ FacePressure3DTotalLagrangian::~FacePressure3DTotalLagrangian()
 
 void FacePressure3DTotalLagrangian::EquationIdVector(
     EquationIdVectorType& rResult,
-    ProcessInfo& rCurrentProcessInfo )
-
+    const ProcessInfo& rCurrentProcessInfo ) const
 {
     KRATOS_TRY
     unsigned int number_of_nodes = GetGeometry().size();
@@ -154,8 +153,7 @@ void FacePressure3DTotalLagrangian::EquationIdVector(
 
 void FacePressure3DTotalLagrangian::GetDofList(
     DofsVectorType& ElementalDofList,
-    ProcessInfo& rCurrentProcessInfo )
-
+    const ProcessInfo& rCurrentProcessInfo ) const
 {
     ElementalDofList.resize( 0 );
 
@@ -176,7 +174,7 @@ void FacePressure3DTotalLagrangian::GetDofList(
 
 void FacePressure3DTotalLagrangian::CalculateRightHandSide(
     VectorType& rRightHandSideVector,
-    ProcessInfo& rCurrentProcessInfo )
+    const ProcessInfo& rCurrentProcessInfo )
 
 {
     //calculation flags
@@ -193,7 +191,7 @@ void FacePressure3DTotalLagrangian::CalculateRightHandSide(
 void FacePressure3DTotalLagrangian::CalculateLocalSystem(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
-    ProcessInfo& rCurrentProcessInfo )
+    const ProcessInfo& rCurrentProcessInfo )
 
 {
     //calculation flags
@@ -209,7 +207,7 @@ void FacePressure3DTotalLagrangian::CalculateLocalSystem(
 
 void FacePressure3DTotalLagrangian::CalculateMassMatrix(
     MatrixType& rMassMatrix,
-    ProcessInfo& rCurrentProcessInfo )
+    const ProcessInfo& rCurrentProcessInfo )
 
 {
     KRATOS_TRY
@@ -224,7 +222,7 @@ void FacePressure3DTotalLagrangian::CalculateMassMatrix(
 
 void FacePressure3DTotalLagrangian::CalculateDampingMatrix(
     MatrixType& rDampingMatrix,
-    ProcessInfo& rCurrentProcessInfo )
+    const ProcessInfo& rCurrentProcessInfo )
 
 {
     KRATOS_TRY
@@ -240,8 +238,7 @@ void FacePressure3DTotalLagrangian::CalculateDampingMatrix(
 
 void FacePressure3DTotalLagrangian::GetValuesVector(
     Vector& values,
-    int Step )
-
+    int Step ) const
 {
     unsigned int number_of_nodes = GetGeometry().size();
     unsigned int MatSize = number_of_nodes * 3;
@@ -264,8 +261,7 @@ void FacePressure3DTotalLagrangian::GetValuesVector(
 
 void FacePressure3DTotalLagrangian::GetFirstDerivativesVector(
     Vector& values,
-    int Step )
-
+    int Step ) const
 {
     unsigned int number_of_nodes = GetGeometry().size();
     unsigned int MatSize = number_of_nodes * 3;
@@ -281,7 +277,6 @@ void FacePressure3DTotalLagrangian::GetFirstDerivativesVector(
         values[index+1] = vel[1];
         values[index+2] = vel[2];
     }
-
 }
 
 //***********************************************************************************
@@ -289,8 +284,7 @@ void FacePressure3DTotalLagrangian::GetFirstDerivativesVector(
 
 void FacePressure3DTotalLagrangian::GetSecondDerivativesVector(
     Vector& values,
-    int Step )
-
+    int Step ) const
 {
     unsigned int number_of_nodes = GetGeometry().size();
     unsigned int MatSize = number_of_nodes * 3;

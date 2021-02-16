@@ -75,9 +75,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 namespace Kratos
 {
 
-class EbstVel
-    :
-public Ebst
+class EbstVel : public Ebst
 {
 public:
 
@@ -100,26 +98,23 @@ public:
     Element::Pointer Create(
         IndexType NewId,
         NodesArrayType const& ThisNodes,
-        PropertiesType::Pointer pProperties) const;
+        PropertiesType::Pointer pProperties) const final;
 
     void EquationIdVector(
         EquationIdVectorType& rResult,
-        ProcessInfo& rCurrentProcessInfo);
+        const ProcessInfo& rCurrentProcessInfo) const final;
 
     void GetDofList(
         DofsVectorType& ElementalDofList,
-        ProcessInfo& rCurrentProcessInfo);
+        const ProcessInfo& rCurrentProcessInfo) const final;
 
     void Calculate( const Variable<array_1d<double,3> >& rVariable,
                     array_1d<double,3>& Output,
-                    const ProcessInfo& rCurrentProcessInfo);
+                    const ProcessInfo& rCurrentProcessInfo) final;
 
     void Calculate( const Variable<double>& rVariable,
                     double& Output,
-                    const ProcessInfo& rCurrentProcessInfo);
-
-protected:
-
+                    const ProcessInfo& rCurrentProcessInfo) final;
 
 private:
 

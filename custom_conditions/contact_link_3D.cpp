@@ -54,15 +54,18 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 // Project includes
 #include "includes/define.h"
-#include "custom_conditions/contact_link_3D.h"
-#include "structural_application.h"
 #include "utilities/math_utils.h"
 #include "custom_utilities/sd_math_utils.h"
+#include "structural_application_variables.h"
+#include "custom_conditions/contact_link_3D.h"
 
 #define DEBUG_CONTACT_LINK
 
 namespace Kratos
 {
+
+typedef ContactLink3D::PointType PointType;
+
 //************************************************************************************
 //************************************************************************************
 ContactLink3D::ContactLink3D( IndexType NewId,
@@ -97,8 +100,8 @@ ContactLink3D::ContactLink3D( IndexType NewId, GeometryType::Pointer pGeometry,
                               PropertiesType::Pointer pProperties,
                               Condition::Pointer Master,
                               Condition::Pointer Slave,
-                              Point<3>& MasterContactLocalPoint,
-                              Point<3>& SlaveContactLocalPoint,
+                              PointType& MasterContactLocalPoint,
+                              PointType& SlaveContactLocalPoint,
                               int SlaveIntegrationPointIndex
                             )
     : Condition( NewId, pGeometry, pProperties )
@@ -275,7 +278,7 @@ Vector ContactLink3D::NormalVector( Condition::Pointer Surface,
  * calculates only the RHS vector (certainly to be removed due to contact algorithm)
  */
 void ContactLink3D::CalculateRightHandSide( VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo )
+        const ProcessInfo& rCurrentProcessInfo )
 {
     //calculation flags
     bool CalculateStiffnessMatrixFlag = false;
@@ -294,7 +297,7 @@ void ContactLink3D::CalculateRightHandSide( VectorType& rRightHandSideVector,
  */
 void ContactLink3D::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo )
+        const ProcessInfo& rCurrentProcessInfo )
 {
     //calculation flags
     bool CalculateStiffnessMatrixFlag = true;
@@ -310,7 +313,7 @@ void ContactLink3D::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix,
  */
 void ContactLink3D::CalculateAll( MatrixType& rLeftHandSideMatrix,
                                   VectorType& rRightHandSideVector,
-                                  ProcessInfo& rCurrentProcessInfo,
+                                  const ProcessInfo& rCurrentProcessInfo,
                                   bool CalculateStiffnessMatrixFlag,
                                   bool CalculateResidualVectorFlag )
 {
@@ -1720,7 +1723,7 @@ void ContactLink3D::CalculateAll( MatrixType& rLeftHandSideMatrix,
  * with regard to the current master and slave partners.
  * All Conditions are assumed to be defined in 3D space and havin 3 DOFs per node
  */
-void ContactLink3D::CalculateDampingMatrix( MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo )
+void ContactLink3D::CalculateDampingMatrix( MatrixType& rDampingMatrix, const ProcessInfo& rCurrentProcessInfo )
 {
 
     KRATOS_TRY
@@ -2535,7 +2538,7 @@ void ContactLink3D::UpdateMasterLocalPoint( )
         GetValue( MASTER_CONTACT_CURRENT_LOCAL_POINT )[1] = Xi2;
 
         //updating rResult
-        GetValue( MASTER_CONTACT_CURRENT_GLOBAL_POINT ) = ZeroVector( 3 );
+        GetValue( MASTER_CONTACT_CURRENT_GLOBAL_POINT ) = PointType(ZeroVector( 3 ));
 
         GetValue( MASTER_CONTACT_CURRENT_GLOBAL_POINT ) = GlobalCoordinates( GetValue( CONTACT_LINK_MASTER ), GetValue( MASTER_CONTACT_CURRENT_GLOBAL_POINT ), GetValue( MASTER_CONTACT_CURRENT_LOCAL_POINT ) );
 
@@ -2558,7 +2561,7 @@ void ContactLink3D::UpdateMasterLocalPoint( )
  * All Equation IDs are given Master first, Slave second
  */
 void ContactLink3D::EquationIdVector( EquationIdVectorType& rResult,
-                                      ProcessInfo& CurrentProcessInfo )
+                                      const ProcessInfo& CurrentProcessInfo ) const
 {
     //determining size of DOF list
     //dimension of space
@@ -2594,7 +2597,7 @@ void ContactLink3D::EquationIdVector( EquationIdVectorType& rResult,
  * All DOF are given Master first, Slave second
  */
 void ContactLink3D::GetDofList( DofsVectorType& ConditionalDofList,
-                                ProcessInfo& CurrentProcessInfo )
+                                const ProcessInfo& CurrentProcessInfo ) const
 {
     //determining size of DOF list
     //dimension of space
@@ -2626,9 +2629,9 @@ void ContactLink3D::GetDofList( DofsVectorType& ConditionalDofList,
 
 //new functions includes
 
-Point<3>& ContactLink3D::GlobalCoordinates( Condition::Pointer Surface, Point<3>& rResult, Point<3> const& LocalCoordinates )
+PointType& ContactLink3D::GlobalCoordinates( Condition::Pointer Surface, PointType& rResult, PointType const& LocalCoordinates )
 {
-    noalias( rResult ) = ZeroVector( 3 );
+    noalias( rResult ) = PointType(ZeroVector( 3 ));
 
     for ( IndexType i = 0 ; i < Surface->GetGeometry().size() ; i++ )
     {

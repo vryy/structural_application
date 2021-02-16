@@ -74,6 +74,12 @@ namespace Kratos
             // Counted pointer of EmbeddedPointPenaltyTyingCondition
             KRATOS_CLASS_POINTER_DEFINITION(EmbeddedPointPenaltyTyingCondition);
 
+            #ifdef SD_APP_FORWARD_COMPATIBILITY
+            typedef Point PointType;
+            #else
+            typedef Point<3> PointType;
+            #endif
+
             /**
              * Default constructor.
              */
@@ -83,8 +89,8 @@ namespace Kratos
                           GeometryType::Pointer pGeometry,
                           Element::Pointer pMasterElement,
                           Element::Pointer pSlaveElement,
-                          Point<3>& rMasterLocalPoint,
-                          Point<3>& rSlaveLocalPoint );
+                          PointType& rMasterLocalPoint,
+                          PointType& rSlaveLocalPoint );
 
             /**
              * Destructor.
@@ -99,24 +105,24 @@ namespace Kratos
                                        GeometryType::Pointer pGeometry,
                                        Element::Pointer pMasterElement,
                                        Element::Pointer pSlaveElement,
-                                       Point<3>& rMasterLocalPoint,
-                                       Point<3>& rSlaveLocalPoint ) const;
+                                       PointType& rMasterLocalPoint,
+                                       PointType& rSlaveLocalPoint ) const;
 
             /**
              * Calculates the local system contributions for this contact element
              */
             void CalculateLocalSystem( MatrixType& rLeftHandSideMatrix,
                                        VectorType& rRightHandSideVector,
-                                       ProcessInfo& rCurrentProcessInfo);
+                                       const ProcessInfo& rCurrentProcessInfo);
 
             void CalculateRightHandSide( VectorType& rRightHandSideVector,
-                                         ProcessInfo& rCurrentProcessInfo);
+                                         const ProcessInfo& rCurrentProcessInfo);
 
             void EquationIdVector( EquationIdVectorType& rResult,
-                                   ProcessInfo& rCurrentProcessInfo);
+                                   const ProcessInfo& rCurrentProcessInfo) const;
 
             void GetDofList( DofsVectorType& ConditionalDofList,
-                             ProcessInfo& CurrentProcessInfo);
+                             const ProcessInfo& CurrentProcessInfo) const;
 
 
             void Initialize(const ProcessInfo& rCurrentProcessInfo);
@@ -157,13 +163,13 @@ namespace Kratos
 
             void CalculateAll( MatrixType& rLeftHandSideMatrix,
                                VectorType& rRightHandSideVector,
-                               ProcessInfo& rCurrentProcessInfo,
+                               const ProcessInfo& rCurrentProcessInfo,
                                bool CalculateStiffnessMatrixFlag,
                                bool CalculateResidualVectorFlag);
 
 
-            Point<3> mSlaveLocalPoint; //mTipLocalPoint;
-            Point<3> mMasterLocalPoint; //mTipSoilLocalPoint;
+            PointType mSlaveLocalPoint; //mTipLocalPoint;
+            PointType mMasterLocalPoint; //mTipSoilLocalPoint;
             Element::Pointer mpSlaveElement; //mpTipElement;
             Element::Pointer mpMasterElement; //mpTipSoilElement;
 

@@ -65,7 +65,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/variables.h"
 #include "includes/process_info.h"
 #include "includes/properties.h"
-#include "structural_application.h"
+#include "structural_application_variables.h"
 
 namespace Kratos
 {

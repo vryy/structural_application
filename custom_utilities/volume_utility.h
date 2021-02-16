@@ -67,7 +67,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // #include "solving_strategies/convergencecriterias/convergence_criteria.h"
 
 
-#include "structural_application.h"
+#include "structural_application_variables.h"
 
 //default builder and solver
 // #include "solving_strategies/builder_and_solvers/residualbased_elimination_builder_and_solver.h"

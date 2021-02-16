@@ -396,7 +396,7 @@ public:
                     }
                 }
 
-                (*it)->SetValueOnIntegrationPoints( rThisVariable, ValuesOnIntPoint,
+                (*it)->SetValuesOnIntegrationPoints( rThisVariable, ValuesOnIntPoint,
                                                     model_part.GetProcessInfo());
             }
         }
@@ -463,7 +463,7 @@ public:
                     }
                 }
 
-                (*it)->SetValueOnIntegrationPoints( rThisVariable, ValuesOnIntPoint,
+                (*it)->SetValuesOnIntegrationPoints( rThisVariable, ValuesOnIntPoint,
                                                     model_part.GetProcessInfo());
             }
         }
@@ -526,7 +526,7 @@ public:
                           (*it)->GetGeometry()[node].GetSolutionStepValue(rThisVariable);
                     }
                 }
-                (*it)->SetValueOnIntegrationPoints( rThisVariable, ValuesOnIntPoint,
+                (*it)->SetValuesOnIntegrationPoints( rThisVariable, ValuesOnIntPoint,
                                                     model_part.GetProcessInfo());
             }
         }
@@ -590,7 +590,7 @@ public:
                             ValueVectorInOldMesh(sourceElement, sourceLocalPoint, rThisVariable );
                     }
                 }
-                (*it)->SetValueOnIntegrationPoints( rThisVariable, ValuesOnIntPoint,
+                (*it)->SetValuesOnIntegrationPoints( rThisVariable, ValuesOnIntPoint,
                                                     rTarget.GetProcessInfo());
             }
         }
@@ -654,7 +654,7 @@ public:
                         ValuesOnIntPoint[point] = ValueMatrixInOldMesh(sourceElement, sourceLocalPoint, rThisVariable );
                     }
                 }
-                (*it)->SetValueOnIntegrationPoints( rThisVariable, ValuesOnIntPoint,
+                (*it)->SetValuesOnIntegrationPoints( rThisVariable, ValuesOnIntPoint,
                                                     rTarget.GetProcessInfo());
             }
         }
@@ -718,7 +718,7 @@ public:
                             MappedValue(sourceElement, sourceLocalPoint, rThisVariable );
                     }
                 }
-                (*it)->SetValueOnIntegrationPoints( rThisVariable, ValuesOnIntPoint,
+                (*it)->SetValuesOnIntegrationPoints( rThisVariable, ValuesOnIntPoint,
                                                     rTarget.GetProcessInfo());
             }
         }
@@ -864,7 +864,7 @@ public:
                     J = (*it)->GetGeometry().Jacobian(J, (*it)->GetIntegrationMethod());
                     std::vector<Matrix> ValuesOnIntPoint(integration_points.size());
 
-                    (*it)->GetValueOnIntegrationPoints(rThisVariable, ValuesOnIntPoint, model_part.GetProcessInfo());
+                    (*it)->CalculateOnIntegrationPoints(rThisVariable, ValuesOnIntPoint, model_part.GetProcessInfo());
 
                     const Matrix& Ncontainer = (*it)->GetGeometry().ShapeFunctionsValues((*it)->GetIntegrationMethod());
 
@@ -947,7 +947,7 @@ public:
 
                         std::vector<Vector> ValuesOnIntPoint(integration_points.size());
 
-                        (*it)->GetValueOnIntegrationPoints(rThisVariable, ValuesOnIntPoint, model_part.GetProcessInfo());
+                        (*it)->CalculateOnIntegrationPoints(rThisVariable, ValuesOnIntPoint, model_part.GetProcessInfo());
 
                         const Matrix& Ncontainer = (*it)->GetGeometry().ShapeFunctionsValues((*it)->GetIntegrationMethod());
 
@@ -1074,7 +1074,7 @@ public:
                 J = (*it)->GetGeometry().Jacobian(J, (*it)->GetIntegrationMethod());
                 std::vector<Vector> ValuesOnIntPoint(integration_points.size());
 
-                (*it)->GetValueOnIntegrationPoints(rThisVariable, ValuesOnIntPoint, model_part.GetProcessInfo());
+                (*it)->CalculateOnIntegrationPoints(rThisVariable, ValuesOnIntPoint, model_part.GetProcessInfo());
 
                 const Matrix& Ncontainer = (*it)->GetGeometry().ShapeFunctionsValues((*it)->GetIntegrationMethod());
 
@@ -1170,7 +1170,7 @@ public:
 
                 std::vector<double> ValuesOnIntPoint(integration_points.size());
 
-                (*it)->GetValueOnIntegrationPoints(rThisVariable, ValuesOnIntPoint, model_part.GetProcessInfo());
+                (*it)->CalculateOnIntegrationPoints(rThisVariable, ValuesOnIntPoint, model_part.GetProcessInfo());
 
                 const Matrix& Ncontainer = (*it)->GetGeometry().ShapeFunctionsValues((*it)->GetIntegrationMethod());
 

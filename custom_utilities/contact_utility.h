@@ -61,7 +61,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 /* Project includes */
 #include "includes/define.h"
 #include "includes/model_part.h"
-#include "includes/deprecated_variables.h"
 #include "utilities/math_utils.h"
 // #include "solving_strategies/strategies/solving_strategy.h"
 // #include "solving_strategies/strategies/residualbased_newton_raphson_strategy.h"
@@ -70,7 +69,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_conditions/contact_link_3D.h"
 #include "custom_conditions/contact_link_3D_kinematic_linear.h"
 #include "custom_conditions/contact_link_3D_lagrange_tying.h"
-#include "structural_application.h"
+#include "structural_application_variables.h"
 
 //default builder and solver
 // #include "solving_strategies/builder_and_solvers/residualbased_elimination_builder_and_solver.h"

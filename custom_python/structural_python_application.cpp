@@ -60,6 +60,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // Project includes
 #include "includes/define.h"
 #include "structural_application.h"
+#include "structural_application_variables.h"
 #include "custom_python/add_custom_strategies_to_python.h"
 #include "custom_python/add_constitutive_laws_to_python.h"
 #include "custom_python/add_custom_utilities_to_python.h"
@@ -295,7 +296,9 @@ BOOST_PYTHON_MODULE( KratosStructuralApplication )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( DRUCKER_PRAGER_MATCHING_TYPE )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( HARDENING_POINTS_ON_CURVE )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( NODAL_STRESS )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE( NODAL_STRESS_VECTOR )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( NODAL_STRAIN )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE( NODAL_STRAIN_VECTOR )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( NODAL_VALUES )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( NODAL_DAMAGE )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( RAYLEIGH_DAMPING_ALPHA )

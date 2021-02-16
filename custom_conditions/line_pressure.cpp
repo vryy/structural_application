@@ -59,7 +59,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // Project includes
 #include "includes/define.h"
 #include "custom_conditions/line_pressure.h"
-#include "structural_application.h"
+#include "structural_application_variables.h"
 #include "utilities/math_utils.h"
 #include "custom_utilities/sd_math_utils.h"
 
@@ -117,7 +117,7 @@ LinePressure::~LinePressure()
 //***********************************************************************************
 //***********************************************************************************
 void LinePressure::EquationIdVector( EquationIdVectorType& rResult,
-                                    ProcessInfo& rCurrentProcessInfo )
+                                    const ProcessInfo& rCurrentProcessInfo ) const
 {
     KRATOS_TRY
 
@@ -138,7 +138,7 @@ void LinePressure::EquationIdVector( EquationIdVectorType& rResult,
 //***********************************************************************************
 //***********************************************************************************
 void LinePressure::GetDofList( DofsVectorType& ElementalDofList,
-                              ProcessInfo& rCurrentProcessInfo )
+                              const ProcessInfo& rCurrentProcessInfo ) const
 {
     const unsigned int dim = GetGeometry().WorkingSpaceDimension();
 
@@ -154,7 +154,7 @@ void LinePressure::GetDofList( DofsVectorType& ElementalDofList,
 //***********************************************************************************
 //***********************************************************************************
 void LinePressure::CalculateRightHandSide( VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo )
+        const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 
@@ -218,7 +218,7 @@ void LinePressure::CalculateRightHandSide( VectorType& rRightHandSideVector,
 //***********************************************************************************
 void LinePressure::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix,
                                         VectorType& rRightHandSideVector,
-                                        ProcessInfo& rCurrentProcessInfo )
+                                        const ProcessInfo& rCurrentProcessInfo )
 {
     const unsigned int number_of_nodes = GetGeometry().size();
     const unsigned int dim = GetGeometry().WorkingSpaceDimension();
@@ -229,7 +229,7 @@ void LinePressure::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix,
 //***********************************************************************************
 //***********************************************************************************
 void LinePressure::CalculateMassMatrix( MatrixType& rMassMatrix,
-                              ProcessInfo& rCurrentProcessInfo )
+                              const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
     rMassMatrix.resize( 0, 0, false );
@@ -239,7 +239,7 @@ void LinePressure::CalculateMassMatrix( MatrixType& rMassMatrix,
 //***********************************************************************************
 //***********************************************************************************
 void LinePressure::CalculateDampingMatrix( MatrixType& rDampingMatrix,
-                              ProcessInfo& rCurrentProcessInfo )
+                              const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
     rDampingMatrix.resize( 0, 0, false );
@@ -253,7 +253,7 @@ void LinePressure::CalculateDampingMatrix( MatrixType& rDampingMatrix,
  * or that no common error is found.
  * @param rCurrentProcessInfo
  */
-int LinePressure::Check( const Kratos::ProcessInfo& rCurrentProcessInfo )
+int LinePressure::Check( const ProcessInfo& rCurrentProcessInfo )
 {
     return 0;
 }

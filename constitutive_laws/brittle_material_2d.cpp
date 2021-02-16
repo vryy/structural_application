@@ -58,7 +58,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // Project includes
 #include "constitutive_laws/plane_strain.h"
 #include "constitutive_laws/brittle_material_2d.h"
-
+#include "structural_application_variables.h"
 
 
 namespace Kratos

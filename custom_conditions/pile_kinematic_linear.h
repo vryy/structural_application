@@ -82,6 +82,12 @@ namespace Kratos
             // Counted pointer of Pile_Kinematic_Linear
             KRATOS_CLASS_POINTER_DEFINITION( Pile_Kinematic_Linear );
 
+            #ifdef SD_APP_FORWARD_COMPATIBILITY
+            typedef Point PointType;
+            #else
+            typedef Point<3> PointType;
+            #endif
+
             /**
              * Default constructor.
              */
@@ -94,8 +100,8 @@ namespace Kratos
                                    PropertiesType::Pointer pProperties,
                                    Element::Pointer soilElement,
                                    Element::Pointer pileElement,
-                                   Point<3>& rSoilLocalPoint,
-                                   Point<3>& rPileLocalPoint,
+                                   PointType& rSoilLocalPoint,
+                                   PointType& rPileLocalPoint,
                                    int SoilIntegrationPointIndex );
 
             /**
@@ -109,25 +115,25 @@ namespace Kratos
 
             void Initialize(const ProcessInfo& rCurrentProcessInfo);
 
-            void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo);
+            void InitializeSolutionStep(const ProcessInfo& CurrentProcessInfo);
 
             /**
              * Calculates the local system contributions for this contact element
              */
             void CalculateLocalSystem( MatrixType& rLeftHandSideMatrix,
                                        VectorType& rRightHandSideVector,
-                                       ProcessInfo& rCurrentProcessInfo );
+                                       const ProcessInfo& rCurrentProcessInfo );
 
             void CalculateRightHandSide( VectorType& rRightHandSideVector,
-                                         ProcessInfo& rCurrentProcessInfo );
+                                         const ProcessInfo& rCurrentProcessInfo );
 
-            void DampMatrix( MatrixType& rDampMatrix, ProcessInfo& rCurrentProcessInfo );
+            void DampMatrix( MatrixType& rDampMatrix, const ProcessInfo& rCurrentProcessInfo );
 
             void EquationIdVector( EquationIdVectorType& rResult,
-                                   ProcessInfo& rCurrentProcessInfo );
+                                   const ProcessInfo& rCurrentProcessInfo ) const;
 
             void GetDofList( DofsVectorType& ConditionalDofList,
-                             ProcessInfo& CurrentProcessInfo );
+                             const ProcessInfo& CurrentProcessInfo ) const;
 
             /**
              * Turn back information as a string.
@@ -166,18 +172,18 @@ namespace Kratos
             Vector mvPile;
             Matrix mTPile;
 
-            Point<3> mPileLocalPoint;
-            Point<3> mSoilLocalPoint;
+            PointType mPileLocalPoint;
+            PointType mSoilLocalPoint;
             Element::Pointer mpPileElement;
             Element::Pointer mpSoilElement;
-            Point<3> mPileGlobalPoint;
-            Point<3> mSoilGlobalPoint;
+            PointType mPileGlobalPoint;
+            PointType mSoilGlobalPoint;
 //            Vector mTPileGlobalVector;
             int mPileIntegrationPointIndex;
 
             void CalculateAll( MatrixType& rLeftHandSideMatrix,
                                VectorType& rRightHandSideVector,
-                               ProcessInfo& rCurrentProcessInfo,
+                               const ProcessInfo& rCurrentProcessInfo,
                                bool CalculateStiffnessMatrixFlag,
                                bool CalculateResidualVectorFlag );
 
@@ -201,7 +207,7 @@ namespace Kratos
 
             Vector NormalVector( Element::Pointer rElement, const GeometryType::CoordinatesArrayType& LocalPoint );
 
-            Point<3>& GetGlobalCoordinates( Element::Pointer rElement, Point<3>& rResult, const Point<3>& LocalCoordinates );
+            PointType& GetGlobalCoordinates( Element::Pointer rElement, PointType& rResult, const PointType& LocalCoordinates );
 
             Matrix CalculateTangentVectors( const Element::Pointer rElement, const Matrix& DN );
 
@@ -216,7 +222,7 @@ namespace Kratos
 
             Matrix TangentialVectors_inOrigin( Element::Pointer rElement,
                                                const GeometryType::CoordinatesArrayType& rPoint );
-            //   Vector& GlobalCoordinatesTPileVector(Element::Pointer PileElements, Vector& rResult, Point<3> const& LocalCoordinates);
+            //   Vector& GlobalCoordinatesTPileVector(Element::Pointer PileElements, Vector& rResult, PointType const& LocalCoordinates);
     }; // Class Pile_Kinematic_Linear
 }  // namespace Kratos.
 

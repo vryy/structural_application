@@ -58,7 +58,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // Project includes
 #include "includes/define.h"
 #include "custom_conditions/slave_contact_point_3d.h"
-#include "structural_application.h"
+#include "structural_application_variables.h"
 #include "utilities/math_utils.h"
 #include "custom_utilities/sd_math_utils.h"
 
@@ -194,7 +194,7 @@ bool SlaveContactPoint3D::ClosestPoint( GeometryType::CoordinatesArrayType& rRes
  * calculates only the RHS vector (certainly to be removed due to contact algorithm)
  */
 void SlaveContactPoint3D::CalculateRightHandSide( VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo)
+        const ProcessInfo& rCurrentProcessInfo)
 {
     unsigned int ndof = GetGeometry().size()*3;
     if( rRightHandSideVector.size() != ndof )
@@ -210,7 +210,7 @@ void SlaveContactPoint3D::CalculateRightHandSide( VectorType& rRightHandSideVect
  */
 void SlaveContactPoint3D::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo)
+        const ProcessInfo& rCurrentProcessInfo)
 {
     unsigned int ndof = GetGeometry().size()*3;
     if( rRightHandSideVector.size() != ndof )
@@ -230,7 +230,7 @@ void SlaveContactPoint3D::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix,
  */
 void SlaveContactPoint3D::CalculateAll( MatrixType& rLeftHandSideMatrix,
                                         VectorType& rRightHandSideVector,
-                                        ProcessInfo& rCurrentProcessInfo,
+                                        const ProcessInfo& rCurrentProcessInfo,
                                         bool CalculateStiffnessMatrixFlag,
                                         bool CalculateResidualVectorFlag)
 {
@@ -272,8 +272,7 @@ void SlaveContactPoint3D::CalculateAndAdd_PressureForce( Vector& residualvector,
  * REMOVED: the DOFs are managed by the linking conditions
  */
 void SlaveContactPoint3D::EquationIdVector( EquationIdVectorType& rResult,
-        ProcessInfo& CurrentProcessInfo
-                                          )
+        const ProcessInfo& CurrentProcessInfo ) const
 {
 
     KRATOS_TRY
@@ -298,7 +297,7 @@ void SlaveContactPoint3D::EquationIdVector( EquationIdVectorType& rResult,
  * REMOVED: the DOFs are managed by the linking conditions
  */
 void SlaveContactPoint3D::GetDofList( DofsVectorType& ConditionalDofList,
-                                      ProcessInfo& CurrentProcessInfo)
+                                      const ProcessInfo& CurrentProcessInfo) const
 {
     ConditionalDofList.resize(0);
 
@@ -311,7 +310,7 @@ void SlaveContactPoint3D::GetDofList( DofsVectorType& ConditionalDofList,
 
 }
 
-void SlaveContactPoint3D::GetValueOnIntegrationPoints(const Variable<array_1d<double,3> >& rVariable, std::vector<array_1d<double,3> >& rValues, const ProcessInfo& rCurrentProcessInfo)
+void SlaveContactPoint3D::CalculateOnIntegrationPoints(const Variable<array_1d<double,3> >& rVariable, std::vector<array_1d<double,3> >& rValues, const ProcessInfo& rCurrentProcessInfo)
 {
 }
 } // Namespace Kratos

@@ -92,30 +92,30 @@ public:
 
     void Initialize(const ProcessInfo& rCurrentProcessInfo);
 
-    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
+    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo);
 
-    void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo);
+    void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo);
 
-    void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
+    void CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo);
 
-    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo);
+    void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const;
 
-    void GetDofList(DofsVectorType& ElementalDofList,ProcessInfo& CurrentProcessInfo);
+    void GetDofList(DofsVectorType& ElementalDofList, const ProcessInfo& CurrentProcessInfo) const;
 
-    void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo);
+    void InitializeSolutionStep(const ProcessInfo& CurrentProcessInfo);
 
-    void FinalizeSolutionStep(ProcessInfo& CurrentProcessInfo);
+    void FinalizeSolutionStep(const ProcessInfo& CurrentProcessInfo);
 
     void GetValuesVector(Vector& values, int Step);
 
-    void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo);
+    void CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo);
 
     void CalculateRHS(Vector& rRightHandSideVector);
 
     void CalculateLHS(Matrix& rLeftHandSideMatrix);
 
     void CalculateAll(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector,
-                      ProcessInfo& rCurrentProcessInfo,
+                      const ProcessInfo& rCurrentProcessInfo,
                       bool CalculateStiffnessMatrixFlag,
                       bool CalculateResidualVectorFlag);
 
@@ -125,10 +125,6 @@ public:
     void CalculateOnIntegrationPoints( const Variable<array_1d<double,3> >& rVariable,
                                        std::vector< array_1d<double,3> >& Output,
                                        const ProcessInfo& rCurrentProcessInfo);
-
-    void GetValueOnIntegrationPoints( const Variable<array_1d<double,3> >& rVariable,
-                                      std::vector<array_1d<double,3> >& rValues,
-                                      const ProcessInfo& rCurrentProcessInfo);
 
     IntegrationMethod GetIntegrationMethod() const;
 
@@ -141,7 +137,7 @@ public:
      * or that no common error is found.
      * @param rCurrentProcessInfo
      */
-    int Check(const ProcessInfo& rCurrentProcessInfo);
+    int Check(const ProcessInfo& rCurrentProcessInfo) const;
 
     ///@}
     ///@name Serialization

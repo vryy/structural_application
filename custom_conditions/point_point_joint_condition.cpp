@@ -58,7 +58,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // Project includes
 #include "includes/define.h"
 #include "custom_conditions/point_point_joint_condition.h"
-#include "structural_application.h"
+#include "structural_application_variables.h"
 #include "utilities/math_utils.h"
 #include "custom_utilities/sd_math_utils.h"
 #include "geometries/line_3d_2.h"
@@ -133,7 +133,7 @@ PointPointJointCondition::~PointPointJointCondition()
  * calculates only the RHS vector (certainly to be removed due to contact algorithm)
  */
 void PointPointJointCondition::CalculateRightHandSide( VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo)
+        const ProcessInfo& rCurrentProcessInfo)
 {
 
     //calculation flags
@@ -155,7 +155,7 @@ void PointPointJointCondition::CalculateRightHandSide( VectorType& rRightHandSid
  */
 void PointPointJointCondition::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo)
+        const ProcessInfo& rCurrentProcessInfo)
 {
     //calculation flags
     bool CalculateStiffnessMatrixFlag = true;
@@ -175,7 +175,7 @@ void PointPointJointCondition::CalculateLocalSystem( MatrixType& rLeftHandSideMa
  */
 void PointPointJointCondition::CalculateAll( MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo,
+        const ProcessInfo& rCurrentProcessInfo,
         bool CalculateStiffnessMatrixFlag,
         bool CalculateResidualVectorFlag)
 {
@@ -236,8 +236,7 @@ void PointPointJointCondition::CalculateAll( MatrixType& rLeftHandSideMatrix,
 //************************************************************************************
 
 void PointPointJointCondition::EquationIdVector( EquationIdVectorType& rResult,
-        ProcessInfo& CurrentProcessInfo
-                                            )
+        const ProcessInfo& CurrentProcessInfo ) const
 {
 
     //determining size of DOF list
@@ -256,7 +255,7 @@ void PointPointJointCondition::EquationIdVector( EquationIdVectorType& rResult,
 //************************************************************************************
 //************************************************************************************
 void PointPointJointCondition::GetDofList( DofsVectorType& ConditionalDofList,
-                                        ProcessInfo& CurrentProcessInfo)
+                                        const ProcessInfo& CurrentProcessInfo) const
 {
 //determining size of DOF list
     //dimension of space
@@ -267,9 +266,7 @@ void PointPointJointCondition::GetDofList( DofsVectorType& ConditionalDofList,
         ConditionalDofList[dim*i] = GetGeometry()[i].pGetDof(DISPLACEMENT_X);
         ConditionalDofList[dim*i+1] = GetGeometry()[i].pGetDof(DISPLACEMENT_Y);
         ConditionalDofList[dim*i+2] = GetGeometry()[i].pGetDof(DISPLACEMENT_Z);
-
     }
-
 }
 
 } // Namespace Kratos

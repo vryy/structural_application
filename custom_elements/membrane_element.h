@@ -101,22 +101,22 @@ class MembraneElement
 
 		void EquationIdVector(
 			EquationIdVectorType& rResult,
-			ProcessInfo& rCurrentProcessInfo);
+			const ProcessInfo& rCurrentProcessInfo) const;
 
 		void GetDofList(
 			DofsVectorType& ElementalDofList,
-			ProcessInfo& rCurrentProcessInfo);
+			const ProcessInfo& rCurrentProcessInfo) const;
 
 		void Initialize (const ProcessInfo& rCurrentProcessInfo);
 
 		void CalculateRightHandSide(
 			VectorType& rRightHandSideVector,
-			ProcessInfo& rCurrentProcessInfo);
+			const ProcessInfo& rCurrentProcessInfo);
 
 		void CalculateLocalSystem(
 			MatrixType& rLeftHandSideMatrix,
 			VectorType& rRightHandSideVector,
-			ProcessInfo& rCurrentProcessInfo);
+			const ProcessInfo& rCurrentProcessInfo);
 
 		void CalculateOnIntegrationPoints(
 			const Variable<Matrix>& rVariable,
@@ -125,37 +125,30 @@ class MembraneElement
 
 		void CalculateMassMatrix(
 			MatrixType& rMassMatrix,
-			ProcessInfo& rCurrentProcessInfo);
+			const ProcessInfo& rCurrentProcessInfo);
 
 		void CalculateDampingMatrix(
 			MatrixType& rDampingMatrix,
-			ProcessInfo& rCurrentProcessInfo);
+			const ProcessInfo& rCurrentProcessInfo);
 
 		void FinalizeSolutionStep(
-			ProcessInfo& rCurrentProcessInfo);
+			const ProcessInfo& rCurrentProcessInfo);
 
 		void GetValuesVector(
 			Vector& values,
-			int Step = 0);
+			int Step = 0) const;
 
 		void GetFirstDerivativesVector(
 			Vector& values,
-			int Step = 0);
+			int Step = 0) const;
 
 		void GetSecondDerivativesVector(
 			Vector& values,
-			int Step = 0);
+			int Step = 0) const;
 
-		void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable,
-				std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo);
 	//	///////////serve qui? non l'ho visto nel membrane element$$$$$$$$$$$$$$$$$$$$$
 //		ConstitutiveLaws::Pointer GetConstitutiveLaw(int GaussPointNumber)
 //			{return mConstitutiveLawVector[GaussPointNumber];}
-
-
-
-	protected:
-
 
 	private:
 		///@name Static Member Variables
@@ -171,7 +164,6 @@ class MembraneElement
 		/// privat variables
 
 		std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector;
-		Geometry< Point<3,double> >::Pointer  mpReferenceGeometry;
 
 		Vector mDetJ0;
 
@@ -295,7 +287,7 @@ class MembraneElement
 			array_1d<double,3>& a,
 			array_1d<double,3>& b);
 
-		int  Check( const ProcessInfo& rCurrentProcessInfo);
+		int  Check( const ProcessInfo& rCurrentProcessInfo) const;
 
 	    ///@}
 	    ///@name Serialization

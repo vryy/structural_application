@@ -68,6 +68,8 @@ class DofUtility
 {
 public:
 
+    KRATOS_CLASS_POINTER_DEFINITION(DofUtility);
+
     /**
      * Constructor.
      */

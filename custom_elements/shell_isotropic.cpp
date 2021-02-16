@@ -56,7 +56,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // Project includes
 #include "includes/define.h"
 #include "custom_elements/shell_isotropic.h"
-#include "structural_application.h"
+#include "structural_application_variables.h"
 #include "utilities/math_utils.h"
 
 namespace Kratos
@@ -90,14 +90,14 @@ ShellIsotropic::~ShellIsotropic()
 
 //************************************************************************************
 //************************************************************************************
-void ShellIsotropic::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+void ShellIsotropic::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
 {
     CalculateAllMatrices(rLeftHandSideMatrix,rRightHandSideVector,rCurrentProcessInfo);
 }
 
 //************************************************************************************
 //************************************************************************************
-void ShellIsotropic::CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+void ShellIsotropic::CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
 {
     Matrix lhs(18,18);
     CalculateAllMatrices(lhs,rRightHandSideVector,rCurrentProcessInfo);
@@ -623,7 +623,7 @@ void ShellIsotropic::CalculateBendingElasticityTensor( boost::numeric::ublas::bo
 void ShellIsotropic::CalculateAllMatrices(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
-    ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo)
 {
     boost::numeric::ublas::bounded_matrix<double,18,18> mKloc_system;
     boost::numeric::ublas::bounded_matrix<double,3,3> mEm;
@@ -727,7 +727,7 @@ void ShellIsotropic::CalculateAllMatrices(
 
 //************************************************************************************
 //************************************************************************************
-void ShellIsotropic::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& CurrentProcessInfo)
+void ShellIsotropic::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& CurrentProcessInfo) const
 {
     int number_of_nodes = 3;
     if(rResult.size() != 18)
@@ -749,7 +749,7 @@ void ShellIsotropic::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo
 
 //************************************************************************************
 //************************************************************************************
-void ShellIsotropic::GetDofList(DofsVectorType& ElementalDofList,ProcessInfo& CurrentProcessInfo)
+void ShellIsotropic::GetDofList(DofsVectorType& ElementalDofList, const ProcessInfo& CurrentProcessInfo) const
 {
     ElementalDofList.resize(0);
 
@@ -767,7 +767,7 @@ void ShellIsotropic::GetDofList(DofsVectorType& ElementalDofList,ProcessInfo& Cu
 
 //************************************************************************************
 //************************************************************************************
-void ShellIsotropic::GetValuesVector(Vector& values, int Step)
+void ShellIsotropic::GetValuesVector(Vector& values, int Step) const
 {
     const unsigned int number_of_nodes = 3;
     //const unsigned int dim = 3;
@@ -934,17 +934,6 @@ void ShellIsotropic::NicePrint(const Matrix& A)
         std::cout << std::endl;
     }
 }
-
-
-//************************************************************************************
-//************************************************************************************
-void ShellIsotropic::GetValueOnIntegrationPoints( const Variable<Matrix>& rVariable,
-        std::vector<Matrix>& rValues,
-        const ProcessInfo& rCurrentProcessInfo)
-{
-    CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
-}
-
 
 
 //************************************************************************************
@@ -1879,7 +1868,7 @@ void ShellIsotropic::Initialize(const ProcessInfo& rCurrentProcessInfo)
 
 //************************************************************************************
 //************************************************************************************
-void ShellIsotropic::FinalizeNonLinearIteration(ProcessInfo& CurrentProcessInfo)
+void ShellIsotropic::FinalizeNonLinearIteration(const ProcessInfo& CurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -1903,7 +1892,7 @@ void ShellIsotropic::FinalizeNonLinearIteration(ProcessInfo& CurrentProcessInfo)
 
 //************************************************************************************
 //************************************************************************************
-void ShellIsotropic::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
+void ShellIsotropic::CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -1944,7 +1933,7 @@ void ShellIsotropic::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& r
 
 //************************************************************************************
 //************************************************************************************
-void ShellIsotropic::GetFirstDerivativesVector(Vector& values, int Step)
+void ShellIsotropic::GetFirstDerivativesVector(Vector& values, int Step) const
 {
     unsigned int MatSize = 18;
     if(values.size() != MatSize)   values.resize(MatSize,false);
@@ -1961,7 +1950,7 @@ void ShellIsotropic::GetFirstDerivativesVector(Vector& values, int Step)
 }
 //************************************************************************************
 //************************************************************************************
-void ShellIsotropic::GetSecondDerivativesVector(Vector& values, int Step)
+void ShellIsotropic::GetSecondDerivativesVector(Vector& values, int Step) const
 {
     unsigned int MatSize = 18;
     if(values.size() != MatSize) values.resize(MatSize,false);
@@ -1987,11 +1976,9 @@ void ShellIsotropic::GetSecondDerivativesVector(Vector& values, int Step)
  * or that no common error is found.
  * @param rCurrentProcessInfo
  */
-int  ShellIsotropic::Check(const ProcessInfo& rCurrentProcessInfo)
+int  ShellIsotropic::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
-
-
 
     //verify that the variables are correctly initialized
     if(VELOCITY.Key() == 0)

@@ -93,12 +93,6 @@ public:
      */
     PlaneStrain();
 
-    virtual  ConstitutiveLaw::Pointer Clone() const
-    {
-         ConstitutiveLaw::Pointer p_clone(new PlaneStrain());
-        return p_clone;
-    }
-
     /**
      * Destructor.
      */
@@ -107,9 +101,17 @@ public:
     /**
      * Operators
      */
+
     /**
      * Operations
      */
+
+    ConstitutiveLaw::Pointer Clone() const final
+    {
+         ConstitutiveLaw::Pointer p_clone(new PlaneStrain());
+        return p_clone;
+    }
+
     bool Has( const Variable<int>& rThisVariable );
     bool Has( const Variable<double>& rThisVariable );
     bool Has( const Variable<Vector>& rThisVariable );
@@ -136,23 +138,23 @@ public:
     /**
      * Material parameters are inizialized
      */
-    virtual void InitializeMaterial( const Properties& props,
-                                     const GeometryType& geom,
-                                     const Vector& ShapeFunctionsValues );
+    void InitializeMaterial( const Properties& props,
+                             const GeometryType& geom,
+                             const Vector& ShapeFunctionsValues ) final;
 
-    virtual void ResetMaterial( const Properties& props,
-                                const GeometryType& geom,
-                                const Vector& ShapeFunctionsValues );
+    void ResetMaterial( const Properties& props,
+                        const GeometryType& geom,
+                        const Vector& ShapeFunctionsValues ) final;
 
-    virtual void InitializeNonLinearIteration( const Properties& rMaterialProperties,
-                                               const GeometryType& rElementGeometry,
-                                               const Vector& rShapeFunctionsValues,
-                                               const ProcessInfo& rCurrentProcessInfo );
+    void InitializeNonLinearIteration( const Properties& rMaterialProperties,
+                                       const GeometryType& rElementGeometry,
+                                       const Vector& rShapeFunctionsValues,
+                                       const ProcessInfo& rCurrentProcessInfo ) final;
 
-    virtual void FinalizeNonLinearIteration( const Properties& rMaterialProperties,
-                                             const GeometryType& rElementGeometry,
-                                             const Vector& rShapeFunctionsValues,
-                                             const ProcessInfo& rCurrentProcessInfo );
+    void FinalizeNonLinearIteration( const Properties& rMaterialProperties,
+                                     const GeometryType& rElementGeometry,
+                                     const Vector& rShapeFunctionsValues,
+                                     const ProcessInfo& rCurrentProcessInfo ) final;
 
     /**
      * Calculates the constitutive matrix for a given strain vector
@@ -205,7 +207,14 @@ public:
     void Calculate(const Variable<Matrix >& rVariable, Matrix& rResult,
                    const ProcessInfo& rCurrentProcessInfo);
 
-    void  CalculateMaterialResponse( const Vector& StrainVector,
+    /**
+     * Computes the material response in terms of Cauchy stresses and constitutive tensor
+     * @see Parameters
+     */
+    void CalculateMaterialResponseCauchy (Parameters& rValues) final;
+
+    /// DEPRECATED interface
+    void CalculateMaterialResponse( const Vector& StrainVector,
                                      const Matrix& DeformationGradient,
                                      Vector& StressVector,
                                      Matrix& AlgorithmicTangent,

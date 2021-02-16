@@ -61,8 +61,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/define.h"
 #include "custom_elements/ebst_vel.h"
 #include "includes/constitutive_law.h"
-#include "structural_application.h"
 #include "utilities/geometry_utilities.h"
+#include "structural_application_variables.h"
 
 
 namespace Kratos
@@ -116,12 +116,12 @@ EbstVel::~EbstVel()
 
 void EbstVel::EquationIdVector(
     EquationIdVectorType& rResult,
-    ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
-    WeakPointerVector< Node < 3 > >& neigb = this->GetValue(NEIGHBOUR_NODES);
+    const WeakPointerVector< Node < 3 > >& neigb = this->GetValue(NEIGHBOUR_NODES);
 
-    unsigned int number_of_nodes = GetGeometry().size() + NumberOfActiveNeighbours(neigb);
+    unsigned int number_of_nodes = GetGeometry().size() + this->NumberOfActiveNeighbours(neigb);
     unsigned int dim = number_of_nodes * 3;
 
     if (rResult.size() != dim)
@@ -140,7 +140,7 @@ void EbstVel::EquationIdVector(
     int index = 9;
     for (unsigned int i = 0; i < 3; i++)
     {
-        if (HasNeighbour(i, neigb[i]))
+        if (this->HasNeighbour(i, neigb[i]))
         {
             rResult[index] = neigb[i].GetDof(VELOCITY_X).EquationId();
             rResult[index + 1] = neigb[i].GetDof(VELOCITY_Y).EquationId();
@@ -155,11 +155,11 @@ void EbstVel::EquationIdVector(
 //************************************************************************************
 //************************************************************************************
 
-void EbstVel::GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& CurrentProcessInfo)
+void EbstVel::GetDofList(DofsVectorType& ElementalDofList, const ProcessInfo& CurrentProcessInfo) const
 {
     KRATOS_TRY
 
-    WeakPointerVector< Node < 3 > >& neigb = this->GetValue(NEIGHBOUR_NODES);
+    const WeakPointerVector< Node < 3 > >& neigb = this->GetValue(NEIGHBOUR_NODES);
     ElementalDofList.resize(0);
 
     //nodes of the central element
@@ -173,13 +173,14 @@ void EbstVel::GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& CurrentP
     //adding the dofs ofthe neighbouring nodes
     for (unsigned int i = 0; i < 3; i++)
     {
-        if (HasNeighbour(i, neigb[i]))
+        if (this->HasNeighbour(i, neigb[i]))
         {
             ElementalDofList.push_back(neigb[i].pGetDof(VELOCITY_X));
             ElementalDofList.push_back(neigb[i].pGetDof(VELOCITY_Y));
             ElementalDofList.push_back(neigb[i].pGetDof(VELOCITY_Z));
         }
     }
+
     KRATOS_CATCH("")
 }
 //************************************************************************************

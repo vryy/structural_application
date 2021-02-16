@@ -55,12 +55,15 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // Project includes
 #include "includes/define.h"
 #include "custom_conditions/contact_link_3D_newmark.h"
-#include "structural_application.h"
+#include "structural_application_variables.h"
 #include "utilities/math_utils.h"
 #include "custom_utilities/sd_math_utils.h"
 
 namespace Kratos
 {
+
+typedef ContactLink3DNewmark::PointType PointType;
+
 //************************************************************************************
 //************************************************************************************
 ContactLink3DNewmark::ContactLink3DNewmark( IndexType NewId,
@@ -84,8 +87,8 @@ ContactLink3DNewmark::ContactLink3DNewmark( IndexType NewId, GeometryType::Point
         PropertiesType::Pointer pProperties,
         Condition::Pointer Master,
         Condition::Pointer Slave,
-        Point<3>& MasterContactLocalPoint,
-        Point<3>& SlaveContactLocalPoint,
+        PointType& MasterContactLocalPoint,
+        PointType& SlaveContactLocalPoint,
         int SlaveIntegrationPointIndex
                                           )
     : Condition( NewId, pGeometry, pProperties )
@@ -260,7 +263,7 @@ Vector ContactLink3DNewmark::NormalVector( Condition::Pointer Surface,
  * calculates only the RHS vector (certainly to be removed due to contact algorithm)
  */
 void ContactLink3DNewmark::CalculateRightHandSide( VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo)
+        const ProcessInfo& rCurrentProcessInfo)
 {
     //calculation flags
     bool CalculateStiffnessMatrixFlag = false;
@@ -279,7 +282,7 @@ void ContactLink3DNewmark::CalculateRightHandSide( VectorType& rRightHandSideVec
  */
 void ContactLink3DNewmark::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo)
+        const ProcessInfo& rCurrentProcessInfo)
 {
     //calculation flags
     bool CalculateStiffnessMatrixFlag = true;
@@ -297,7 +300,7 @@ void ContactLink3DNewmark::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix
  */
 void ContactLink3DNewmark::CalculateAll( MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo,
+        const ProcessInfo& rCurrentProcessInfo,
         bool CalculateStiffnessMatrixFlag,
         bool CalculateResidualVectorFlag)
 {
@@ -373,8 +376,8 @@ void ContactLink3DNewmark::CalculateAll( MatrixType& rLeftHandSideMatrix,
     Vector vMaster(3);
     noalias(vMaster) = NormalVector( GetValue( CONTACT_LINK_MASTER ), GetValue( MASTER_CONTACT_LOCAL_POINT ) );
     //updating contact point coordinates
-    noalias(GetValue( MASTER_CONTACT_GLOBAL_POINT ) )= ZeroVector(3);
-    noalias(GetValue( SLAVE_CONTACT_GLOBAL_POINT )) = ZeroVector(3);
+    noalias(GetValue( MASTER_CONTACT_GLOBAL_POINT ) ) = PointType(ZeroVector(3));
+    noalias(GetValue( SLAVE_CONTACT_GLOBAL_POINT )) = PointType(ZeroVector(3));
 
     noalias(GetValue( MASTER_CONTACT_GLOBAL_POINT )) = GlobalCoordinates(GetValue( CONTACT_LINK_MASTER ), GetValue( MASTER_CONTACT_GLOBAL_POINT ), GetValue( MASTER_CONTACT_LOCAL_POINT ));
 
@@ -1617,7 +1620,7 @@ void ContactLink3DNewmark::CalculateAll( MatrixType& rLeftHandSideMatrix,
 
 //***********************************************************************
 //***********************************************************************
-void ContactLink3DNewmark::CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo)
+void ContactLink3DNewmark::CalculateDampingMatrix(MatrixType& rDampingMatrix, const ProcessInfo& rCurrentProcessInfo)
 {
 
     KRATOS_TRY
@@ -2366,7 +2369,7 @@ void ContactLink3DNewmark::UpdateMasterLocalPoint( )
         GetValue( MASTER_CONTACT_CURRENT_LOCAL_POINT )[0] = Xi1;
         GetValue( MASTER_CONTACT_CURRENT_LOCAL_POINT )[1] = Xi2;
         //updating rResult
-        GetValue( MASTER_CONTACT_CURRENT_GLOBAL_POINT ) = ZeroVector( 3 );
+        GetValue( MASTER_CONTACT_CURRENT_GLOBAL_POINT ) = PointType(ZeroVector( 3 ));
         GetValue( MASTER_CONTACT_CURRENT_GLOBAL_POINT ) = GlobalCoordinates(GetValue( CONTACT_LINK_MASTER ), GetValue( MASTER_CONTACT_CURRENT_GLOBAL_POINT ), GetValue( MASTER_CONTACT_CURRENT_LOCAL_POINT ) );
 
         if( fabs(deltaXi1) < 1e-7 && fabs(deltaXi2) < 1e-7 )
@@ -2386,7 +2389,7 @@ void ContactLink3DNewmark::UpdateMasterLocalPoint( )
  * All Equation IDs are given Master first, Slave second
  */
 void ContactLink3DNewmark::EquationIdVector( EquationIdVectorType& rResult,
-        ProcessInfo& CurrentProcessInfo)
+        const ProcessInfo& CurrentProcessInfo) const
 {
     //determining size of DOF list
     //dimension of space
@@ -2420,7 +2423,7 @@ void ContactLink3DNewmark::EquationIdVector( EquationIdVectorType& rResult,
  * All DOF are given Master first, Slave second
  */
 void ContactLink3DNewmark::GetDofList( DofsVectorType& ConditionalDofList,
-                                       ProcessInfo& CurrentProcessInfo)
+                                       const ProcessInfo& CurrentProcessInfo) const
 {
     //determining size of DOF list
     //dimension of space
@@ -2450,7 +2453,7 @@ void ContactLink3DNewmark::GetDofList( DofsVectorType& ConditionalDofList,
 
 //new functions includes
 
-Point<3>& ContactLink3DNewmark::GlobalCoordinates(Condition::Pointer Surface, Point<3>& rResult, Point<3> const& LocalCoordinates)
+PointType& ContactLink3DNewmark::GlobalCoordinates(Condition::Pointer Surface, PointType& rResult, PointType const& LocalCoordinates)
 {
     noalias(rResult)= ZeroVector(3);
 

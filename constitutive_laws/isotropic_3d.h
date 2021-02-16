@@ -95,12 +95,6 @@ namespace Kratos
              */
             Isotropic3D();
 
-            virtual  ConstitutiveLaw::Pointer Clone() const
-            {
-                 ConstitutiveLaw::Pointer p_clone( new Isotropic3D() );
-                return p_clone;
-            }
-
             /**
              * Destructor.
              */
@@ -109,9 +103,17 @@ namespace Kratos
             /**
              * Operators
              */
+
             /**
              * Operations
              */
+
+            ConstitutiveLaw::Pointer Clone() const final
+            {
+                ConstitutiveLaw::Pointer p_clone( new Isotropic3D() );
+                return p_clone;
+            }
+
             bool Has( const Variable<int>& rThisVariable );
             bool Has( const Variable<double>& rThisVariable );
             bool Has( const Variable<Vector>& rThisVariable );
@@ -194,6 +196,13 @@ namespace Kratos
                                const GeometryType& geom,
                                const ProcessInfo& CurrentProcessInfo );
 
+            /**
+             * Computes the material response in terms of Cauchy stresses and constitutive tensor
+             * @see Parameters
+             */
+            void CalculateMaterialResponseCauchy (Parameters& rValues) final;
+
+            /// DEPRECATED function
             void CalculateMaterialResponse( const Vector& StrainVector,
                                             const Matrix& DeformationGradient,
                                             Vector& StressVector,

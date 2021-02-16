@@ -61,7 +61,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/define.h"
 #include "custom_elements/ebst.h"
 #include "includes/constitutive_law.h"
-#include "structural_application.h"
+#include "structural_application_variables.h"
 
 
 namespace Kratos
@@ -112,13 +112,13 @@ Ebst::~Ebst()
 
 void Ebst::EquationIdVector(
     EquationIdVectorType& rResult,
-    ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
 
-    WeakPointerVector< Node < 3 > >& neigb = this->GetValue(NEIGHBOUR_NODES);
+    const WeakPointerVector< Node < 3 > >& neigb = this->GetValue(NEIGHBOUR_NODES);
 
-    unsigned int number_of_nodes = GetGeometry().size() + NumberOfActiveNeighbours(neigb);
+    unsigned int number_of_nodes = GetGeometry().size() + this->NumberOfActiveNeighbours(neigb);
     unsigned int dim = number_of_nodes * 3;
 
     if (rResult.size() != dim)
@@ -137,7 +137,7 @@ void Ebst::EquationIdVector(
     int index = 9;
     for (unsigned int i = 0; i < 3; i++)
     {
-        if (HasNeighbour(i, neigb[i]))
+        if (this->HasNeighbour(i, neigb[i]))
         {
             rResult[index] = neigb[i].GetDof(DISPLACEMENT_X).EquationId();
             rResult[index + 1] = neigb[i].GetDof(DISPLACEMENT_Y).EquationId();
@@ -146,18 +146,17 @@ void Ebst::EquationIdVector(
         }
     }
 
-
     KRATOS_CATCH("")
 }
 
 //************************************************************************************
 //************************************************************************************
 
-void Ebst::GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& CurrentProcessInfo)
+void Ebst::GetDofList(DofsVectorType& ElementalDofList, const ProcessInfo& CurrentProcessInfo) const
 {
     KRATOS_TRY
 
-    WeakPointerVector< Node < 3 > >& neigb = this->GetValue(NEIGHBOUR_NODES);
+    const WeakPointerVector< Node < 3 > >& neigb = this->GetValue(NEIGHBOUR_NODES);
     ElementalDofList.resize(0);
 
     //nodes of the central element
@@ -171,13 +170,14 @@ void Ebst::GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& CurrentProc
     //adding the dofs ofthe neighbouring nodes
     for (unsigned int i = 0; i < 3; i++)
     {
-        if (HasNeighbour(i, neigb[i]))
+        if (this->HasNeighbour(i, neigb[i]))
         {
             ElementalDofList.push_back(neigb[i].pGetDof(DISPLACEMENT_X));
             ElementalDofList.push_back(neigb[i].pGetDof(DISPLACEMENT_Y));
             ElementalDofList.push_back(neigb[i].pGetDof(DISPLACEMENT_Z));
         }
     }
+
     KRATOS_CATCH("")
 }
 
@@ -186,9 +186,9 @@ void Ebst::GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& CurrentProc
 
 void Ebst::GetValuesVector(
     Vector& values,
-    int Step)
+    int Step) const
 {
-    WeakPointerVector< Node < 3 > >& neigb = this->GetValue(NEIGHBOUR_NODES);
+    const WeakPointerVector< Node < 3 > >& neigb = this->GetValue(NEIGHBOUR_NODES);
     unsigned int number_of_nodes = GetGeometry().size() + NumberOfActiveNeighbours(neigb);
 
     const unsigned int MatSize = number_of_nodes * 3;
@@ -225,9 +225,9 @@ void Ebst::GetValuesVector(
 
 void Ebst::GetFirstDerivativesVector(
     Vector& values,
-    int Step)
+    int Step) const
 {
-    WeakPointerVector< Node < 3 > >& neigb = this->GetValue(NEIGHBOUR_NODES);
+    const WeakPointerVector< Node < 3 > >& neigb = this->GetValue(NEIGHBOUR_NODES);
     unsigned int number_of_nodes = GetGeometry().size() + NumberOfActiveNeighbours(neigb);
 
     const unsigned int MatSize = number_of_nodes * 3;
@@ -264,9 +264,9 @@ void Ebst::GetFirstDerivativesVector(
 
 void Ebst::GetSecondDerivativesVector(
     Vector& values,
-    int Step)
+    int Step) const
 {
-    WeakPointerVector< Node < 3 > >& neigb = this->GetValue(NEIGHBOUR_NODES);
+    const WeakPointerVector< Node < 3 > >& neigb = this->GetValue(NEIGHBOUR_NODES);
     unsigned int number_of_nodes = GetGeometry().size() + NumberOfActiveNeighbours(neigb);
 
     const unsigned int MatSize = number_of_nodes * 3;
@@ -303,7 +303,7 @@ void Ebst::GetSecondDerivativesVector(
 
 void Ebst::CalculateRightHandSide(
     VectorType& rRightHandSideVector,
-    ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo)
 {
     //calculation flags
     bool CalculateStiffnessMatrixFlag = false;
@@ -323,7 +323,7 @@ void Ebst::CalculateRightHandSide(
 void Ebst::CalculateLocalSystem(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
-    ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo)
 {
     //calculation flags
     bool CalculateStiffnessMatrixFlag = true;
@@ -497,20 +497,12 @@ void Ebst::CalculateOnIntegrationPoints(
 
 }
 
-//************************************************************************************
-//************************************************************************************
-void Ebst::GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable,
-                                       std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo)
-{
-    CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
-}
-
 //***********************************************************************************
 //***********************************************************************************
 
 void Ebst::CalculateMassMatrix(
     MatrixType& rMassMatrix,
-    ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -547,7 +539,7 @@ void Ebst::CalculateMassMatrix(
 
 void Ebst::CalculateDampingMatrix(
     MatrixType& rDampingMatrix,
-    ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -571,7 +563,7 @@ void Ebst::CalculateDampingMatrix(
 //***********************************************************************************
 
 void Ebst::FinalizeSolutionStep(
-    ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo)
 {
     Vector N(3);
     N[0] = 0.33333333333333333333;
@@ -1009,7 +1001,7 @@ void Ebst::CalculateAll(
 //***********************************************************************************
 //***********************************************************************************
 
-bool Ebst::HasNeighbour(unsigned int index, const Node < 3 > & neighb)
+bool Ebst::HasNeighbour(unsigned int index, const Node < 3 > & neighb) const
 {
     if (neighb.Id() == GetGeometry()[index].Id())
         return false;
@@ -1020,7 +1012,7 @@ bool Ebst::HasNeighbour(unsigned int index, const Node < 3 > & neighb)
 //***********************************************************************************
 //***********************************************************************************
 
-unsigned int Ebst::NumberOfActiveNeighbours(WeakPointerVector< Node < 3 > >& neighbs)
+unsigned int Ebst::NumberOfActiveNeighbours(const WeakPointerVector< Node < 3 > >& neighbs) const
 {
     unsigned int active_neighbours = 0;
     for (unsigned int i = 0; i < neighbs.size(); i++)
@@ -1748,7 +1740,7 @@ inline array_1d<double,6> Ebst::VoigtTensorComponents(
 ////************************************************************************************
 ////************************************************************************************
 
-void Ebst::InitializeSolutionStep(ProcessInfo& CurrentProcessInfo)
+void Ebst::InitializeSolutionStep(const ProcessInfo& CurrentProcessInfo)
 {
     Vector N(3);
     N[0] = 0.33333333333333333333;

@@ -54,7 +54,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 /* External includes */
 
-#include "structural_application.h"
+#include "structural_application_variables.h"
 #include "custom_utilities/tensor_utils.h"
 #include "includes/ublas_interface.h"
 #include "includes/properties.h"

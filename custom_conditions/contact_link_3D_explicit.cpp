@@ -55,13 +55,16 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // Project includes
 #include "includes/define.h"
 #include "custom_conditions/contact_link_3D_explicit.h"
-#include "structural_application.h"
+#include "structural_application_variables.h"
 #include "utilities/math_utils.h"
 #include "custom_utilities/sd_math_utils.h"
 #include "geometries/plane.h"
 
 namespace Kratos
 {
+
+typedef ContactLink3DExplicit::PointType PointType;
+
 //************************************************************************************
 //************************************************************************************
 ContactLink3DExplicit::ContactLink3DExplicit( IndexType NewId,
@@ -85,8 +88,8 @@ ContactLink3DExplicit::ContactLink3DExplicit( IndexType NewId, GeometryType::Poi
         PropertiesType::Pointer pProperties,
         Condition::Pointer Master,
         Condition::Pointer Slave,
-        Point<3>& MasterContactLocalPoint,
-        Point<3>& SlaveContactLocalPoint,
+        PointType& MasterContactLocalPoint,
+        PointType& SlaveContactLocalPoint,
         int SlaveIntegrationPointIndex
                                             )
     : Condition( NewId, pGeometry, pProperties )
@@ -275,7 +278,7 @@ Vector ContactLink3DExplicit::NormalVector( Condition::Pointer Surface,
  * calculates only the RHS vector (certainly to be removed due to contact algorithm)
  */
 void ContactLink3DExplicit::CalculateRightHandSide( VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo)
+        const ProcessInfo& rCurrentProcessInfo)
 {
     //calculation flags
     bool CalculateStiffnessMatrixFlag = false;
@@ -294,7 +297,7 @@ void ContactLink3DExplicit::CalculateRightHandSide( VectorType& rRightHandSideVe
  */
 void ContactLink3DExplicit::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo)
+        const ProcessInfo& rCurrentProcessInfo)
 {
     //calculation flags
     bool CalculateStiffnessMatrixFlag = true;
@@ -312,7 +315,7 @@ void ContactLink3DExplicit::CalculateLocalSystem( MatrixType& rLeftHandSideMatri
  */
 void ContactLink3DExplicit::CalculateAll( MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo,
+        const ProcessInfo& rCurrentProcessInfo,
         bool CalculateStiffnessMatrixFlag,
         bool CalculateResidualVectorFlag)
 {
@@ -384,7 +387,7 @@ void ContactLink3DExplicit::CalculateAndAdd_RHS( Vector& residualvector,
  * All Equation IDs are given Master first, Slave second
  */
 void ContactLink3DExplicit::EquationIdVector( EquationIdVectorType& rResult,
-        ProcessInfo& CurrentProcessInfo)
+        const ProcessInfo& CurrentProcessInfo) const
 {
     //determining size of DOF list
     //dimension of space
@@ -418,7 +421,7 @@ void ContactLink3DExplicit::EquationIdVector( EquationIdVectorType& rResult,
  * All DOF are given Master first, Slave second
  */
 void ContactLink3DExplicit::GetDofList( DofsVectorType& ConditionalDofList,
-                                        ProcessInfo& CurrentProcessInfo)
+                                        const ProcessInfo& CurrentProcessInfo) const
 {
     //determining size of DOF list
     //dimension of space
@@ -448,7 +451,7 @@ void ContactLink3DExplicit::GetDofList( DofsVectorType& ConditionalDofList,
 
 //new functions includes
 
-Point<3>& ContactLink3DExplicit::GlobalCoordinates(Condition::Pointer Surface, Point<3>& rResult, Point<3> const& LocalCoordinates)
+PointType& ContactLink3DExplicit::GlobalCoordinates(Condition::Pointer Surface, PointType& rResult, PointType const& LocalCoordinates)
 {
     noalias(rResult)= ZeroVector(3);
 
@@ -540,7 +543,7 @@ Vector ContactLink3DExplicit::GetRelativVelocity()
     return result;
 }
 
-void ContactLink3DExplicit::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
+void ContactLink3DExplicit::CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo)
 {
     Condition::GeometryType& geom = this->GetGeometry();
     const unsigned int dimension  = geom.WorkingSpaceDimension();

@@ -56,7 +56,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_conditions/embedded_point_penalty_tying_condition.h"
 #include "custom_utilities/sd_math_utils.h"
 #include "includes/kratos_flags.h"
-#include "structural_application.h"
+#include "structural_application_variables.h"
 
 namespace Kratos
 {
@@ -77,8 +77,8 @@ namespace Kratos
                                 GeometryType::Pointer pGeometry,
                                 Element::Pointer pMasterElement,
                                 Element::Pointer pSlaveElement,
-                                Point<3>& rMasterLocalPoint,
-                                Point<3>& rSlaveLocalPoint )
+                                PointType& rMasterLocalPoint,
+                                PointType& rSlaveLocalPoint )
     : Condition( NewId, pGeometry )
     {
         mMasterLocalPoint = rMasterLocalPoint;
@@ -96,8 +96,8 @@ namespace Kratos
                                        GeometryType::Pointer pGeometry,
                                        Element::Pointer pMasterElement,
                                        Element::Pointer pSlaveElement,
-                                       Point<3>& rMasterLocalPoint,
-                                       Point<3>& rSlaveLocalPoint ) const
+                                       PointType& rMasterLocalPoint,
+                                       PointType& rSlaveLocalPoint ) const
     {
         return Condition::Pointer( new EmbeddedPointPenaltyTyingCondition(NewId, pGeometry, pMasterElement, pSlaveElement, rMasterLocalPoint, rSlaveLocalPoint) );
     }
@@ -124,7 +124,7 @@ namespace Kratos
      * calculates only the RHS vector (certainly to be removed due to contact algorithm)
      */
     void EmbeddedPointPenaltyTyingCondition::CalculateRightHandSide( VectorType& rRightHandSideVector,
-            ProcessInfo& rCurrentProcessInfo)
+            const ProcessInfo& rCurrentProcessInfo)
     {
         //calculation flags
         bool CalculateStiffnessMatrixFlag = false;
@@ -143,7 +143,7 @@ namespace Kratos
      */
     void EmbeddedPointPenaltyTyingCondition::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix,
                                               VectorType& rRightHandSideVector,
-                                              ProcessInfo& rCurrentProcessInfo)
+                                              const ProcessInfo& rCurrentProcessInfo)
     {
         //calculation flags
         bool CalculateStiffnessMatrixFlag = true;
@@ -160,7 +160,7 @@ namespace Kratos
      */
     void EmbeddedPointPenaltyTyingCondition::CalculateAll( MatrixType& rLeftHandSideMatrix,
                                       VectorType& rRightHandSideVector,
-                                      ProcessInfo& rCurrentProcessInfo,
+                                      const ProcessInfo& rCurrentProcessInfo,
                                       bool CalculateStiffnessMatrixFlag,
                                       bool CalculateResidualVectorFlag)
     {
@@ -291,7 +291,7 @@ namespace Kratos
     * All Equation IDs are given Master first, Slave second
     */
     void EmbeddedPointPenaltyTyingCondition::EquationIdVector( EquationIdVectorType& rResult,
-                                          ProcessInfo& CurrentProcessInfo)
+                                          const ProcessInfo& CurrentProcessInfo) const
     {
         //determining size of DOF list
         //dimension of space
@@ -328,7 +328,7 @@ namespace Kratos
      */
     //************************************************************************************
     //************************************************************************************
-    void EmbeddedPointPenaltyTyingCondition::GetDofList( DofsVectorType& ConditionalDofList, ProcessInfo& CurrentProcessInfo)
+    void EmbeddedPointPenaltyTyingCondition::GetDofList( DofsVectorType& ConditionalDofList, const ProcessInfo& CurrentProcessInfo) const
     {
         ConditionalDofList.resize(0);
 

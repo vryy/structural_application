@@ -66,7 +66,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/model_part.h"
 //#include "spatial_containers/bins_static.h"
 #include "spatial_containers/bins_dynamic.h"
-#include "structural_application.h"
+#include "structural_application_variables.h"
 
 
 //#define DEBUG_WITH_MPI
@@ -235,7 +235,7 @@ public:
             const GeometryType::IntegrationPointsArrayType& integration_points = i_element->GetGeometry().IntegrationPoints( i_element->GetIntegrationMethod() );
             double young = GetModulus(i_element->GetProperties(), i_element->GetValue(MATERIAL_DENSITY_FILTERED));
             std::vector<double> Modulus(integration_points.size(), young);
-            i_element->SetValueOnIntegrationPoints(YOUNG_MODULUS, Modulus, mr_model_part.GetProcessInfo());
+            i_element->SetValuesOnIntegrationPoints(YOUNG_MODULUS, Modulus, mr_model_part.GetProcessInfo());
 
             std::size_t neighbour_size = i_element->GetValue(NEIGHBOUR_ELEMENTS).size();
             if(neighbour_size <= 1)
@@ -283,11 +283,11 @@ public:
 
             // compute strain energy (i.e compliance) at the integration points
             std::vector<double> StrainEnergyAtIntegrationPoints;
-            i_element->GetValueOnIntegrationPoints(STRAIN_ENERGY, StrainEnergyAtIntegrationPoints, mr_model_part.GetProcessInfo());
+            i_element->CalculateOnIntegrationPoints(STRAIN_ENERGY, StrainEnergyAtIntegrationPoints, mr_model_part.GetProcessInfo());
 
             // get the Jacobian at integration points
             std::vector<double> Jacobian;
-            i_element->GetValueOnIntegrationPoints(JACOBIAN_0, Jacobian, mr_model_part.GetProcessInfo());
+            i_element->CalculateOnIntegrationPoints(JACOBIAN_0, Jacobian, mr_model_part.GetProcessInfo());
 
             // compute strain energy at the element
             double StrainEnergy = 0.0;
@@ -498,7 +498,7 @@ public:
             const GeometryType::IntegrationPointsArrayType& integration_points = i_element->GetGeometry().IntegrationPoints( i_element->GetIntegrationMethod() );
             double young = GetModulus(i_element->GetProperties(), i_element->GetValue(MATERIAL_DENSITY_FILTERED));
             std::vector<double> Modulus(integration_points.size(), young);
-            i_element->SetValueOnIntegrationPoints(YOUNG_MODULUS, Modulus, mr_model_part.GetProcessInfo());
+            i_element->SetValuesOnIntegrationPoints(YOUNG_MODULUS, Modulus, mr_model_part.GetProcessInfo());
         }
 
         std::cout << "TopologyUpdateProcess::" << __FUNCTION__ << " completed" << std::endl;

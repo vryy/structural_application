@@ -78,7 +78,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
 /* Project includes */
-#include "structural_application.h"
+#include "structural_application_variables.h"
 
 #include "includes/define.h"
 #include "includes/model_part.h"
@@ -765,7 +765,7 @@ public:
                     if(Neighb_Elem(1).lock()->Id()==it->Id())
                         if(Neighb_Elem(2).lock()->Id()==it->Id())
                         {
-                            it->GetValueOnIntegrationPoints(DAMAGE, Variable_Value, CurrentProcessInfo);
+                            it->CalculateOnIntegrationPoints(DAMAGE, Variable_Value, CurrentProcessInfo);
                             if(Variable_Value[0]>0.00)
                             {
                                 KRATOS_WATCH(it->Id() )

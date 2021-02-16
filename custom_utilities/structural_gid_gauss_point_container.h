@@ -61,8 +61,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // External includes
 
 // Project includes
-#include "includes/deprecated_variables.h"
-#include "structural_application.h"
+#include "structural_application_variables.h"
 
 
 namespace Kratos
@@ -118,7 +117,7 @@ public:
                 {
                     if( ! it->GetValue( IS_INACTIVE ) )
                     {
-                        it->GetValueOnIntegrationPoints( rVariable, ValuesOnIntPoint,
+                        it->CalculateOnIntegrationPoints( rVariable, ValuesOnIntPoint,
                                                          r_model_part.GetProcessInfo() );
                         for(unsigned int i=0; i<mIndexContainer.size(); i++)
                         {
@@ -135,7 +134,7 @@ public:
                 {
                     if( ! it->GetValue( IS_INACTIVE ) )
                     {
-                        it->GetValueOnIntegrationPoints( rVariable, ValuesOnIntPoint,
+                        it->CalculateOnIntegrationPoints( rVariable, ValuesOnIntPoint,
                                                          r_model_part.GetProcessInfo() );
                         for(unsigned int i=0; i<mIndexContainer.size(); i++)
                         {
@@ -166,7 +165,7 @@ public:
             {
                 if( ! it->GetValue( IS_INACTIVE ) )
                 {
-                    it->GetValueOnIntegrationPoints( rVariable, ValuesOnIntPoint,
+                    it->CalculateOnIntegrationPoints( rVariable, ValuesOnIntPoint,
                                                      r_model_part.GetProcessInfo() );
                     for(unsigned int i=0; i<mIndexContainer.size(); i++)
                     {
@@ -191,7 +190,7 @@ public:
             {
                 if( ! it->GetValue( IS_INACTIVE ) )
                 {
-                    it->GetValueOnIntegrationPoints( rVariable, ValuesOnIntPoint,
+                    it->CalculateOnIntegrationPoints( rVariable, ValuesOnIntPoint,
                                                      r_model_part.GetProcessInfo() );
                     for(unsigned int i=0; i<mIndexContainer.size(); i++)
                     {
@@ -234,7 +233,7 @@ public:
                 {
                     if( ! it->GetValue( IS_INACTIVE ) )
                     {
-                        it->GetValueOnIntegrationPoints( rVariable, ValuesOnIntPoint,
+                        it->CalculateOnIntegrationPoints( rVariable, ValuesOnIntPoint,
                                                          r_model_part.GetProcessInfo() );
                         for(unsigned int i=0; i<mIndexContainer.size(); i++)
                         {
@@ -293,7 +292,7 @@ public:
                 {
                     if( ! it->GetValue( IS_INACTIVE ) )
                     {
-                        it->GetValueOnIntegrationPoints( rVariable, ValuesOnIntPoint,
+                        it->CalculateOnIntegrationPoints( rVariable, ValuesOnIntPoint,
                                                          r_model_part.GetProcessInfo() );
                         for(unsigned int i=0; i<mIndexContainer.size(); i++)
                         {
@@ -367,7 +366,7 @@ public:
                 {
                     if( ! it->GetValue( IS_INACTIVE ) )
                     {
-                        it->GetValueOnIntegrationPoints( rVariable, ValuesOnIntPoint,
+                        it->CalculateOnIntegrationPoints( rVariable, ValuesOnIntPoint,
                                                          r_model_part.GetProcessInfo() );
                         for(unsigned int i=0; i<mIndexContainer.size(); i++)
                         {
@@ -404,7 +403,7 @@ public:
                 {
                     if( ! it->GetValue( IS_INACTIVE ) )
                     {
-                        it->GetValueOnIntegrationPoints( rVariable, ValuesOnIntPoint,
+                        it->CalculateOnIntegrationPoints( rVariable, ValuesOnIntPoint,
                                                          r_model_part.GetProcessInfo() );
                         for(unsigned int i=0; i<mIndexContainer.size(); i++)
                         {

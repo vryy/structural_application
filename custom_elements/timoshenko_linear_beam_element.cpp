@@ -10,9 +10,9 @@
 // External includes
 
 // Project includes
-#include "custom_elements/timoshenko_linear_beam_element.h"
 #include "utilities/math_utils.h"
-#include "structural_application.h"
+#include "custom_elements/timoshenko_linear_beam_element.h"
+#include "structural_application_variables.h"
 
 // #define DEBUG_BEAM
 
@@ -106,7 +106,7 @@ void TimoshenkoLinearBeamElement::Initialize(const ProcessInfo& rCurrentProcessI
  * calculates only the RHS vector
  */
 void TimoshenkoLinearBeamElement::CalculateRightHandSide( VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo)
+        const ProcessInfo& rCurrentProcessInfo)
 {
     //calculation flags
     bool CalculateStiffnessMatrixFlag = false;
@@ -122,7 +122,7 @@ void TimoshenkoLinearBeamElement::CalculateRightHandSide( VectorType& rRightHand
 //************************************************************************************
 void TimoshenkoLinearBeamElement::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix,
                                           VectorType& rRightHandSideVector,
-                                          ProcessInfo& rCurrentProcessInfo)
+                                          const ProcessInfo& rCurrentProcessInfo)
 {
     //calculation flags
     bool CalculateStiffnessMatrixFlag = true;
@@ -133,13 +133,13 @@ void TimoshenkoLinearBeamElement::CalculateLocalSystem( MatrixType& rLeftHandSid
 
 //************************************************************************************
 //************************************************************************************
-void TimoshenkoLinearBeamElement::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
+void TimoshenkoLinearBeamElement::CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo)
 {
 }
 
 //************************************************************************************
 //************************************************************************************
-void TimoshenkoLinearBeamElement::CalculateDampingMatrix(MatrixType& rDampMatrix, ProcessInfo& rCurrentProcessInfo)
+void TimoshenkoLinearBeamElement::CalculateDampingMatrix(MatrixType& rDampMatrix, const ProcessInfo& rCurrentProcessInfo)
 {
     if(rCurrentProcessInfo[QUASI_STATIC_ANALYSIS])
     {
@@ -159,7 +159,7 @@ void TimoshenkoLinearBeamElement::CalculateDampingMatrix(MatrixType& rDampMatrix
  */
 void TimoshenkoLinearBeamElement::CalculateAll( MatrixType& rLeftHandSideMatrix,
                                   VectorType& rRightHandSideVector,
-                                  ProcessInfo& rCurrentProcessInfo,
+                                  const ProcessInfo& rCurrentProcessInfo,
                                   const bool& CalculateStiffnessMatrixFlag,
                                   const bool& CalculateResidualVectorFlag)
 {
@@ -210,7 +210,7 @@ void TimoshenkoLinearBeamElement::CalculateAll( MatrixType& rLeftHandSideMatrix,
 * Setting up the EquationIdVector
 */
 void TimoshenkoLinearBeamElement::EquationIdVector( EquationIdVectorType& rResult,
-                                      ProcessInfo& CurrentProcessInfo)
+                                      const ProcessInfo& CurrentProcessInfo) const
 {
     unsigned int dofs_per_node;
     unsigned int dim = GetGeometry().WorkingSpaceDimension();
@@ -255,7 +255,7 @@ void TimoshenkoLinearBeamElement::EquationIdVector( EquationIdVectorType& rResul
 /**
  * Setting up the DOF list
  */
-void TimoshenkoLinearBeamElement::GetDofList( DofsVectorType& ElementalDofList, ProcessInfo& CurrentProcessInfo)
+void TimoshenkoLinearBeamElement::GetDofList( DofsVectorType& ElementalDofList, const ProcessInfo& CurrentProcessInfo) const
 {
     unsigned int dofs_per_node;
     unsigned int dim = GetGeometry().WorkingSpaceDimension();
@@ -474,8 +474,8 @@ void TimoshenkoLinearBeamElement::CalculateInitialLocalCS(Matrix& transformation
         }
 
         else {
-            noalias(v2) = MathUtils<double>::UnitCrossProduct(global_z, direction_vector_x);
-            noalias(v3) = MathUtils<double>::UnitCrossProduct(direction_vector_x, v2);
+            MathUtils<double>::UnitCrossProduct(v2, global_z, direction_vector_x);
+            MathUtils<double>::UnitCrossProduct(v3, direction_vector_x, v2);
         }
 
         for (int i = 0; i < 3; ++i) {
@@ -606,24 +606,9 @@ void TimoshenkoLinearBeamElement::CreateElementStiffnessMatrix_Material(Matrix& 
 
 //************************************************************************************
 //************************************************************************************
-void TimoshenkoLinearBeamElement::GetValueOnIntegrationPoints( const Variable<Vector>& rVariable,
-        std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo )
-{
-}
-
-//************************************************************************************
-//************************************************************************************
-void TimoshenkoLinearBeamElement::GetValueOnIntegrationPoints( const Variable<array_1d<double, 3> >& rVariable,
-        std::vector<array_1d<double, 3> >& rValues, const ProcessInfo& rCurrentProcessInfo )
-{
-}
-
-//************************************************************************************
-//************************************************************************************
 void TimoshenkoLinearBeamElement::CalculateOnIntegrationPoints( const Variable<Vector>& rVariable,
         std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo )
 {
-    this->GetValueOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
 }
 
 //************************************************************************************
@@ -631,10 +616,9 @@ void TimoshenkoLinearBeamElement::CalculateOnIntegrationPoints( const Variable<V
 void TimoshenkoLinearBeamElement::CalculateOnIntegrationPoints( const Variable<array_1d<double, 3> >& rVariable,
         std::vector<array_1d<double, 3> >& rValues, const ProcessInfo& rCurrentProcessInfo )
 {
-    this->GetValueOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
 }
 
-int TimoshenkoLinearBeamElement::Check(const ProcessInfo& rCurrentProcessInfo)
+int TimoshenkoLinearBeamElement::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
 

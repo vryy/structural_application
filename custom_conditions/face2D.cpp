@@ -61,7 +61,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/define.h"
 #include "custom_conditions/face2D.h"
 #include "utilities/math_utils.h"
-#include "structural_application.h"
+#include "structural_application_variables.h"
 
 namespace Kratos
 {
@@ -103,7 +103,7 @@ Face2D::~Face2D()
 
 //************************************************************************************
 //************************************************************************************
-void Face2D::CalculateRightHandSide( VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo )
+void Face2D::CalculateRightHandSide( VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo )
 {
     //calculation flags
     bool CalculateStiffnessMatrixFlag = false;
@@ -117,7 +117,7 @@ void Face2D::CalculateRightHandSide( VectorType& rRightHandSideVector, ProcessIn
 
 //************************************************************************************
 //************************************************************************************
-void Face2D::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo )
+void Face2D::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo )
 {
     //calculation flags
     bool CalculateStiffnessMatrixFlag = true;
@@ -132,7 +132,7 @@ void Face2D::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, VectorType& 
 //************************************************************************************
 //************************************************************************************
 void Face2D::CalculateAll( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector,
-                           ProcessInfo& rCurrentProcessInfo,
+                           const ProcessInfo& rCurrentProcessInfo,
                            bool CalculateStiffnessMatrixFlag,
                            bool CalculateResidualVectorFlag )
 {
@@ -312,7 +312,7 @@ void Face2D::CalculateAndAdd_PressureForce(
 
 //************************************************************************************
 //************************************************************************************
-void Face2D::EquationIdVector( EquationIdVectorType& rResult, ProcessInfo& CurrentProcessInfo )
+void Face2D::EquationIdVector( EquationIdVectorType& rResult, const ProcessInfo& CurrentProcessInfo ) const
 {
     int number_of_nodes = GetGeometry().PointsNumber();
     unsigned int index;
@@ -333,7 +333,7 @@ void Face2D::EquationIdVector( EquationIdVectorType& rResult, ProcessInfo& Curre
 
 //************************************************************************************
 //************************************************************************************
-void Face2D::GetDofList( DofsVectorType& ConditionalDofList, ProcessInfo& CurrentProcessInfo )
+void Face2D::GetDofList( DofsVectorType& ConditionalDofList, const ProcessInfo& CurrentProcessInfo ) const
 {
     unsigned int dim = 2;
     ConditionalDofList.resize( GetGeometry().size()*dim );
@@ -349,7 +349,7 @@ void Face2D::GetDofList( DofsVectorType& ConditionalDofList, ProcessInfo& Curren
 
 //************************************************************************************
 //************************************************************************************
-void  Face2D::CalculateMassMatrix( MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo )
+void  Face2D::CalculateMassMatrix( MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 
@@ -361,7 +361,7 @@ void  Face2D::CalculateMassMatrix( MatrixType& rMassMatrix, ProcessInfo& rCurren
 
 //************************************************************************************
 //************************************************************************************
-void  Face2D::CalculateDampingMatrix( MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo )
+void  Face2D::CalculateDampingMatrix( MatrixType& rDampingMatrix, const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 

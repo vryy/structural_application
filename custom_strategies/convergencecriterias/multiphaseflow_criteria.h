@@ -63,7 +63,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 /* Project includes */
 #include "includes/model_part.h"
 #include "includes/define.h"
-#include "structural_application.h"
+#include "structural_application_variables.h"
 
 namespace Kratos
 {

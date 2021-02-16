@@ -70,7 +70,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/element.h"
 #include "geometries/geometry.h"
 #include "spaces/ublas_space.h"
-#include "structural_application.h"
+#include "structural_application_variables.h"
 
 namespace Kratos
 {
@@ -188,7 +188,7 @@ public:
                 J = (*it)->GetGeometry().Jacobian(J, (*it)->GetIntegrationMethod());
 
                 std::vector<double> ValuesOnIntPoint(integration_points.size());
-                (*it)->GetValueOnIntegrationPoints(rThisVariable, ValuesOnIntPoint, rProcessInfo);
+                (*it)->CalculateOnIntegrationPoints(rThisVariable, ValuesOnIntPoint, rProcessInfo);
 
                 const Matrix& Ncontainer = (*it)->GetGeometry().ShapeFunctionsValues((*it)->GetIntegrationMethod());
 

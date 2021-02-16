@@ -66,17 +66,17 @@ namespace Kratos
 
             void Initialize(const ProcessInfo& rCurrentProcessInfo);
 
-            void CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
+            void CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo);
 
-            void CalculateRightHandSide( VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
+            void CalculateRightHandSide( VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo);
 
             void CalculateAll( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector,
-                               ProcessInfo& rCurrentProcessInfo,
+                               const ProcessInfo& rCurrentProcessInfo,
                                bool CalculateStiffnessMatrixFlag, bool CalculateResidualVectorFlag);
 
-            void EquationIdVector( EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo);
+            void EquationIdVector( EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const;
 
-            void GetDofList( DofsVectorType& ConditionalDofList, ProcessInfo& CurrentProcessInfo);
+            void GetDofList( DofsVectorType& ConditionalDofList, const ProcessInfo& CurrentProcessInfo) const;
 
             /**
              * Turn back information as a string.

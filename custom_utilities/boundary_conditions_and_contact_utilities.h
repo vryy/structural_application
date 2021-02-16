@@ -111,7 +111,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "processes/find_elements_neighbours_process.h"
 #include "processes/find_conditions_neighbours_process.h"
 
-#include "structural_application.h"
+#include "structural_application_variables.h"
 
 
 namespace Kratos

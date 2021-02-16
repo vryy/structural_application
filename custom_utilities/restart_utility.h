@@ -480,7 +480,7 @@ public:
 
             std::vector<Vector> ValuesOnIntPoint(integration_points.size());
 
-            (*it)->GetValueOnIntegrationPoints(INSITU_STRESS, ValuesOnIntPoint, model_part.GetProcessInfo());
+            (*it)->CalculateOnIntegrationPoints(INSITU_STRESS, ValuesOnIntPoint, model_part.GetProcessInfo());
 
             if(ValuesOnIntPoint[0].size()!=6)
             {
@@ -599,7 +599,7 @@ public:
                         std::getline(infile, line);
                     }
 
-                    (*it)->SetValueOnIntegrationPoints( INSITU_STRESS, ValuesOnIntPoint,
+                    (*it)->SetValuesOnIntegrationPoints( INSITU_STRESS, ValuesOnIntPoint,
                                                         model_part.GetProcessInfo());
                     break;
                 }
@@ -634,7 +634,7 @@ end_of_outer_loop://labeling outer loops end
 
             std::vector<Matrix> ValuesOnIntPoint(integration_points.size());
 
-            (*it)->GetValueOnIntegrationPoints(ELASTIC_LEFT_CAUCHY_GREEN_OLD, ValuesOnIntPoint, model_part.GetProcessInfo());
+            (*it)->CalculateOnIntegrationPoints(ELASTIC_LEFT_CAUCHY_GREEN_OLD, ValuesOnIntPoint, model_part.GetProcessInfo());
 
             if(ValuesOnIntPoint[0].size1()!=3 || ValuesOnIntPoint[0].size2()!=3 )
             {
@@ -753,7 +753,7 @@ end_of_outer_loop://labeling outer loops end
                         }
                         std::getline(infile, line);
                     }
-                    (*it)->SetValueOnIntegrationPoints( ELASTIC_LEFT_CAUCHY_GREEN_OLD, ValuesOnIntPoint,
+                    (*it)->SetValuesOnIntegrationPoints( ELASTIC_LEFT_CAUCHY_GREEN_OLD, ValuesOnIntPoint,
                                                         model_part.GetProcessInfo());
                     break;
                 }

@@ -59,7 +59,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // Project includes
 #include "includes/define.h"
 #include "custom_conditions/line_force.h"
-#include "structural_application.h"
+#include "structural_application_variables.h"
 #include "utilities/math_utils.h"
 #include "custom_utilities/sd_math_utils.h"
 
@@ -115,7 +115,7 @@ LineForce::~LineForce()
 //***********************************************************************************
 //***********************************************************************************
 void LineForce::EquationIdVector( EquationIdVectorType& rResult,
-                                    ProcessInfo& rCurrentProcessInfo )
+                                    const ProcessInfo& rCurrentProcessInfo ) const
 {
     KRATOS_TRY
 
@@ -136,7 +136,7 @@ void LineForce::EquationIdVector( EquationIdVectorType& rResult,
 //***********************************************************************************
 //***********************************************************************************
 void LineForce::GetDofList( DofsVectorType& ElementalDofList,
-                              ProcessInfo& rCurrentProcessInfo )
+                              const ProcessInfo& rCurrentProcessInfo ) const
 {
     const unsigned int dim = GetGeometry().WorkingSpaceDimension();
 
@@ -154,7 +154,7 @@ void LineForce::GetDofList( DofsVectorType& ElementalDofList,
 //***********************************************************************************
 //***********************************************************************************
 void LineForce::CalculateRightHandSide( VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo )
+        const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 
@@ -218,6 +218,8 @@ void LineForce::CalculateRightHandSide( VectorType& rRightHandSideVector,
                     Ncontainer( PointNumber, prim ) * Load( i ) * IntegrationWeight * dL;
     }
 
+    KRATOS_WATCH(rRightHandSideVector)
+
     KRATOS_CATCH( "" )
 }
 
@@ -225,7 +227,7 @@ void LineForce::CalculateRightHandSide( VectorType& rRightHandSideVector,
 //***********************************************************************************
 void LineForce::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix,
                                         VectorType& rRightHandSideVector,
-                                        ProcessInfo& rCurrentProcessInfo )
+                                        const ProcessInfo& rCurrentProcessInfo )
 {
     const unsigned int number_of_nodes = GetGeometry().size();
     const unsigned int dim = GetGeometry().WorkingSpaceDimension();
@@ -236,7 +238,7 @@ void LineForce::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix,
 //***********************************************************************************
 //***********************************************************************************
 void LineForce::CalculateMassMatrix( MatrixType& rMassMatrix,
-                              ProcessInfo& rCurrentProcessInfo )
+                              const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
     rMassMatrix.resize( 0, 0, false );
@@ -246,7 +248,7 @@ void LineForce::CalculateMassMatrix( MatrixType& rMassMatrix,
 //***********************************************************************************
 //***********************************************************************************
 void LineForce::CalculateDampingMatrix( MatrixType& rDampingMatrix,
-                              ProcessInfo& rCurrentProcessInfo )
+                              const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
     rDampingMatrix.resize( 0, 0, false );
@@ -260,7 +262,7 @@ void LineForce::CalculateDampingMatrix( MatrixType& rDampingMatrix,
  * or that no common error is found.
  * @param rCurrentProcessInfo
  */
-int LineForce::Check( const Kratos::ProcessInfo& rCurrentProcessInfo )
+int LineForce::Check( const ProcessInfo& rCurrentProcessInfo )
 {
     return 0;
 }

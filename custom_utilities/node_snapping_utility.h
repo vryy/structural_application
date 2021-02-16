@@ -78,7 +78,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "linear_solvers/cg_solver.h"
 
 #include "custom_utilities/variable_transfer_utility.h"
-#include "structural_application.h"
+#include "structural_application_variables.h"
 
 namespace Kratos
 {
@@ -815,7 +815,7 @@ public:
                     J = model_part.GetElement(*it).GetGeometry().Jacobian(J, model_part.GetElement(*it).GetIntegrationMethod());
                     std::vector<Matrix> ValuesOnIntPoint(integration_points.size());
 
-                    model_part.GetElement(*it).GetValueOnIntegrationPoints(rThisVariable, ValuesOnIntPoint, model_part.GetProcessInfo());
+                    model_part.GetElement(*it).CalculateOnIntegrationPoints(rThisVariable, ValuesOnIntPoint, model_part.GetProcessInfo());
 
                     const Matrix& Ncontainer = model_part.GetElement(*it).GetGeometry().ShapeFunctionsValues(model_part.GetElement(*it).GetIntegrationMethod());
 
@@ -919,7 +919,7 @@ public:
 
                 std::vector<Vector> ValuesOnIntPoint(integration_points.size());
 
-                model_part.GetElement(*it).GetValueOnIntegrationPoints(rThisVariable, ValuesOnIntPoint, model_part.GetProcessInfo());
+                model_part.GetElement(*it).CalculateOnIntegrationPoints(rThisVariable, ValuesOnIntPoint, model_part.GetProcessInfo());
 
                 const Matrix& Ncontainer = model_part.GetElement(*it).GetGeometry().ShapeFunctionsValues(model_part.GetElement(*it).GetIntegrationMethod());
 
@@ -990,7 +990,7 @@ public:
 
             std::vector<double> ValuesOnIntPoint(integration_points.size());
 
-            model_part.GetElement(*it).GetValueOnIntegrationPoints(rThisVariable, ValuesOnIntPoint, model_part.GetProcessInfo());
+            model_part.GetElement(*it).CalculateOnIntegrationPoints(rThisVariable, ValuesOnIntPoint, model_part.GetProcessInfo());
 
             const Matrix& Ncontainer = model_part.GetElement(*it).GetGeometry().ShapeFunctionsValues(model_part.GetElement(*it).GetIntegrationMethod());
 
@@ -1052,7 +1052,7 @@ public:
                 }
             }
 
-            model_part.GetElement(*it).SetValueOnIntegrationPoints( rThisVariable, ValuesOnIntPoint, model_part.GetProcessInfo());
+            model_part.GetElement(*it).SetValuesOnIntegrationPoints( rThisVariable, ValuesOnIntPoint, model_part.GetProcessInfo());
         }
     }
     /**
@@ -1087,7 +1087,7 @@ public:
                 }
             }
 
-            model_part.GetElement(*it).SetValueOnIntegrationPoints( rThisVariable, ValuesOnIntPoint, model_part.GetProcessInfo());
+            model_part.GetElement(*it).SetValuesOnIntegrationPoints( rThisVariable, ValuesOnIntPoint, model_part.GetProcessInfo());
         }
     }
     /**
@@ -1120,7 +1120,7 @@ public:
                 }
             }
 
-            model_part.GetElement(*it).SetValueOnIntegrationPoints( rThisVariable, ValuesOnIntPoint, model_part.GetProcessInfo());
+            model_part.GetElement(*it).SetValuesOnIntegrationPoints( rThisVariable, ValuesOnIntPoint, model_part.GetProcessInfo());
         }
     }
 
@@ -1140,7 +1140,7 @@ public:
 //                             InsituStress[j] = coords[j];
 //                         InsituStresses.push_back( InsituStress );
 //                     }
-//                     (*it)->SetValueOnIntegrationPoints(INSITU_STRESS,InsituStresses,model_part.GetProcessInfo() );
+//                     (*it)->SetValuesOnIntegrationPoints(INSITU_STRESS,InsituStresses,model_part.GetProcessInfo() );
 //                 }
 
         std::cout << " allocate memory for insitu stresses at nodes " << std::endl;
@@ -1158,7 +1158,7 @@ public:
             //get integration points
             GeometryType::IntegrationPointsArrayType integration_points = (*it)->GetGeometry().IntegrationPoints( (*it)->GetIntegrationMethod() );
             std::vector<Vector> ValuesOnIntPoint(integration_points.size());
-            (*it)->GetValueOnIntegrationPoints(INSITU_STRESS, ValuesOnIntPoint, model_part.GetProcessInfo());
+            (*it)->CalculateOnIntegrationPoints(INSITU_STRESS, ValuesOnIntPoint, model_part.GetProcessInfo());
             Point<3> coords;
             for( unsigned int i=0; i<integration_points.size(); i++ )
             {

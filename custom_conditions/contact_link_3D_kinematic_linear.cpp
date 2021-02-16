@@ -55,7 +55,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // Project includes
 #include "includes/define.h"
 #include "custom_conditions/contact_link_3D_kinematic_linear.h"
-#include "structural_application.h"
+#include "structural_application_variables.h"
 #include "utilities/math_utils.h"
 #include "custom_utilities/sd_math_utils.h"
 
@@ -63,6 +63,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace Kratos
 {
+
+typedef ContactLink3D_Kinematic_Linear::PointType PointType;
+
 //************************************************************************************
 //************************************************************************************
 ContactLink3D_Kinematic_Linear::ContactLink3D_Kinematic_Linear( IndexType NewId,
@@ -97,8 +100,8 @@ ContactLink3D_Kinematic_Linear::ContactLink3D_Kinematic_Linear( IndexType NewId,
         PropertiesType::Pointer pProperties,
         Condition::Pointer Master,
         Condition::Pointer Slave,
-        Point<3>& MasterContactLocalPoint,
-        Point<3>& SlaveContactLocalPoint,
+        PointType& MasterContactLocalPoint,
+        PointType& SlaveContactLocalPoint,
         int SlaveIntegrationPointIndex
                                                               )
     : Condition( NewId, pGeometry, pProperties )
@@ -154,7 +157,7 @@ ContactLink3D_Kinematic_Linear::~ContactLink3D_Kinematic_Linear()
 }
 
 
-void ContactLink3D_Kinematic_Linear::InitializeSolutionStep( ProcessInfo& CurrentProcessInfo )
+void ContactLink3D_Kinematic_Linear::InitializeSolutionStep( const ProcessInfo& CurrentProcessInfo )
 {
 
     noalias( mvMaster ) =  NormalVector( GetValue( CONTACT_LINK_MASTER ), GetValue( MASTER_CONTACT_LOCAL_POINT ) );
@@ -287,7 +290,7 @@ Vector ContactLink3D_Kinematic_Linear::NormalVector( Condition::Pointer Surface,
  * calculates only the RHS vector (certainly to be removed due to contact algorithm)
  */
 void ContactLink3D_Kinematic_Linear::CalculateRightHandSide( VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo )
+        const ProcessInfo& rCurrentProcessInfo )
 {
     //calculation flags
     bool CalculateStiffnessMatrixFlag = false;
@@ -306,7 +309,7 @@ void ContactLink3D_Kinematic_Linear::CalculateRightHandSide( VectorType& rRightH
  */
 void ContactLink3D_Kinematic_Linear::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo )
+        const ProcessInfo& rCurrentProcessInfo )
 {
     //calculation flags
     bool CalculateStiffnessMatrixFlag = true;
@@ -322,7 +325,7 @@ void ContactLink3D_Kinematic_Linear::CalculateLocalSystem( MatrixType& rLeftHand
  */
 void ContactLink3D_Kinematic_Linear::CalculateAll( MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo,
+        const ProcessInfo& rCurrentProcessInfo,
         bool CalculateStiffnessMatrixFlag,
         bool CalculateResidualVectorFlag )
 {
@@ -921,7 +924,7 @@ if (Id() == 623)
  * with regard to the current master and slave partners.
  * All Conditions are assumed to be defined in 3D space and havin 3 DOFs per node
  */
-void ContactLink3D_Kinematic_Linear::CalculateDampingMatrix( MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo )
+void ContactLink3D_Kinematic_Linear::CalculateDampingMatrix( MatrixType& rDampingMatrix, const ProcessInfo& rCurrentProcessInfo )
 {
 
     KRATOS_TRY
@@ -1633,7 +1636,7 @@ void ContactLink3D_Kinematic_Linear::UpdateMasterLocalPoint( )
         GetValue( MASTER_CONTACT_CURRENT_LOCAL_POINT )[1] = Xi2;
 
         //updating rResult
-        GetValue( MASTER_CONTACT_CURRENT_GLOBAL_POINT ) = ZeroVector( 3 );
+        GetValue( MASTER_CONTACT_CURRENT_GLOBAL_POINT ) = PointType(ZeroVector( 3 ));
 
         GetValue( MASTER_CONTACT_CURRENT_GLOBAL_POINT ) = GlobalCoordinates( GetValue( CONTACT_LINK_MASTER ), GetValue( MASTER_CONTACT_CURRENT_GLOBAL_POINT ), GetValue( MASTER_CONTACT_CURRENT_LOCAL_POINT ) );
 
@@ -1656,7 +1659,7 @@ void ContactLink3D_Kinematic_Linear::UpdateMasterLocalPoint( )
  * All Equation IDs are given Master first, Slave second
  */
 void ContactLink3D_Kinematic_Linear::EquationIdVector( EquationIdVectorType& rResult,
-        ProcessInfo& CurrentProcessInfo )
+        const ProcessInfo& CurrentProcessInfo ) const
 {
     //determining size of DOF list
     //dimension of space
@@ -1692,7 +1695,7 @@ void ContactLink3D_Kinematic_Linear::EquationIdVector( EquationIdVectorType& rRe
  * All DOF are given Master first, Slave second
  */
 void ContactLink3D_Kinematic_Linear::GetDofList( DofsVectorType& ConditionalDofList,
-        ProcessInfo& CurrentProcessInfo )
+        const ProcessInfo& CurrentProcessInfo ) const
 {
     //determining size of DOF list
     //dimension of space
@@ -1724,9 +1727,9 @@ void ContactLink3D_Kinematic_Linear::GetDofList( DofsVectorType& ConditionalDofL
 
 //new functions includes
 
-Point<3>& ContactLink3D_Kinematic_Linear::GlobalCoordinates( Condition::Pointer Surface, Point<3>& rResult, Point<3> const& LocalCoordinates )
+PointType& ContactLink3D_Kinematic_Linear::GlobalCoordinates( Condition::Pointer Surface, PointType& rResult, PointType const& LocalCoordinates )
 {
-    noalias( rResult ) = ZeroVector( 3 );
+    noalias( rResult ) = PointType(ZeroVector( 3 ));
 
     for ( IndexType i = 0 ; i < Surface->GetGeometry().size() ; i++ )
     {

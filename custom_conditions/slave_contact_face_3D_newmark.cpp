@@ -58,10 +58,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // Project includes
 #include "includes/define.h"
 #include "custom_conditions/slave_contact_face_3D_newmark.h"
-#include "structural_application.h"
+#include "structural_application_variables.h"
 #include "utilities/math_utils.h"
 #include "custom_utilities/sd_math_utils.h"
-#include "includes/deprecated_variables.h"
 
 namespace Kratos
 {
@@ -218,7 +217,7 @@ void SlaveContactFace3DNewmark::CalculateOnIntegrationPoints(const Variable<doub
  * calculates only the RHS vector (certainly to be removed due to contact algorithm)
  */
 void SlaveContactFace3DNewmark::CalculateRightHandSide( VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo)
+        const ProcessInfo& rCurrentProcessInfo)
 {
     rRightHandSideVector.resize(0,false);
 }
@@ -230,7 +229,7 @@ void SlaveContactFace3DNewmark::CalculateRightHandSide( VectorType& rRightHandSi
  */
 void SlaveContactFace3DNewmark::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo)
+        const ProcessInfo& rCurrentProcessInfo)
 {
     rRightHandSideVector.resize(0,false);
     rLeftHandSideMatrix(0,0);
@@ -244,7 +243,7 @@ void SlaveContactFace3DNewmark::CalculateLocalSystem( MatrixType& rLeftHandSideM
  */
 void SlaveContactFace3DNewmark::CalculateAll( MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo,
+        const ProcessInfo& rCurrentProcessInfo,
         bool CalculateStiffnessMatrixFlag,
         bool CalculateResidualVectorFlag)
 {
@@ -284,13 +283,7 @@ void SlaveContactFace3DNewmark::CalculateAndAdd_PressureForce( Vector& residualv
  * REMOVED: the DOFs are managed by the linking conditions
  */
 void SlaveContactFace3DNewmark::EquationIdVector( EquationIdVectorType& rResult,
-        ProcessInfo& CurrentProcessInfo )
-{
-}
-//************************************************************************************
-//************************************************************************************
-void SlaveContactFace3DNewmark::MasterElementsEquationIdVectors(EquationIdVectorContainerType& rResult,
-        ProcessInfo& rCurrentProcessInfo )
+        const ProcessInfo& CurrentProcessInfo ) const
 {
 }
 
@@ -300,7 +293,7 @@ void SlaveContactFace3DNewmark::MasterElementsEquationIdVectors(EquationIdVector
  * REMOVED: the DOFs are managed by the linking conditions
  */
 void SlaveContactFace3DNewmark::GetDofList( DofsVectorType& ConditionalDofList,
-        ProcessInfo& CurrentProcessInfo)
+        const ProcessInfo& CurrentProcessInfo) const
 {
 }
 

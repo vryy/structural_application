@@ -87,7 +87,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_utilities/output_utility.h"
 #include "custom_utilities/dof_utility.h"
 #include "custom_utilities/smoothing_utility.h"
-//#include "custom_utilities/tip_utility.h"
+#include "custom_utilities/tip_utility.h"
 #include "custom_utilities/pile_utility.h"
 #include "custom_utilities/foundation_utility.h"
 
@@ -489,7 +489,7 @@ void SetAssociatedElement(DeactivationUtility& rDummy, Condition::Pointer pCond,
 }
 
 ///////////////////////////////////////////////////////////////////////
-// Auxilliary Utilities for connection of the building to the ground //
+// Auxilliary Utilities for connection of the pile to the ground //
 ///////////////////////////////////////////////////////////////////////
 void InitializePileUtility( PileUtility& dummy, ModelPart& model_part,
                             boost::python::list pile_elements, int len_pile_elements,
@@ -517,6 +517,37 @@ void InitializePileUtility( PileUtility& dummy, ModelPart& model_part,
     }
 
     dummy.InitializePileUtility( model_part, vec_pile_elements, vec_soil_elements );
+}
+
+///////////////////////////////////////////////////////////////////////
+// Auxilliary Utilities for connection of the pile to the ground //
+///////////////////////////////////////////////////////////////////////
+void InitializeTipUtility( TipUtility& dummy, ModelPart& model_part,
+                            boost::python::list tip_elements, int len_tip_elements,
+                            boost::python::list tip_soil_elements, int len_tip_soil_elements )
+{
+    std::vector<unsigned int> vec_tip_elements;
+    std::vector<unsigned int> vec_tip_soil_elements;
+
+    for ( int it = 0; it < len_tip_elements; it++ )
+    {
+       boost::python::extract<int> x( tip_elements[it] );
+
+       if ( x.check() )
+           vec_tip_elements.push_back(( unsigned int )x );
+       else break;
+    }
+
+    for ( int it = 0; it < len_tip_soil_elements; it++ )
+    {
+        boost::python::extract<int> x( tip_soil_elements[it] );
+
+        if ( x.check() )
+           vec_tip_soil_elements.push_back(( unsigned int )x );
+        else break;
+    }
+
+    dummy.InitializeTipUtility( model_part, vec_tip_elements, vec_tip_soil_elements );
 }
 
 ///////////////////////////////////////////////////////////////////////
@@ -698,6 +729,8 @@ void  AddCustomUtilitiesToPython()
     .def( "GetStrain", &OutputUtility::GetStrain )
     .def( "GetStress", &OutputUtility::GetStress )
     .def( "GetInternalVariables", &OutputUtility::GetInternalVariables )
+    .def( "GetNumberOfPlasticPoints", &OutputUtility::GetNumberOfPlasticPoints )
+    .def( "ListPlasticPoints", &OutputUtility::ListPlasticPoints )
     ;
 
 
@@ -801,6 +834,11 @@ void  AddCustomUtilitiesToPython()
     class_<PileUtility, boost::noncopyable >
     ( "PileUtility", init<>() )
     .def( "InitializePileUtility", &InitializePileUtility )
+    ;
+
+    class_<TipUtility, boost::noncopyable >
+    ( "TipUtility", init<>() )
+    .def( "InitializeTipUtility", &InitializeTipUtility )
     ;
 
     class_<FoundationUtility, boost::noncopyable >

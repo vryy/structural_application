@@ -55,10 +55,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 // Project includes
 // #include "includes/define.h"
-#include "custom_elements/eas_element_q4e4.h"
 #include "utilities/math_utils.h"
 #include "custom_utilities/sd_math_utils.h"
-#include "structural_application.h"
+#include "custom_elements/eas_element_q4e4.h"
+#include "structural_application_variables.h"
 
 
 //#define ENABLE_Q4E4_DEBUG_LEVEL1
@@ -220,113 +220,6 @@ namespace Kratos
 	}
 
 	/**
-	 * Calculate double Variables at each integration point, used for postprocessing etc.
-	 * @param rVariable Global name of the variable to be calculated
-	 * @param output Vector to store the values on the qudrature points, output of the method
-	 * @param rCurrentProcessInfo
-	 */
-	void EASElementQ4E4::CalculateOnIntegrationPoints( const Variable<double>& rVariable, std::vector<double>& Output, const ProcessInfo& rCurrentProcessInfo )
-	{
-		if ( Output.size() != GetGeometry().IntegrationPoints( mThisIntegrationMethod ).size() )
-			Output.resize( GetGeometry().IntegrationPoints( mThisIntegrationMethod ).size(), false );
-
-		for ( unsigned int ii = 0; ii < mConstitutiveLawVector.size(); ii++ )
-			Output[ii] = mConstitutiveLawVector[ii]->GetValue( rVariable, Output[ii] );
-	}
-
-	/**
-	 * Calculate Vector Variables at each integration point, used for postprocessing etc.
-	 * @param rVariable Global name of the variable to be calculated
-	 * @param output Vector to store the values on the qudrature points, output of the method
-	 * @param rCurrentProcessInfo
-	 */
-	void EASElementQ4E4::CalculateOnIntegrationPoints( const Variable<Vector>& rVariable,
-			std::vector<Vector>& Output, const ProcessInfo& rCurrentProcessInfo )
-	{
-		GetValueOnIntegrationPoints( rVariable, Output, rCurrentProcessInfo );
-	}
-
-	/**
-	 * Calculate Matrix Variables at each integration point, used for postprocessing etc.
-	 * @param rVariable Global name of the variable to be calculated
-	 * @param output Vector to store the values on the qudrature points, output of the method
-	 * @param rCurrentProcessInfo
-	 */
-	void EASElementQ4E4::CalculateOnIntegrationPoints( const Variable<Matrix>& rVariable,
-			std::vector<Matrix>& Output, const ProcessInfo& rCurrentProcessInfo )
-	{
-		KRATOS_TRY
-
-        //TODO add incompatible mode
-//
-//		unsigned int number_of_nodes = GetGeometry().size();
-//		unsigned int dim = GetGeometry().WorkingSpaceDimension();;
-//		unsigned int StrainSize = dim * ( dim + 1 ) / 2;
-
-//		//Initialize local variables
-//		Matrix B( StrainSize, number_of_nodes*dim );
-//		Matrix TanC( StrainSize, StrainSize );
-//		Vector StrainVector( StrainSize );
-//		Vector StressVector( StrainSize );
-//		Matrix DN_DX( number_of_nodes, dim );
-//		Matrix CurrentDisp( number_of_nodes, dim );
-
-//		//reading integration points and local gradients
-//		const GeometryType::IntegrationPointsArrayType& integration_points =
-//			GetGeometry().IntegrationPoints( mThisIntegrationMethod );
-//		const Matrix& Ncontainer = GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod );
-
-//		if ( Output.size() != integration_points.size() )
-//			Output.resize( integration_points.size() );
-
-//		const GeometryType::ShapeFunctionsGradientsType& DN_De =
-//			GetGeometry().ShapeFunctionsLocalGradients( mThisIntegrationMethod );
-
-//		//Current displacements
-//		for ( unsigned int node = 0; node < GetGeometry().size(); node++ )
-//			noalias( row( CurrentDisp, node ) ) = GetGeometry()[node].GetSolutionStepValue( DISPLACEMENT );
-
-//		//Declaration of the integration weight
-//		//    double Weight;
-
-//		//loop over all integration points
-//		for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
-//		{
-//			noalias( DN_DX ) = prod( DN_De[PointNumber], mInvJ0[PointNumber] );
-//			//Initializing B_Operator at the current integration point
-//			CalculateBoperator( B, DN_DX );
-
-//			//calculate strain
-//			CalculateStrain( B, CurrentDisp, StrainVector );
-//			//assign the integration weight at the current integration point
-//			//        Weight = integration_points[PointNumber].Weight();
-
-//			//calculate material response
-//			mConstitutiveLawVector[PointNumber]->CalculateMaterialResponse(
-//					StrainVector,
-//					ZeroMatrix( 1 ),
-//					StressVector,
-//					TanC,
-//					rCurrentProcessInfo,
-//					GetProperties(),
-//					GetGeometry(),
-//					row( Ncontainer, PointNumber ),
-//					true,
-//					0,
-//					true );
-
-//			if ( Output[PointNumber].size2() != StrainVector.size() )
-//				Output[PointNumber].resize( 1, StrainVector.size(), false );
-
-//            // Add in variable if needed here. Refer to KinematicLinear2 element.
-
-//		}
-
-		//         std::cout << std::endl;
-		KRATOS_CATCH( "" )
-	}
-
-	/**
 	 * Initialization of the Material law at each integration point
 	 */
 	void EASElementQ4E4::InitializeMaterial()
@@ -367,7 +260,7 @@ namespace Kratos
 	 * @param CalculateResidualVectorFlag true: load vector has to be computed
 	 */
 	void EASElementQ4E4::CalculateAll( MatrixType& rLeftHandSideMatrix,
-			VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo,
+			VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo,
 			bool CalculateStiffnessMatrixFlag, bool CalculateResidualVectorFlag )
 	{
 		KRATOS_TRY
@@ -378,15 +271,6 @@ namespace Kratos
 
 		//this is the size of the elements stiffness matrix/force vector
 		unsigned int MatSize = GetGeometry().size() * dim;
-
-
-//        for(int i = 0; i < number_of_nodes; i++)
-//        {
-//            KRATOS_WATCH(GetGeometry().GetPoint(i).X());
-//            KRATOS_WATCH(GetGeometry().GetPoint(i).Y());
-            //Note that X() and Y() are absolute coordinate of a point (which includes displacement)
-//        }
-
 
 		//Initialize local variables
 		Matrix B( StrainSize, MatSize );
@@ -400,6 +284,15 @@ namespace Kratos
 		Matrix Kgg( 4, 4 );
 		Matrix Kgb( 4, MatSize );
 
+		//constitutive law
+        ConstitutiveLaw::Parameters const_params;
+        const_params.SetStrainVector(StrainVector);
+        const_params.SetStressVector(StressVector);
+        const_params.SetConstitutiveMatrix(TanC);
+        const_params.SetProcessInfo(rCurrentProcessInfo);
+        const_params.SetMaterialProperties(GetProperties());
+        const_params.SetElementGeometry(GetGeometry());
+        ConstitutiveLaw::StressMeasure stress_measure = ConstitutiveLaw::StressMeasure_Cauchy;
 
 		if ( CalculateStiffnessMatrixFlag == true ) //calculation of the matrix is required
 		{
@@ -464,19 +357,7 @@ namespace Kratos
 //            KRATOS_WATCH(StressVector);
 
 			//calculate stress and tangent operator
-			mConstitutiveLawVector[PointNumber]->CalculateMaterialResponse(
-					StrainVector,
-					ZeroMatrix( 1 ),
-					StressVector,
-					TanC,
-					rCurrentProcessInfo,
-					GetProperties(),
-					GetGeometry(),
-					row( Ncontainer, PointNumber ),
-					true,
-//					2, //retains old tangent and update stress incrementally for DruckerPragerExtended
-					1,
-					true );
+			mConstitutiveLawVector[PointNumber]->CalculateMaterialResponse( const_params, stress_measure );
 
 //            KRATOS_WATCH(StressVector);
 //            KRATOS_WATCH(TanC);
@@ -557,7 +438,7 @@ namespace Kratos
 	 * @param rCurrentProcessInfo
 	 */
 	void EASElementQ4E4::CalculateRightHandSide( VectorType& rRightHandSideVector,
-			ProcessInfo& rCurrentProcessInfo )
+			const ProcessInfo& rCurrentProcessInfo )
 	{
 		//calculation flags
 		bool CalculateStiffnessMatrixFlag = false;
@@ -575,7 +456,7 @@ namespace Kratos
 	 * @param rCurrentProcessInfo
 	 */
 	void EASElementQ4E4::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix,
-			VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo )
+			VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo )
 	{
 		//calculation flags
 		bool CalculateStiffnessMatrixFlag = true;
@@ -589,7 +470,7 @@ namespace Kratos
 	 * start and end point variables can be transferred n --> n+1
 	 * @param rCurrentProcessInfo
 	 */
-	void EASElementQ4E4::FinalizeSolutionStep( ProcessInfo& CurrentProcessInfo )
+	void EASElementQ4E4::FinalizeSolutionStep( const ProcessInfo& CurrentProcessInfo )
 	{
 		//reading integration points and local gradients
 		const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
@@ -605,7 +486,7 @@ namespace Kratos
 	 * THIS method is called from the scheme at the start of each solution step
 	 * @param rCurrentProcessInfo
 	 */
-	void EASElementQ4E4::InitializeSolutionStep( ProcessInfo& CurrentProcessInfo )
+	void EASElementQ4E4::InitializeSolutionStep( const ProcessInfo& CurrentProcessInfo )
 	{
 		//reading integration points and local gradients
 		const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
@@ -616,7 +497,7 @@ namespace Kratos
 		}
 	}
 
-	void EASElementQ4E4::InitializeNonLinearIteration(ProcessInfo& CurrentProcessInfo)
+	void EASElementQ4E4::InitializeNonLinearIteration(const ProcessInfo& CurrentProcessInfo)
     {
         //reset all resistant forces at node
         for ( unsigned int i = 0; i < GetGeometry().size(); i++ )
@@ -626,21 +507,21 @@ namespace Kratos
         }
     }
 
-	void EASElementQ4E4::MassMatrix( MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo )
+	void EASElementQ4E4::MassMatrix( MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo )
 	{
 	    // this function need to be reimplemented or not support
 	}
 
 	//************************************************************************************
 	//************************************************************************************
-	void EASElementQ4E4::DampMatrix( MatrixType& rDampMatrix, ProcessInfo& rCurrentProcessInfo )
+	void EASElementQ4E4::DampMatrix( MatrixType& rDampMatrix, const ProcessInfo& rCurrentProcessInfo )
 	{
 	    // this function need to be reimplemented or not support
 	}
 
 	//************************************************************************************
 	//************************************************************************************
-	void EASElementQ4E4::GetValuesVector( Vector& values, int Step )
+	void EASElementQ4E4::GetValuesVector( Vector& values, int Step ) const
 	{
 		const unsigned int number_of_nodes = GetGeometry().size();
 		const unsigned int dim = GetGeometry().WorkingSpaceDimension();
@@ -662,7 +543,7 @@ namespace Kratos
 
 	//************************************************************************************
 	//************************************************************************************
-	void EASElementQ4E4::GetFirstDerivativesVector( Vector& values, int Step )
+	void EASElementQ4E4::GetFirstDerivativesVector( Vector& values, int Step ) const
 	{
 		const unsigned int number_of_nodes = GetGeometry().size();
 		const unsigned int dim = GetGeometry().WorkingSpaceDimension();
@@ -683,7 +564,7 @@ namespace Kratos
 
 	//************************************************************************************
 	//************************************************************************************
-	void EASElementQ4E4::GetSecondDerivativesVector( Vector& values, int Step )
+	void EASElementQ4E4::GetSecondDerivativesVector( Vector& values, int Step ) const
 	{
 		const unsigned int number_of_nodes = GetGeometry().size();
 		const unsigned int dim = GetGeometry().WorkingSpaceDimension();
@@ -733,7 +614,7 @@ namespace Kratos
 	 * @param rResult Vector of the EquationIds
 	 * @param rCurrentProcessInfo
 	 */
-	void EASElementQ4E4::EquationIdVector( EquationIdVectorType& rResult, ProcessInfo& CurrentProcessInfo )
+	void EASElementQ4E4::EquationIdVector( EquationIdVectorType& rResult, const ProcessInfo& CurrentProcessInfo ) const
 	{
 		unsigned int dim = ( GetGeometry().WorkingSpaceDimension() );
 		unsigned int MatSize = GetGeometry().size() * dim;
@@ -758,7 +639,7 @@ namespace Kratos
 	 *                           of this element
 	 * @param rCurrentProcessInfo
 	 */
-	void EASElementQ4E4::GetDofList( DofsVectorType& ElementalDofList, ProcessInfo& CurrentProcessInfo )
+	void EASElementQ4E4::GetDofList( DofsVectorType& ElementalDofList, const ProcessInfo& CurrentProcessInfo ) const
 	{
 		unsigned int dim = GetGeometry().WorkingSpaceDimension();
 
@@ -1046,6 +927,16 @@ namespace Kratos
 		Vector RHS_test( 4 ); //a test value for rIncompatibleMode
 		#endif
 
+		//constitutive law
+        ConstitutiveLaw::Parameters const_params;
+        const_params.SetStrainVector(StrainVector);
+        const_params.SetStressVector(StressVector);
+        const_params.SetConstitutiveMatrix(TanC);
+        const_params.SetProcessInfo(rCurrentProcessInfo);
+        const_params.SetMaterialProperties(GetProperties());
+        const_params.SetElementGeometry(GetGeometry());
+        ConstitutiveLaw::StressMeasure stress_measure = ConstitutiveLaw::StressMeasure_Cauchy;
+
         const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
 
 	    const GeometryType::ShapeFunctionsGradientsType& DN_De = GetGeometry().ShapeFunctionsLocalGradients( mThisIntegrationMethod );
@@ -1096,19 +987,7 @@ namespace Kratos
 //                KRATOS_WATCH(StressVector);
 
 			    //calculate stress and tangent operator
-			    mConstitutiveLawVector[PointNumber]->CalculateMaterialResponse(
-					    StrainVector,
-					    ZeroMatrix( 1 ),
-					    StressVector,
-					    TanC,
-					    rCurrentProcessInfo,
-					    GetProperties(),
-					    GetGeometry(),
-					    row( Ncontainer, PointNumber ),
-					    true,
-//					    2, //retain old tangent, do stress update incrementally
-					    1,
-					    false );
+			    mConstitutiveLawVector[PointNumber]->CalculateMaterialResponse( const_params, stress_measure );
 
 //                KRATOS_WATCH(StressVector);
 //                KRATOS_WATCH(TanC);
@@ -1201,7 +1080,7 @@ namespace Kratos
 	 * @param rValues Vector to store the values on the qudrature points, output of the method
 	 * @param rCurrentProcessInfo
 	 */
-	void EASElementQ4E4::GetValueOnIntegrationPoints( const Variable<Matrix>& rVariable, std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo )
+	void EASElementQ4E4::CalculateOnIntegrationPoints( const Variable<Matrix>& rVariable, std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo )
 	{
 	    //add matrix variables if needed
 		return;
@@ -1213,7 +1092,7 @@ namespace Kratos
 	 * @param rValues Vector to store the values on the qudrature points, output of the method
 	 * @param rCurrentProcessInfo
 	 */
-	void EASElementQ4E4::GetValueOnIntegrationPoints( const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo )
+	void EASElementQ4E4::CalculateOnIntegrationPoints( const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo )
 	{
 		// std::cout<<"GetValue On Integration Points"<<std::endl;
 		if ( rValues.size() != mConstitutiveLawVector.size() )
@@ -1277,7 +1156,7 @@ namespace Kratos
 	 * @param rValues Vector to store the values on the qudrature points, output of the method
 	 * @param rCurrentProcessInfo
 	 */
-	void EASElementQ4E4::GetValueOnIntegrationPoints( const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo )
+	void EASElementQ4E4::CalculateOnIntegrationPoints( const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo )
 	{
 		if ( rValues.size() != GetGeometry().IntegrationPoints().size() )
 			rValues.resize( GetGeometry().IntegrationPoints().size() );
@@ -1295,7 +1174,7 @@ namespace Kratos
 	 * @param rValues Vector of the values on the quadrature points
 	 * @param rCurrentProcessInfo
 	 */
-	void EASElementQ4E4::SetValueOnIntegrationPoints( const Variable<Matrix>& rVariable, std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo )
+	void EASElementQ4E4::SetValuesOnIntegrationPoints( const Variable<Matrix>& rVariable, std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo )
 	{
 	    // This function is not necessary. Check for KinematicLinear2 for way to add in variables.
 	}
@@ -1306,7 +1185,7 @@ namespace Kratos
 	 * @param rValues Vector of the values on the quadrature points
 	 * @param rCurrentProcessInfo
 	 */
-	void EASElementQ4E4::SetValueOnIntegrationPoints( const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo )
+	void EASElementQ4E4::SetValuesOnIntegrationPoints( const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo )
 	{
 	    // This function is not necessary. Check for KinematicLinear2 for way to add in variables.
 	}
@@ -1317,7 +1196,7 @@ namespace Kratos
 	 * @param rValue value on the quadrature points
 	 * @param rCurrentProcessInfo
 	 */
-	void EASElementQ4E4::SetValueOnIntegrationPoints( const Variable<double>& rVariable,
+	void EASElementQ4E4::SetValuesOnIntegrationPoints( const Variable<double>& rVariable,
 			std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo )
 	{
 	    // This function is not necessary. Check for KinematicLinear2 for way to add in variables.
@@ -1329,12 +1208,12 @@ namespace Kratos
 	 * @param rValue value on the quadrature points
 	 * @param rCurrentProcessInfo
 	 */
-	void EASElementQ4E4::SetValueOnIntegrationPoints( const Variable< ConstitutiveLaw::Pointer >& rVariable, std::vector< ConstitutiveLaw::Pointer >& rValues, const Kratos::ProcessInfo& rCurrentProcessInfo )
+	void EASElementQ4E4::SetValuesOnIntegrationPoints( const Variable< ConstitutiveLaw::Pointer >& rVariable, std::vector< ConstitutiveLaw::Pointer >& rValues, const ProcessInfo& rCurrentProcessInfo )
 	{
 	    // This function is not necessary. Check for KinematicLinear2 for way to add in variables.
 	}
 
-	int EASElementQ4E4::Check( const Kratos::ProcessInfo& rCurrentProcessInfo )
+	int EASElementQ4E4::Check( const ProcessInfo& rCurrentProcessInfo ) const
 	{
 		KRATOS_TRY
 

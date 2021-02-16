@@ -60,7 +60,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/define.h"
 #include "geometries/point_3d.h"
 #include "custom_conditions/elastic_face_springs.h"
-#include "structural_application.h"
+#include "structural_application_variables.h"
 #include "utilities/math_utils.h"
 #include "custom_utilities/sd_math_utils.h"
 
@@ -105,7 +105,7 @@ Condition::Pointer ElasticFaceSprings::Create(IndexType NewId, GeometryType::Poi
 
 //************************************************************************************
 //************************************************************************************
-void ElasticFaceSprings::CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+void ElasticFaceSprings::CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -122,7 +122,7 @@ void ElasticFaceSprings::CalculateRightHandSide(VectorType& rRightHandSideVector
 
 //************************************************************************************
 //************************************************************************************
-void ElasticFaceSprings::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+void ElasticFaceSprings::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -336,7 +336,7 @@ void ElasticFaceSprings::CalculateAll( MatrixType& rLeftHandSideMatrix, VectorTy
 
 //************************************************************************************
 //************************************************************************************
-void ElasticFaceSprings::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& CurrentProcessInfo)
+void ElasticFaceSprings::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& CurrentProcessInfo) const
 {
     unsigned int number_of_nodes = GetGeometry().size();
     unsigned int index;
@@ -356,7 +356,7 @@ void ElasticFaceSprings::EquationIdVector(EquationIdVectorType& rResult, Process
 
 //************************************************************************************
 //************************************************************************************
-void ElasticFaceSprings::GetDofList(DofsVectorType& ConditionalDofList,ProcessInfo& CurrentProcessInfo)
+void ElasticFaceSprings::GetDofList(DofsVectorType& ConditionalDofList, const ProcessInfo& CurrentProcessInfo) const
 {
     unsigned int number_of_nodes = GetGeometry().size();
     unsigned int index;

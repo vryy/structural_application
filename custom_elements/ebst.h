@@ -101,64 +101,56 @@ public:
     Element::Pointer Create(
         IndexType NewId,
         NodesArrayType const& ThisNodes,
-        PropertiesType::Pointer pProperties) const;
+        PropertiesType::Pointer pProperties) const override;
 
-    virtual void EquationIdVector(
+    void EquationIdVector(
         EquationIdVectorType& rResult,
-        ProcessInfo& rCurrentProcessInfo);
+        const ProcessInfo& rCurrentProcessInfo) const override;
 
-    virtual void GetDofList(
+    void GetDofList(
         DofsVectorType& ElementalDofList,
-        ProcessInfo& rCurrentProcessInfo);
+        const ProcessInfo& rCurrentProcessInfo) const override;
 
-    virtual void Initialize(const ProcessInfo& rCurrentProcessInfo);
+    void Initialize(const ProcessInfo& rCurrentProcessInfo) final;
 
-    virtual void CalculateRightHandSide(
+    void CalculateRightHandSide(
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo);
+        const ProcessInfo& rCurrentProcessInfo) final;
 
-    virtual void CalculateLocalSystem(
+    void CalculateLocalSystem(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo);
+        const ProcessInfo& rCurrentProcessInfo) final;
 
-    virtual void CalculateOnIntegrationPoints(
+    void CalculateOnIntegrationPoints(
         const Variable<Matrix>& rVariable,
         std::vector<Matrix>& Output,
-        const ProcessInfo& rCurrentProcessInfo);
+        const ProcessInfo& rCurrentProcessInfo) final;
 
-    virtual void CalculateMassMatrix(
+    void CalculateMassMatrix(
         MatrixType& rMassMatrix,
-        ProcessInfo& rCurrentProcessInfo);
+        const ProcessInfo& rCurrentProcessInfo) final;
 
-    virtual void CalculateDampingMatrix(
+    void CalculateDampingMatrix(
         MatrixType& rDampingMatrix,
-        ProcessInfo& rCurrentProcessInfo);
+        const ProcessInfo& rCurrentProcessInfo) final;
 
-    virtual void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo);
+    void InitializeSolutionStep(const ProcessInfo& CurrentProcessInfo) final;
 
-    virtual void FinalizeSolutionStep(
-        ProcessInfo& rCurrentProcessInfo);
+    void FinalizeSolutionStep(
+        const ProcessInfo& rCurrentProcessInfo) final;
 
-    virtual void GetValuesVector(
+    void GetValuesVector(
         Vector& values,
-        int Step = 0);
+        int Step = 0) const final;
 
-    virtual void GetFirstDerivativesVector(
+    void GetFirstDerivativesVector(
         Vector& values,
-        int Step = 0);
+        int Step = 0) const final;
 
-    virtual void GetSecondDerivativesVector(
+    void GetSecondDerivativesVector(
         Vector& values,
-        int Step = 0);
-
-    virtual void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable,
-            std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo);
-
-    //		void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable,
-    //				std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo);
-
-
+        int Step = 0) const final;
 
 protected:
 
@@ -198,9 +190,9 @@ protected:
     //double GetElementalPressure(
     //	const ProcessInfo& rCurrentProcessInfo);
 
-    virtual bool HasNeighbour(unsigned int index, const Node < 3 > & neighb);
+    virtual bool HasNeighbour(unsigned int index, const Node < 3 > & neighb) const;
 
-    virtual unsigned int NumberOfActiveNeighbours(WeakPointerVector< Node < 3 > >& neighbs);
+    virtual unsigned int NumberOfActiveNeighbours(const WeakPointerVector< Node < 3 > >& neighbs) const;
 
     virtual void CalculateAll(
         MatrixType& rLeftHandSideMatrix,

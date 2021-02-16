@@ -22,7 +22,7 @@
 
 // Project includes
 #include "includes/define.h"
-#include "structural_application.h"
+#include "structural_application_variables.h"
 #include "custom_utilities/tensor_utils.h"
 
 

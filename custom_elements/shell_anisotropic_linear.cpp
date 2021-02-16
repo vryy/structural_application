@@ -56,7 +56,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // Project includes
 #include "includes/define.h"
 #include "custom_elements/shell_anisotropic_linear.h"
-#include "structural_application.h"
+#include "structural_application_variables.h"
 #include "utilities/math_utils.h"
 
 
@@ -123,7 +123,7 @@ ShellAnisotropicLinear::~ShellAnisotropicLinear()
 
 //************************************************************************************
 //************************************************************************************
-void ShellAnisotropicLinear::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+void ShellAnisotropicLinear::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
 {
 
     CalculateAllMatrices(rLeftHandSideMatrix,rRightHandSideVector,rCurrentProcessInfo);
@@ -707,7 +707,7 @@ double ShellAnisotropicLinear::CalculateBeta( const
 void ShellAnisotropicLinear::CalculateAllMatrices(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
-    ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo)
 {
     //calculate local coordinates and rotation matrix
     array_1d<double,3> v1;
@@ -774,7 +774,7 @@ void ShellAnisotropicLinear::CalculateAllMatrices(
 //************************************************************************************
 //************************************************************************************
 void ShellAnisotropicLinear::EquationIdVector(EquationIdVectorType&
-        rResult, ProcessInfo& CurrentProcessInfo)
+        rResult, const ProcessInfo& CurrentProcessInfo) const
 {
     int number_of_nodes = 3;
     if(rResult.size() != 18)
@@ -802,7 +802,7 @@ void ShellAnisotropicLinear::EquationIdVector(EquationIdVectorType&
 
 //************************************************************************************
 //************************************************************************************
-void ShellAnisotropicLinear::GetDofList(DofsVectorType& ElementalDofList,ProcessInfo& CurrentProcessInfo)
+void ShellAnisotropicLinear::GetDofList(DofsVectorType& ElementalDofList, const ProcessInfo& CurrentProcessInfo) const
 {
     ElementalDofList.resize(0);
 
@@ -826,7 +826,7 @@ void ShellAnisotropicLinear::GetDofList(DofsVectorType& ElementalDofList,Process
 
 //************************************************************************************
 //************************************************************************************
-void ShellAnisotropicLinear::GetValuesVector(Vector& values, int Step)
+void ShellAnisotropicLinear::GetValuesVector(Vector& values, int Step) const
 {
     const unsigned int number_of_nodes = 3;
     unsigned int MatSize = 18;

@@ -55,12 +55,14 @@
 // Project includes
 #include "includes/define.h"
 #include "custom_conditions/contact_link_3D_lagrange_tying.h"
-#include "structural_application.h"
+#include "structural_application_variables.h"
 #include "utilities/math_utils.h"
 #include "custom_utilities/sd_math_utils.h"
 
 namespace Kratos
 {
+    typedef Contact_Link_3D_Lagrange_Tying::PointType PointType;
+
     //************************************************************************************
     //************************************************************************************
     Contact_Link_3D_Lagrange_Tying::Contact_Link_3D_Lagrange_Tying( IndexType NewId,
@@ -95,8 +97,8 @@ namespace Kratos
                                                                    PropertiesType::Pointer pProperties,
                                                                    Condition::Pointer Master,
                                                                    Condition::Pointer Slave,
-                                                                   Point<3>& MasterContactLocalPoint,
-                                                                   Point<3>& SlaveContactLocalPoint,
+                                                                   PointType& MasterContactLocalPoint,
+                                                                   PointType& SlaveContactLocalPoint,
                                                                    int SlaveIntegrationPointIndex
                                                                    )
     : Condition( NewId, pGeometry, pProperties )
@@ -152,7 +154,7 @@ namespace Kratos
     }
 
 
-    void Contact_Link_3D_Lagrange_Tying::InitializeSolutionStep( ProcessInfo& CurrentProcessInfo )
+    void Contact_Link_3D_Lagrange_Tying::InitializeSolutionStep( const ProcessInfo& CurrentProcessInfo )
     {
 
         noalias( mvMaster ) =  NormalVector( GetValue( CONTACT_LINK_MASTER ), GetValue( MASTER_CONTACT_LOCAL_POINT ) );
@@ -285,7 +287,7 @@ namespace Kratos
      * calculates only the RHS vector (certainly to be removed due to contact algorithm)
      */
     void Contact_Link_3D_Lagrange_Tying::CalculateRightHandSide( VectorType& rRightHandSideVector,
-                                                                ProcessInfo& rCurrentProcessInfo )
+                                                                const ProcessInfo& rCurrentProcessInfo )
     {
         //calculation flags
         bool CalculateStiffnessMatrixFlag = false;
@@ -304,7 +306,7 @@ namespace Kratos
      */
     void Contact_Link_3D_Lagrange_Tying::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix,
                                                               VectorType& rRightHandSideVector,
-                                                              ProcessInfo& rCurrentProcessInfo )
+                                                              const ProcessInfo& rCurrentProcessInfo )
     {
         //calculation flags
         bool CalculateStiffnessMatrixFlag = true;
@@ -320,7 +322,7 @@ namespace Kratos
      */
     void Contact_Link_3D_Lagrange_Tying::CalculateAll( MatrixType& rLeftHandSideMatrix,
                                                       VectorType& rRightHandSideVector,
-                                                      ProcessInfo& rCurrentProcessInfo,
+                                                      const ProcessInfo& rCurrentProcessInfo,
                                                       bool CalculateStiffnessMatrixFlag,
                                                       bool CalculateResidualVectorFlag )
     {
@@ -412,7 +414,7 @@ namespace Kratos
      * with regard to the current master and slave partners.
      * All Conditions are assumed to be defined in 3D space and havin 3 DOFs per node
      */
-    void Contact_Link_3D_Lagrange_Tying::CalculateDampingMatrix( MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo )
+    void Contact_Link_3D_Lagrange_Tying::CalculateDampingMatrix( MatrixType& rDampingMatrix, const ProcessInfo& rCurrentProcessInfo )
     {
 
         KRATOS_TRY
@@ -694,7 +696,7 @@ namespace Kratos
             GetValue( MASTER_CONTACT_CURRENT_LOCAL_POINT )[1] = Xi2;
 
             //updating rResult
-            GetValue( MASTER_CONTACT_CURRENT_GLOBAL_POINT ) = ZeroVector( 3 );
+            GetValue( MASTER_CONTACT_CURRENT_GLOBAL_POINT ) = PointType(ZeroVector( 3 ));
 
             GetValue( MASTER_CONTACT_CURRENT_GLOBAL_POINT ) = GlobalCoordinates( GetValue( CONTACT_LINK_MASTER ), GetValue( MASTER_CONTACT_CURRENT_GLOBAL_POINT ), GetValue( MASTER_CONTACT_CURRENT_LOCAL_POINT ) );
 
@@ -717,7 +719,7 @@ namespace Kratos
      * All Equation IDs are given Master first, Slave second
      */
     void Contact_Link_3D_Lagrange_Tying::EquationIdVector( EquationIdVectorType& rResult,
-                                                          ProcessInfo& CurrentProcessInfo )
+                                                          const ProcessInfo& CurrentProcessInfo ) const
     {
         //determining size of DOF list
         //dimension of space
@@ -759,7 +761,7 @@ namespace Kratos
      * All DOF are given Master first, Slave second
      */
     void Contact_Link_3D_Lagrange_Tying::GetDofList( DofsVectorType& ConditionalDofList,
-                                                    ProcessInfo& CurrentProcessInfo )
+                                                    const ProcessInfo& CurrentProcessInfo ) const
     {
         //determining size of DOF list
         //dimension of space
@@ -797,9 +799,9 @@ namespace Kratos
 
     //new functions includes
 
-    Point<3>& Contact_Link_3D_Lagrange_Tying::GlobalCoordinates( Condition::Pointer Surface, Point<3>& rResult, Point<3> const& LocalCoordinates )
+    PointType& Contact_Link_3D_Lagrange_Tying::GlobalCoordinates( Condition::Pointer Surface, PointType& rResult, PointType const& LocalCoordinates )
     {
-        noalias( rResult ) = ZeroVector( 3 );
+        noalias( rResult ) = PointType(ZeroVector( 3 ));
 
         for ( IndexType i = 0 ; i < Surface->GetGeometry().size() ; i++ )
         {

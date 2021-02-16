@@ -81,6 +81,12 @@ namespace Kratos
             // Counted pointer of FoundationCondition
             KRATOS_CLASS_POINTER_DEFINITION(FoundationCondition);
 
+            #ifdef SD_APP_FORWARD_COMPATIBILITY
+            typedef Point PointType;
+            #else
+            typedef Point<3> PointType;
+            #endif
+
             /**
              * Default constructor.
              */
@@ -88,14 +94,13 @@ namespace Kratos
             FoundationCondition( IndexType NewId, GeometryType::Pointer pGeometry);
 
             FoundationCondition( IndexType NewId, GeometryType::Pointer pGeometry,
-                           PropertiesType::Pointer pProperties
-                         );
+                           PropertiesType::Pointer pProperties);
 
             FoundationCondition( IndexType NewId, GeometryType::Pointer pGeometry,
-                                  	PropertiesType::Pointer pProperties,
-					Element::Pointer& soilElement,
-					Element::Pointer& FoundationElement,
-					Point<3>& SoilLocalPoint, Point<3>& rFoundationLocalPoint);
+                                 PropertiesType::Pointer pProperties,
+                                 Element::Pointer& soilElement,
+                                 Element::Pointer& FoundationElement,
+                                 PointType& SoilLocalPoint, PointType& rFoundationLocalPoint);
 
             /**
              * Destructor.
@@ -121,17 +126,17 @@ namespace Kratos
              */
             void CalculateLocalSystem( MatrixType& rLeftHandSideMatrix,
                                        VectorType& rRightHandSideVector,
-                                       ProcessInfo& rCurrentProcessInfo);
+                                       const ProcessInfo& rCurrentProcessInfo);
 
             void CalculateRightHandSide( VectorType& rRightHandSideVector,
-                                         ProcessInfo& rCurrentProcessInfo);
-//    	    void DampMatrix(MatrixType& rDampMatrix, ProcessInfo& rCurrentProcessInfo);
+                                         const ProcessInfo& rCurrentProcessInfo);
+//          void DampMatrix(MatrixType& rDampMatrix, const ProcessInfo& rCurrentProcessInfo);
 
             void EquationIdVector( EquationIdVectorType& rResult,
-                                   ProcessInfo& rCurrentProcessInfo);
+                                   const ProcessInfo& rCurrentProcessInfo) const;
 
             void GetDofList( DofsVectorType& ConditionalDofList,
-                             ProcessInfo& CurrentProcessInfo);
+                             const ProcessInfo& CurrentProcessInfo) const;
 
 
             void Initialize(const ProcessInfo& rCurrentProcessInfo);
@@ -171,19 +176,19 @@ namespace Kratos
       }
             void CalculateAll( MatrixType& rLeftHandSideMatrix,
                                VectorType& rRightHandSideVector,
-                               ProcessInfo& rCurrentProcessInfo,
+                               const ProcessInfo& rCurrentProcessInfo,
                                bool CalculateStiffnessMatrixFlag,
                                bool CalculateResidualVectorFlag);
 
 
-            Point<3> mFoundationLocalPoint;
-            Point<3> mSoilLocalPoint;
+            PointType mFoundationLocalPoint;
+            PointType mSoilLocalPoint;
             Element::Pointer mpFoundationElement;
             Element::Pointer mpSoilElement;
-	        Point<3> mFoundationGlobalPoint;
-            Point<3> mSoilGlobalPoint;
+          PointType mFoundationGlobalPoint;
+            PointType mSoilGlobalPoint;
 //            Vector mTPileGlobalVector;
-///	    int iSoilIntegrationPointIndex;
+///     int iSoilIntegrationPointIndex;
 
 /*    void CalculateAndAdd_RHS( Vector& rRightHandSideVector,
             const Vector& NSoil,
@@ -193,18 +198,18 @@ namespace Kratos
             const Vector& tangentialStresses,
             double Gap,
             double normalStress,
-////	    double SoilIntegrationWeight,
+////      double SoilIntegrationWeight,
             double dASoil,
-		double friction_coeff);
+    double friction_coeff);
 
-	   Vector GetRelativTangentialVelocity(Matrix& T);
+     Vector GetRelativTangentialVelocity(Matrix& T);
 
-	   Vector GetRelativVelocity();
+     Vector GetRelativVelocity();
 
             void UpdateTipLocalPoint( );
-     	    Point<3>& GlobalCoordinatesSoil(Element::Pointer tip_soilElements, Point<3>& rResult, Point<3> const& LocalCoordinates);
-     	    Point<3>& GlobalCoordinatesPile(Element::Pointer FoundationElements, Point<3>& rResult, Point<3> const& LocalCoordinates);*/
-     	 //   Vector& GlobalCoordinatesTPileVector(Element::Pointer FoundationElements, Vector& rResult, Point<3> const& LocalCoordinates);
+          PointType& GlobalCoordinatesSoil(Element::Pointer tip_soilElements, PointType& rResult, PointType const& LocalCoordinates);
+          PointType& GlobalCoordinatesPile(Element::Pointer FoundationElements, PointType& rResult, PointType const& LocalCoordinates);*/
+       //   Vector& GlobalCoordinatesTPileVector(Element::Pointer FoundationElements, Vector& rResult, PointType const& LocalCoordinates);
     }; // Class FoundationCondition
 }  // namespace Kratos.
 

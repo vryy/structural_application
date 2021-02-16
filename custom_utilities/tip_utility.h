@@ -1,14 +1,14 @@
 /*
 ==============================================================================
-KratosR1StructuralApplication 
+KratosR1StructuralApplication
 A library based on:
 Kratos
 A General Purpose Software for Multi-Physics Finite Element Analysis
 Version 1.0 (Released on march 05, 2007).
 
 Copyright 2007
-Pooyan Dadvand, Riccardo Rossi, Janosch Stascheit, Felix Nagel 
-pooyan@cimne.upc.edu 
+Pooyan Dadvand, Riccardo Rossi, Janosch Stascheit, Felix Nagel
+pooyan@cimne.upc.edu
 rrossi@cimne.upc.edu
 janosch.stascheit@rub.de
 nagel@sd.rub.de
@@ -41,9 +41,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ==============================================================================
 */
- 
-//   
-//   Project Name:        Kratos       
+
+//
+//   Project Name:        Kratos
 //   Last Modified by:    $Author: jelena $
 //   Date:                $Date: 2015-09-17 07:11:02 $
 //   Revision:            $Revision: 1.2 $
@@ -56,7 +56,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 // System includes
 
-// External includes 
+// External includes
 #include "boost/smart_ptr.hpp"
 #include "boost/timer.hpp"
 // Project includes
@@ -79,13 +79,15 @@ namespace Kratos
     class TipUtility
     {
         public:
-            typedef ModelPart::ElementsContainerType ElementsArrayType;
-            typedef ModelPart::ConditionsContainerType ConditionsArrayType;
+            typedef ModelPart::ElementsContainerType ElementsContainerType;
+            typedef ModelPart::ConditionsContainerType ConditionsContainerType;
             typedef Element::GeometryType GeometryType;
             typedef GeometryType::IntegrationPointsArrayType IntegrationPointsArrayType;
-            typedef GeometryType::PointType PointType;
+            typedef GeometryType::PointType NodeType;
+            typedef NodeType::PointType PointType;
             typedef Properties PropertiesType;
             typedef GeometryData::IntegrationMethod IntegrationMethod;
+            typedef std::size_t IndexType;
 
             /**
              * class pointer definition
@@ -106,6 +108,20 @@ namespace Kratos
             {
             }
 
+            /// Get the last condition id of the model part
+            static std::size_t GetLastConditionId(ModelPart& r_model_part)
+            {
+                std::size_t lastCondId = 0;
+                for(typename ModelPart::ConditionsContainerType::ptr_iterator it = r_model_part.Conditions().ptr_begin();
+                        it != r_model_part.Conditions().ptr_end(); ++it)
+                {
+                    if((*it)->Id() > lastCondId)
+                        lastCondId = (*it)->Id();
+                }
+
+                return lastCondId;
+            }
+
             /**
              * Initializes mesh tying by means of lagrange multipliers
              * tip_elements: list of beam elements
@@ -113,8 +129,8 @@ namespace Kratos
              */
             void InitializeTipUtility( ModelPart& model_part, std::vector<unsigned int>& tip_elements, std::vector<unsigned int>& tip_soil_elements )
             {
-                ElementsArrayType::Pointer tips( new ElementsArrayType() );
-                ElementsArrayType::Pointer tip_soil_elems( new ElementsArrayType() );
+                ElementsContainerType::Pointer tips( new ElementsContainerType() );
+                ElementsContainerType::Pointer tip_soil_elems( new ElementsContainerType() );
 
                 IntegrationMethod ThisIntegrationMethod;
                 GeometryType::Pointer tempGeometry;
@@ -126,23 +142,16 @@ namespace Kratos
                 std::cout << "Initializing TipUtility..." << std::endl;
                 for( unsigned int it = 0; it != tip_elements.size(); it++ )
                 {
-                    tips->push_back( model_part.GetElement( tip_elements[it]) );
+                    tips->push_back( model_part.pGetElement( tip_elements[it]) );
                 }
 
                 for( unsigned int it = 0; it != tip_soil_elements.size(); it++ )
                 {
-                    tip_soil_elems->push_back( model_part.GetElement( tip_soil_elements[it]) );
+                    tip_soil_elems->push_back( model_part.pGetElement( tip_soil_elements[it]) );
                 }
 
                 // loop through all conditions to compute the lastCondId
-                std::size_t lastCondId = 0;
-                for(ConditionsContainerType::ptr_iterator it = model_part.Conditions().ptr_begin();
-                        it != model_part.Conditions().ptr_end(); ++it)
-                {
-                    // find the maximum condition id
-                    if((*it)->Id() > lastCondId)
-                        lastCondId = (*it)->Id();
-                }
+                std::size_t lastCondId = GetLastConditionId(model_part);
                 KRATOS_WATCH(lastCondId)
 
                 PointType TipPoint;
@@ -151,7 +160,7 @@ namespace Kratos
                 PointType TipSoilGlobalPoint;
                 Element::Pointer TargetElement;
                 std::size_t number_of_tip_conditions = 0;
-                for( ElementsArrayType::ptr_iterator it = tips->ptr_begin(); it != tips->ptr_end(); ++it )
+                for( ElementsContainerType::ptr_iterator it = tips->ptr_begin(); it != tips->ptr_end(); ++it )
                 {
                     /******KRATOS_WATCH(it);*/
 //                    KRATOS_WATCH(*it);
@@ -166,13 +175,12 @@ namespace Kratos
                         {
                             TargetElement->GetGeometry().GlobalCoordinates( TipSoilGlobalPoint, TipSoilLocalPoint );
 
-                            tempGeometry = GeometryType::Pointer( new Geometry<Node<3> >() );
+                            tempGeometry = GeometryType::Pointer( new GeometryType() );
                             Condition::Pointer newLink = Condition::Pointer( new TipCondition( ++lastCondId, tempGeometry, tempProperties, TargetElement, *it, TipSoilLocalPoint, TipLocalPoint ) );
 
                             model_part.Conditions().push_back( newLink );
                             ++number_of_tip_conditions;
                         }
-
                     }
                 }
 
@@ -191,12 +199,12 @@ namespace Kratos
              * TODO: find a faster method for outside search (hextree? etc.), maybe outside this
              * function by restriction of OldMeshElementsArray
              */
-            bool FindPartnerElement( Point<3>& sourcePoint, 
-                                     const ElementsArrayType::Pointer& TipSoilElements, 
-                                     Element::Pointer& TargetElement, Point<3>& rResult)
+            bool FindPartnerElement( PointType& sourcePoint,
+                                     const ElementsContainerType::Pointer& TipSoilElements,
+                                     Element::Pointer& TargetElement, PointType& rResult)
             {
                 bool partner_found= false;
-                ElementsArrayType::Pointer TipSoilElementsCandidates( new ElementsArrayType() );
+                ElementsContainerType::Pointer TipSoilElementsCandidates( new ElementsContainerType() );
                 std::vector<double > OldMinDist;
                 bool newMinDistFound= false;
 
@@ -207,7 +215,7 @@ namespace Kratos
                     newMinDistFound= false;
                     TipSoilElementsCandidates->clear();
                     // (global search)
-                    for( ElementsArrayType::ptr_iterator it = TipSoilElements->ptr_begin(); 
+                    for( ElementsContainerType::ptr_iterator it = TipSoilElements->ptr_begin();
                          it != TipSoilElements->ptr_end(); ++it )
                     {
                         //loop over all nodes in tested element
@@ -226,7 +234,7 @@ namespace Kratos
                             else if( dist < minDist )
                             {
                                 bool alreadyUsed= false;
-                                for(unsigned int old_dist= 0; old_dist<OldMinDist.size(); ++old_dist)  
+                                for(unsigned int old_dist= 0; old_dist<OldMinDist.size(); ++old_dist)
                                 {
                                     if(fabs(dist- OldMinDist[old_dist])< 1e-7 )
                                         alreadyUsed= true;
@@ -244,7 +252,7 @@ namespace Kratos
 
                     OldMinDist.push_back(minDist);
 
-                    for( ElementsArrayType::ptr_iterator it = TipSoilElementsCandidates->ptr_begin(); 
+                    for( ElementsContainerType::ptr_iterator it = TipSoilElementsCandidates->ptr_begin();
                          it != TipSoilElementsCandidates->ptr_end(); ++it )
                     {
 //                         std::cout << "checking elements list" << std::endl;
@@ -267,7 +275,7 @@ namespace Kratos
                 return partner_found;
             }
    /**
-    * Calculates for given Loacal coordinates the global coordinates 
+    * Calculates for given Loacal coordinates the global coordinates
     * @param Surface surface
     * @param rResult global coordinates
     * @param LocalCoordinates local coordinates
@@ -282,20 +290,20 @@ namespace Kratos
         {
             double shape_func= TipSoilElements->GetGeometry().ShapeFunctionValue(i,LocalCoordinates);
 
-            rResult(0) += shape_func* 
+            rResult(0) += shape_func*
                 ((TipSoilElements->GetGeometry()[i]).X0()
                 +(TipSoilElements->GetGeometry()[i]).GetSolutionStepValue(DISPLACEMENT_X));
 
-            rResult(1) += shape_func* 
+            rResult(1) += shape_func*
                 ((TipSoilElements->GetGeometry()[i]).Y0()
                 +(TipSoilElements->GetGeometry()[i]).GetSolutionStepValue(DISPLACEMENT_Y));
 
-            rResult(2) += shape_func* 
+            rResult(2) += shape_func*
                 ((TipSoilElements->GetGeometry()[i]).Z0()
                 +(TipSoilElements->GetGeometry()[i]).GetSolutionStepValue(DISPLACEMENT_Z));
         }
         return rResult;
-        }      
+        }
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
          GeometryType::CoordinatesArrayType& GlobalCoordinatesTip(const Element::Pointer TipElements, GeometryType::CoordinatesArrayType& rResult, GeometryType::CoordinatesArrayType const& LocalCoordinates)
         {
@@ -305,21 +313,21 @@ namespace Kratos
         {
             double shape_func= TipElements->GetGeometry().ShapeFunctionValue(i,LocalCoordinates);
 
-            rResult(0) += shape_func* 
+            rResult(0) += shape_func*
                 ((TipElements->GetGeometry()[i]).X0()
                 +(TipElements->GetGeometry()[i]).GetSolutionStepValue(DISPLACEMENT_X));
 
-            rResult(1) += shape_func* 
+            rResult(1) += shape_func*
                 ((TipElements->GetGeometry()[i]).Y0()
                 +(TipElements->GetGeometry()[i]).GetSolutionStepValue(DISPLACEMENT_Y));
 
-            rResult(2) += shape_func* 
+            rResult(2) += shape_func*
                 ((TipElements->GetGeometry()[i]).Z0()
                 +(TipElements->GetGeometry()[i]).GetSolutionStepValue(DISPLACEMENT_Z));
         }
         return rResult;
-        } 
+        }
     };//class TipUtility
 }  // namespace Kratos.
 
-#endif // KRATOS_PILE_UTILITY_INCLUDED defined 
+#endif // KRATOS_PILE_UTILITY_INCLUDED defined

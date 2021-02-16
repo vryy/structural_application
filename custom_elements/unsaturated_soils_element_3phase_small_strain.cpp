@@ -57,15 +57,13 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
 // Project includes
-#include "custom_elements/unsaturated_soils_element_3phase_small_strain.h"
-#include "utilities/math_utils.h"
-#include "custom_utilities/sd_math_utils.h"
 #include "geometries/hexahedra_3d_8.h"
 #include "geometries/tetrahedra_3d_4.h"
 #include "geometries/prism_3d_6.h"
-#include "structural_application.h"
-
-#include "boost/timer.hpp"
+#include "utilities/math_utils.h"
+#include "custom_utilities/sd_math_utils.h"
+#include "custom_elements/unsaturated_soils_element_3phase_small_strain.h"
+#include "structural_application_variables.h"
 
 namespace Kratos
 {
@@ -258,7 +256,7 @@ void UnsaturatedSoilsElement_3phase_SmallStrain::Initialize(const ProcessInfo& r
 * THIS method is called from the scheme at the start of each solution step
 * @param rCurrentProcessInfo
 */
-void UnsaturatedSoilsElement_3phase_SmallStrain::InitializeSolutionStep( ProcessInfo& CurrentProcessInfo )
+void UnsaturatedSoilsElement_3phase_SmallStrain::InitializeSolutionStep( const ProcessInfo& CurrentProcessInfo )
 {
     //reading integration points and local gradients
     const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
@@ -274,7 +272,7 @@ void UnsaturatedSoilsElement_3phase_SmallStrain::InitializeSolutionStep( Process
 //************************************************************************************
 //************************************************************************************
 void UnsaturatedSoilsElement_3phase_SmallStrain::CalculateAll( MatrixType& rLeftHandSideMatrix,
-        VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo,
+        VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo,
         bool CalculateStiffnessMatrixFlag, bool CalculateResidualVectorFlag )
 {
     KRATOS_TRY
@@ -538,7 +536,7 @@ void UnsaturatedSoilsElement_3phase_SmallStrain::CalculateAll( MatrixType& rLeft
 //************************************************************************************
 
 void UnsaturatedSoilsElement_3phase_SmallStrain::CalculateRightHandSide( VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo )
+        const ProcessInfo& rCurrentProcessInfo )
 {
     //calculation flags
     bool CalculateStiffnessMatrixFlag = false;
@@ -553,7 +551,7 @@ void UnsaturatedSoilsElement_3phase_SmallStrain::CalculateRightHandSide( VectorT
 //************************************************************************************
 
 void UnsaturatedSoilsElement_3phase_SmallStrain::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix,
-        VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo )
+        VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo )
 {
     //calculation flags
     bool CalculateStiffnessMatrixFlag = true;
@@ -565,7 +563,7 @@ void UnsaturatedSoilsElement_3phase_SmallStrain::CalculateLocalSystem( MatrixTyp
 ////************************************************************************************
 ////************************************************************************************
 
-void UnsaturatedSoilsElement_3phase_SmallStrain::CalculateDampingMatrix( MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo )
+void UnsaturatedSoilsElement_3phase_SmallStrain::CalculateDampingMatrix( MatrixType& rDampingMatrix, const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 
@@ -701,7 +699,7 @@ void UnsaturatedSoilsElement_3phase_SmallStrain::CalculateDampingMatrix( MatrixT
 ////************************************************************************************
 ////************************************************************************************
 
-void UnsaturatedSoilsElement_3phase_SmallStrain::FinalizeSolutionStep( ProcessInfo& CurrentProcessInfo )
+void UnsaturatedSoilsElement_3phase_SmallStrain::FinalizeSolutionStep( const ProcessInfo& CurrentProcessInfo )
 {
     unsigned int number_of_nodes_press = ( mNodesPressMax - mNodesPressMin + 1 );
 //             unsigned int number_of_nodes_disp = (mNodesDispMax-mNodesDispMin+1);
@@ -797,78 +795,6 @@ void UnsaturatedSoilsElement_3phase_SmallStrain::FinalizeSolutionStep( ProcessIn
 
 //************************************************************************************
 //************************************************************************************
-void UnsaturatedSoilsElement_3phase_SmallStrain::CalculateOnIntegrationPoints( const Variable<double >& rVariable, std::vector<double>& Output, const ProcessInfo& rCurrentProcessInfo )
-{
-    KRATOS_TRY
-
-    unsigned int number_of_nodes_press = ( mNodesPressMax - mNodesPressMin + 1 );
-
-    //reading integration points and local gradients
-    const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
-
-    if ( Output.size() != integration_points.size() )
-        Output.resize( integration_points.size() );
-
-    const Matrix& Ncontainer_Pressure = mpPressureGeometry->ShapeFunctionsValues( mThisIntegrationMethod );
-
-    Vector N_PRESS( number_of_nodes_press );
-
-    double capillaryPressure;
-
-    double waterPressure;
-
-    double airPressure;
-
-    double saturation;
-
-    /////////////////////////////////////////////////////////////////////////
-//// Integration in space sum_(beta=0)^(number of quadrature points)
-    /////////////////////////////////////////////////////////////////////////
-    for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
-    {
-        // Shape Functions on current spatial quadrature point
-        if ( N_PRESS.size() != number_of_nodes_press )
-            N_PRESS.resize( number_of_nodes_press );
-
-        noalias( N_PRESS ) = row( Ncontainer_Pressure, PointNumber );
-
-        GetPressures( N_PRESS, capillaryPressure, waterPressure, airPressure );
-
-        saturation = GetSaturation( capillaryPressure );
-
-        if ( rVariable == SATURATION )
-        {
-            Output[PointNumber] = saturation;
-        }
-
-        if ( rVariable == WATER_PRESSURE )
-        {
-            Output[PointNumber] = waterPressure;
-        }
-
-        if ( rVariable == AIR_PRESSURE )
-        {
-            Output[PointNumber] = airPressure;
-        }
-    }
-
-    KRATOS_CATCH( "" )
-}
-
-/**
-* Calculate Vector Variables at each integration point, used for postprocessing etc.
-* @param rVariable Global name of the variable to be calculated
-* @param output Vector to store the values on the qudrature points, output of the method
-* @param rCurrentProcessInfo
-*/
-void UnsaturatedSoilsElement_3phase_SmallStrain::CalculateOnIntegrationPoints( const Variable<Vector>& rVariable,
-        std::vector<Vector>& Output, const ProcessInfo& rCurrentProcessInfo )
-{
-    GetValueOnIntegrationPoints( rVariable, Output, rCurrentProcessInfo );
-}
-
-//************************************************************************************
-//************************************************************************************
 
 inline void UnsaturatedSoilsElement_3phase_SmallStrain::CalculateAndAddExtForceContribution( const Vector& N,
         const ProcessInfo& CurrentProcessInfo, Vector& BodyForce, VectorType& rRightHandSideVector,
@@ -883,7 +809,7 @@ inline void UnsaturatedSoilsElement_3phase_SmallStrain::CalculateAndAddExtForceC
 //************************************************************************************
 
 void UnsaturatedSoilsElement_3phase_SmallStrain::EquationIdVector( EquationIdVectorType& rResult,
-        ProcessInfo& CurrentProcessInfo )
+        const ProcessInfo& CurrentProcessInfo ) const
 {
     unsigned int dim_press = 2;//two pressure dofs
     unsigned int dim_disp = ( GetGeometry().WorkingSpaceDimension() );//3 displacement dofs
@@ -915,8 +841,8 @@ void UnsaturatedSoilsElement_3phase_SmallStrain::EquationIdVector( EquationIdVec
 //************************************************************************************
 //************************************************************************************
 
-void UnsaturatedSoilsElement_3phase_SmallStrain::GetDofList( DofsVectorType& ElementalDofList, ProcessInfo&
-        CurrentProcessInfo )
+void UnsaturatedSoilsElement_3phase_SmallStrain::GetDofList( DofsVectorType& ElementalDofList, const ProcessInfo&
+        CurrentProcessInfo ) const
 {
     ElementalDofList.resize( 0 );
 
@@ -936,7 +862,7 @@ void UnsaturatedSoilsElement_3phase_SmallStrain::GetDofList( DofsVectorType& Ele
 
 //************************************************************************************
 //************************************************************************************
-void UnsaturatedSoilsElement_3phase_SmallStrain::GetValuesVector( Vector& values, int Step )
+void UnsaturatedSoilsElement_3phase_SmallStrain::GetValuesVector( Vector& values, int Step ) const
 {
     unsigned int dim_press = 2;//two pressure dofs two time nodes
     unsigned int dim_disp = ( GetGeometry().WorkingSpaceDimension() );//3 displacement dofs two time nodes
@@ -3172,7 +3098,7 @@ void UnsaturatedSoilsElement_3phase_SmallStrain::InitializeMaterial
     KRATOS_CATCH( "" )
 }
 
-void UnsaturatedSoilsElement_3phase_SmallStrain::GetValueOnIntegrationPoints( const Variable<Matrix>& rVariable, std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo )
+void UnsaturatedSoilsElement_3phase_SmallStrain::CalculateOnIntegrationPoints( const Variable<Matrix>& rVariable, std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo )
 {
     if ( rValues.size() != mConstitutiveLawVector.size() )
         rValues.resize( mConstitutiveLawVector.size() );
@@ -3189,7 +3115,7 @@ void UnsaturatedSoilsElement_3phase_SmallStrain::GetValueOnIntegrationPoints( co
     }
 }
 
-void UnsaturatedSoilsElement_3phase_SmallStrain::GetValueOnIntegrationPoints( const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo )
+void UnsaturatedSoilsElement_3phase_SmallStrain::CalculateOnIntegrationPoints( const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo )
 {
 // std::cout<<"GetValue On Integration Points"<<std::endl;
     const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
@@ -3323,7 +3249,7 @@ void UnsaturatedSoilsElement_3phase_SmallStrain::GetValueOnIntegrationPoints( co
 // std::cout<<"END::GetValue On Integration Points"<<std::endl;
 }
 
-void UnsaturatedSoilsElement_3phase_SmallStrain::GetValueOnIntegrationPoints( const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo )
+void UnsaturatedSoilsElement_3phase_SmallStrain::CalculateOnIntegrationPoints( const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 
@@ -3408,7 +3334,7 @@ void UnsaturatedSoilsElement_3phase_SmallStrain::GetValueOnIntegrationPoints( co
     KRATOS_CATCH( "" )
 }
 
-void UnsaturatedSoilsElement_3phase_SmallStrain::SetValueOnIntegrationPoints( const Variable<Matrix>& rVariable, std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo )
+void UnsaturatedSoilsElement_3phase_SmallStrain::SetValuesOnIntegrationPoints( const Variable<Matrix>& rVariable, std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo )
 {
     if ( rValues.size() != mConstitutiveLawVector.size() )
     {
@@ -3426,7 +3352,7 @@ void UnsaturatedSoilsElement_3phase_SmallStrain::SetValueOnIntegrationPoints( co
     }
 }
 
-void UnsaturatedSoilsElement_3phase_SmallStrain::SetValueOnIntegrationPoints( const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo )
+void UnsaturatedSoilsElement_3phase_SmallStrain::SetValuesOnIntegrationPoints( const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo )
 {
     if ( rValues.size() != mConstitutiveLawVector.size() )
     {
@@ -3444,7 +3370,7 @@ void UnsaturatedSoilsElement_3phase_SmallStrain::SetValueOnIntegrationPoints( co
     }
 }
 
-void UnsaturatedSoilsElement_3phase_SmallStrain::SetValueOnIntegrationPoints( const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo )
+void UnsaturatedSoilsElement_3phase_SmallStrain::SetValuesOnIntegrationPoints( const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo )
 {
     if( rVariable == K0 )
     {

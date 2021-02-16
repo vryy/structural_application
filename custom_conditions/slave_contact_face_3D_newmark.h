@@ -87,20 +87,18 @@ public:
     // Counted pointer of SlaveContactFace3DNewmark
     KRATOS_CLASS_POINTER_DEFINITION(SlaveContactFace3DNewmark);
 
-    /**
-     * defines a vector set of other conditions needed for interection between
-     * different conditions
-     */
     typedef Condition BaseType;
-    typedef PointerVectorSet<BaseType, IndexedObject> ConditionsContainerType;
+    typedef BaseType::GeometryType GeometryType;
     typedef PointerVectorSet<MasterContactFace3D, IndexedObject> ContactMasterContainerType;
-    typedef Condition::GeometryType::PointsArrayType PointsArrayType;
+    typedef GeometryType::PointsArrayType PointsArrayType;
     typedef BaseType::EquationIdVectorType EquationIdVectorType;
-    typedef PointerVectorSet< EquationIdVectorType, IndexedObject>
-    EquationIdVectorContainerType;
-    typedef BaseType::MatrixType LHS_ContributionType;
-    typedef PointerVectorSet< LHS_ContributionType, IndexedObject> LHS_ContainerType;
     typedef std::size_t IndexType;
+    #ifdef SD_APP_FORWARD_COMPATIBILITY
+    typedef Point PointType;
+    #else
+    typedef Point<3> PointType;
+    #endif
+
     /**
      * REMOVED
      */
@@ -145,8 +143,8 @@ public:
      */
     bool SearchPartner( ContactMasterContainerType& AllMasterElements,
                         IndexType IntegrationPointIndex,
-                        Point<3> MasterContactLocalPoint,
-                        Point<3> SlaveContactLocalPoint,
+                        PointType MasterContactLocalPoint,
+                        PointType SlaveContactLocalPoint,
                         Condition::Pointer CurrentMaster,
                         double CurrentLambda
                       );
@@ -164,32 +162,29 @@ public:
      */
     void CalculateLocalSystem( MatrixType& rLeftHandSideMatrix,
                                VectorType& rRightHandSideVector,
-                               ProcessInfo& rCurrentProcessInfo);
+                               const ProcessInfo& rCurrentProcessInfo);
 
     /**
      * REMOVED
      */
-//             void CalculateCrossElementarySystemContributions( SecondaryConditionContainerType& SecondaryConditions, EquationIdVectorType& PrimaryEquationId, ProcessInfo& rCurrentProcessInfo );
+//             void CalculateCrossElementarySystemContributions( SecondaryConditionContainerType& SecondaryConditions, EquationIdVectorType& PrimaryEquationId, const ProcessInfo& rCurrentProcessInfo );
 
     /**
      * calculates the stiffness matrix contributions resulting from linearization
      * of normal vector
      * (REMOVED)
      */
-//             void CalculateNormalLinearizationElementarySystemContributions( SecondaryConditionContainerType& SecondaryConditions, EquationIdVectorType& PrimaryEquationId, ProcessInfo& rCurrentProcessInfo );
+//             void CalculateNormalLinearizationElementarySystemContributions( SecondaryConditionContainerType& SecondaryConditions, EquationIdVectorType& PrimaryEquationId, const ProcessInfo& rCurrentProcessInfo );
 
 
     void CalculateRightHandSide( VectorType& rRightHandSideVector,
-                                 ProcessInfo& rCurrentProcessInfo);
+                                 const ProcessInfo& rCurrentProcessInfo);
 
     void EquationIdVector( EquationIdVectorType& rResult,
-                           ProcessInfo& rCurrentProcessInfo);
-
-    void MasterElementsEquationIdVectors( EquationIdVectorContainerType& rResult,
-                                          ProcessInfo& rCurrentProcessInfo );
+                           const ProcessInfo& rCurrentProcessInfo) const;
 
     void GetDofList( DofsVectorType& ConditionalDofList,
-                     ProcessInfo& CurrentProcessInfo);
+                     const ProcessInfo& CurrentProcessInfo) const;
 
     void CalculateOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& Output, const ProcessInfo& rCurrentProcessInfo);
 
@@ -217,7 +212,7 @@ protected:
 private:
     void CalculateAll( MatrixType& rLeftHandSideMatrix,
                        VectorType& rRightHandSideVector,
-                       ProcessInfo& rCurrentProcessInfo,
+                       const ProcessInfo& rCurrentProcessInfo,
                        bool CalculateStiffnessMatrixFlag,
                        bool CalculateResidualVectorFlag);
 

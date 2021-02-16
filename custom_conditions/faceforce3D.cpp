@@ -58,8 +58,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 // Project includes
 #include "includes/define.h"
-#include "custom_conditions/face3D.h"
-#include "structural_application.h"
+#include "custom_conditions/faceforce3D.h"
+#include "structural_application_variables.h"
 #include "utilities/math_utils.h"
 #include "custom_utilities/sd_math_utils.h"
 
@@ -115,7 +115,7 @@ FaceForce3D::~FaceForce3D()
 //***********************************************************************************
 //***********************************************************************************
 void FaceForce3D::EquationIdVector( EquationIdVectorType& rResult,
-                                    ProcessInfo& rCurrentProcessInfo )
+                                    const ProcessInfo& rCurrentProcessInfo ) const
 {
     KRATOS_TRY
     unsigned int number_of_nodes = GetGeometry().size();
@@ -138,7 +138,7 @@ void FaceForce3D::EquationIdVector( EquationIdVectorType& rResult,
 //***********************************************************************************
 //***********************************************************************************
 void FaceForce3D::GetDofList( DofsVectorType& ElementalDofList,
-                              ProcessInfo& rCurrentProcessInfo )
+                              const ProcessInfo& rCurrentProcessInfo ) const
 {
     ElementalDofList.resize( 0 );
 
@@ -153,7 +153,7 @@ void FaceForce3D::GetDofList( DofsVectorType& ElementalDofList,
 //***********************************************************************************
 //***********************************************************************************
 void FaceForce3D::CalculateRightHandSide( VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo )
+        const ProcessInfo& rCurrentProcessInfo )
 {
     //calculation flags
     bool CalculateStiffnessMatrixFlag = false;
@@ -168,7 +168,7 @@ void FaceForce3D::CalculateRightHandSide( VectorType& rRightHandSideVector,
 //***********************************************************************************
 void FaceForce3D::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix,
                                         VectorType& rRightHandSideVector,
-                                        ProcessInfo& rCurrentProcessInfo )
+                                        const ProcessInfo& rCurrentProcessInfo )
 {
     //calculation flags
     bool CalculateStiffnessMatrixFlag = true;
@@ -181,7 +181,7 @@ void FaceForce3D::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix,
 //***********************************************************************************
 //***********************************************************************************
 void FaceForce3D::CalculateMassMatrix( MatrixType& rMassMatrix,
-                              ProcessInfo& rCurrentProcessInfo )
+                              const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
     rMassMatrix.resize( 0, 0, false );
@@ -191,7 +191,7 @@ void FaceForce3D::CalculateMassMatrix( MatrixType& rMassMatrix,
 //***********************************************************************************
 //***********************************************************************************
 void FaceForce3D::CalculateDampingMatrix( MatrixType& rDampingMatrix,
-                              ProcessInfo& rCurrentProcessInfo )
+                              const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
     rDampingMatrix.resize( 0, 0, false );
@@ -200,7 +200,7 @@ void FaceForce3D::CalculateDampingMatrix( MatrixType& rDampingMatrix,
 
 //***********************************************************************************
 //***********************************************************************************
-void FaceForce3D::GetValuesVector( Vector& values, int Step )
+void FaceForce3D::GetValuesVector( Vector& values, int Step ) const
 {
     unsigned int number_of_nodes = GetGeometry().size();
     unsigned int MatSize = number_of_nodes * 3;
@@ -221,7 +221,7 @@ void FaceForce3D::GetValuesVector( Vector& values, int Step )
 
 //***********************************************************************************
 //***********************************************************************************
-void FaceForce3D::GetFirstDerivativesVector( Vector& values, int Step )
+void FaceForce3D::GetFirstDerivativesVector( Vector& values, int Step ) const
 {
     unsigned int number_of_nodes = GetGeometry().size();
     unsigned int MatSize = number_of_nodes * 3;
@@ -241,7 +241,7 @@ void FaceForce3D::GetFirstDerivativesVector( Vector& values, int Step )
 
 //***********************************************************************************
 //***********************************************************************************
-void FaceForce3D::GetSecondDerivativesVector( Vector& values, int Step )
+void FaceForce3D::GetSecondDerivativesVector( Vector& values, int Step ) const
 {
     unsigned int number_of_nodes = GetGeometry().size();
     unsigned int MatSize = number_of_nodes * 3;
@@ -447,6 +447,10 @@ void FaceForce3D::CalculateAll( MatrixType& rLeftHandSideMatrix,
 //         array_1d<double,3> ge;
 //         array_1d<double,3> gn;
 //         array_1d<double,3> v3;
+
+    // if (this->Is(ACTIVE) && (GetProperties().Id() == 3))
+    //     KRATOS_WATCH(Id())
+
     //loop over integration points
     for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
     {
@@ -488,6 +492,9 @@ void FaceForce3D::CalculateAll( MatrixType& rLeftHandSideMatrix,
 
         v3[2] = t1[0] * t2[1] - t1[1] * t2[0];
 
+        // if (this->Is(ACTIVE) && (GetProperties().Id() == 3))
+        //     KRATOS_WATCH(v3)
+
         double dA = sqrt( v3[0] * v3[0] + v3[1] * v3[1] + v3[2] * v3[2] );
 
         // RIGHT HAND SIDE VECTOR
@@ -500,6 +507,9 @@ void FaceForce3D::CalculateAll( MatrixType& rLeftHandSideMatrix,
         }
     }
 
+    // if (this->Is(ACTIVE) && (GetProperties().Id() == 3))
+    //     KRATOS_WATCH(rRightHandSideVector)
+
     KRATOS_CATCH( "" )
 }
 
@@ -510,7 +520,7 @@ void FaceForce3D::CalculateAll( MatrixType& rLeftHandSideMatrix,
  * or that no common error is found.
  * @param rCurrentProcessInfo
  */
-int FaceForce3D::Check( const Kratos::ProcessInfo& rCurrentProcessInfo )
+int FaceForce3D::Check( const ProcessInfo& rCurrentProcessInfo )
 {
     return 0;
 }

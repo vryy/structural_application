@@ -59,11 +59,11 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 // Project includes
 #include "includes/define.h"
-#include "custom_elements/total_lagrangian.h"
-#include "utilities/math_utils.h"
 #include "includes/constitutive_law.h"
+#include "utilities/math_utils.h"
+#include "custom_elements/mixed_lagrangian.h"
 #include "custom_utilities/sd_math_utils.h"
-#include "structural_application.h"
+#include "structural_application_variables.h"
 
 //#include <omp.h>
 
@@ -146,7 +146,7 @@ void MixedLagrangian::Initialize(const ProcessInfo& rCurrentProcessInfo)
 //************************************************************************************
 void MixedLagrangian::CalculateAll( MatrixType& rLeftHandSideMatrix,
                                     VectorType& rRightHandSideVector,
-                                    ProcessInfo& rCurrentProcessInfo,
+                                    const ProcessInfo& rCurrentProcessInfo,
                                     bool CalculateStiffnessMatrixFlag,
                                     bool CalculateResidualVectorFlag )
 {
@@ -295,7 +295,7 @@ void MixedLagrangian::CalculateAll( MatrixType& rLeftHandSideMatrix,
 
 //************************************************************************************
 //************************************************************************************
-void MixedLagrangian::CalculateRightHandSide( VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo )
+void MixedLagrangian::CalculateRightHandSide( VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo )
 {
     //calculation flags
     bool CalculateStiffnessMatrixFlag = false;
@@ -307,7 +307,7 @@ void MixedLagrangian::CalculateRightHandSide( VectorType& rRightHandSideVector, 
 
 //************************************************************************************
 //************************************************************************************
-void MixedLagrangian::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo )
+void MixedLagrangian::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo )
 {
     //calculation flags
     bool CalculateStiffnessMatrixFlag = true;
@@ -335,7 +335,7 @@ double MixedLagrangian::CalculateIntegrationWeight( double GaussPointWeight, dou
 
 ////************************************************************************************
 ////************************************************************************************
-void MixedLagrangian::FinalizeSolutionStep( ProcessInfo& CurrentProcessInfo )
+void MixedLagrangian::FinalizeSolutionStep( const ProcessInfo& CurrentProcessInfo )
 {
 //         std::cout << "in TL: calling FinalizeSolutionStep" << std::endl;
     for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); i++ )
@@ -524,7 +524,7 @@ void MixedLagrangian::CalculateB(
 
 //************************************************************************************
 //************************************************************************************
-void MixedLagrangian::EquationIdVector( EquationIdVectorType& rResult, ProcessInfo& CurrentProcessInfo )
+void MixedLagrangian::EquationIdVector( EquationIdVectorType& rResult, const ProcessInfo& CurrentProcessInfo ) const
 {
     int number_of_nodes = GetGeometry().size();
     int dim = GetGeometry().WorkingSpaceDimension();
@@ -547,7 +547,7 @@ void MixedLagrangian::EquationIdVector( EquationIdVectorType& rResult, ProcessIn
 
 //************************************************************************************
 //************************************************************************************
-void MixedLagrangian::GetDofList( DofsVectorType& ElementalDofList, ProcessInfo& CurrentProcessInfo )
+void MixedLagrangian::GetDofList( DofsVectorType& ElementalDofList, const ProcessInfo& CurrentProcessInfo ) const
 {
     ElementalDofList.resize( 0 );
 
@@ -565,7 +565,7 @@ void MixedLagrangian::GetDofList( DofsVectorType& ElementalDofList, ProcessInfo&
 
 //************************************************************************************
 //************************************************************************************
-void MixedLagrangian::CalculateMassMatrix( MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo )
+void MixedLagrangian::CalculateMassMatrix( MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 
@@ -603,7 +603,7 @@ void MixedLagrangian::CalculateMassMatrix( MatrixType& rMassMatrix, ProcessInfo&
 
 //************************************************************************************
 //************************************************************************************
-void MixedLagrangian::CalculateDampingMatrix( MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo )
+void MixedLagrangian::CalculateDampingMatrix( MatrixType& rDampingMatrix, const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
     unsigned int number_of_nodes = GetGeometry().size();
@@ -627,50 +627,99 @@ MixedLagrangian::IntegrationMethod MixedLagrangian::GetIntegrationMethod() const
 
 //************************************************************************************
 //************************************************************************************
-void MixedLagrangian::CalculateOnIntegrationPoints( const Variable<double>& rVariable, std::vector<double>& Output, const ProcessInfo& rCurrentProcessInfo )
+void MixedLagrangian::SetValuesOnIntegrationPoints( const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo )
 {
-    if ( Output.size() != GetGeometry().IntegrationPoints( mThisIntegrationMethod ).size() )
-        Output.resize( GetGeometry().IntegrationPoints( mThisIntegrationMethod ).size() );
+    for ( unsigned int PointNumber = 0;
+            PointNumber < GetGeometry().IntegrationPoints( mThisIntegrationMethod ).size(); PointNumber++ )
+    {
+        mConstitutiveLawVector[PointNumber]->SetValue( rVariable ,
+                rValues[PointNumber], rCurrentProcessInfo );
+    }
 
-    for ( unsigned int ii = 0; ii < mConstitutiveLawVector.size(); ii++ )
-        Output[ii] = mConstitutiveLawVector[ii]->GetValue( rVariable, Output[ii] );
+}
+
+
+//************************************************************************************
+//************************************************************************************
+void MixedLagrangian::SetValuesOnIntegrationPoints( const Variable<Matrix>& rVariable, std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo )
+{
+    for ( unsigned int PointNumber = 0; PointNumber < GetGeometry().IntegrationPoints( mThisIntegrationMethod ).size(); PointNumber++ )
+    {
+        mConstitutiveLawVector[PointNumber]->SetValue( rVariable ,
+                rValues[PointNumber], rCurrentProcessInfo );
+    }
+
 }
 
 //************************************************************************************
 //************************************************************************************
-void MixedLagrangian::CalculateOnIntegrationPoints( const Variable<Vector>& rVariable, std::vector<Vector>& Output, const ProcessInfo& rCurrentProcessInfo )
+void MixedLagrangian::CalculateOnIntegrationPoints( const Variable<double>& rVariable,
+        std::vector<double>& rValues,
+        const ProcessInfo& rCurrentProcessInfo )
 {
-    unsigned int StrainSize;
+    if ( rValues.size() != GetGeometry().IntegrationPoints( mThisIntegrationMethod ).size() )
+        rValues.resize( GetGeometry().IntegrationPoints( mThisIntegrationMethod ).size(), false );
 
-    if ( GetGeometry().WorkingSpaceDimension() == 2 )
-        StrainSize = 3;
-    else
-        StrainSize = 6;
-    Vector StrainVector(StrainSize);
+    for ( unsigned int ii = 0; ii < mConstitutiveLawVector.size(); ii++ )
+        rValues[ii] = mConstitutiveLawVector[ii]->GetValue( rVariable, rValues[ii] );
+}
 
-    if ( Output.size() != GetGeometry().IntegrationPoints( mThisIntegrationMethod ).size() )
-        Output.resize( GetGeometry().IntegrationPoints( mThisIntegrationMethod ).size() );
 
+//************************************************************************************
+//************************************************************************************
+
+void MixedLagrangian::CalculateOnIntegrationPoints( const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo )
+{
     if ( rVariable == INSITU_STRESS )
     {
+        unsigned int StrainSize;
+
+        if ( GetGeometry().WorkingSpaceDimension() == 2 )
+            StrainSize = 3;
+        else
+            StrainSize = 6;
+
+        if ( rValues.size() != GetGeometry().IntegrationPoints( mThisIntegrationMethod ).size() )
+            rValues.resize( GetGeometry().IntegrationPoints( mThisIntegrationMethod ).size() );
+
         for ( unsigned int ii = 0; ii < mConstitutiveLawVector.size(); ii++ )
         {
-            if ( Output[ii].size() != StrainVector.size() )
-                Output[ii].resize( StrainVector.size(), false );
+            if ( rValues[ii].size() != StrainSize )
+                rValues[ii].resize( StrainSize, false );
 
-            Output[ii] = mConstitutiveLawVector[ii]->GetValue( INSITU_STRESS, Output[ii] );
+            rValues[ii] = mConstitutiveLawVector[ii]->GetValue( INSITU_STRESS, rValues[ii] );
+        }
+    }
+    else if ( rVariable == MATERIAL_PARAMETERS )
+    {
+        for ( unsigned int PointNumber = 0;
+                PointNumber < GetGeometry().IntegrationPoints( mThisIntegrationMethod ).size(); PointNumber++ )
+        {
+            rValues[PointNumber] =
+                mConstitutiveLawVector[PointNumber]->GetValue( MATERIAL_PARAMETERS, rValues[PointNumber] );
+        }
+    }
+    else if ( rVariable == INTERNAL_VARIABLES )
+    {
+        for ( unsigned int PointNumber = 0;
+                PointNumber < GetGeometry().IntegrationPoints( mThisIntegrationMethod ).size();
+                PointNumber++ )
+        {
+            rValues[PointNumber] =
+                mConstitutiveLawVector[PointNumber]->GetValue( INTERNAL_VARIABLES, rValues[PointNumber] );
         }
     }
     else
     {
         for ( unsigned int ii = 0; ii < mConstitutiveLawVector.size(); ii++ )
-            Output[ii] = mConstitutiveLawVector[ii]->GetValue( rVariable, Output[ii] );
+            rValues[ii] = mConstitutiveLawVector[ii]->GetValue( rVariable, rValues[ii] );
     }
 }
 
 //************************************************************************************
 //************************************************************************************
-void MixedLagrangian::CalculateOnIntegrationPoints( const Variable<Matrix >& rVariable, std::vector< Matrix >& Output, const ProcessInfo& rCurrentProcessInfo )
+void MixedLagrangian::CalculateOnIntegrationPoints( const Variable<Matrix>& rVariable,
+        std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 
@@ -704,8 +753,8 @@ void MixedLagrangian::CalculateOnIntegrationPoints( const Variable<Matrix >& rVa
 
     J = GetGeometry().Jacobian( J );
 
-    if ( Output.size() != integration_points.size() )
-        Output.resize( integration_points.size() );
+    if ( rValues.size() != integration_points.size() )
+        rValues.resize( integration_points.size() );
 
     for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
     {
@@ -720,16 +769,16 @@ void MixedLagrangian::CalculateOnIntegrationPoints( const Variable<Matrix >& rVa
 
         if ( rVariable == GREEN_LAGRANGE_STRAIN_TENSOR )
         {
-            if ( Output[PointNumber].size2() != StrainVector.size() )
-                Output[PointNumber].resize( 1, StrainVector.size(), false );
+            if ( rValues[PointNumber].size2() != StrainVector.size() )
+                rValues[PointNumber].resize( 1, StrainVector.size(), false );
 
             for ( unsigned int ii = 0; ii < StrainVector.size(); ii++ )
-                Output[PointNumber]( 0, ii ) = StrainVector[ii];
+                rValues[PointNumber]( 0, ii ) = StrainVector[ii];
         }
         else if ( rVariable == PK2_STRESS_TENSOR )
         {
-            if ( Output[PointNumber].size2() != StrainVector.size() )
-                Output[PointNumber].resize( 1, StrainVector.size(), false );
+            if ( rValues[PointNumber].size2() != StrainVector.size() )
+                rValues[PointNumber].resize( 1, StrainVector.size(), false );
 
 //     mConstitutiveLawVector[PointNumber]->UpdateMaterial( StrainVector,
 //       GetProperties(),
@@ -751,111 +800,16 @@ void MixedLagrangian::CalculateOnIntegrationPoints( const Variable<Matrix >& rVa
                 true );
 
             for ( unsigned int ii = 0; ii < StrainVector.size(); ii++ )
-                Output[PointNumber]( 0, ii ) = StressVector[ii];
+                rValues[PointNumber]( 0, ii ) = StressVector[ii];
         }
     }
 
     KRATOS_CATCH( "" )
-
 }
 
 //************************************************************************************
 //************************************************************************************
-void MixedLagrangian::SetValueOnIntegrationPoints( const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo )
-{
-    for ( unsigned int PointNumber = 0;
-            PointNumber < GetGeometry().IntegrationPoints( mThisIntegrationMethod ).size(); PointNumber++ )
-    {
-        mConstitutiveLawVector[PointNumber]->SetValue( rVariable ,
-                rValues[PointNumber], rCurrentProcessInfo );
-    }
-
-}
-
-
-//************************************************************************************
-//************************************************************************************
-void MixedLagrangian::SetValueOnIntegrationPoints( const Variable<Matrix>& rVariable, std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo )
-{
-    for ( unsigned int PointNumber = 0; PointNumber < GetGeometry().IntegrationPoints( mThisIntegrationMethod ).size(); PointNumber++ )
-    {
-        mConstitutiveLawVector[PointNumber]->SetValue( rVariable ,
-                rValues[PointNumber], rCurrentProcessInfo );
-    }
-
-}
-
-//************************************************************************************
-//************************************************************************************
-void MixedLagrangian::GetValueOnIntegrationPoints( const Variable<double>& rVariable,
-        std::vector<double>& rValues,
-        const ProcessInfo& rCurrentProcessInfo )
-{
-    if ( rValues.size() != GetGeometry().IntegrationPoints( mThisIntegrationMethod ).size() )
-        rValues.resize( GetGeometry().IntegrationPoints( mThisIntegrationMethod ).size(), false );
-
-    for ( unsigned int ii = 0; ii < mConstitutiveLawVector.size(); ii++ )
-        rValues[ii] = mConstitutiveLawVector[ii]->GetValue( rVariable, rValues[ii] );
-}
-
-
-//************************************************************************************
-//************************************************************************************
-
-void MixedLagrangian::GetValueOnIntegrationPoints( const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo )
-{
-    if ( rVariable == INSITU_STRESS )
-    {
-        for ( unsigned int PointNumber = 0;
-                PointNumber < GetGeometry().IntegrationPoints( mThisIntegrationMethod ).size();
-                PointNumber++ )
-        {
-            rValues[PointNumber] =
-                mConstitutiveLawVector[PointNumber]->GetValue( INSITU_STRESS, rValues[PointNumber] );
-        }
-    }
-
-    if ( rVariable == MATERIAL_PARAMETERS )
-    {
-        for ( unsigned int PointNumber = 0;
-                PointNumber < GetGeometry().IntegrationPoints( mThisIntegrationMethod ).size(); PointNumber++ )
-        {
-            rValues[PointNumber] =
-                mConstitutiveLawVector[PointNumber]->GetValue( MATERIAL_PARAMETERS, rValues[PointNumber] );
-        }
-    }
-
-    if ( rVariable == INTERNAL_VARIABLES )
-    {
-        for ( unsigned int PointNumber = 0;
-                PointNumber < GetGeometry().IntegrationPoints( mThisIntegrationMethod ).size();
-                PointNumber++ )
-        {
-            rValues[PointNumber] =
-                mConstitutiveLawVector[PointNumber]->GetValue( INTERNAL_VARIABLES, rValues[PointNumber] );
-        }
-    }
-}
-
-//************************************************************************************
-//************************************************************************************
-void MixedLagrangian::GetValueOnIntegrationPoints( const Variable<Matrix>& rVariable,
-        std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo )
-{
-    if ( rVariable == GREEN_LAGRANGE_STRAIN_TENSOR )
-    {
-        CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
-    }
-
-    if ( rVariable == PK2_STRESS_TENSOR )
-    {
-        CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
-    }
-}
-
-//************************************************************************************
-//************************************************************************************
-void MixedLagrangian::GetValuesVector( Vector& values, int Step )
+void MixedLagrangian::GetValuesVector( Vector& values, int Step ) const
 {
     const unsigned int number_of_nodes = GetGeometry().size();
     const unsigned int dim = GetGeometry().WorkingSpaceDimension();
@@ -877,7 +831,7 @@ void MixedLagrangian::GetValuesVector( Vector& values, int Step )
 
 //************************************************************************************
 //************************************************************************************
-void MixedLagrangian::GetFirstDerivativesVector( Vector& values, int Step )
+void MixedLagrangian::GetFirstDerivativesVector( Vector& values, int Step ) const
 {
     const unsigned int number_of_nodes = GetGeometry().size();
     const unsigned int dim = GetGeometry().WorkingSpaceDimension();
@@ -898,7 +852,7 @@ void MixedLagrangian::GetFirstDerivativesVector( Vector& values, int Step )
 
 //************************************************************************************
 //************************************************************************************
-void MixedLagrangian::GetSecondDerivativesVector( Vector& values, int Step )
+void MixedLagrangian::GetSecondDerivativesVector( Vector& values, int Step ) const
 {
     const unsigned int number_of_nodes = GetGeometry().size();
     const unsigned int dim = GetGeometry().WorkingSpaceDimension();

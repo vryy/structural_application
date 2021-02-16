@@ -63,7 +63,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/define.h"
 #include "includes/serializer.h"
 
-#include "structural_application.h"
 #include "includes/variables.h"
 #include "includes/constitutive_law.h"
 #include "fluency_criteria/fluency_criteria.h"

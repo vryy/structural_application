@@ -77,7 +77,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "containers/array_1d.h"
 #include "processes/find_nodal_neighbours_process.h"
 #include "processes/find_elements_neighbours_process.h"
-#include "structural_application.h"
+#include "structural_application_variables.h"
 #include "utilities/math_utils.h"
 #include "custom_utilities/sd_math_utils.h"
 #include <cmath>
@@ -261,7 +261,7 @@ public:
             for ( ElementsArrayType::iterator it = it_begin; it != it_end; ++it )
             {
                 Element::GeometryType& geom     = it->GetGeometry();
-                it->GetValueOnIntegrationPoints(rVariable, Variable_Value, CurrentProcessInfo );
+                it->CalculateOnIntegrationPoints(rVariable, Variable_Value, CurrentProcessInfo );
 
                 for ( unsigned int i = 0; i < geom.size(); i++ )
                 {
@@ -340,7 +340,7 @@ public:
             for ( ElementsArrayType::iterator it = it_begin; it != it_end; ++it )
             {
                 Element::GeometryType& geom     = it->GetGeometry();
-                it->GetValueOnIntegrationPoints(rVariable, Variable_Value, CurrentProcessInfo );
+                it->CalculateOnIntegrationPoints(rVariable, Variable_Value, CurrentProcessInfo );
                 for ( unsigned int i = 0; i < geom.size(); i++ )
                 {
                     geom[i].SetLock();
@@ -447,7 +447,7 @@ public:
                         }
                     }
 
-                    (this_model_part.Elements()[elem]).GetValueOnIntegrationPoints(rVariable, Output_Values, CurrentProcessInfo );
+                    (this_model_part.Elements()[elem]).CalculateOnIntegrationPoints(rVariable, Output_Values, CurrentProcessInfo );
                     noalias( Aux_b[i_elem] )    = Output_Values[0];
                     noalias( Aux_Poly[i_elem] ) = Polynomial;
                     init = true;
@@ -480,7 +480,7 @@ public:
                         }
                     }
 
-                    it->GetValueOnIntegrationPoints(rVariable, Output_Values, CurrentProcessInfo );
+                    it->CalculateOnIntegrationPoints(rVariable, Output_Values, CurrentProcessInfo );
                     noalias( Aux_b[counter] )    = Output_Values[0];
                     noalias( Aux_Poly[counter] ) = Polynomial;
                     init = true;

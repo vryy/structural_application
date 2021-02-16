@@ -58,7 +58,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // Project includes
 #include "includes/define.h"
 #include "custom_conditions/point_point_contact_link.h"
-#include "structural_application.h"
+#include "structural_application_variables.h"
 #include "utilities/math_utils.h"
 #include "custom_utilities/sd_math_utils.h"
 
@@ -113,8 +113,8 @@ PointPointContactLink::PointPointContactLink(
     PropertiesType::Pointer pProperties,
     Condition::Pointer Slave,
     Condition::Pointer Master
-    //Point<3>& MasterContactLocalPoint,
-    //Point<3>& SlaveContactLocalPoint,
+    //PointType& MasterContactLocalPoint,
+    //PointType& SlaveContactLocalPoint,
     //int SlaveIntegrationPointIndex
 )  : Condition( NewId, pGeometry, pProperties )
 {
@@ -241,7 +241,7 @@ Vector PointPointContactLink::TangentialVector()
  * calculates only the RHS vector (certainly to be removed due to contact algorithm)
  */
 void PointPointContactLink::CalculateRightHandSide( VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo)
+        const ProcessInfo& rCurrentProcessInfo)
 {
 
     //calculation flags
@@ -263,7 +263,7 @@ void PointPointContactLink::CalculateRightHandSide( VectorType& rRightHandSideVe
  */
 void PointPointContactLink::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo)
+        const ProcessInfo& rCurrentProcessInfo)
 {
 }
 
@@ -275,7 +275,7 @@ void PointPointContactLink::CalculateLocalSystem( MatrixType& rLeftHandSideMatri
  */
 void PointPointContactLink::CalculateAll( MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo,
+        const ProcessInfo& rCurrentProcessInfo,
         bool CalculateStiffnessMatrixFlag,
         bool CalculateResidualVectorFlag)
 {
@@ -320,8 +320,7 @@ void PointPointContactLink::CalculateTangentialContactForce(Vector& rTangentialF
 //************************************************************************************
 
 void PointPointContactLink::EquationIdVector( EquationIdVectorType& rResult,
-        ProcessInfo& CurrentProcessInfo
-                                            )
+        const ProcessInfo& CurrentProcessInfo ) const
 {
 
     //determining size of DOF list
@@ -350,7 +349,7 @@ void PointPointContactLink::EquationIdVector( EquationIdVectorType& rResult,
 //************************************************************************************
 //************************************************************************************
 void PointPointContactLink::GetDofList( DofsVectorType& ConditionalDofList,
-                                        ProcessInfo& CurrentProcessInfo)
+                                        const ProcessInfo& CurrentProcessInfo) const
 {
 
     //determining size of DOF list
@@ -378,7 +377,7 @@ void PointPointContactLink::GetDofList( DofsVectorType& ConditionalDofList,
 
 }
 
-void PointPointContactLink::GetValueOnIntegrationPoints(const Variable<array_1d<double,3> >& rVariable, std::vector<array_1d<double,3> >& rValues, const ProcessInfo& rCurrentProcessInfo)
+void PointPointContactLink::CalculateOnIntegrationPoints(const Variable<array_1d<double,3> >& rVariable, std::vector<array_1d<double,3> >& rValues, const ProcessInfo& rCurrentProcessInfo)
 {
 }
 
@@ -387,7 +386,7 @@ double PointPointContactLink::CalculateGap()
     return 0.00;
 }
 
-void PointPointContactLink::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
+void PointPointContactLink::CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo)
 {
     Condition::GeometryType& geom = this->GetGeometry();
     const unsigned int dimension  = geom.WorkingSpaceDimension();
@@ -422,9 +421,8 @@ void PointPointContactLink::Calculate( const Variable<Vector>& rVariable, Vector
 }
 
 
-void PointPointContactLink::GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo)
+void PointPointContactLink::CalculateOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo)
 {
-
     const int& size =  GetGeometry().IntegrationPoints().size();
     rValues.resize(size);
     if(rVariable==NORMAL_CONTACT_STRESS )

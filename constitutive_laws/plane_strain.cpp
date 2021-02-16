@@ -63,8 +63,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "utilities/math_utils.h"
 #include "includes/variables.h"
 #include "includes/process_info.h"
-#include "structural_application.h"
 #include "includes/properties.h"
+#include "structural_application_variables.h"
 
 namespace Kratos
 {
@@ -272,7 +272,22 @@ void PlaneStrain::Calculate( const Variable<Matrix>& rVariable, Matrix& rResult,
 {
 }
 
-void  PlaneStrain::CalculateMaterialResponse( const Vector& StrainVector,
+void PlaneStrain::CalculateMaterialResponseCauchy (Parameters& rValues)
+{
+    const Vector& StrainVector = rValues.GetStrainVector();
+    Vector& StressVector = rValues.GetStressVector();
+    Matrix& AlgorithmicTangent = rValues.GetConstitutiveMatrix();
+
+    if(StressVector.size() != 3)
+        StressVector.resize(3, false);
+    CalculateStress( StrainVector, StressVector );
+
+    if(AlgorithmicTangent.size1() != 3 || AlgorithmicTangent.size2() != 3)
+        AlgorithmicTangent.resize(3, 3, false);
+    CalculateConstitutiveMatrix( StrainVector, AlgorithmicTangent );
+}
+
+void PlaneStrain::CalculateMaterialResponse( const Vector& StrainVector,
         const Matrix& DeformationGradient,
         Vector& StressVector,
         Matrix& AlgorithmicTangent,
@@ -284,8 +299,13 @@ void  PlaneStrain::CalculateMaterialResponse( const Vector& StrainVector,
         int CalculateTangent,
         bool SaveInternalVariables )
 {
-    CalculateStress( StrainVector, StressVector );
-    CalculateConstitutiveMatrix( StrainVector, AlgorithmicTangent );
+    ConstitutiveLaw::Parameters const_params;
+    Vector ThisStrainVector = StrainVector;
+    const_params.SetStrainVector(ThisStrainVector);
+    const_params.SetStressVector(StressVector);
+    const_params.SetConstitutiveMatrix(AlgorithmicTangent);
+
+    this->CalculateMaterialResponseCauchy(const_params);
 }
 
 /**

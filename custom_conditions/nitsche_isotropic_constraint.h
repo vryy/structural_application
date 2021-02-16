@@ -116,16 +116,16 @@ public:
 
     virtual void CalculateLocalSystem( MatrixType& rLeftHandSideMatrix,
                                VectorType& rRightHandSideVector,
-                               ProcessInfo& rCurrentProcessInfo);
+                               const ProcessInfo& rCurrentProcessInfo);
 
     virtual void CalculateRightHandSide( VectorType& rRightHandSideVector,
-                                 ProcessInfo& rCurrentProcessInfo);
+                                 const ProcessInfo& rCurrentProcessInfo);
 
     virtual void EquationIdVector( EquationIdVectorType& rResult,
-                           ProcessInfo& rCurrentProcessInfo);
+                           const ProcessInfo& rCurrentProcessInfo) const;
 
     virtual void GetDofList( DofsVectorType& ConditionalDofList,
-                     ProcessInfo& CurrentProcessInfo);
+                     const ProcessInfo& CurrentProcessInfo) const;
 
     virtual int Check( const ProcessInfo& rCurrentProcessInfo );
 
@@ -135,7 +135,7 @@ private:
 
     void CalculateAll( MatrixType& rLeftHandSideMatrix,
                        VectorType& rRightHandSideVector,
-                       ProcessInfo& rCurrentProcessInfo,
+                       const ProcessInfo& rCurrentProcessInfo,
                        bool CalculateStiffnessMatrixFlag,
                        bool CalculateResidualVectorFlag);
 

@@ -59,7 +59,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // Project includes
 #include "includes/define.h"
 #include "custom_conditions/node_tying_lagrange.h"
-#include "structural_application.h"
+#include "structural_application_variables.h"
 #include "utilities/math_utils.h"
 
 namespace Kratos
@@ -100,7 +100,7 @@ NodeTyingLagrange::~NodeTyingLagrange()
 
 //************************************************************************************
 //************************************************************************************
-void NodeTyingLagrange::CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+void NodeTyingLagrange::CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
     if(rRightHandSideVector.size() != 9)
@@ -112,7 +112,7 @@ void NodeTyingLagrange::CalculateRightHandSide(VectorType& rRightHandSideVector,
 
 //************************************************************************************
 //************************************************************************************
-void NodeTyingLagrange::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+void NodeTyingLagrange::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -139,7 +139,7 @@ void NodeTyingLagrange::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, Ve
 
 //************************************************************************************
 //************************************************************************************
-void NodeTyingLagrange::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& CurrentProcessInfo)
+void NodeTyingLagrange::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& CurrentProcessInfo) const
 {
     if(rResult.size() != 9)
         rResult.resize(9,false);
@@ -156,7 +156,7 @@ void NodeTyingLagrange::EquationIdVector(EquationIdVectorType& rResult, ProcessI
 
 //************************************************************************************
 //************************************************************************************
-void NodeTyingLagrange::GetDofList(DofsVectorType& ConditionalDofList,ProcessInfo& CurrentProcessInfo)
+void NodeTyingLagrange::GetDofList(DofsVectorType& ConditionalDofList, const ProcessInfo& CurrentProcessInfo) const
 {
     std::cout << "Initializing Lagrangian Node Tying Condition" << std::endl;
     ConditionalDofList.resize(9);

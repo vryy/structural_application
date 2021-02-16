@@ -67,7 +67,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/model_part.h"
 //#include "spatial_containers/bins_static.h"
 #include "spatial_containers/bins_dynamic.h"
-#include "structural_application.h"
+#include "structural_application_variables.h"
 
 namespace Kratos
 {
@@ -171,7 +171,7 @@ public:
                         i_dof != ElementalDofList.end(); ++i_dof, ++i)
                 {
                     (*i_dof)->GetSolutionStepReactionValue() -= RHS_Contribution[i];
-                    // std::cout << "dof " << (*i_dof)->GetVariable().Name() << " of node " << (*i_dof)->Id() << " is added with " << RHS_Contribution[i] << std::endl;
+                    // std::cout << "reaction dof " << (*i_dof)->GetReaction().Name() << " of node " << (*i_dof)->Id() << " is added with " << RHS_Contribution[i] << std::endl;
                 }
 
                 // std::cout << "element " << (*i_element)->Id() << " reaction is computed, RHS_Contribution = " << RHS_Contribution << std::endl;

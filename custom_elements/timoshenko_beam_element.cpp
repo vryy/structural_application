@@ -56,7 +56,7 @@
 
 // Project includes
 #include "timoshenko_beam_element.h"
-#include "structural_application.h"
+#include "structural_application_variables.h"
 
 #define PI boost::math::constants::pi<double>()
 
@@ -129,7 +129,7 @@ namespace Kratos
     //************************************************************************************
     //************************************************************************************
 
-    void TimoshenkoBeamElement::InitializeSolutionStep(ProcessInfo& CurrentProcessInfo)
+    void TimoshenkoBeamElement::InitializeSolutionStep(const ProcessInfo& CurrentProcessInfo)
     {
 
     }
@@ -137,7 +137,7 @@ namespace Kratos
     //************************************************************************************
     //************************************************************************************
 
-    void TimoshenkoBeamElement::FinalizeSolutionStep(ProcessInfo& CurrentProcessInfo)
+    void TimoshenkoBeamElement::FinalizeSolutionStep(const ProcessInfo& CurrentProcessInfo)
     {
 
     }
@@ -214,8 +214,8 @@ namespace Kratos
     //*************************************************************************************
     //*************************************************************************************
 
-    void TimoshenkoBeamElement::GetDofList(DofsVectorType& ElementalDofList,ProcessInfo&
-            CurrentProcessInfo)
+    void TimoshenkoBeamElement::GetDofList(DofsVectorType& ElementalDofList, const ProcessInfo&
+            CurrentProcessInfo) const
     {
         unsigned int number_of_nodes = GetGeometry().size();
         ElementalDofList.resize(0);
@@ -261,7 +261,7 @@ namespace Kratos
     //************************************************************************************
 
     void TimoshenkoBeamElement::EquationIdVector(EquationIdVectorType& rResult,
-            ProcessInfo& CurrentProcessInfo)
+            const ProcessInfo& CurrentProcessInfo) const
     {
         unsigned int number_of_nodes = GetGeometry().size();
         if (number_of_nodes == 2)
@@ -317,7 +317,7 @@ namespace Kratos
      * or that no common error is found.
      * @param rCurrentProcessInfo
      */
-    int  TimoshenkoBeamElement::Check(const ProcessInfo& rCurrentProcessInfo)
+    int  TimoshenkoBeamElement::Check(const ProcessInfo& rCurrentProcessInfo) const
     {
         KRATOS_TRY
 
@@ -755,7 +755,7 @@ namespace Kratos
 
 
         void TimoshenkoBeamElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
-                VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+                VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
         {
             KRATOS_TRY
 

@@ -87,6 +87,12 @@ public:
     typedef BaseType::MatrixType LHS_ContributionType;
     typedef MasterContactFace2D MasterContactType;
 
+    #ifdef SD_APP_FORWARD_COMPATIBILITY
+    typedef Point PointType;
+    #else
+    typedef Point<3> PointType;
+    #endif
+
     /**
     * REMOVED
     */
@@ -123,8 +129,8 @@ public:
         PropertiesType::Pointer pProperties,
         Condition::Pointer Master,
         Condition::Pointer Slave
-        //Point<3>& MasterContactLocalPoint,
-        //Point<3>& SlaveContactLocalPoint,
+        //PointType& MasterContactLocalPoint,
+        //PointType& SlaveContactLocalPoint,
         //int SlaveIntegrationPointIndex
     );
 
@@ -149,22 +155,22 @@ public:
      */
     void CalculateLocalSystem( MatrixType& rLeftHandSideMatrix,
                                VectorType& rRightHandSideVector,
-                               ProcessInfo& rCurrentProcessInfo);
+                               const ProcessInfo& rCurrentProcessInfo);
 
     void CalculateRightHandSide( VectorType& rRightHandSideVector,
-                                 ProcessInfo& rCurrentProcessInfo);
+                                 const ProcessInfo& rCurrentProcessInfo);
 
     void EquationIdVector( EquationIdVectorType& rResult,
-                           ProcessInfo& rCurrentProcessInfo);
+                           const ProcessInfo& rCurrentProcessInfo) const;
 
     void GetDofList( DofsVectorType& ConditionalDofList,
-                     ProcessInfo& CurrentProcessInfo);
+                     const ProcessInfo& CurrentProcessInfo) const;
 
-    void GetValueOnIntegrationPoints(const Variable<array_1d<double,3> >& rVariable, std::vector<array_1d<double,3> >& rValues, const ProcessInfo& rCurrentProcessInfo);
+    void CalculateOnIntegrationPoints(const Variable<array_1d<double,3> >& rVariable, std::vector<array_1d<double,3> >& rValues, const ProcessInfo& rCurrentProcessInfo);
 
-    void GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo);
+    void CalculateOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo);
 
-    void  CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo);
+    void  CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo);
 
     void Calculate( const Variable<Vector >& rVariable, Vector& Output, const ProcessInfo& rCurrentProcessInfo);
 
@@ -176,7 +182,7 @@ protected:
 private:
     void CalculateAll( MatrixType& rLeftHandSideMatrix,
                        VectorType& rRightHandSideVector,
-                       ProcessInfo& rCurrentProcessInfo,
+                       const ProcessInfo& rCurrentProcessInfo,
                        bool CalculateStiffnessMatrixFlag,
                        bool CalculateResidualVectorFlag);
 

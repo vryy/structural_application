@@ -16,11 +16,10 @@
 
 #include "includes/define.h"
 #include "geometries/line_3d_2.h"
-#include "custom_elements/beam_element.h"
 #include "utilities/math_utils.h"
 #include "custom_utilities/sd_math_utils.h"
-#include "custom_utilities/sd_math_utils.h"
-#include "structural_application.h"
+#include "custom_elements/beam_element.h"
+#include "structural_application_variables.h"
 
 
 
@@ -105,14 +104,14 @@ void BeamElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
 //************************************************************************************
 //************************************************************************************
 
-void BeamElement::InitializeSolutionStep(ProcessInfo& CurrentProcessInfo)
+void BeamElement::InitializeSolutionStep(const ProcessInfo& CurrentProcessInfo)
 {
 
 }
 //************************************************************************************
 //************************************************************************************
 
-void BeamElement::FinalizeSolutionStep(ProcessInfo& CurrentProcessInfo)
+void BeamElement::FinalizeSolutionStep(const ProcessInfo& CurrentProcessInfo)
 {
 }
 
@@ -122,7 +121,7 @@ void BeamElement::FinalizeSolutionStep(ProcessInfo& CurrentProcessInfo)
 
 
 void BeamElement::CalculateAll(MatrixType& rLeftHandSideMatrix,
-                               VectorType& rRightHandSideVector,ProcessInfo& rCurrentProcessInfo,
+                               VectorType& rRightHandSideVector,const ProcessInfo& rCurrentProcessInfo,
                                bool CalculateStiffnessMatrixFlag,bool CalculateResidualVectorFlag)
 {
     KRATOS_TRY
@@ -155,7 +154,7 @@ void BeamElement::CalculateAll(MatrixType& rLeftHandSideMatrix,
 //************************************************************************************
 
 void  BeamElement::CalculateRightHandSide(VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo)
+        const ProcessInfo& rCurrentProcessInfo)
 {
     //calculation flags
     bool CalculateStiffnessMatrixFlag = false;
@@ -170,7 +169,7 @@ void  BeamElement::CalculateRightHandSide(VectorType& rRightHandSideVector,
 
 
 void BeamElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
-                                       VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+                                       VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
 {
     //calculation flags
     bool CalculateStiffnessMatrixFlag = true;
@@ -186,7 +185,7 @@ void BeamElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
 //************************************************************************************
 
 void BeamElement::EquationIdVector(EquationIdVectorType& rResult,
-                                   ProcessInfo& CurrentProcessInfo)
+                                   const ProcessInfo& CurrentProcessInfo) const
 {
     if(rResult.size() != 12)
         rResult.resize(12,false);
@@ -212,8 +211,8 @@ void BeamElement::EquationIdVector(EquationIdVectorType& rResult,
 //************************************************************************************
 //************************************************************************************
 
-void BeamElement::GetDofList(DofsVectorType& ElementalDofList,ProcessInfo&
-                             CurrentProcessInfo)
+void BeamElement::GetDofList(DofsVectorType& ElementalDofList,const ProcessInfo&
+                             CurrentProcessInfo) const
 {
     ElementalDofList.resize(0);
 
@@ -324,7 +323,7 @@ void BeamElement::CalculateRHS(Vector& rRightHandSideVector)
 //************************************************************************************
 //************************************************************************************
 
-void BeamElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo)
+void BeamElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo)
 {
 
     bool CalculateStiffnessMatrixFlag = true;
@@ -770,7 +769,7 @@ void BeamElement::CalculateBodyForce(Matrix& Rotation, Vector& LocalBody, Vector
 //************************************************************************************
 //************************************************************************************
 
-void BeamElement::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
+void BeamElement::CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -861,81 +860,111 @@ void BeamElement::CalculateOnIntegrationPoints( const Variable<array_1d<double,3
         std::vector< array_1d<double,3> >& Output,
         const ProcessInfo& rCurrentProcessInfo)
 {
-    const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints(GeometryData::GI_GAUSS_3);
-    //const Matrix& Ncontainer = GetGeometry().ShapeFunctionsValues(GeometryData::GI_GAUSS_3);
-
-    if(Output.size() != integration_points.size())
-        Output.resize(integration_points.size());
+    if(Output.size() != 3)
+        Output.resize(3);
 
     Vector Stress;
     Vector Load1;
     Vector Load2;
     Vector Load3;
     CalculateLocalNodalStress(Stress);
+
     for(unsigned int i = 0; i<Stress.size(); i++)
     {
         if( std::fabs(Stress[i])< 1E-6) Stress[i] = 0.00;
     }
 
-    int factor = 1;
-    double x_toler     = GetGeometry()[1].X0() - GetGeometry()[0].X0();
-    double y_toler     = GetGeometry()[1].Y0() - GetGeometry()[0].Y0();
-    const double toler = 1E-6;
+    double factor = 1.0;
 
-    if(fabs(x_toler)>toler)
-    {
-        if(GetGeometry()[1].X0() > GetGeometry()[0].X0())
-            factor = 1;
-    }
+    // int factor = 1;
+    // double x_toler     = GetGeometry()[1].X0() - GetGeometry()[0].X0();
+    // double y_toler     = GetGeometry()[1].Y0() - GetGeometry()[0].Y0();
+    // const double toler = 1E-6;
 
-    else if(fabs(y_toler)>toler)
-    {
-        if(GetGeometry()[1].Y0() > GetGeometry()[0].Y0())
-            factor = 1;
-    }
-    else
-        factor = 1; //-1;
+    // if(fabs(x_toler)>toler)
+    // {
+    //     if(GetGeometry()[1].X0() > GetGeometry()[0].X0())
+    //         factor = 1;
+    // }
+
+    // else if(fabs(y_toler)>toler)
+    // {
+    //     if(GetGeometry()[1].Y0() > GetGeometry()[0].Y0())
+    //         factor = 1;
+    // }
+    // else
+    //     factor = 1; //-1;
 
     CalculateDistributedBodyForce(1, Load1);
     CalculateDistributedBodyForce(2, Load2);
     CalculateDistributedBodyForce(3, Load3);
 
+    const GeometryType::IntegrationPointsArrayType& integration_points =
+                    GetGeometry().IntegrationPoints( GetIntegrationMethod() );
+
+    if(Output.size() != integration_points.size())
+        Output.resize(integration_points.size());
 
     if(rVariable==MOMENT)
     {
-        /// Punto Inical
-        Output[0][0] = 0.00;  //Stress[3];
-        Output[0][1] = 0.00;  //Stress[4];
-        Output[0][2] = factor * CalculateInternalMoment(Stress[5], Stress[11], Load2[1], 1.00/4.00); //Stress[5];
-//			Output[0][2] = factor * CalculateInternalMoment(Stress[5], Stress[1], Load2[1], mlength/4.00); //Stress[5];
+        /***** old *********/
+//         /// Punto Inical
+//         Output[0][0] = 0.00;  //Stress[3];
+//         Output[0][1] = 0.00;  //Stress[4];
+//         Output[0][2] = factor * CalculateInternalMoment(Stress[5], Stress[11], Load2[1], 1.00/4.00); //Stress[5];
+// //			Output[0][2] = factor * CalculateInternalMoment(Stress[5], Stress[1], Load2[1], mlength/4.00); //Stress[5];
+//         // hbui: It is noted that, the location of the integration point is not the one from Gauss quadrature
+
+//         Output[1][0] = 0.00;
+//         Output[1][1] = 0.00;
+//         Output[1][2] = factor * CalculateInternalMoment(Stress[5], Stress[11], Load2[1], 1./2);
+// //			Output[1][2] = factor * CalculateInternalMoment(Stress[5], Stress[1], Load2[1], mlength/2);
 
 
-        Output[1][0] = 0.00;
-        Output[1][1] = 0.00;
-        Output[1][2] = factor * CalculateInternalMoment(Stress[5], Stress[11], Load2[1], 1./2);
-//			Output[1][2] = factor * CalculateInternalMoment(Stress[5], Stress[1], Load2[1], mlength/2);
+//         Output[2][0] = 0.00;
+//         Output[2][1] = 0.00;
+//         Output[2][2] = factor * CalculateInternalMoment(Stress[5], Stress[11], Load2[1], 3.00/4.00);
+// //			Output[2][2] = factor * CalculateInternalMoment(Stress[5], Stress[1], Load2[1], 3.00*mlength/4.00);
+        /*******end of old *********/
 
+        /***** new *********/
+        for(std::size_t point = 0; point < integration_points.size(); ++point)
+        {
+            double xi = (integration_points[point].X()+1.0) / 2;
 
-        Output[2][0] = 0.00;
-        Output[2][1] = 0.00;
-        Output[2][2] = factor * CalculateInternalMoment(Stress[5], Stress[11], Load2[1], 3.00/4.00);
-//			Output[2][2] = factor * CalculateInternalMoment(Stress[5], Stress[1], Load2[1], 3.00*mlength/4.00);
-
+            Output[point][0] = 0.00;  //Stress[3];
+            Output[point][1] = 0.00;  //Stress[4];
+            Output[point][2] = factor * CalculateInternalMoment(Stress[5], Stress[11], Load2[1], xi); //Stress[5];
+        }
+        /*******end of new *********/
     }
 
     if(rVariable==FORCE)
     {
-        Output[0][0] = factor * CalculateInternalAxil(Stress[0], Load2[0], mlength/4.00);
-        Output[0][1] = factor * CalculateInternalShear(Stress[1], Load2[1], mlength/4.00);
-        Output[0][2] = 0.00;
+        /***** old *********/
+        // Output[0][0] = factor * CalculateInternalAxil(Stress[0], Load2[0], mlength/4.00);
+        // Output[0][1] = factor * CalculateInternalShear(Stress[1], Load2[1], mlength/4.00);
+        // Output[0][2] = 0.00;
 
-        Output[1][0] = factor * CalculateInternalAxil(Stress[0], Load2[0], mlength/2.00);
-        Output[1][1] = factor * CalculateInternalShear(Stress[1], Load2[1], mlength/2.00);
-        Output[1][2] = 0.00;
+        // Output[1][0] = factor * CalculateInternalAxil(Stress[0], Load2[0], mlength/2.00);
+        // Output[1][1] = factor * CalculateInternalShear(Stress[1], Load2[1], mlength/2.00);
+        // Output[1][2] = 0.00;
 
-        Output[2][0] = factor * CalculateInternalAxil(Stress[0], Load2[0],  3.00 * mlength/4.00);
-        Output[2][1] = factor * CalculateInternalShear(Stress[1], Load2[1], 3.00 * mlength/4.00);
-        Output[2][2] = 0.00;
+        // Output[2][0] = factor * CalculateInternalAxil(Stress[0], Load2[0],  3.00 * mlength/4.00);
+        // Output[2][1] = factor * CalculateInternalShear(Stress[1], Load2[1], 3.00 * mlength/4.00);
+        // Output[2][2] = 0.00;
+        /*******end of old *********/
+
+        /***** new *********/
+        for(std::size_t point = 0; point < integration_points.size(); ++point)
+        {
+            double xi = (integration_points[point].X()+1.0) / 2;
+
+            Output[point][0] = factor * CalculateInternalAxil(Stress[0], Load2[0], mlength*xi);
+            Output[point][1] = factor * CalculateInternalShear(Stress[1], Load2[1], mlength*xi);
+            Output[point][2] = 0.00;
+        }
+        /*******end of new *********/
     }
 }
 
@@ -953,14 +982,6 @@ double BeamElement::CalculateInternalShear(const double& Vo, const double& Load,
 double BeamElement::CalculateInternalAxil(const double& Ao, const double& Load, const double& X)
 {
     return  -Ao +  Load * X;
-}
-
-void BeamElement::GetValueOnIntegrationPoints( const Variable<array_1d<double,3> >& rVariable,
-        std::vector<array_1d<double,3> >& rValues,
-        const ProcessInfo& rCurrentProcessInfo)
-{
-    CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
-
 }
 
 IntegrationMethod  BeamElement::GetIntegrationMethod() const
@@ -1136,7 +1157,7 @@ void BeamElement::CalculateDistributedBodyForce(const int Direction, Vector& Loa
  * or that no common error is found.
  * @param rCurrentProcessInfo
  */
-int  BeamElement::Check(const ProcessInfo& rCurrentProcessInfo)
+int  BeamElement::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
 
@@ -1173,7 +1194,7 @@ int  BeamElement::Check(const ProcessInfo& rCurrentProcessInfo)
     else
         KRATOS_THROW_ERROR(std::logic_error, "The Area is not fully defined for the beam element", Id())
 
-    Matrix* inertia;
+    const Matrix* inertia;
     if( GetProperties().Has(LOCAL_INERTIA) )
     {
         inertia = &(GetProperties()[LOCAL_INERTIA]);

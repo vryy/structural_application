@@ -60,7 +60,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // Project includes
 #include "includes/define.h"
 #include "includes/serializer.h"
-
+#include "includes/variables.h"
 
 #include "geometries/quadrilateral_2d_4.h"
 #include "geometries/quadrilateral_2d_8.h"
@@ -78,484 +78,218 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "geometries/hexahedra_3d_8.h"
 #include "geometries/hexahedra_3d_20.h"
 #include "geometries/hexahedra_3d_27.h"
-#include "geometries/line_2d.h"
 #include "geometries/line_2d_2.h"
 #include "geometries/line_3d_2.h"
 #include "geometries/line_3d_3.h"
-#include "structural_application.h"
-#include "includes/variables.h"
-#include "includes/constitutive_law.h"
-
 #include "geometries/point_2d.h"
 #include "geometries/point_3d.h"
 
+#include "structural_application.h"
+#include "structural_application_variables.h"
+
+
 namespace Kratos
 {
-//Example
-typedef Matrix fix_matrix_33;
-//typedef boost::numeric::ublas::bounded_matrix<double,3,3> fix_matrix_33;
-typedef Vector array3;
-//typedef array_1d<double,3> array3;
-KRATOS_CREATE_VARIABLE( fix_matrix_33 , MATRIX_A )
-KRATOS_CREATE_VARIABLE( fix_matrix_33 , MATRIX_B )
-KRATOS_CREATE_VARIABLE( fix_matrix_33 , MATRIX_D )
-KRATOS_CREATE_VARIABLE( array3, COMPOSITE_DIRECTION )
-KRATOS_CREATE_VARIABLE( array3, ORTHOTROPIC_YOUNG_MODULUS )
-KRATOS_CREATE_VARIABLE( array3, ORTHOTROPIC_SHEAR_MODULUS )
-KRATOS_CREATE_VARIABLE( Matrix, ORTHOTROPIC_POISSON_RATIO )
-KRATOS_CREATE_VARIABLE( Matrix , GEOMETRIC_STIFFNESS )
-KRATOS_CREATE_VARIABLE( Matrix , MATERIAL_DIRECTION )
-KRATOS_CREATE_VARIABLE( Matrix , JOINT_STIFFNESS )
-KRATOS_CREATE_VARIABLE( double , LINING_JOINT_STIFFNESS )
 
-KRATOS_CREATE_VARIABLE( double, DAMAGE_E0 )
-KRATOS_CREATE_VARIABLE( double, DAMAGE_EF )
+KratosStructuralApplication::KratosStructuralApplication()
+#ifdef SD_APP_FORWARD_COMPATIBILITY
+    : KratosApplication("StructuralApplication")
+    , mCrisfieldTrussElement3D2N( 0, Element::GeometryType::Pointer( new Line3D2<Node<3> >( Element::GeometryType::PointsArrayType( 2 ) ) ) )
+    , mCrisfieldTrussElement3D3N( 0, Element::GeometryType::Pointer( new Line3D3<Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) )
+    , mTrussElement3D2N( 0, Element::GeometryType::Pointer( new Line3D2<Node<3> >( Element::GeometryType::PointsArrayType( 2 ) ) ) )
+    , mTrussElement3D3N( 0, Element::GeometryType::Pointer( new Line3D3<Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) )
+    , mBeamElement3D2N( 0, Element::GeometryType::Pointer( new Line3D2 <Node<3> >( Element::GeometryType::PointsArrayType( 2 ) ) ) )
+    , mBeamElement3D3N( 0, Element::GeometryType::Pointer( new Line3D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) )
+    , mTimoshenkoBeamElement3D2N( 0, Element::GeometryType::Pointer( new Line3D2 <Node<3> >( Element::GeometryType::PointsArrayType( 2 ) ) ) )
+    , mTimoshenkoBeamElement3D3N( 0, Element::GeometryType::Pointer( new Line3D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) )
+    , mTotalLagrangian2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3<Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) )
+    , mTotalLagrangian2D4N( 0, Element::GeometryType::Pointer( new Quadrilateral2D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4 ) ) ) )
+    , mTotalLagrangian2D6N( 0, Element::GeometryType::Pointer( new Triangle2D6 <Node<3> >( Element::GeometryType::PointsArrayType( 6 ) ) ) )
+    , mTotalLagrangian2D8N( 0, Element::GeometryType::Pointer( new Quadrilateral2D8 <Node<3> >( Element::GeometryType::PointsArrayType( 8 ) ) ) )
+    , mTotalLagrangian3D4N( 0, Element::GeometryType::Pointer( new Tetrahedra3D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4 ) ) ) )
+    , mTotalLagrangian3D10N( 0, Element::GeometryType::Pointer( new Tetrahedra3D10 <Node<3> >( Element::GeometryType::PointsArrayType( 10 ) ) ) )
+    , mTotalLagrangian3D6N( 0, Element::GeometryType::Pointer( new Prism3D6 <Node<3> >( Element::GeometryType::PointsArrayType( 6 ) ) ) )
+    , mTotalLagrangian3D15N( 0, Element::GeometryType::Pointer( new Prism3D15 <Node<3> >( Element::GeometryType::PointsArrayType( 15 ) ) ) )
+    , mTotalLagrangian3D8N( 0, Element::GeometryType::Pointer( new Hexahedra3D8 <Node<3> >( Element::GeometryType::PointsArrayType( 8 ) ) ) )
+    , mTotalLagrangian3D20N( 0, Element::GeometryType::Pointer( new Hexahedra3D20 <Node<3> >( Element::GeometryType::PointsArrayType( 20 ) ) ) )
+    , mTotalLagrangian3D27N( 0, Element::GeometryType::Pointer( new Hexahedra3D27 <Node<3> >( Element::GeometryType::PointsArrayType( 27 ) ) ) )
+    , mKinematicLinear2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) )
+    , mKinematicLinear2D4N( 0, Element::GeometryType::Pointer( new Quadrilateral2D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4 ) ) ) )
+    , mKinematicLinear2D6N( 0, Element::GeometryType::Pointer( new Triangle2D6 <Node<3> >( Element::GeometryType::PointsArrayType( 6 ) ) ) )
+    , mKinematicLinear2D8N( 0, Element::GeometryType::Pointer( new Quadrilateral2D8 <Node<3> >( Element::GeometryType::PointsArrayType( 8 ) ) ) )
+    , mKinematicLinear2D9N( 0, Element::GeometryType::Pointer( new Quadrilateral2D9 <Node<3> >( Element::GeometryType::PointsArrayType( 9 ) ) ) )
+    , mKinematicLinear3D4N( 0, Element::GeometryType::Pointer( new Tetrahedra3D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4 ) ) ) )
+    , mKinematicLinear3D10N( 0, Element::GeometryType::Pointer( new Tetrahedra3D10 <Node<3> >( Element::GeometryType::PointsArrayType( 10 ) ) ) )
+    , mKinematicLinear3D8N( 0, Element::GeometryType::Pointer( new Hexahedra3D8 <Node<3> >( Element::GeometryType::PointsArrayType( 8 ) ) ) )
+    , mKinematicLinear3D20N( 0, Element::GeometryType::Pointer( new Hexahedra3D20 <Node<3> >( Element::GeometryType::PointsArrayType( 20 ) ) ) )
+    , mKinematicLinear3D27N( 0, Element::GeometryType::Pointer( new Hexahedra3D27 <Node<3> >( Element::GeometryType::PointsArrayType( 27 ) ) ) )
+    , mKinematicLinear3D6N( 0, Element::GeometryType::Pointer( new Prism3D6 <Node<3> >( Element::GeometryType::PointsArrayType( 6 ) ) ) )
+    , mKinematicLinear3D15N( 0, Element::GeometryType::Pointer( new Prism3D15 <Node<3> >( Element::GeometryType::PointsArrayType( 15 ) ) ) )
+#else
+    : KratosApplication()
+    , mCrisfieldTrussElement3D2N( 0, Element::GeometryType::Pointer( new Line3D2<Node<3> >( Element::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) )
+    , mCrisfieldTrussElement3D3N( 0, Element::GeometryType::Pointer( new Line3D3<Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) )
+    , mTrussElement3D2N( 0, Element::GeometryType::Pointer( new Line3D2<Node<3> >( Element::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) )
+    , mTrussElement3D3N( 0, Element::GeometryType::Pointer( new Line3D3<Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) )
+    , mBeamElement3D2N( 0, Element::GeometryType::Pointer( new Line3D2 <Node<3> >( Element::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) )
+    , mBeamElement3D3N( 0, Element::GeometryType::Pointer( new Line3D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) )
+    , mTimoshenkoBeamElement3D2N( 0, Element::GeometryType::Pointer( new Line3D2 <Node<3> >( Element::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) )
+    , mTimoshenkoBeamElement3D3N( 0, Element::GeometryType::Pointer( new Line3D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) )
+    , mCorotationalLinearBeamElement2D2N( 0, Element::GeometryType::Pointer( new Line2D2 <Node<3> >( Element::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) )
+    , mCorotationalLinearBeamElement3D2N( 0, Element::GeometryType::Pointer( new Line3D2 <Node<3> >( Element::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) )
+    , mTimoshenkoLinearBeamElement2D2N( 0, Element::GeometryType::Pointer( new Line2D2 <Node<3> >( Element::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) )
+    , mTimoshenkoLinearBeamElement3D2N( 0, Element::GeometryType::Pointer( new Line3D2 <Node<3> >( Element::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) )
+    , mIsoShellElement( 0, Element::GeometryType::Pointer( new Triangle3D3<Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) )
+    , mAnisoShellElement( 0, Element::GeometryType::Pointer( new Triangle3D3<Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) )
+    // mAnisoLinearShellElement( 0, Element::GeometryType::Pointer( new Triangle3D3<Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) )
+    , mMembraneElement( 0, Element::GeometryType::Pointer( new Triangle3D3<Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) )
+    , mTotalLagrangian2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3<Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) )
+    , mTotalLagrangian2D4N( 0, Element::GeometryType::Pointer( new Quadrilateral2D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4, Node<3>() ) ) ) )
+    , mTotalLagrangian2D6N( 0, Element::GeometryType::Pointer( new Triangle2D6 <Node<3> >( Element::GeometryType::PointsArrayType( 6, Node<3>() ) ) ) )
+    , mTotalLagrangian2D8N( 0, Element::GeometryType::Pointer( new Quadrilateral2D8 <Node<3> >( Element::GeometryType::PointsArrayType( 8, Node<3>() ) ) ) )
+    , mTotalLagrangian3D4N( 0, Element::GeometryType::Pointer( new Tetrahedra3D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4, Node<3>() ) ) ) )
+    , mTotalLagrangian3D10N( 0, Element::GeometryType::Pointer( new Tetrahedra3D10 <Node<3> >( Element::GeometryType::PointsArrayType( 10, Node<3>() ) ) ) )
+    , mTotalLagrangian3D6N( 0, Element::GeometryType::Pointer( new Prism3D6 <Node<3> >( Element::GeometryType::PointsArrayType( 6, Node<3>() ) ) ) )
+    , mTotalLagrangian3D15N( 0, Element::GeometryType::Pointer( new Prism3D15 <Node<3> >( Element::GeometryType::PointsArrayType( 15, Node<3>() ) ) ) )
+    , mTotalLagrangian3D8N( 0, Element::GeometryType::Pointer( new Hexahedra3D8 <Node<3> >( Element::GeometryType::PointsArrayType( 8, Node<3>() ) ) ) )
+    , mTotalLagrangian3D20N( 0, Element::GeometryType::Pointer( new Hexahedra3D20 <Node<3> >( Element::GeometryType::PointsArrayType( 20, Node<3>() ) ) ) )
+    , mTotalLagrangian3D27N( 0, Element::GeometryType::Pointer( new Hexahedra3D27 <Node<3> >( Element::GeometryType::PointsArrayType( 27, Node<3>() ) ) ) )
 
-KRATOS_CREATE_VARIABLE( ConstitutiveLaw::Pointer, CONSTITUTIVE_LAW_NO_INITIALIZE )
-
-//KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(VAUX);
-
-// KRATOS_CREATE_VARIABLE(int, WRINKLING_APPROACH )
-// KRATOS_CREATE_VARIABLE(Matrix, GREEN_LAGRANGE_STRAIN_TENSOR )
-// KRATOS_CREATE_VARIABLE(Matrix, PK2_STRESS_TENSOR )
-// KRATOS_CREATE_VARIABLE(Matrix, AUXILIARY_MATRIX_1 )
-// KRATOS_CREATE_VARIABLE(double, YOUNG_MODULUS )
-// KRATOS_CREATE_VARIABLE(double, POISSON_RATIO )
-// KRATOS_CREATE_VARIABLE(double, MU )
-KRATOS_CREATE_VARIABLE( double, ALPHA )
-KRATOS_CREATE_VARIABLE( double, RETRACTION_TIME )
-// KRATOS_CREATE_VARIABLE(double, THICKNESS )
-// KRATOS_CREATE_VARIABLE(double, NEGATIVE_FACE_PRESSURE )
-// KRATOS_CREATE_VARIABLE(double, POSITIVE_FACE_PRESSURE )
-
-
-//  KRATOS_CREATE_VARIABLE(double, DP_EPSILON)
-//  KRATOS_CREATE_VARIABLE(Vector, INSITU_STRESS )
-//  KRATOS_CREATE_VARIABLE(double, DP_ALPHA1 )
-//  KRATOS_CREATE_VARIABLE(double, DP_K )
-//KRATOS_CREATE_VARIABLE(double,TO_ERASE )
-//  KRATOS_CREATE_VARIABLE(int, CALCULATE_INSITU_STRESS )
-//CONTACT_LINK_MASTER is defined in condition.h
-KRATOS_CREATE_VARIABLE( Condition::Pointer, CONTACT_LINK_MASTER )
-//CONTACT_LINK_SLAVE is defined in condition.h
-KRATOS_CREATE_VARIABLE( Condition::Pointer, CONTACT_LINK_SLAVE )
-KRATOS_CREATE_VARIABLE( Node<3>::Pointer,   NEAR_NODE )
-KRATOS_CREATE_VARIABLE( Point<3>, MASTER_CONTACT_LOCAL_POINT )
-KRATOS_CREATE_VARIABLE( Point<3>, MASTER_CONTACT_CURRENT_LOCAL_POINT )
-KRATOS_CREATE_VARIABLE( Point<3>, MASTER_CONTACT_LAST_CURRENT_LOCAL_POINT )
-KRATOS_CREATE_VARIABLE( Point<3>, SLAVE_CONTACT_LOCAL_POINT )
-KRATOS_CREATE_VARIABLE( Point<3>, MASTER_CONTACT_GLOBAL_POINT )
-KRATOS_CREATE_VARIABLE( Point<3>, MASTER_CONTACT_CURRENT_GLOBAL_POINT )
-KRATOS_CREATE_VARIABLE( Point<3>, SLAVE_CONTACT_GLOBAL_POINT )
-KRATOS_CREATE_VARIABLE( double, INSITU_STRESS_SCALE )
-KRATOS_CREATE_VARIABLE( double, LAGRANGE_SCALE )
-KRATOS_CREATE_VARIABLE( double, REFERENCE_PRESSURE )
-KRATOS_CREATE_VARIABLE( double, REFERENCE_WATER_PRESSURE )
-KRATOS_CREATE_VARIABLE( double, WATER_PRESSURE_SCALE )
-KRATOS_CREATE_VARIABLE( double, OVERCONSOLIDATION_RATIO )
-KRATOS_CREATE_VARIABLE( double, EXCESS_PORE_WATER_PRESSURE )
-KRATOS_CREATE_VARIABLE( double, PRESSURE_P )
-KRATOS_CREATE_VARIABLE( double, PRESSURE_Q )
-KRATOS_CREATE_VARIABLE( Vector, COORDINATES )
-KRATOS_CREATE_VARIABLE( Vector, FLUID_FLOWS )
-KRATOS_CREATE_VARIABLE( double, CONTACT_PENETRATION )
-
-KRATOS_CREATE_VARIABLE( double, BASE )
-KRATOS_CREATE_VARIABLE( double, HEIGHT )
-KRATOS_CREATE_VARIABLE( double, CROSS_AREA )
-KRATOS_CREATE_VARIABLE( double, AREA )
-KRATOS_CREATE_VARIABLE( double, AREA_X )
-KRATOS_CREATE_VARIABLE( double, AREA_Y )
-KRATOS_CREATE_VARIABLE( double, AREA_Z )
-KRATOS_CREATE_VARIABLE( Matrix, LOCAL_INERTIA )
-KRATOS_CREATE_VARIABLE( double, INERTIA_X )
-KRATOS_CREATE_VARIABLE( double, INERTIA_Y )
-KRATOS_CREATE_VARIABLE( double, INERTIA_Z )
-KRATOS_CREATE_VARIABLE( double, FC )
-KRATOS_CREATE_VARIABLE( double, FT )
-KRATOS_CREATE_VARIABLE( double, CONCRETE_YOUNG_MODULUS_C )
-KRATOS_CREATE_VARIABLE( double, CONCRETE_YOUNG_MODULUS_T )
-KRATOS_CREATE_VARIABLE( double, FRACTURE_ENERGY )
-KRATOS_CREATE_VARIABLE( double, CRUSHING_ENERGY )
-KRATOS_CREATE_VARIABLE( double, ELASTIC_ENERGY )
-KRATOS_CREATE_VARIABLE( double, PLASTIC_ENERGY )
-//     KRATOS_CREATE_VARIABLE( double, YIELD_STRESS )
-KRATOS_CREATE_VARIABLE( double, PLASTIC_MODULUS )
-KRATOS_CREATE_VARIABLE( double, PLASTICITY_INDICATOR )
-KRATOS_CREATE_VARIABLE( double, ISOTROPIC_HARDENING_MODULUS )
-KRATOS_CREATE_VARIABLE( double, KINEMATIC_HARDENING_MODULUS )
-KRATOS_CREATE_VARIABLE( int, ISOTROPIC_HARDENING_TYPE )
-KRATOS_CREATE_VARIABLE( int, KINEMATIC_HARDENING_TYPE )
-KRATOS_CREATE_VARIABLE( int, DRUCKER_PRAGER_MATCHING_TYPE )
-KRATOS_CREATE_VARIABLE( Matrix, HARDENING_POINTS_ON_CURVE )
-KRATOS_CREATE_VARIABLE( double, LAMNDA ) // Load factor
-KRATOS_CREATE_VARIABLE( double, DAMAGE )
-KRATOS_CREATE_VARIABLE( double, ORTHOTROPIC_ANGLE )
-KRATOS_CREATE_VARIABLE( double, VOLUMEN_FRACTION )
-KRATOS_CREATE_VARIABLE( double, MAX_INTERNAL_FRICTION_ANGLE )
-KRATOS_CREATE_VARIABLE( double, DILATANCY_ANGLE )
-KRATOS_CREATE_VARIABLE( double, MAX_DILATANCY_ANGLE )
-KRATOS_CREATE_VARIABLE( double, COHESION )
-KRATOS_CREATE_VARIABLE( double, DISIPATION )
-KRATOS_CREATE_VARIABLE( double, ISOTROPIC_ELASTIC_LIMIT )
-KRATOS_CREATE_VARIABLE( Vector, ORTHOTROPIC_ELASTIC_LIMIT )
-KRATOS_CREATE_VARIABLE( Vector, VECTOR_DAMAGE )
-KRATOS_CREATE_VARIABLE( Vector, ORTHOTROPIC_YOUNG_MODULUS_2D ) // [E1 E2 G12]
-KRATOS_CREATE_VARIABLE( Vector, ORTHOTROPIC_POISSON_RATIO_2D ) // [v12 v21]
-KRATOS_CREATE_VARIABLE( Matrix, GREEN_LAGRANGE_PLASTIC_STRAIN_TENSOR )
-KRATOS_CREATE_VARIABLE( Vector, ELASTIC_STRAIN_VECTOR )
-KRATOS_CREATE_VARIABLE( Vector, PLASTIC_STRAIN_VECTOR )
-KRATOS_CREATE_VARIABLE( Vector, CURRENT_STRAIN_VECTOR )
-KRATOS_CREATE_VARIABLE( Vector, INTEGRATION_POINT_STRAIN_VECTOR )
-KRATOS_CREATE_VARIABLE( double, EQUIVALENT_VOLUMETRIC_ELASTIC_STRAIN )
-KRATOS_CREATE_VARIABLE( double, EQUIVALENT_VOLUMETRIC_PLASTIC_STRAIN )
-KRATOS_CREATE_VARIABLE( double, EQUIVALENT_DEVIATORIC_ELASTIC_STRAIN )
-KRATOS_CREATE_VARIABLE( double, EQUIVALENT_DEVIATORIC_PLASTIC_STRAIN )
-KRATOS_CREATE_VARIABLE( double, EQUIVALENT_VOLUMETRIC_STRAIN )
-KRATOS_CREATE_VARIABLE( double, EQUIVALENT_DEVIATORIC_STRAIN )
-KRATOS_CREATE_VARIABLE( double, EQUIVALENT_STRAIN )
-KRATOS_CREATE_VARIABLE( Vector, ALMANSI_PLASTIC_STRAIN )
-KRATOS_CREATE_VARIABLE( Vector, ALMANSI_ELASTIC_STRAIN )
-KRATOS_CREATE_VARIABLE( Matrix, NODAL_STRESS )
-KRATOS_CREATE_VARIABLE( Matrix, NODAL_STRAIN )
-KRATOS_CREATE_VARIABLE( Matrix, CONSTRAINT_MATRIX )
-KRATOS_CREATE_VARIABLE( Vector, PRESTRESS )
-KRATOS_CREATE_VARIABLE( double, PRESTRESS_ZZ )
-KRATOS_CREATE_VARIABLE( double, PRESTRESS_FACTOR )
-KRATOS_CREATE_VARIABLE( Vector, INITIAL_STRESS )
-KRATOS_CREATE_VARIABLE( Vector, CONSTRAINT_VECTOR )
-KRATOS_CREATE_VARIABLE( int,    NODAL_VALUES )
-KRATOS_CREATE_VARIABLE( double, NODAL_DAMAGE )
-KRATOS_CREATE_VARIABLE( bool,   IS_TARGET )
-KRATOS_CREATE_VARIABLE( bool,   IS_CONTACTOR )
-KRATOS_CREATE_VARIABLE( bool,   COMPUTE_TANGENT_MATRIX )
-KRATOS_CREATE_VARIABLE( double,   IS_DISCRETE )
-KRATOS_CREATE_VARIABLE( double, DAMPING_RATIO )
-//KRATOS_CREATE_VARIABLE( double, KINETIC_ENERGY )
-KRATOS_CREATE_VARIABLE( double, POTENCIAL_ENERGY )
-KRATOS_CREATE_VARIABLE( double, DEFORMATION_ENERGY )
-KRATOS_CREATE_VARIABLE( double, VON_MISES_STRESS )
-KRATOS_CREATE_VARIABLE( double, RHS_PRESSURE )
-KRATOS_CREATE_VARIABLE( double,  TENSILE_STRENGTH )
-KRATOS_CREATE_VARIABLE( double,  SHEAR_STRENGTH )
-KRATOS_CREATE_VARIABLE( double,  VISCOUS_DAMPING )
-KRATOS_CREATE_VARIABLE( int,  YIELD_STATE )
-KRATOS_CREATE_VARIABLE( double,  YIELD_SURFACE )
-KRATOS_CREATE_VARIABLE( double,  MAX_FRECUENCY )
-
-KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( JOINT_FORCE_REACTION )
-KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( JOINT_MOMENT_REACTION )
-//KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( INTERNAL_FORCE ) //already put on variables.cpp (warning was appearing on Windows)
-KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( ELASTIC_BEDDING_STIFFNESS )
-
-KRATOS_CREATE_VARIABLE(bool, IS_BBAR )
-KRATOS_CREATE_VARIABLE(int, NEIGHBOUR_EXPANSION_LEVEL )
-KRATOS_CREATE_VARIABLE(int, STRESS_RECOVERY_TYPE )
-KRATOS_CREATE_VARIABLE(double, RAYLEIGH_DAMPING_ALPHA )
-KRATOS_CREATE_VARIABLE(double, RAYLEIGH_DAMPING_BETA )
-KRATOS_CREATE_VARIABLE(double, STABILISATION_FACTOR )
-KRATOS_CREATE_VARIABLE(double, SHEAR_MODULUS )
-KRATOS_CREATE_VARIABLE(double, SHEAR_MODULUS_EVOLUTION )
-KRATOS_CREATE_VARIABLE(Vector, RECOVERY_STRESSES )
-KRATOS_CREATE_VARIABLE(Vector, THREED_STRESSES )
-KRATOS_CREATE_VARIABLE(Vector, THREED_PRESTRESS )
-KRATOS_CREATE_VARIABLE(Vector, STRESSES_OLD )
-KRATOS_CREATE_VARIABLE(Vector, THREED_STRAIN )
-KRATOS_CREATE_VARIABLE(Vector, PRE_STRAIN_VECTOR )
-KRATOS_CREATE_VARIABLE(Vector, POST_STRAIN_VECTOR )
-KRATOS_CREATE_VARIABLE(Matrix, STRESS_TENSOR )
-KRATOS_CREATE_VARIABLE(Matrix, STRAIN_TENSOR )
-KRATOS_CREATE_VARIABLE(Matrix, ELASTIC_STRAIN_TENSOR )
-KRATOS_CREATE_VARIABLE(Matrix, PLASTIC_STRAIN_TENSOR )
-KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(PRESCRIBED_DELTA_DISPLACEMENT)
-KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(LINE_LOAD)
-KRATOS_CREATE_VARIABLE(bool,   IS_CONTACT_NODE)
-KRATOS_CREATE_VARIABLE(double, LAGRANGE_MULTIPLIER)
-KRATOS_CREATE_VARIABLE(bool, HAS_STRAIN_AT_NODE)
-KRATOS_CREATE_VARIABLE(bool, HAS_STRESSES_AT_NODE)
-KRATOS_CREATE_VARIABLE( bool, HAS_NODAL_ERROR )
-KRATOS_CREATE_VARIABLE( bool, FORCE_EQUAL_ORDER_INTERPOLATION )
-KRATOS_CREATE_VARIABLE( double, NODAL_ERROR_1 )
-KRATOS_CREATE_VARIABLE( double, DUMMY_DOF )
-
-KRATOS_CREATE_VARIABLE( double, PRECONSOLIDATION_PRESSURE )
-KRATOS_CREATE_VARIABLE( double, PRECONSOLIDATION_PRESSURE_MIN )
-KRATOS_CREATE_VARIABLE( double, PRECONSOLIDATION_PRESSURE_DEF )
-KRATOS_CREATE_VARIABLE( double, CSL_SLOPE )
-KRATOS_CREATE_VARIABLE( double, VIRGIN_COMPRESSION_INDEX )
-KRATOS_CREATE_VARIABLE( double, RECOMPRESSION_INDEX )
-KRATOS_CREATE_VARIABLE( double, SWELL_INDEX )
-KRATOS_CREATE_VARIABLE( double, VOID_RATIO )
-KRATOS_CREATE_VARIABLE( double, SPACING_RATIO )
-KRATOS_CREATE_VARIABLE( double, ASSOCIATIVITY )
-KRATOS_CREATE_VARIABLE( double, SHAPE_PARAMETER )
-
-KRATOS_CREATE_VARIABLE( Vector, NEIGHBOUR_WEIGHTS )
-KRATOS_CREATE_VARIABLE( double, MATERIAL_DENSITY )
-KRATOS_CREATE_VARIABLE( double, MATERIAL_DENSITY_NEW )
-KRATOS_CREATE_VARIABLE( double, MATERIAL_DENSITY_FILTERED )
-KRATOS_CREATE_VARIABLE( double, ELEMENT_DC )
-KRATOS_CREATE_VARIABLE( double, ELEMENT_DC_FILTERED )
-KRATOS_CREATE_VARIABLE( double, ELEMENT_DV )
-KRATOS_CREATE_VARIABLE( double, ELEMENT_DV_FILTERED )
-KRATOS_CREATE_VARIABLE( double, YOUNG_MODULUS_0 )
-KRATOS_CREATE_VARIABLE( double, YOUNG_MODULUS_MIN )
-KRATOS_CREATE_VARIABLE( double, PENALIZATION_FACTOR )
-KRATOS_CREATE_VARIABLE( double, GEOMETRICAL_DOMAIN_SIZE )
-KRATOS_CREATE_VARIABLE( double, JACOBIAN_0 )
-KRATOS_CREATE_VARIABLE( Node<3>::Pointer, ASSOCIATED_NODE )
-KRATOS_CREATE_VARIABLE( Element::Pointer, ASSOCIATED_ELEMENT )
-KRATOS_CREATE_VARIABLE( Condition::Pointer, ASSOCIATED_CONDITION )
-KRATOS_CREATE_VARIABLE( Vector, PRINCIPAL_STRESS )
-KRATOS_CREATE_VARIABLE( Vector, PRINCIPAL_STRAIN )
-KRATOS_CREATE_VARIABLE( Matrix, ALGORITHMIC_TANGENT )
-KRATOS_CREATE_VARIABLE( Matrix, ELASTIC_TANGENT )
-KRATOS_CREATE_VARIABLE( bool, IS_MARKED_FOR_REACTION )
-KRATOS_CREATE_VARIABLE( double, EXTRAPOLATION_FACTOR )
-KRATOS_CREATE_VARIABLE( bool, FIX_POROSITY )
-KRATOS_CREATE_VARIABLE( int, QUAD_POINT_STATUS )
-KRATOS_CREATE_VARIABLE( Matrix, LOCAL_FRAME )
-KRATOS_CREATE_VARIABLE( Vector, STRESS_LIKE_INTERNAL_VARIABLES )
-KRATOS_CREATE_VARIABLE( Vector, STRAIN_LIKE_INTERNAL_VARIABLES )
-KRATOS_CREATE_VARIABLE ( double, PRIMARY_HYDRATION_TIME )
-KRATOS_CREATE_VARIABLE ( double, PRIMARY_HYDRATION_TIME_GRADIENT )
-KRATOS_CREATE_VARIABLE ( double, STIFFNESS_RATIO )
-KRATOS_CREATE_VARIABLE ( double, L2_ERROR )
-KRATOS_CREATE_VARIABLE ( double, H1_ERROR )
-
-//  KRATOS_CREATE_VARIABLE(int, CONTACT_RAMP )
-//  KRATOS_CREATE_VARIABLE(Vector, PENALTY )
-// //  KRATOS_CREATE_VARIABLE(double, INITIAL_PENALTY )
-//  KRATOS_CREATE_VARIABLE(double, MAXIMUM_PENALTY )
-//  KRATOS_CREATE_VARIABLE(double, RAMP_CRITERION )
-//  KRATOS_CREATE_VARIABLE(double, RAMP_FACTOR )
-//  KRATOS_CREATE_VARIABLE(Vector, PENALTY_T )
-//  KRATOS_CREATE_VARIABLE(double, INITIAL_PENALTY_T )
-//  KRATOS_CREATE_VARIABLE(double, MAXIMUM_PENALTY_T )
-//  KRATOS_CREATE_VARIABLE(double, RAMP_CRITERION_T )
-//  KRATOS_CREATE_VARIABLE(double, RAMP_FACTOR_T )
-//  KRATOS_CREATE_VARIABLE(double, FRICTION_COEFFICIENT )
-//  KRATOS_CREATE_VARIABLE(Vector, LAMBDAS )
-//  KRATOS_CREATE_VARIABLE(Matrix, LAMBDAS_T )
-//  KRATOS_CREATE_VARIABLE(Vector, GAPS )
-//  KRATOS_CREATE_VARIABLE(Vector, DELTA_LAMBDAS )
-//  KRATOS_CREATE_VARIABLE(Matrix, DELTA_LAMBDAS_T )
-//  KRATOS_CREATE_VARIABLE(int, MAX_UZAWA_ITERATIONS)
-//  KRATOS_CREATE_VARIABLE(int, CONTACT_SLAVE_INTEGRATION_POINT_INDEX )
-//  KRATOS_CREATE_VARIABLE( Matrix, CONTACT_LINK_M )
-//  KRATOS_CREATE_VARIABLE( int, CONTACT_DOUBLE_CHECK )
-//  KRATOS_CREATE_VARIABLE( int, IS_CONTACT_MASTER )
-//  KRATOS_CREATE_VARIABLE( int, IS_CONTACT_SLAVE )
-//  KRATOS_CREATE_VARIABLE( double, K_CONTACT )
-//  KRATOS_CREATE_VARIABLE( double, K_CONTACT_T )
-//  KRATOS_CREATE_VARIABLE( Vector, STICK )
-//  KRATOS_CREATE_VARIABLE( int, FIRST_TIME_STEP )
-//  KRATOS_CREATE_VARIABLE( int, QUASI_STATIC_ANALYSIS )
-//  KRATOS_CREATE_VARIABLE( Vector, NORMAL_STRESS )
-//  KRATOS_CREATE_VARIABLE( Vector, TANGENTIAL_STRESS )
-//  KRATOS_CREATE_VARIABLE( double, NORMAL_CONTACT_STRESS )
-//  KRATOS_CREATE_VARIABLE( double, TANGENTIAL_CONTACT_STRESS )
-//  KRATOS_CREATE_VARIABLE( double, CONTACT_STICK )
-//
-//  KRATOS_CREATE_VARIABLE( double, WATER_PRESSURE )
-//  KRATOS_CREATE_VARIABLE( double, WATER_PRESSURE_DT )
-//  KRATOS_CREATE_VARIABLE( double, WATER_PRESSURE_ACCELERATION )
-//  KRATOS_CREATE_VARIABLE( double, WATER_PRESSURE_NULL )
-//  KRATOS_CREATE_VARIABLE( double, WATER_PRESSURE_NULL_DT )
-//  KRATOS_CREATE_VARIABLE( double, WATER_PRESSURE_NULL_ACCELERATION )
-//  KRATOS_CREATE_VARIABLE( double, WATER_PRESSURE_EINS )
-//  KRATOS_CREATE_VARIABLE( double, WATER_PRESSURE_EINS_DT )
-//  KRATOS_CREATE_VARIABLE( double, WATER_PRESSURE_EINS_ACCELERATION )
-//
-//  KRATOS_CREATE_VARIABLE( double, AIR_PRESSURE )
-//  KRATOS_CREATE_VARIABLE( double, AIR_PRESSURE_DT )
-//  KRATOS_CREATE_VARIABLE( double, AIR_PRESSURE_ACCELERATION )
-//  KRATOS_CREATE_VARIABLE( double, AIR_PRESSURE_NULL )
-//  KRATOS_CREATE_VARIABLE( double, AIR_PRESSURE_NULL_DT )
-//  KRATOS_CREATE_VARIABLE( double, AIR_PRESSURE_NULL_ACCELERATION )
-//  KRATOS_CREATE_VARIABLE( double, AIR_PRESSURE_EINS )
-//  KRATOS_CREATE_VARIABLE( double, AIR_PRESSURE_EINS_DT )
-//  KRATOS_CREATE_VARIABLE( double, AIR_PRESSURE_EINS_ACCELERATION )
-//
-//  KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(DISPLACEMENT_OLD)
-//  KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(DISPLACEMENT_DT)
-// //  KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(ACCELERATION)
-//  KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(DISPLACEMENT_NULL)
-//  KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(DISPLACEMENT_NULL_DT)
-//  KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(ACCELERATION_NULL)
-//  KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(DISPLACEMENT_EINS)
-//  KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(DISPLACEMENT_EINS_DT)
-//  KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(ACCELERATION_EINS)
-//  KRATOS_CREATE_VARIABLE( Matrix, ELASTIC_LEFT_CAUCHY_GREEN_OLD )
-//
-//  KRATOS_CREATE_VARIABLE(int, ACTIVATION_LEVEL)
-
-KratosStructuralApplication::KratosStructuralApplication():
-    mCrisfieldTrussElement3D2N( 0, Element::GeometryType::Pointer( new Line3D2<Node<3> >( Element::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) ),
-    mCrisfieldTrussElement3D3N( 0, Element::GeometryType::Pointer( new Line3D3<Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
-    mTrussElement3D2N( 0, Element::GeometryType::Pointer( new Line3D2<Node<3> >( Element::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) ),
-    mTrussElement3D3N( 0, Element::GeometryType::Pointer( new Line3D3<Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
-    mBeamElement3D2N( 0, Element::GeometryType::Pointer( new Line3D2 <Node<3> >( Element::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) ),
-    mBeamElement3D3N( 0, Element::GeometryType::Pointer( new Line3D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
-    mTimoshenkoBeamElement3D2N( 0, Element::GeometryType::Pointer( new Line3D2 <Node<3> >( Element::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) ),
-    mTimoshenkoBeamElement3D3N( 0, Element::GeometryType::Pointer( new Line3D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
-    mCorotationalLinearBeamElement2D2N( 0, Element::GeometryType::Pointer( new Line2D2 <Node<3> >( Element::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) ),
-    mCorotationalLinearBeamElement3D2N( 0, Element::GeometryType::Pointer( new Line3D2 <Node<3> >( Element::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) ),
-    mTimoshenkoLinearBeamElement2D2N( 0, Element::GeometryType::Pointer( new Line2D2 <Node<3> >( Element::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) ),
-    mTimoshenkoLinearBeamElement3D2N( 0, Element::GeometryType::Pointer( new Line3D2 <Node<3> >( Element::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) ),
-    mIsoShellElement( 0, Element::GeometryType::Pointer( new Triangle3D3<Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
-    mAnisoShellElement( 0, Element::GeometryType::Pointer( new Triangle3D3<Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
-    // mAnisoLinearShellElement( 0, Element::GeometryType::Pointer( new Triangle3D3<Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
-    mMembraneElement( 0, Element::GeometryType::Pointer( new Triangle3D3<Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
-    mTotalLagrangian2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3<Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
-    mTotalLagrangian2D4N( 0, Element::GeometryType::Pointer( new Quadrilateral2D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4, Node<3>() ) ) ) ),
-    mTotalLagrangian2D6N( 0, Element::GeometryType::Pointer( new Triangle2D6 <Node<3> >( Element::GeometryType::PointsArrayType( 6, Node<3>() ) ) ) ),
-    mTotalLagrangian2D8N( 0, Element::GeometryType::Pointer( new Quadrilateral2D8 <Node<3> >( Element::GeometryType::PointsArrayType( 8, Node<3>() ) ) ) ),
-    mTotalLagrangian3D4N( 0, Element::GeometryType::Pointer( new Tetrahedra3D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4, Node<3>() ) ) ) ),
-    mTotalLagrangian3D10N( 0, Element::GeometryType::Pointer( new Tetrahedra3D10 <Node<3> >( Element::GeometryType::PointsArrayType( 10, Node<3>() ) ) ) ),
-    mTotalLagrangian3D6N( 0, Element::GeometryType::Pointer( new Prism3D6 <Node<3> >( Element::GeometryType::PointsArrayType( 6, Node<3>() ) ) ) ),
-    mTotalLagrangian3D15N( 0, Element::GeometryType::Pointer( new Prism3D15 <Node<3> >( Element::GeometryType::PointsArrayType( 15, Node<3>() ) ) ) ),
-    mTotalLagrangian3D8N( 0, Element::GeometryType::Pointer( new Hexahedra3D8 <Node<3> >( Element::GeometryType::PointsArrayType( 8, Node<3>() ) ) ) ),
-    mTotalLagrangian3D20N( 0, Element::GeometryType::Pointer( new Hexahedra3D20 <Node<3> >( Element::GeometryType::PointsArrayType( 20, Node<3>() ) ) ) ),
-    mTotalLagrangian3D27N( 0, Element::GeometryType::Pointer( new Hexahedra3D27 <Node<3> >( Element::GeometryType::PointsArrayType( 27, Node<3>() ) ) ) ),
-
-    // mLinearIncompresibleElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3<Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
-    //mLinearIncompresibleElement3D4N( 0, Element::GeometryType::Pointer( new Tetrahedra3D4<Node<3> >( Element::GeometryType::PointsArrayType( 4, Node<3>() ) ) ) ),
+    //, mLinearIncompresibleElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3<Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) )
+    //, mLinearIncompresibleElement3D4N( 0, Element::GeometryType::Pointer( new Tetrahedra3D4<Node<3> >( Element::GeometryType::PointsArrayType( 4, Node<3>() ) ) ) )
 
 
-    mMixedLagrangian2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3<Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
-    mMixedLagrangian2D4N( 0, Element::GeometryType::Pointer( new Quadrilateral2D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4, Node<3>() ) ) ) ),
-    mMixedLagrangian2D6N( 0, Element::GeometryType::Pointer( new Triangle2D6 <Node<3> >( Element::GeometryType::PointsArrayType( 6, Node<3>() ) ) ) ),
-    mMixedLagrangian2D8N( 0, Element::GeometryType::Pointer( new Quadrilateral2D8 <Node<3> >( Element::GeometryType::PointsArrayType( 8, Node<3>() ) ) ) ),
-    mMixedLagrangian3D4N( 0, Element::GeometryType::Pointer( new Tetrahedra3D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4, Node<3>() ) ) ) ),
-    mMixedLagrangian3D10N( 0, Element::GeometryType::Pointer( new Tetrahedra3D10 <Node<3> >( Element::GeometryType::PointsArrayType( 10, Node<3>() ) ) ) ),
-    mMixedLagrangian3D6N( 0, Element::GeometryType::Pointer( new Prism3D6 <Node<3> >( Element::GeometryType::PointsArrayType( 6, Node<3>() ) ) ) ),
-    mMixedLagrangian3D15N( 0, Element::GeometryType::Pointer( new Prism3D15 <Node<3> >( Element::GeometryType::PointsArrayType( 15, Node<3>() ) ) ) ),
-    mMixedLagrangian3D8N( 0, Element::GeometryType::Pointer( new Hexahedra3D8 <Node<3> >( Element::GeometryType::PointsArrayType( 8, Node<3>() ) ) ) ),
-    mMixedLagrangian3D20N( 0, Element::GeometryType::Pointer( new Hexahedra3D20 <Node<3> >( Element::GeometryType::PointsArrayType( 20, Node<3>() ) ) ) ),
-    mMixedLagrangian3D27N( 0, Element::GeometryType::Pointer( new Hexahedra3D27 <Node<3> >( Element::GeometryType::PointsArrayType( 27, Node<3>() ) ) ) ),
+    , mMixedLagrangian2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3<Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) )
+    , mMixedLagrangian2D4N( 0, Element::GeometryType::Pointer( new Quadrilateral2D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4, Node<3>() ) ) ) )
+    , mMixedLagrangian2D6N( 0, Element::GeometryType::Pointer( new Triangle2D6 <Node<3> >( Element::GeometryType::PointsArrayType( 6, Node<3>() ) ) ) )
+    , mMixedLagrangian2D8N( 0, Element::GeometryType::Pointer( new Quadrilateral2D8 <Node<3> >( Element::GeometryType::PointsArrayType( 8, Node<3>() ) ) ) )
+    , mMixedLagrangian3D4N( 0, Element::GeometryType::Pointer( new Tetrahedra3D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4, Node<3>() ) ) ) )
+    , mMixedLagrangian3D10N( 0, Element::GeometryType::Pointer( new Tetrahedra3D10 <Node<3> >( Element::GeometryType::PointsArrayType( 10, Node<3>() ) ) ) )
+    , mMixedLagrangian3D6N( 0, Element::GeometryType::Pointer( new Prism3D6 <Node<3> >( Element::GeometryType::PointsArrayType( 6, Node<3>() ) ) ) )
+    , mMixedLagrangian3D15N( 0, Element::GeometryType::Pointer( new Prism3D15 <Node<3> >( Element::GeometryType::PointsArrayType( 15, Node<3>() ) ) ) )
+    , mMixedLagrangian3D8N( 0, Element::GeometryType::Pointer( new Hexahedra3D8 <Node<3> >( Element::GeometryType::PointsArrayType( 8, Node<3>() ) ) ) )
+    , mMixedLagrangian3D20N( 0, Element::GeometryType::Pointer( new Hexahedra3D20 <Node<3> >( Element::GeometryType::PointsArrayType( 20, Node<3>() ) ) ) )
+    , mMixedLagrangian3D27N( 0, Element::GeometryType::Pointer( new Hexahedra3D27 <Node<3> >( Element::GeometryType::PointsArrayType( 27, Node<3>() ) ) ) )
 
-    mKinematicLinear2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
-    mKinematicLinear2D4N( 0, Element::GeometryType::Pointer( new Quadrilateral2D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4, Node<3>() ) ) ) ),
-    mKinematicLinear2D6N( 0, Element::GeometryType::Pointer( new Triangle2D6 <Node<3> >( Element::GeometryType::PointsArrayType( 6, Node<3>() ) ) ) ),
-    mKinematicLinear2D8N( 0, Element::GeometryType::Pointer( new Quadrilateral2D8 <Node<3> >( Element::GeometryType::PointsArrayType( 8, Node<3>() ) ) ) ),
-    mKinematicLinear2D9N( 0, Element::GeometryType::Pointer( new Quadrilateral2D9 <Node<3> >( Element::GeometryType::PointsArrayType( 9, Node<3>() ) ) ) ),
-    mKinematicLinear3D4N( 0, Element::GeometryType::Pointer( new Tetrahedra3D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4, Node<3>() ) ) ) ),
-    mKinematicLinear3D10N( 0, Element::GeometryType::Pointer( new Tetrahedra3D10 <Node<3> >( Element::GeometryType::PointsArrayType( 10, Node<3>() ) ) ) ),
-    mKinematicLinear3D8N( 0, Element::GeometryType::Pointer( new Hexahedra3D8 <Node<3> >( Element::GeometryType::PointsArrayType( 8, Node<3>() ) ) ) ),
-    mKinematicLinear3D20N( 0, Element::GeometryType::Pointer( new Hexahedra3D20 <Node<3> >( Element::GeometryType::PointsArrayType( 20, Node<3>() ) ) ) ),
-    mKinematicLinear3D27N( 0, Element::GeometryType::Pointer( new Hexahedra3D27 <Node<3> >( Element::GeometryType::PointsArrayType( 27, Node<3>() ) ) ) ),
-    mKinematicLinear3D6N( 0, Element::GeometryType::Pointer( new Prism3D6 <Node<3> >( Element::GeometryType::PointsArrayType( 6, Node<3>() ) ) ) ),
-    mKinematicLinear3D15N( 0, Element::GeometryType::Pointer( new Prism3D15 <Node<3> >( Element::GeometryType::PointsArrayType( 15, Node<3>() ) ) ) ),
-    mUnsaturatedSoilsElement2PhaseSmallStrain3D4N( 0, Element::GeometryType::Pointer( new Tetrahedra3D4<Node<3> >( Element::GeometryType::PointsArrayType( 4, Node<3>() ) ) ) ),
-    mUnsaturatedSoilsElement2PhaseSmallStrain3D8N( 0, Element::GeometryType::Pointer( new Hexahedra3D8 <Node<3> >( Element::GeometryType::PointsArrayType( 8, Node<3>() ) ) ) ),
-    mUnsaturatedSoilsElement2PhaseSmallStrain3D6N( 0, Element::GeometryType::Pointer( new Prism3D6 <Node<3> >( Element::GeometryType::PointsArrayType( 6, Node<3>() ) ) ) ),
-    mUnsaturatedSoilsElement2PhaseSmallStrain3D10N( 0, Element::GeometryType::Pointer( new Tetrahedra3D10<Node<3> >( Element::GeometryType::PointsArrayType( 10, Node<3>() ) ) ) ),
-    mUnsaturatedSoilsElement2PhaseSmallStrain3D15N( 0, Element::GeometryType::Pointer( new Prism3D15<Node<3> >( Element::GeometryType::PointsArrayType( 15, Node<3>() ) ) ) ),
-    mUnsaturatedSoilsElement2PhaseSmallStrain3D20N( 0, Element::GeometryType::Pointer( new Hexahedra3D20<Node<3> >( Element::GeometryType::PointsArrayType( 20, Node<3>() ) ) ) ),
-    mUnsaturatedSoilsElement2PhaseSmallStrain3D27N( 0, Element::GeometryType::Pointer( new Hexahedra3D27<Node<3> >( Element::GeometryType::PointsArrayType( 27, Node<3>() ) ) ) ),
-    mUnsaturatedSoilsElement2PhaseSmallStrainStaggered3D27N( 0, Element::GeometryType::Pointer( new Hexahedra3D27<Node<3> >( Element::GeometryType::PointsArrayType( 27, Node<3>() ) ) ) ),
-    mUnsaturatedSoilsElement3PhaseSmallStrain3D4N( 0, Element::GeometryType::Pointer( new Tetrahedra3D4<Node<3> >( Element::GeometryType::PointsArrayType( 4, Node<3>() ) ) ) ),
-    mUnsaturatedSoilsElement3PhaseSmallStrain3D8N( 0, Element::GeometryType::Pointer( new Hexahedra3D8 <Node<3> >( Element::GeometryType::PointsArrayType( 8, Node<3>() ) ) ) ),
-    mUnsaturatedSoilsElement3PhaseSmallStrain3D10N( 0, Element::GeometryType::Pointer( new Tetrahedra3D10<Node<3> >( Element::GeometryType::PointsArrayType( 10, Node<3>() ) ) ) ),
-    mUnsaturatedSoilsElement3PhaseSmallStrain3D15N( 0, Element::GeometryType::Pointer( new Prism3D15<Node<3> >( Element::GeometryType::PointsArrayType( 15, Node<3>() ) ) ) ),
-    mUnsaturatedSoilsElement3PhaseSmallStrain3D20N( 0, Element::GeometryType::Pointer( new Hexahedra3D20<Node<3> >( Element::GeometryType::PointsArrayType( 20, Node<3>() ) ) ) ),
-    mUnsaturatedSoilsElement3PhaseSmallStrain3D27N( 0, Element::GeometryType::Pointer( new Hexahedra3D27<Node<3> >( Element::GeometryType::PointsArrayType( 27, Node<3>() ) ) ) ),
-    mEbst3D3N( 0, Element::GeometryType::Pointer( new Triangle3D3<Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
-    mEbstVel3D3N( 0, Element::GeometryType::Pointer( new Triangle3D3<Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
-    mEASElementQ4E4( 0, Element::GeometryType::Pointer( new Quadrilateral2D4<Node<3> >( Element::GeometryType::PointsArrayType( 4, Node<3>() ) ) ) ),
+    , mKinematicLinear2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) )
+    , mKinematicLinear2D4N( 0, Element::GeometryType::Pointer( new Quadrilateral2D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4, Node<3>() ) ) ) )
+    , mKinematicLinear2D6N( 0, Element::GeometryType::Pointer( new Triangle2D6 <Node<3> >( Element::GeometryType::PointsArrayType( 6, Node<3>() ) ) ) )
+    , mKinematicLinear2D8N( 0, Element::GeometryType::Pointer( new Quadrilateral2D8 <Node<3> >( Element::GeometryType::PointsArrayType( 8, Node<3>() ) ) ) )
+    , mKinematicLinear2D9N( 0, Element::GeometryType::Pointer( new Quadrilateral2D9 <Node<3> >( Element::GeometryType::PointsArrayType( 9, Node<3>() ) ) ) )
+    , mKinematicLinear3D4N( 0, Element::GeometryType::Pointer( new Tetrahedra3D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4, Node<3>() ) ) ) )
+    , mKinematicLinear3D10N( 0, Element::GeometryType::Pointer( new Tetrahedra3D10 <Node<3> >( Element::GeometryType::PointsArrayType( 10, Node<3>() ) ) ) )
+    , mKinematicLinear3D8N( 0, Element::GeometryType::Pointer( new Hexahedra3D8 <Node<3> >( Element::GeometryType::PointsArrayType( 8, Node<3>() ) ) ) )
+    , mKinematicLinear3D20N( 0, Element::GeometryType::Pointer( new Hexahedra3D20 <Node<3> >( Element::GeometryType::PointsArrayType( 20, Node<3>() ) ) ) )
+    , mKinematicLinear3D27N( 0, Element::GeometryType::Pointer( new Hexahedra3D27 <Node<3> >( Element::GeometryType::PointsArrayType( 27, Node<3>() ) ) ) )
+    , mKinematicLinear3D6N( 0, Element::GeometryType::Pointer( new Prism3D6 <Node<3> >( Element::GeometryType::PointsArrayType( 6, Node<3>() ) ) ) )
+    , mKinematicLinear3D15N( 0, Element::GeometryType::Pointer( new Prism3D15 <Node<3> >( Element::GeometryType::PointsArrayType( 15, Node<3>() ) ) ) )
+    , mUnsaturatedSoilsElement2PhaseSmallStrain3D4N( 0, Element::GeometryType::Pointer( new Tetrahedra3D4<Node<3> >( Element::GeometryType::PointsArrayType( 4, Node<3>() ) ) ) )
+    , mUnsaturatedSoilsElement2PhaseSmallStrain3D8N( 0, Element::GeometryType::Pointer( new Hexahedra3D8 <Node<3> >( Element::GeometryType::PointsArrayType( 8, Node<3>() ) ) ) )
+    , mUnsaturatedSoilsElement2PhaseSmallStrain3D6N( 0, Element::GeometryType::Pointer( new Prism3D6 <Node<3> >( Element::GeometryType::PointsArrayType( 6, Node<3>() ) ) ) )
+    , mUnsaturatedSoilsElement2PhaseSmallStrain3D10N( 0, Element::GeometryType::Pointer( new Tetrahedra3D10<Node<3> >( Element::GeometryType::PointsArrayType( 10, Node<3>() ) ) ) )
+    , mUnsaturatedSoilsElement2PhaseSmallStrain3D15N( 0, Element::GeometryType::Pointer( new Prism3D15<Node<3> >( Element::GeometryType::PointsArrayType( 15, Node<3>() ) ) ) )
+    , mUnsaturatedSoilsElement2PhaseSmallStrain3D20N( 0, Element::GeometryType::Pointer( new Hexahedra3D20<Node<3> >( Element::GeometryType::PointsArrayType( 20, Node<3>() ) ) ) )
+    , mUnsaturatedSoilsElement2PhaseSmallStrain3D27N( 0, Element::GeometryType::Pointer( new Hexahedra3D27<Node<3> >( Element::GeometryType::PointsArrayType( 27, Node<3>() ) ) ) )
+    , mUnsaturatedSoilsElement2PhaseSmallStrainStaggered3D27N( 0, Element::GeometryType::Pointer( new Hexahedra3D27<Node<3> >( Element::GeometryType::PointsArrayType( 27, Node<3>() ) ) ) )
+    , mUnsaturatedSoilsElement3PhaseSmallStrain3D4N( 0, Element::GeometryType::Pointer( new Tetrahedra3D4<Node<3> >( Element::GeometryType::PointsArrayType( 4, Node<3>() ) ) ) )
+    , mUnsaturatedSoilsElement3PhaseSmallStrain3D8N( 0, Element::GeometryType::Pointer( new Hexahedra3D8 <Node<3> >( Element::GeometryType::PointsArrayType( 8, Node<3>() ) ) ) )
+    , mUnsaturatedSoilsElement3PhaseSmallStrain3D10N( 0, Element::GeometryType::Pointer( new Tetrahedra3D10<Node<3> >( Element::GeometryType::PointsArrayType( 10, Node<3>() ) ) ) )
+    , mUnsaturatedSoilsElement3PhaseSmallStrain3D15N( 0, Element::GeometryType::Pointer( new Prism3D15<Node<3> >( Element::GeometryType::PointsArrayType( 15, Node<3>() ) ) ) )
+    , mUnsaturatedSoilsElement3PhaseSmallStrain3D20N( 0, Element::GeometryType::Pointer( new Hexahedra3D20<Node<3> >( Element::GeometryType::PointsArrayType( 20, Node<3>() ) ) ) )
+    , mUnsaturatedSoilsElement3PhaseSmallStrain3D27N( 0, Element::GeometryType::Pointer( new Hexahedra3D27<Node<3> >( Element::GeometryType::PointsArrayType( 27, Node<3>() ) ) ) )
+    , mEbst3D3N( 0, Element::GeometryType::Pointer( new Triangle3D3<Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) )
+    , mEbstVel3D3N( 0, Element::GeometryType::Pointer( new Triangle3D3<Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) )
+    , mEASElementQ4E4( 0, Element::GeometryType::Pointer( new Quadrilateral2D4<Node<3> >( Element::GeometryType::PointsArrayType( 4, Node<3>() ) ) ) )
 
+    , mFace2D( 0, Element::GeometryType::Pointer( new Line2D2<Node<3> >( Element::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) )
+    , mFace3D3N( 0, Element::GeometryType::Pointer( new Triangle3D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) )
+    , mFace3D6N( 0, Element::GeometryType::Pointer( new Triangle3D6 <Node<3> >( Element::GeometryType::PointsArrayType( 6, Node<3>() ) ) ) )
+    , mFace3D4N( 0, Element::GeometryType::Pointer( new Quadrilateral3D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4, Node<3>() ) ) ) )
+    , mFace3D8N( 0, Element::GeometryType::Pointer( new Quadrilateral3D8 <Node<3> >( Element::GeometryType::PointsArrayType( 8, Node<3>() ) ) ) )
+    , mFace3D9N( 0, Element::GeometryType::Pointer( new Quadrilateral3D9 <Node<3> >( Element::GeometryType::PointsArrayType( 9, Node<3>() ) ) ) )
+    , mFacePressure3D3N( 0, Element::GeometryType::Pointer( new Triangle3D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) )
+    , mFacePressure3D6N( 0, Element::GeometryType::Pointer( new Triangle3D6 <Node<3> >( Element::GeometryType::PointsArrayType( 6, Node<3>() ) ) ) )
+    , mFacePressure3D4N( 0, Element::GeometryType::Pointer( new Quadrilateral3D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4, Node<3>() ) ) ) )
+    , mFacePressure3D8N( 0, Element::GeometryType::Pointer( new Quadrilateral3D8 <Node<3> >( Element::GeometryType::PointsArrayType( 8, Node<3>() ) ) ) )
+    , mFacePressure3D9N( 0, Element::GeometryType::Pointer( new Quadrilateral3D9 <Node<3> >( Element::GeometryType::PointsArrayType( 9, Node<3>() ) ) ) )
+    , mFacePressureTotalLagrangian3D3N( 0, Element::GeometryType::Pointer( new Triangle3D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) )
+    , mFacePressureTotalLagrangian3D6N( 0, Element::GeometryType::Pointer( new Triangle3D6 <Node<3> >( Element::GeometryType::PointsArrayType( 6, Node<3>() ) ) ) )
+    , mFacePressureTotalLagrangian3D4N( 0, Element::GeometryType::Pointer( new Quadrilateral3D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4, Node<3>() ) ) ) )
+    , mFacePressureTotalLagrangian3D8N( 0, Element::GeometryType::Pointer( new Quadrilateral3D8 <Node<3> >( Element::GeometryType::PointsArrayType( 8, Node<3>() ) ) ) )
+    , mFacePressureTotalLagrangian3D9N( 0, Element::GeometryType::Pointer( new Quadrilateral3D9 <Node<3> >( Element::GeometryType::PointsArrayType( 9, Node<3>() ) ) ) )
+    , mLineForce2D2N( 0, Element::GeometryType::Pointer( new Line2D2 <Node<3> >( Element::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) )
+    , mLineForce2D3N( 0, Element::GeometryType::Pointer( new Line2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) )
+    , mLineForce3D2N( 0, Element::GeometryType::Pointer( new Line3D2 <Node<3> >( Element::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) )
+    , mLineForce3D3N( 0, Element::GeometryType::Pointer( new Line3D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) )
+    , mLinePressure2D2N( 0, Element::GeometryType::Pointer( new Line2D2 <Node<3> >( Element::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) )
+    , mLinePressure2D3N( 0, Element::GeometryType::Pointer( new Line2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) )
+    , mFaceForce3D3N( 0, Element::GeometryType::Pointer( new Triangle3D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) )
+    , mFaceForce3D6N( 0, Element::GeometryType::Pointer( new Triangle3D6 <Node<3> >( Element::GeometryType::PointsArrayType( 6, Node<3>() ) ) ) )
+    , mFaceForce3D4N( 0, Element::GeometryType::Pointer( new Quadrilateral3D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4, Node<3>() ) ) ) )
+    , mFaceForce3D8N( 0, Element::GeometryType::Pointer( new Quadrilateral3D8 <Node<3> >( Element::GeometryType::PointsArrayType( 8, Node<3>() ) ) ) )
+    , mFaceForce3D9N( 0, Element::GeometryType::Pointer( new Quadrilateral3D9 <Node<3> >( Element::GeometryType::PointsArrayType( 9, Node<3>() ) ) ) )
+    , mMasterContactFace3D( 0, Element::GeometryType::Pointer( new Quadrilateral3D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4, Node<3>() ) ) ) )
+    , mMasterContactFace3D3( 0, Element::GeometryType::Pointer( new Triangle3D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) )
+    , mMasterContactFace3D6( 0, Element::GeometryType::Pointer( new Triangle3D6 <Node<3> >( Element::GeometryType::PointsArrayType( 6, Node<3>() ) ) ) )
+    , mMasterContactFace3D8( 0, Element::GeometryType::Pointer( new Quadrilateral3D8 <Node<3> >( Element::GeometryType::PointsArrayType( 8, Node<3>() ) ) ) )
+    , mMasterContactFace3D9( 0, Element::GeometryType::Pointer( new Quadrilateral3D9 <Node<3> >( Element::GeometryType::PointsArrayType( 9, Node<3>() ) ) ) )
+    , mSlaveContactFace3D( 0, Element::GeometryType::Pointer( new Quadrilateral3D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4, Node<3>() ) ) ) )
+    , mSlaveContactFace3D3( 0, Element::GeometryType::Pointer( new Triangle3D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) )
+    , mSlaveContactFace3D6( 0, Element::GeometryType::Pointer( new Triangle3D6 <Node<3> >( Element::GeometryType::PointsArrayType( 6, Node<3>() ) ) ) )
+    , mSlaveContactFace3D8( 0, Element::GeometryType::Pointer( new Quadrilateral3D8 <Node<3> >( Element::GeometryType::PointsArrayType( 8, Node<3>() ) ) ) )
+    , mSlaveContactFace3D9( 0, Element::GeometryType::Pointer( new Quadrilateral3D9 <Node<3> >( Element::GeometryType::PointsArrayType( 9, Node<3>() ) ) ) )
+    , mMasterContactFace3DNewmark( 0, Element::GeometryType::Pointer( new Quadrilateral3D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4, Node<3>() ) ) ) )
+    , mMasterContactFace3D3Newmark( 0, Element::GeometryType::Pointer( new Triangle3D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) )
+    , mMasterContactFace3D6Newmark( 0, Element::GeometryType::Pointer( new Triangle3D6 <Node<3> >( Element::GeometryType::PointsArrayType( 6, Node<3>() ) ) ) )
+    , mMasterContactFace3D8Newmark( 0, Element::GeometryType::Pointer( new Quadrilateral3D8 <Node<3> >( Element::GeometryType::PointsArrayType( 8, Node<3>() ) ) ) )
+    , mMasterContactFace3D9Newmark( 0, Element::GeometryType::Pointer( new Quadrilateral3D9 <Node<3> >( Element::GeometryType::PointsArrayType( 9, Node<3>() ) ) ) )
+    , mSlaveContactFace3DNewmark( 0, Element::GeometryType::Pointer( new Quadrilateral3D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4, Node<3>() ) ) ) )
+    , mSlaveContactFace3D3Newmark( 0, Element::GeometryType::Pointer( new Triangle3D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) )
+    , mSlaveContactFace3D6Newmark( 0, Element::GeometryType::Pointer( new Triangle3D6 <Node<3> >( Element::GeometryType::PointsArrayType( 6, Node<3>() ) ) ) )
+    , mSlaveContactFace3D8Newmark( 0, Element::GeometryType::Pointer( new Quadrilateral3D8 <Node<3> >( Element::GeometryType::PointsArrayType( 8, Node<3>() ) ) ) )
+    , mSlaveContactFace3D9Newmark( 0, Element::GeometryType::Pointer( new Quadrilateral3D9 <Node<3> >( Element::GeometryType::PointsArrayType( 9, Node<3>() ) ) ) )
+    , mFaceVel3D3N( 0, Element::GeometryType::Pointer( new Triangle3D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) )
+    //, mUPCTestElement3D20N(0,Element::GeometryType::Pointer( new Hexahedra3D20<Node<3> >(Element::GeometryType::PointsArrayType(20, Node<3>()))))
+    //, mPointForce3D(0, Element::GeometryType::Pointer(new Geometry <Node<3> >(Element::GeometryType::PointsArrayType(1, Node<3>()))))
+    //, mPointForce2D(0, Element::GeometryType::Pointer(new Geometry <Node<3> >(Element::GeometryType::PointsArrayType(1, Node<3>()))))
 
-    mFace2D( 0, Element::GeometryType::Pointer( new Line2D2<Node<3> >( Element::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) ),
-    mFace3D3N( 0, Element::GeometryType::Pointer( new Triangle3D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
-    mFace3D6N( 0, Element::GeometryType::Pointer( new Triangle3D6 <Node<3> >( Element::GeometryType::PointsArrayType( 6, Node<3>() ) ) ) ),
-    mFace3D4N( 0, Element::GeometryType::Pointer( new Quadrilateral3D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4, Node<3>() ) ) ) ),
-    mFace3D8N( 0, Element::GeometryType::Pointer( new Quadrilateral3D8 <Node<3> >( Element::GeometryType::PointsArrayType( 8, Node<3>() ) ) ) ),
-    mFace3D9N( 0, Element::GeometryType::Pointer( new Quadrilateral3D9 <Node<3> >( Element::GeometryType::PointsArrayType( 9, Node<3>() ) ) ) ),
-    mFacePressure3D3N( 0, Element::GeometryType::Pointer( new Triangle3D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
-    mFacePressure3D6N( 0, Element::GeometryType::Pointer( new Triangle3D6 <Node<3> >( Element::GeometryType::PointsArrayType( 6, Node<3>() ) ) ) ),
-    mFacePressure3D4N( 0, Element::GeometryType::Pointer( new Quadrilateral3D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4, Node<3>() ) ) ) ),
-    mFacePressure3D8N( 0, Element::GeometryType::Pointer( new Quadrilateral3D8 <Node<3> >( Element::GeometryType::PointsArrayType( 8, Node<3>() ) ) ) ),
-    mFacePressure3D9N( 0, Element::GeometryType::Pointer( new Quadrilateral3D9 <Node<3> >( Element::GeometryType::PointsArrayType( 9, Node<3>() ) ) ) ),
-    mFacePressureTotalLagrangian3D3N( 0, Element::GeometryType::Pointer( new Triangle3D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
-    mFacePressureTotalLagrangian3D6N( 0, Element::GeometryType::Pointer( new Triangle3D6 <Node<3> >( Element::GeometryType::PointsArrayType( 6, Node<3>() ) ) ) ),
-    mFacePressureTotalLagrangian3D4N( 0, Element::GeometryType::Pointer( new Quadrilateral3D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4, Node<3>() ) ) ) ),
-    mFacePressureTotalLagrangian3D8N( 0, Element::GeometryType::Pointer( new Quadrilateral3D8 <Node<3> >( Element::GeometryType::PointsArrayType( 8, Node<3>() ) ) ) ),
-    mFacePressureTotalLagrangian3D9N( 0, Element::GeometryType::Pointer( new Quadrilateral3D9 <Node<3> >( Element::GeometryType::PointsArrayType( 9, Node<3>() ) ) ) ),
-    mLineForce2D2N( 0, Element::GeometryType::Pointer( new Line2D2 <Node<3> >( Element::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) ),
-    mLineForce2D3N( 0, Element::GeometryType::Pointer( new Line2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
-    mLineForce3D2N( 0, Element::GeometryType::Pointer( new Line3D2 <Node<3> >( Element::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) ),
-    mLineForce3D3N( 0, Element::GeometryType::Pointer( new Line3D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
-    mLinePressure2D2N( 0, Element::GeometryType::Pointer( new Line2D2 <Node<3> >( Element::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) ),
-    mLinePressure2D3N( 0, Element::GeometryType::Pointer( new Line2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
-    mFaceForce3D3N( 0, Element::GeometryType::Pointer( new Triangle3D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
-    mFaceForce3D6N( 0, Element::GeometryType::Pointer( new Triangle3D6 <Node<3> >( Element::GeometryType::PointsArrayType( 6, Node<3>() ) ) ) ),
-    mFaceForce3D4N( 0, Element::GeometryType::Pointer( new Quadrilateral3D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4, Node<3>() ) ) ) ),
-    mFaceForce3D8N( 0, Element::GeometryType::Pointer( new Quadrilateral3D8 <Node<3> >( Element::GeometryType::PointsArrayType( 8, Node<3>() ) ) ) ),
-    mFaceForce3D9N( 0, Element::GeometryType::Pointer( new Quadrilateral3D9 <Node<3> >( Element::GeometryType::PointsArrayType( 9, Node<3>() ) ) ) ),
-    mMasterContactFace3D( 0, Element::GeometryType::Pointer( new Quadrilateral3D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4, Node<3>() ) ) ) ),
-    mMasterContactFace3D3( 0, Element::GeometryType::Pointer( new Triangle3D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
-    mMasterContactFace3D6( 0, Element::GeometryType::Pointer( new Triangle3D6 <Node<3> >( Element::GeometryType::PointsArrayType( 6, Node<3>() ) ) ) ),
-    mMasterContactFace3D8( 0, Element::GeometryType::Pointer( new Quadrilateral3D8 <Node<3> >( Element::GeometryType::PointsArrayType( 8, Node<3>() ) ) ) ),
-    mMasterContactFace3D9( 0, Element::GeometryType::Pointer( new Quadrilateral3D9 <Node<3> >( Element::GeometryType::PointsArrayType( 9, Node<3>() ) ) ) ),
-    mSlaveContactFace3D( 0, Element::GeometryType::Pointer( new Quadrilateral3D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4, Node<3>() ) ) ) ),
-    mSlaveContactFace3D3( 0, Element::GeometryType::Pointer( new Triangle3D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
-    mSlaveContactFace3D6( 0, Element::GeometryType::Pointer( new Triangle3D6 <Node<3> >( Element::GeometryType::PointsArrayType( 6, Node<3>() ) ) ) ),
-    mSlaveContactFace3D8( 0, Element::GeometryType::Pointer( new Quadrilateral3D8 <Node<3> >( Element::GeometryType::PointsArrayType( 8, Node<3>() ) ) ) ),
-    mSlaveContactFace3D9( 0, Element::GeometryType::Pointer( new Quadrilateral3D9 <Node<3> >( Element::GeometryType::PointsArrayType( 9, Node<3>() ) ) ) ),
-    mMasterContactFace3DNewmark( 0, Element::GeometryType::Pointer( new Quadrilateral3D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4, Node<3>() ) ) ) ),
-    mMasterContactFace3D3Newmark( 0, Element::GeometryType::Pointer( new Triangle3D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
-    mMasterContactFace3D6Newmark( 0, Element::GeometryType::Pointer( new Triangle3D6 <Node<3> >( Element::GeometryType::PointsArrayType( 6, Node<3>() ) ) ) ),
-    mMasterContactFace3D8Newmark( 0, Element::GeometryType::Pointer( new Quadrilateral3D8 <Node<3> >( Element::GeometryType::PointsArrayType( 8, Node<3>() ) ) ) ),
-    mMasterContactFace3D9Newmark( 0, Element::GeometryType::Pointer( new Quadrilateral3D9 <Node<3> >( Element::GeometryType::PointsArrayType( 9, Node<3>() ) ) ) ),
-    mSlaveContactFace3DNewmark( 0, Element::GeometryType::Pointer( new Quadrilateral3D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4, Node<3>() ) ) ) ),
-    mSlaveContactFace3D3Newmark( 0, Element::GeometryType::Pointer( new Triangle3D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
-    mSlaveContactFace3D6Newmark( 0, Element::GeometryType::Pointer( new Triangle3D6 <Node<3> >( Element::GeometryType::PointsArrayType( 6, Node<3>() ) ) ) ),
-    mSlaveContactFace3D8Newmark( 0, Element::GeometryType::Pointer( new Quadrilateral3D8 <Node<3> >( Element::GeometryType::PointsArrayType( 8, Node<3>() ) ) ) ),
-    mSlaveContactFace3D9Newmark( 0, Element::GeometryType::Pointer( new Quadrilateral3D9 <Node<3> >( Element::GeometryType::PointsArrayType( 9, Node<3>() ) ) ) ),
-    mFaceVel3D3N( 0, Element::GeometryType::Pointer( new Triangle3D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
-//  mUPCTestElement3D20N(0,Element::GeometryType::Pointer( new Hexahedra3D20<Node<3> >(Element::GeometryType::PointsArrayType(20, Node<3>()))))
-    //mPointForce3D(0, Element::GeometryType::Pointer(new Geometry <Node<3> >(Element::GeometryType::PointsArrayType(1, Node<3>())))),
-    //mPointForce2D(0, Element::GeometryType::Pointer(new Geometry <Node<3> >(Element::GeometryType::PointsArrayType(1, Node<3>())))),
+    , mPointForce3D( 0, Element::GeometryType::Pointer( new Point3D <Node<3> >( Element::GeometryType::PointsArrayType( 1, Node<3>() ) ) ) )
+    , mPointForce2D( 0, Element::GeometryType::Pointer( new Point2D <Node<3> >( Element::GeometryType::PointsArrayType( 1, Node<3>() ) ) ) )
+    , mPointMoment3D( 0, Element::GeometryType::Pointer( new Point3D <Node<3> >( Element::GeometryType::PointsArrayType( 1, Node<3>() ) ) ) )
 
+    , mElasticPointConstraint( 0, Element::GeometryType::Pointer( new Point3D <Node<3> >( Element::GeometryType::PointsArrayType( 1, Node<3>() ) ) ) )
+    , mElasticLineConstraint2N( 0, Element::GeometryType::Pointer( new Line3D2<Node<3> >( Element::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) )
+    , mElasticLineConstraint3N( 0, Element::GeometryType::Pointer( new Line3D3<Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) )
+    , mElasticFaceConstraint3N( 0, Element::GeometryType::Pointer( new Triangle3D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) )
+    , mElasticFaceConstraint6N( 0, Element::GeometryType::Pointer( new Triangle3D6 <Node<3> >( Element::GeometryType::PointsArrayType( 6, Node<3>() ) ) ) )
+    , mElasticFaceConstraint4N( 0, Element::GeometryType::Pointer( new Quadrilateral3D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4, Node<3>() ) ) ) )
+    , mElasticFaceConstraint8N( 0, Element::GeometryType::Pointer( new Quadrilateral3D8 <Node<3> >( Element::GeometryType::PointsArrayType( 8, Node<3>() ) ) ) )
+    , mElasticFaceConstraint9N( 0, Element::GeometryType::Pointer( new Quadrilateral3D9 <Node<3> >( Element::GeometryType::PointsArrayType( 9, Node<3>() ) ) ) )
+    , mElasticFaceSprings3N( 0, Element::GeometryType::Pointer( new Triangle3D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) )
+    , mElasticFaceSprings6N( 0, Element::GeometryType::Pointer( new Triangle3D6 <Node<3> >( Element::GeometryType::PointsArrayType( 6, Node<3>() ) ) ) )
+    , mElasticFaceSprings4N( 0, Element::GeometryType::Pointer( new Quadrilateral3D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4, Node<3>() ) ) ) )
+    , mElasticFaceSprings8N( 0, Element::GeometryType::Pointer( new Quadrilateral3D8 <Node<3> >( Element::GeometryType::PointsArrayType( 8, Node<3>() ) ) ) )
+    , mElasticFaceSprings9N( 0, Element::GeometryType::Pointer( new Quadrilateral3D9 <Node<3> >( Element::GeometryType::PointsArrayType( 9, Node<3>() ) ) ) )
+    , mNitscheIsotropicConstraint2D2N( 0, Element::GeometryType::Pointer( new Line2D2 <Node<3> >( Element::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) )
+    , mNitscheIsotropicConstraint2D3N( 0, Element::GeometryType::Pointer( new Line2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) )
+    , mNitscheIsotropicConstraint3D3N( 0, Element::GeometryType::Pointer( new Triangle3D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) )
+    , mNitscheIsotropicConstraint3D6N( 0, Element::GeometryType::Pointer( new Triangle3D6 <Node<3> >( Element::GeometryType::PointsArrayType( 6, Node<3>() ) ) ) )
+    , mNitscheIsotropicConstraint3D4N( 0, Element::GeometryType::Pointer( new Quadrilateral3D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4, Node<3>() ) ) ) )
+    , mNitscheIsotropicConstraint3D8N( 0, Element::GeometryType::Pointer( new Quadrilateral3D8 <Node<3> >( Element::GeometryType::PointsArrayType( 8, Node<3>() ) ) ) )
+    , mNitscheIsotropicConstraint3D9N( 0, Element::GeometryType::Pointer( new Quadrilateral3D9 <Node<3> >( Element::GeometryType::PointsArrayType( 9, Node<3>() ) ) ) )
 
-    mPointForce3D( 0, Element::GeometryType::Pointer( new Point3D <Node<3> >( Element::GeometryType::PointsArrayType( 1, Node<3>() ) ) ) ),
-    mPointForce2D( 0, Element::GeometryType::Pointer( new Point2D <Node<3> >( Element::GeometryType::PointsArrayType( 1, Node<3>() ) ) ) ),
-    mPointMoment3D( 0, Element::GeometryType::Pointer( new Point3D <Node<3> >( Element::GeometryType::PointsArrayType( 1, Node<3>() ) ) ) ),
+    , mNodeTyingLagrange( 0, Element::GeometryType::Pointer( new Geometry <Node<3> >( Element::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) )
+    , mNodeTyingLagrangeZ( 0, Element::GeometryType::Pointer( new Geometry <Node<3> >( Element::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) )
+    , mPointPointJointCondition( 0, Element::GeometryType::Pointer( new Line3D2 <Node<3> >( Element::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) )
+    , mPointPointLagrangeCondition( 0, Element::GeometryType::Pointer( new Line3D2 <Node<3> >( Element::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) )
 
-    mElasticPointConstraint( 0, Element::GeometryType::Pointer( new Point3D <Node<3> >( Element::GeometryType::PointsArrayType( 1, Node<3>() ) ) ) ),
-    mElasticLineConstraint2N( 0, Element::GeometryType::Pointer( new Line3D2<Node<3> >( Element::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) ),
-    mElasticLineConstraint3N( 0, Element::GeometryType::Pointer( new Line3D3<Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
-    mElasticFaceConstraint3N( 0, Element::GeometryType::Pointer( new Triangle3D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
-    mElasticFaceConstraint6N( 0, Element::GeometryType::Pointer( new Triangle3D6 <Node<3> >( Element::GeometryType::PointsArrayType( 6, Node<3>() ) ) ) ),
-    mElasticFaceConstraint4N( 0, Element::GeometryType::Pointer( new Quadrilateral3D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4, Node<3>() ) ) ) ),
-    mElasticFaceConstraint8N( 0, Element::GeometryType::Pointer( new Quadrilateral3D8 <Node<3> >( Element::GeometryType::PointsArrayType( 8, Node<3>() ) ) ) ),
-    mElasticFaceConstraint9N( 0, Element::GeometryType::Pointer( new Quadrilateral3D9 <Node<3> >( Element::GeometryType::PointsArrayType( 9, Node<3>() ) ) ) ),
-    mElasticFaceSprings3N( 0, Element::GeometryType::Pointer( new Triangle3D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
-    mElasticFaceSprings6N( 0, Element::GeometryType::Pointer( new Triangle3D6 <Node<3> >( Element::GeometryType::PointsArrayType( 6, Node<3>() ) ) ) ),
-    mElasticFaceSprings4N( 0, Element::GeometryType::Pointer( new Quadrilateral3D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4, Node<3>() ) ) ) ),
-    mElasticFaceSprings8N( 0, Element::GeometryType::Pointer( new Quadrilateral3D8 <Node<3> >( Element::GeometryType::PointsArrayType( 8, Node<3>() ) ) ) ),
-    mElasticFaceSprings9N( 0, Element::GeometryType::Pointer( new Quadrilateral3D9 <Node<3> >( Element::GeometryType::PointsArrayType( 9, Node<3>() ) ) ) ),
-    mNitscheIsotropicConstraint2D2N( 0, Element::GeometryType::Pointer( new Line2D2 <Node<3> >( Element::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) ),
-    mNitscheIsotropicConstraint2D3N( 0, Element::GeometryType::Pointer( new Line2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
-    mNitscheIsotropicConstraint3D3N( 0, Element::GeometryType::Pointer( new Triangle3D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
-    mNitscheIsotropicConstraint3D6N( 0, Element::GeometryType::Pointer( new Triangle3D6 <Node<3> >( Element::GeometryType::PointsArrayType( 6, Node<3>() ) ) ) ),
-    mNitscheIsotropicConstraint3D4N( 0, Element::GeometryType::Pointer( new Quadrilateral3D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4, Node<3>() ) ) ) ),
-    mNitscheIsotropicConstraint3D8N( 0, Element::GeometryType::Pointer( new Quadrilateral3D8 <Node<3> >( Element::GeometryType::PointsArrayType( 8, Node<3>() ) ) ) ),
-    mNitscheIsotropicConstraint3D9N( 0, Element::GeometryType::Pointer( new Quadrilateral3D9 <Node<3> >( Element::GeometryType::PointsArrayType( 9, Node<3>() ) ) ) ),
-
-    mNodeTyingLagrange( 0, Element::GeometryType::Pointer( new Geometry <Node<3> >( Element::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) ),
-    mNodeTyingLagrangeZ( 0, Element::GeometryType::Pointer( new Geometry <Node<3> >( Element::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) ),
-    mPointPointJointCondition( 0, Element::GeometryType::Pointer( new Line3D2 <Node<3> >( Element::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) ),
-    mPointPointLagrangeCondition( 0, Element::GeometryType::Pointer( new Line3D2 <Node<3> >( Element::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) ),
-
-    mSlaveContactPoint2D( 0, Element::GeometryType::Pointer( new Point2D <Node<3> >( Element::GeometryType::PointsArrayType( 1, Node<3>() ) ) ) ),
-    mMasterContactFace2D( 0, Element::GeometryType::Pointer( new Line2D2 <Node<3> >( Element::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) ),
-    mIsotropic3D(),
-    mDummyConstitutiveLaw(),
-    mDruckerPrager(),
-    mCamClay3D()
-
+    , mSlaveContactPoint2D( 0, Element::GeometryType::Pointer( new Point2D <Node<3> >( Element::GeometryType::PointsArrayType( 1, Node<3>() ) ) ) )
+    , mMasterContactFace2D( 0, Element::GeometryType::Pointer( new Line2D2 <Node<3> >( Element::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) )
+    , mIsotropic3D()
+    , mDummyConstitutiveLaw()
+    , mDruckerPrager()
+    , mCamClay3D()
+#endif
 {}
 
 void KratosStructuralApplication::Register()
@@ -623,15 +357,15 @@ void KratosStructuralApplication::Register()
     //CONTACT_LINK_MASTER is defined in condition.h
     KRATOS_REGISTER_VARIABLE( CONTACT_LINK_MASTER )
     //CONTACT_LINK_SLAVE is defined in condition.h
-    KRATOS_REGISTER_VARIABLE( NEAR_NODE )
+    // KRATOS_REGISTER_VARIABLE( NEAR_NODE )
     KRATOS_REGISTER_VARIABLE( CONTACT_LINK_SLAVE )
-    KRATOS_REGISTER_VARIABLE( MASTER_CONTACT_LOCAL_POINT )
-    KRATOS_REGISTER_VARIABLE( MASTER_CONTACT_CURRENT_LOCAL_POINT )
-    KRATOS_REGISTER_VARIABLE( MASTER_CONTACT_LAST_CURRENT_LOCAL_POINT )
-    KRATOS_REGISTER_VARIABLE( SLAVE_CONTACT_LOCAL_POINT )
-    KRATOS_REGISTER_VARIABLE( MASTER_CONTACT_GLOBAL_POINT )
-    KRATOS_REGISTER_VARIABLE( MASTER_CONTACT_CURRENT_GLOBAL_POINT )
-    KRATOS_REGISTER_VARIABLE( SLAVE_CONTACT_GLOBAL_POINT )
+    // KRATOS_REGISTER_VARIABLE( MASTER_CONTACT_LOCAL_POINT )
+    // KRATOS_REGISTER_VARIABLE( MASTER_CONTACT_CURRENT_LOCAL_POINT )
+    // KRATOS_REGISTER_VARIABLE( MASTER_CONTACT_LAST_CURRENT_LOCAL_POINT )
+    // KRATOS_REGISTER_VARIABLE( SLAVE_CONTACT_LOCAL_POINT )
+    // KRATOS_REGISTER_VARIABLE( MASTER_CONTACT_GLOBAL_POINT )
+    // KRATOS_REGISTER_VARIABLE( MASTER_CONTACT_CURRENT_GLOBAL_POINT )
+    // KRATOS_REGISTER_VARIABLE( SLAVE_CONTACT_GLOBAL_POINT )
 
 
     KRATOS_REGISTER_VARIABLE( BASE )
@@ -688,7 +422,7 @@ void KratosStructuralApplication::Register()
     KRATOS_REGISTER_VARIABLE( PRESTRESS_ZZ )
     KRATOS_REGISTER_VARIABLE( PRESTRESS_FACTOR )
     KRATOS_REGISTER_VARIABLE( INITIAL_STRESS )
-    KRATOS_REGISTER_VARIABLE( MAX_FRECUENCY )
+    // KRATOS_REGISTER_VARIABLE( MAX_FRECUENCY )
 
     KRATOS_REGISTER_VARIABLE( DISIPATION )
     KRATOS_REGISTER_VARIABLE( ISOTROPIC_HARDENING_MODULUS )
@@ -698,7 +432,9 @@ void KratosStructuralApplication::Register()
     KRATOS_REGISTER_VARIABLE( DRUCKER_PRAGER_MATCHING_TYPE )
     KRATOS_REGISTER_VARIABLE( HARDENING_POINTS_ON_CURVE )
     KRATOS_REGISTER_VARIABLE( NODAL_STRESS )
+    KRATOS_REGISTER_VARIABLE( NODAL_STRESS_VECTOR )
     KRATOS_REGISTER_VARIABLE( NODAL_STRAIN )
+    KRATOS_REGISTER_VARIABLE( NODAL_STRAIN_VECTOR )
     KRATOS_REGISTER_VARIABLE( NODAL_VALUES )
     KRATOS_REGISTER_VARIABLE( NODAL_DAMAGE )
     KRATOS_REGISTER_VARIABLE( IS_TARGET )
@@ -865,6 +601,171 @@ void KratosStructuralApplication::Register()
 //   KRATOS_REGISTER_VARIABLE(ELASTIC_LEFT_CAUCHY_GREEN_OLD)
 //
 //   KRATOS_REGISTER_VARIABLE(ACTIVATION_LEVEL)
+
+
+    #ifdef SD_APP_FORWARD_COMPATIBILITY
+
+    // register legacy variables
+    KRATOS_REGISTER_VARIABLE( LAMBDA_OLD )
+    KRATOS_REGISTER_VARIABLE( LAMBDA_NULL )
+    KRATOS_REGISTER_VARIABLE( LAMBDA_EINS )
+    KRATOS_REGISTER_VARIABLE( LAMBDA_DT )
+    KRATOS_REGISTER_VARIABLE( LAMBDA_NULL_DT )
+    KRATOS_REGISTER_VARIABLE( LAMBDA_EINS_DT )
+    KRATOS_REGISTER_VARIABLE( LAMBDA_DT2 )
+    KRATOS_REGISTER_VARIABLE( LAMBDA_NULL_DT2 )
+    KRATOS_REGISTER_VARIABLE( LAMBDA_EINS_DT2 )
+    KRATOS_REGISTER_VARIABLE( LAMBDAS_T )
+    KRATOS_REGISTER_VARIABLE( DELTA_LAMBDAS_T )
+    KRATOS_REGISTER_VARIABLE( CONTACT_LINK_M )
+    KRATOS_REGISTER_VARIABLE( AUXILIARY_MATRIX_1 )
+    KRATOS_REGISTER_VARIABLE( ELASTIC_LEFT_CAUCHY_GREEN_OLD )
+
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( DISPLACEMENT_OLD )
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( DISPLACEMENT_DT )
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( DISPLACEMENT_NULL )
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( DISPLACEMENT_NULL_DT )
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( ACCELERATION_NULL )
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( DISPLACEMENT_EINS )
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( DISPLACEMENT_EINS_DT )
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( ACCELERATION_EINS )
+
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( ROTATION_OLD )
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( ROTATION_DT )
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( ROTATION_NULL )
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( ROTATION_NULL_DT )
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( ANGULAR_ACCELERATION_NULL )
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( ROTATION_EINS )
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( ROTATION_EINS_DT )
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( ANGULAR_ACCELERATION_EINS )
+
+    KRATOS_REGISTER_VARIABLE( PENALTY_T )
+    KRATOS_REGISTER_VARIABLE( INITIAL_PENALTY_T )
+    KRATOS_REGISTER_VARIABLE( LAMBDAS )
+    KRATOS_REGISTER_VARIABLE( GAPS )
+    KRATOS_REGISTER_VARIABLE( DELTA_LAMBDAS )
+    KRATOS_REGISTER_VARIABLE( STICK )
+    KRATOS_REGISTER_VARIABLE( CONTACT_STICK )
+
+    KRATOS_REGISTER_VARIABLE( USE_DISTRIBUTED_PROPERTIES )
+
+    KRATOS_REGISTER_VARIABLE( CONTACT_RAMP )
+    KRATOS_REGISTER_VARIABLE( CONTACT_SLAVE_INTEGRATION_POINT_INDEX )
+    KRATOS_REGISTER_VARIABLE( CONTACT_DOUBLE_CHECK )
+//        KRATOS_REGISTER_VARIABLE( FIRST_TIME_STEP )
+//        KRATOS_REGISTER_VARIABLE( QUASI_STATIC_ANALYSIS )
+
+    KRATOS_REGISTER_VARIABLE( INTEGRATION_ORDER )
+    KRATOS_REGISTER_VARIABLE( INTEGRATION_WEIGHT )
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( INTEGRATION_POINT_GLOBAL )
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( INTEGRATION_POINT_GLOBAL_IN_REFERENCE_CONFIGURATION )
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( INTEGRATION_POINT_GLOBAL_IN_CURRENT_CONFIGURATION )
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( INTEGRATION_POINT_LOCAL )
+
+//        KRATOS_REGISTER_VARIABLE( OSS_SWITCH )
+    KRATOS_REGISTER_VARIABLE( WRINKLING_APPROACH )
+    KRATOS_REGISTER_VARIABLE( CALCULATE_INSITU_STRESS )
+//        KRATOS_REGISTER_VARIABLE( PERIODIC_PAIR_INDEX )
+//        KRATOS_REGISTER_VARIABLE( STATIONARY )
+
+//        KRATOS_REGISTER_VARIABLE( PARTITION_MASK )
+
+//        KRATOS_REGISTER_VARIABLE( FACE_HEAT_FLUX )
+
+//        KRATOS_REGISTER_VARIABLE( NODAL_VOLUME )
+
+    KRATOS_REGISTER_VARIABLE( PRESSURE_DT )
+    KRATOS_REGISTER_VARIABLE( WATER_PRESSURE_DT )
+    KRATOS_REGISTER_VARIABLE( WATER_PRESSURE_ACCELERATION )
+    KRATOS_REGISTER_VARIABLE( WATER_PRESSURE_NULL )
+    KRATOS_REGISTER_VARIABLE( WATER_PRESSURE_NULL_DT )
+    KRATOS_REGISTER_VARIABLE( WATER_PRESSURE_NULL_ACCELERATION )
+    KRATOS_REGISTER_VARIABLE( WATER_PRESSURE_EINS )
+    KRATOS_REGISTER_VARIABLE( WATER_PRESSURE_EINS_DT )
+    KRATOS_REGISTER_VARIABLE( WATER_PRESSURE_EINS_ACCELERATION )
+
+    KRATOS_REGISTER_VARIABLE( AIR_PRESSURE_DT )
+    KRATOS_REGISTER_VARIABLE( AIR_PRESSURE_ACCELERATION )
+    KRATOS_REGISTER_VARIABLE( AIR_PRESSURE_NULL )
+    KRATOS_REGISTER_VARIABLE( AIR_PRESSURE_NULL_DT )
+    KRATOS_REGISTER_VARIABLE( AIR_PRESSURE_NULL_ACCELERATION )
+    KRATOS_REGISTER_VARIABLE( AIR_PRESSURE_EINS )
+    KRATOS_REGISTER_VARIABLE( AIR_PRESSURE_EINS_DT )
+    KRATOS_REGISTER_VARIABLE( AIR_PRESSURE_EINS_ACCELERATION )
+    KRATOS_REGISTER_VARIABLE( SUCTION )
+//        KRATOS_REGISTER_VARIABLE( FLAG_VARIABLE )
+
+//        KRATOS_REGISTER_VARIABLE( DP_EPSILON )
+//        KRATOS_REGISTER_VARIABLE( DP_ALPHA1 )
+//        KRATOS_REGISTER_VARIABLE( DP_K )
+
+//        KRATOS_REGISTER_VARIABLE( EQ_STRAIN_RATE )
+//        KRATOS_REGISTER_VARIABLE( RHS_WATER )
+//        KRATOS_REGISTER_VARIABLE( RHS_AIR )
+
+    KRATOS_REGISTER_VARIABLE( PERMEABILITY_28_DAYS )
+    KRATOS_REGISTER_VARIABLE( PERMEABILITY_1_DAY )
+    KRATOS_REGISTER_VARIABLE( PERMEABILITY_TRANSITION )
+
+//        KRATOS_REGISTER_VARIABLE( TEMPERATURE_OLD_IT )
+//        KRATOS_REGISTER_VARIABLE( EFFECTIVE_VISCOSITY )
+//        KRATOS_REGISTER_VARIABLE( KINEMATIC_VISCOSITY)
+//        KRATOS_REGISTER_VARIABLE( DYNAMIC_VISCOSITY)
+//        KRATOS_REGISTER_VARIABLE( WEIGHT_FATHER_NODES )
+
+    KRATOS_REGISTER_VARIABLE( PARENT_ELEMENT_ID )
+    KRATOS_REGISTER_VARIABLE( INTEGRATION_POINT_INDEX )
+
+    KRATOS_REGISTER_VARIABLE( IS_CONTACT_MASTER )
+    KRATOS_REGISTER_VARIABLE( IS_CONTACT_SLAVE )
+//        KRATOS_REGISTER_VARIABLE( IS_BOUNDARY )
+//        KRATOS_REGISTER_VARIABLE( IS_VISITED )
+
+    KRATOS_REGISTER_VARIABLE( LAGRANGE_MULTIPLIER_CONSTRAINT )
+    KRATOS_REGISTER_VARIABLE( LAGRANGE_MULTIPLIER_CONSTRAINT_REACTION )
+
+    KRATOS_REGISTER_VARIABLE( IS_SHAPE_FUNCTION_REQUIRED )
+    KRATOS_REGISTER_VARIABLE( RESET_CONFIGURATION )
+    #endif
+
+    /// Register elements and conditions
+
+    #ifdef SD_APP_FORWARD_COMPATIBILITY
+    KRATOS_REGISTER_ELEMENT( "CrisfieldTrussElement3D2N", mCrisfieldTrussElement3D2N )
+    KRATOS_REGISTER_ELEMENT( "CrisfieldTrussElement3D3N", mCrisfieldTrussElement3D3N )
+    KRATOS_REGISTER_ELEMENT( "TrussElement3D2N", mTrussElement3D2N )
+    KRATOS_REGISTER_ELEMENT( "TrussElement3D3N", mTrussElement3D3N )
+    KRATOS_REGISTER_ELEMENT( "BeamElement3D2N", mBeamElement3D2N )
+    KRATOS_REGISTER_ELEMENT( "BeamElement3D3N", mBeamElement3D3N )
+    KRATOS_REGISTER_ELEMENT( "TimoshenkoBeamElement3D2N", mTimoshenkoBeamElement3D2N )
+    KRATOS_REGISTER_ELEMENT( "TimoshenkoBeamElement3D3N", mTimoshenkoBeamElement3D3N )
+    KRATOS_REGISTER_ELEMENT( "TimoshenkoLinearBeamElement2D2N", mTimoshenkoLinearBeamElement2D2N )
+    KRATOS_REGISTER_ELEMENT( "TimoshenkoLinearBeamElement3D2N", mTimoshenkoLinearBeamElement3D2N )
+    KRATOS_REGISTER_ELEMENT( "TotalLagrangian2D3N", mTotalLagrangian2D3N )
+    KRATOS_REGISTER_ELEMENT( "TotalLagrangian2D4N", mTotalLagrangian2D4N )
+    KRATOS_REGISTER_ELEMENT( "TotalLagrangian2D6N", mTotalLagrangian2D6N )
+    KRATOS_REGISTER_ELEMENT( "TotalLagrangian2D8N", mTotalLagrangian2D8N )
+    KRATOS_REGISTER_ELEMENT( "TotalLagrangian3D4N", mTotalLagrangian3D4N )
+    KRATOS_REGISTER_ELEMENT( "TotalLagrangian3D10N", mTotalLagrangian3D10N )
+    KRATOS_REGISTER_ELEMENT( "TotalLagrangian3D6N", mTotalLagrangian3D6N )
+    KRATOS_REGISTER_ELEMENT( "TotalLagrangian3D15N", mTotalLagrangian3D15N )
+    KRATOS_REGISTER_ELEMENT( "TotalLagrangian3D8N", mTotalLagrangian3D8N )
+    KRATOS_REGISTER_ELEMENT( "TotalLagrangian3D20N", mTotalLagrangian3D20N )
+    KRATOS_REGISTER_ELEMENT( "TotalLagrangian3D27N", mTotalLagrangian3D27N )
+
+    KRATOS_REGISTER_ELEMENT( "KinematicLinear2D3N", mKinematicLinear2D3N )
+    KRATOS_REGISTER_ELEMENT( "KinematicLinear2D4N", mKinematicLinear2D4N )
+    KRATOS_REGISTER_ELEMENT( "KinematicLinear2D6N", mKinematicLinear2D6N )
+    KRATOS_REGISTER_ELEMENT( "KinematicLinear2D8N", mKinematicLinear2D8N )
+    KRATOS_REGISTER_ELEMENT( "KinematicLinear2D9N", mKinematicLinear2D9N )
+    KRATOS_REGISTER_ELEMENT( "KinematicLinear3D4N", mKinematicLinear3D4N )
+    KRATOS_REGISTER_ELEMENT( "KinematicLinear3D10N", mKinematicLinear3D10N )
+    KRATOS_REGISTER_ELEMENT( "KinematicLinear3D8N", mKinematicLinear3D8N )
+    KRATOS_REGISTER_ELEMENT( "KinematicLinear3D20N", mKinematicLinear3D20N )
+    KRATOS_REGISTER_ELEMENT( "KinematicLinear3D27N", mKinematicLinear3D27N )
+    KRATOS_REGISTER_ELEMENT( "KinematicLinear3D6N", mKinematicLinear3D6N )
+    KRATOS_REGISTER_ELEMENT( "KinematicLinear3D15N", mKinematicLinear3D15N )
+    #else
     KRATOS_REGISTER_ELEMENT( "CrisfieldTrussElement3D2N", mCrisfieldTrussElement3D2N )
     KRATOS_REGISTER_ELEMENT( "CrisfieldTrussElement3D3N", mCrisfieldTrussElement3D3N )
     KRATOS_REGISTER_ELEMENT( "TrussElement3D2N", mTrussElement3D2N )
@@ -876,8 +777,8 @@ void KratosStructuralApplication::Register()
     KRATOS_REGISTER_ELEMENT( "TotalLagrangian2D4N", mTotalLagrangian2D4N )
     KRATOS_REGISTER_ELEMENT( "TotalLagrangian2D6N", mTotalLagrangian2D6N )
     KRATOS_REGISTER_ELEMENT( "TotalLagrangian2D8N", mTotalLagrangian2D8N )
-    KRATOS_REGISTER_ELEMENT( "BeamElement3D2N",     mBeamElement3D2N )
-    KRATOS_REGISTER_ELEMENT( "BeamElement3D3N",     mBeamElement3D3N )
+    KRATOS_REGISTER_ELEMENT( "BeamElement3D2N", mBeamElement3D2N )
+    KRATOS_REGISTER_ELEMENT( "BeamElement3D3N", mBeamElement3D3N )
     KRATOS_REGISTER_ELEMENT( "TimoshenkoBeamElement3D2N", mTimoshenkoBeamElement3D2N )
     KRATOS_REGISTER_ELEMENT( "TimoshenkoBeamElement3D3N", mTimoshenkoBeamElement3D3N )
     KRATOS_REGISTER_ELEMENT( "CorotationalLinearBeamElement2D2N", mCorotationalLinearBeamElement2D2N )
@@ -1031,26 +932,8 @@ void KratosStructuralApplication::Register()
 //
 //        for(Serializer::RegisteredObjectsContainerType::iterator i = Serializer::GetRegisteredObjects().begin() ; i != Serializer::GetRegisteredObjects().end() ; i++)
 //            std::cout << i->first << std::endl;
-
-
-
-
+    #endif
 }
-
-
-/* // Initializing static members
- const TotalLagrangian  KratosStructuralApplication::msTotalLagrangian2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>()))));
-
- const TotalLagrangian  KratosStructuralApplication::msTotalLagrangian2D4N(0, Element::GeometryType::Pointer(new Quadrilateral2D4 <Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>()))));
-
- const TotalLagrangian  KratosStructuralApplication::msTotalLagrangian3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>()))));
-
- const MembraneElement  KratosStructuralApplication::msMembraneElement(0, Element::GeometryType::Pointer(new Triangle3D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>()))));
-
- const Face2D  KratosStructuralApplication::msFace2D(0, Element::GeometryType::Pointer(new Line2D<Node<3> >(Element::GeometryType::PointsArrayType(2, Node<3>()))));
-
- const Face3D  KratosStructuralApplication::msFace3D(0, Element::GeometryType::Pointer(new Triangle3D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>()))));
-*/
 
 }  // namespace Kratos.
 

@@ -68,15 +68,14 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 // Project includes
 #include "includes/define.h"
-#include "processes/process.h"
 #include "includes/node.h"
 #include "includes/element.h"
 #include "includes/model_part.h"
 #include "includes/variables.h"
-#include "includes/legacy_structural_app_vars.h"
 #include "includes/kratos_flags.h"
+#include "processes/process.h"
 #include "utilities/openmp_utils.h"
-#include "structural_application.h"
+#include "structural_application_variables.h"
 
 namespace Kratos
 {

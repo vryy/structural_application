@@ -57,14 +57,14 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
 // Project includes
-#include "custom_elements/unsaturated_soils_element_2phase_small_strain_scale_water_pressure.h"
 #include "includes/define.h"
-#include "utilities/math_utils.h"
-#include "custom_utilities/sd_math_utils.h"
 #include "geometries/hexahedra_3d_8.h"
 #include "geometries/tetrahedra_3d_4.h"
 #include "geometries/prism_3d_6.h"
-#include "structural_application.h"
+#include "utilities/math_utils.h"
+#include "custom_utilities/sd_math_utils.h"
+#include "custom_elements/unsaturated_soils_element_2phase_small_strain_scale_water_pressure.h"
+#include "structural_application_variables.h"
 
 //#define ENABLE_DEBUG_CONSTITUTIVE_LAW
 
@@ -330,12 +330,12 @@ void UnsaturatedSoilsElement_2phase_SmallStrain_Scale_WaterPressure::ResetConsti
 * THIS method is called from the scheme at the start of each solution step
 * @param rCurrentProcessInfo
 */
-void UnsaturatedSoilsElement_2phase_SmallStrain_Scale_WaterPressure::InitializeSolutionStep( ProcessInfo& CurrentProcessInfo )
+void UnsaturatedSoilsElement_2phase_SmallStrain_Scale_WaterPressure::InitializeSolutionStep( const ProcessInfo& CurrentProcessInfo )
 {
     if(mConstitutiveLawVector[0]->Has(CURRENT_STRAIN_VECTOR))
     {
         std::vector<Vector> Values;
-        this->GetValueOnIntegrationPoints(CURRENT_STRAIN_VECTOR, Values, CurrentProcessInfo);
+        this->CalculateOnIntegrationPoints(CURRENT_STRAIN_VECTOR, Values, CurrentProcessInfo);
         for ( unsigned int Point = 0; Point < mConstitutiveLawVector.size(); ++Point )
         {
             mConstitutiveLawVector[Point]->SetValue( CURRENT_STRAIN_VECTOR, Values[Point], CurrentProcessInfo );
@@ -350,12 +350,12 @@ void UnsaturatedSoilsElement_2phase_SmallStrain_Scale_WaterPressure::InitializeS
     }
 }
 
-void UnsaturatedSoilsElement_2phase_SmallStrain_Scale_WaterPressure::InitializeNonLinearIteration( ProcessInfo& CurrentProcessInfo )
+void UnsaturatedSoilsElement_2phase_SmallStrain_Scale_WaterPressure::InitializeNonLinearIteration( const ProcessInfo& CurrentProcessInfo )
 {
     if(mConstitutiveLawVector[0]->Has(CURRENT_STRAIN_VECTOR))
     {
         std::vector<Vector> Values;
-        this->GetValueOnIntegrationPoints(CURRENT_STRAIN_VECTOR, Values, CurrentProcessInfo);
+        this->CalculateOnIntegrationPoints(CURRENT_STRAIN_VECTOR, Values, CurrentProcessInfo);
         for ( unsigned int Point = 0; Point < mConstitutiveLawVector.size(); ++Point )
         {
             mConstitutiveLawVector[Point]->SetValue( CURRENT_STRAIN_VECTOR, Values[Point], CurrentProcessInfo );
@@ -373,7 +373,7 @@ void UnsaturatedSoilsElement_2phase_SmallStrain_Scale_WaterPressure::InitializeN
 //************************************************************************************
 //************************************************************************************
 void UnsaturatedSoilsElement_2phase_SmallStrain_Scale_WaterPressure::CalculateAll( MatrixType& rLeftHandSideMatrix,
-        VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo,
+        VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo,
         bool CalculateStiffnessMatrixFlag, bool CalculateResidualVectorFlag )
 {
     KRATOS_TRY
@@ -675,7 +675,7 @@ void UnsaturatedSoilsElement_2phase_SmallStrain_Scale_WaterPressure::CalculateAl
 //************************************************************************************
 
 void UnsaturatedSoilsElement_2phase_SmallStrain_Scale_WaterPressure::CalculateRightHandSide( VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo )
+        const ProcessInfo& rCurrentProcessInfo )
 {
     //calculation flags
     bool CalculateStiffnessMatrixFlag = false;
@@ -689,7 +689,7 @@ void UnsaturatedSoilsElement_2phase_SmallStrain_Scale_WaterPressure::CalculateRi
 //************************************************************************************
 
 void UnsaturatedSoilsElement_2phase_SmallStrain_Scale_WaterPressure::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix,
-        VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo )
+        VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo )
 {
     //calculation flags
     bool CalculateStiffnessMatrixFlag = true;
@@ -701,12 +701,12 @@ void UnsaturatedSoilsElement_2phase_SmallStrain_Scale_WaterPressure::CalculateLo
 ////************************************************************************************
 ////************************************************************************************
 
-void UnsaturatedSoilsElement_2phase_SmallStrain_Scale_WaterPressure::MassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
+void UnsaturatedSoilsElement_2phase_SmallStrain_Scale_WaterPressure::MassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_THROW_ERROR(std::logic_error, "Deprecated method", "")
 }
 
-void UnsaturatedSoilsElement_2phase_SmallStrain_Scale_WaterPressure::CalculateMassMatrix( MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo )
+void UnsaturatedSoilsElement_2phase_SmallStrain_Scale_WaterPressure::CalculateMassMatrix( MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo )
 {
     CalculateDampingMatrix(rMassMatrix, rCurrentProcessInfo);
 }
@@ -714,12 +714,12 @@ void UnsaturatedSoilsElement_2phase_SmallStrain_Scale_WaterPressure::CalculateMa
 ////************************************************************************************
 ////************************************************************************************
 
-void UnsaturatedSoilsElement_2phase_SmallStrain_Scale_WaterPressure::DampMatrix(MatrixType& rDampMatrix, ProcessInfo& rCurrentProcessInfo)
+void UnsaturatedSoilsElement_2phase_SmallStrain_Scale_WaterPressure::DampMatrix(MatrixType& rDampMatrix, const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_THROW_ERROR(std::logic_error, "Deprecated method", "")
 }
 
-void UnsaturatedSoilsElement_2phase_SmallStrain_Scale_WaterPressure::CalculateDampingMatrix( MatrixType& rDampMatrix, ProcessInfo& rCurrentProcessInfo )
+void UnsaturatedSoilsElement_2phase_SmallStrain_Scale_WaterPressure::CalculateDampingMatrix( MatrixType& rDampMatrix, const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 
@@ -847,12 +847,12 @@ void UnsaturatedSoilsElement_2phase_SmallStrain_Scale_WaterPressure::CalculateDa
 ////************************************************************************************
 ////************************************************************************************
 
-void UnsaturatedSoilsElement_2phase_SmallStrain_Scale_WaterPressure::FinalizeNonLinearIteration( ProcessInfo& CurrentProcessInfo )
+void UnsaturatedSoilsElement_2phase_SmallStrain_Scale_WaterPressure::FinalizeNonLinearIteration( const ProcessInfo& CurrentProcessInfo )
 {
     if(mConstitutiveLawVector[0]->Has(CURRENT_STRAIN_VECTOR))
     {
         std::vector<Vector> Values;
-        this->GetValueOnIntegrationPoints(CURRENT_STRAIN_VECTOR, Values, CurrentProcessInfo);
+        this->CalculateOnIntegrationPoints(CURRENT_STRAIN_VECTOR, Values, CurrentProcessInfo);
         for ( unsigned int Point = 0; Point < mConstitutiveLawVector.size(); ++Point )
         {
             mConstitutiveLawVector[Point]->SetValue( CURRENT_STRAIN_VECTOR, Values[Point], CurrentProcessInfo );
@@ -870,12 +870,12 @@ void UnsaturatedSoilsElement_2phase_SmallStrain_Scale_WaterPressure::FinalizeNon
 ////************************************************************************************
 ////************************************************************************************
 
-void UnsaturatedSoilsElement_2phase_SmallStrain_Scale_WaterPressure::FinalizeSolutionStep( ProcessInfo& CurrentProcessInfo )
+void UnsaturatedSoilsElement_2phase_SmallStrain_Scale_WaterPressure::FinalizeSolutionStep( const ProcessInfo& CurrentProcessInfo )
 {
     if(mConstitutiveLawVector[0]->Has(CURRENT_STRAIN_VECTOR))
     {
         std::vector<Vector> Values;
-        this->GetValueOnIntegrationPoints(CURRENT_STRAIN_VECTOR, Values, CurrentProcessInfo);
+        this->CalculateOnIntegrationPoints(CURRENT_STRAIN_VECTOR, Values, CurrentProcessInfo);
         for ( unsigned int Point = 0; Point < mConstitutiveLawVector.size(); ++Point )
         {
             mConstitutiveLawVector[Point]->SetValue( CURRENT_STRAIN_VECTOR, Values[Point], CurrentProcessInfo );
@@ -906,98 +906,6 @@ void UnsaturatedSoilsElement_2phase_SmallStrain_Scale_WaterPressure::FinalizeSol
 
 //************************************************************************************
 //************************************************************************************
-//************************************************************************************
-void UnsaturatedSoilsElement_2phase_SmallStrain_Scale_WaterPressure::CalculateOnIntegrationPoints( const Variable<double >& rVariable, std::vector<double>& Output, const ProcessInfo& rCurrentProcessInfo )
-{
-    KRATOS_TRY
-
-    unsigned int number_of_nodes_press = ( mNodesPressMax - mNodesPressMin + 1 );
-
-    #ifdef ENABLE_BEZIER_GEOMETRY
-    // initialize the geometry
-    GetGeometry().Initialize(mThisIntegrationMethod);
-    #endif
-
-    //reading integration points and local gradients
-    const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
-
-    if ( Output.size() != integration_points.size() )
-        Output.resize( integration_points.size() );
-
-    const Matrix& Ncontainer_Pressure = mpPressureGeometry->ShapeFunctionsValues( mThisIntegrationMethod );
-
-    Vector N_PRESS( number_of_nodes_press );
-
-    double capillaryPressure;
-
-    double waterPressure;
-
-    double saturation;
-
-    /////////////////////////////////////////////////////////////////////////
-    //// Integration in space sum_(beta=0)^(number of quadrature points)
-    /////////////////////////////////////////////////////////////////////////
-    for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
-    {
-        // Shape Functions on current spatial quadrature point
-        if ( N_PRESS.size() != number_of_nodes_press )
-            N_PRESS.resize( number_of_nodes_press );
-
-        noalias( N_PRESS ) = row( Ncontainer_Pressure, PointNumber );
-        GeometryType::CoordinatesArrayType gp_position;
-        gp_position = GetGeometry().GlobalCoordinates( gp_position, integration_points[PointNumber] );
-
-        GetPressures( N_PRESS, capillaryPressure, waterPressure, rCurrentProcessInfo[WATER_PRESSURE_SCALE] );
-
-        saturation = GetSaturation( capillaryPressure );
-
-        if ( rVariable == SATURATION )
-        {
-            Output[PointNumber] = saturation;
-        }
-
-        if ( rVariable == WATER_PRESSURE )
-        {
-            Output[PointNumber] = waterPressure;
-        }
-
-        if ( rVariable == EXCESS_PORE_WATER_PRESSURE )
-        {
-            Output[PointNumber] = waterPressure - mReferencePressures[PointNumber];
-        }
-
-        if ( rVariable == AIR_PRESSURE )
-        {
-            Output[PointNumber] = 0.0;
-        }
-    /////////////////////////////////////////////////////////////////////////
-    //// End Integration in space sum_(beta=0)^(number of quadrature points)
-    /////////////////////////////////////////////////////////////////////////
-    }
-
-    #ifdef ENABLE_BEZIER_GEOMETRY
-    // finalize the geometry
-    GetGeometry().Clean();
-    #endif
-
-    KRATOS_CATCH( "" )
-}
-
-/**
-* Calculate Vector Variables at each integration point, used for postprocessing etc.
-* @param rVariable Global name of the variable to be calculated
-* @param output Vector to store the values on the qudrature points, output of the method
-* @param rCurrentProcessInfo
-*/
-void UnsaturatedSoilsElement_2phase_SmallStrain_Scale_WaterPressure::CalculateOnIntegrationPoints( const Variable<Vector>& rVariable,
-        std::vector<Vector>& Output, const ProcessInfo& rCurrentProcessInfo )
-{
-    GetValueOnIntegrationPoints( rVariable, Output, rCurrentProcessInfo );
-}
-
-
-//************************************************************************************
-//************************************************************************************
 
 inline void UnsaturatedSoilsElement_2phase_SmallStrain_Scale_WaterPressure::CalculateAndAddExtForceContribution( const Vector& N, const ProcessInfo& CurrentProcessInfo, Vector& BodyForce, VectorType& rRightHandSideVector, double weight )
 {
@@ -1010,7 +918,7 @@ inline void UnsaturatedSoilsElement_2phase_SmallStrain_Scale_WaterPressure::Calc
 //************************************************************************************
 
 void UnsaturatedSoilsElement_2phase_SmallStrain_Scale_WaterPressure::EquationIdVector( EquationIdVectorType& rResult,
-        ProcessInfo& CurrentProcessInfo )
+        const ProcessInfo& CurrentProcessInfo ) const
 {
     DofsVectorType ElementalDofList;
     this->GetDofList(ElementalDofList, CurrentProcessInfo);
@@ -1022,8 +930,8 @@ void UnsaturatedSoilsElement_2phase_SmallStrain_Scale_WaterPressure::EquationIdV
 //************************************************************************************
 //************************************************************************************
 
-void UnsaturatedSoilsElement_2phase_SmallStrain_Scale_WaterPressure::GetDofList( DofsVectorType& ElementalDofList, ProcessInfo&
-        CurrentProcessInfo )
+void UnsaturatedSoilsElement_2phase_SmallStrain_Scale_WaterPressure::GetDofList( DofsVectorType& ElementalDofList, const ProcessInfo&
+        CurrentProcessInfo ) const
 {
     ElementalDofList.resize( 0 );
 
@@ -1042,7 +950,7 @@ void UnsaturatedSoilsElement_2phase_SmallStrain_Scale_WaterPressure::GetDofList(
 
 //************************************************************************************
 //************************************************************************************
-void UnsaturatedSoilsElement_2phase_SmallStrain_Scale_WaterPressure::GetValuesVector( Vector& values, int Step )
+void UnsaturatedSoilsElement_2phase_SmallStrain_Scale_WaterPressure::GetValuesVector( Vector& values, int Step ) const
 {
     unsigned int dim_press = 1;//two pressure dofs
     unsigned int dim_disp = ( GetGeometry().WorkingSpaceDimension() );//3 displacement dofs
@@ -2413,7 +2321,7 @@ void UnsaturatedSoilsElement_2phase_SmallStrain_Scale_WaterPressure::InitializeM
     KRATOS_CATCH( "" )
 }
 
-void UnsaturatedSoilsElement_2phase_SmallStrain_Scale_WaterPressure::GetValueOnIntegrationPoints( const Variable<Matrix>& rVariable, std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo )
+void UnsaturatedSoilsElement_2phase_SmallStrain_Scale_WaterPressure::CalculateOnIntegrationPoints( const Variable<Matrix>& rVariable, std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo )
 {
     if ( rValues.size() != mConstitutiveLawVector.size() )
         rValues.resize( mConstitutiveLawVector.size() );
@@ -2430,7 +2338,7 @@ void UnsaturatedSoilsElement_2phase_SmallStrain_Scale_WaterPressure::GetValueOnI
     }
 }
 
-void UnsaturatedSoilsElement_2phase_SmallStrain_Scale_WaterPressure::GetValueOnIntegrationPoints( const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo )
+void UnsaturatedSoilsElement_2phase_SmallStrain_Scale_WaterPressure::CalculateOnIntegrationPoints( const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo )
 {
     const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
 
@@ -2639,7 +2547,7 @@ void UnsaturatedSoilsElement_2phase_SmallStrain_Scale_WaterPressure::GetValueOnI
     }
 }
 
-void UnsaturatedSoilsElement_2phase_SmallStrain_Scale_WaterPressure::GetValueOnIntegrationPoints( const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo )
+void UnsaturatedSoilsElement_2phase_SmallStrain_Scale_WaterPressure::CalculateOnIntegrationPoints( const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
     
@@ -2725,6 +2633,11 @@ void UnsaturatedSoilsElement_2phase_SmallStrain_Scale_WaterPressure::GetValueOnI
         {
             rValues[PointNumber] = waterPressure - mReferencePressures[PointNumber];
         }
+
+        if ( rVariable == AIR_PRESSURE )
+        {
+            rValues[PointNumber] = 0.0;
+        }
     }
     /////////////////////////////////////////////////////////////////////////
     //// End Integration in space sum_(beta=0)^(number of quadrature points)
@@ -2737,7 +2650,7 @@ void UnsaturatedSoilsElement_2phase_SmallStrain_Scale_WaterPressure::GetValueOnI
     KRATOS_CATCH( "" )
 }
 
-void UnsaturatedSoilsElement_2phase_SmallStrain_Scale_WaterPressure::SetValueOnIntegrationPoints( const Variable<Matrix>& rVariable, std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo )
+void UnsaturatedSoilsElement_2phase_SmallStrain_Scale_WaterPressure::SetValuesOnIntegrationPoints( const Variable<Matrix>& rVariable, std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo )
 {
     if ( rValues.size() != mConstitutiveLawVector.size() )
     {
@@ -2754,7 +2667,7 @@ void UnsaturatedSoilsElement_2phase_SmallStrain_Scale_WaterPressure::SetValueOnI
     }
 }
 
-void UnsaturatedSoilsElement_2phase_SmallStrain_Scale_WaterPressure::SetValueOnIntegrationPoints( const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo )
+void UnsaturatedSoilsElement_2phase_SmallStrain_Scale_WaterPressure::SetValuesOnIntegrationPoints( const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo )
 {
     if ( rValues.size() != mConstitutiveLawVector.size() )
         return;
@@ -2772,7 +2685,7 @@ void UnsaturatedSoilsElement_2phase_SmallStrain_Scale_WaterPressure::SetValueOnI
             mConstitutiveLawVector[i]->SetValue( rVariable, rValues[i], rCurrentProcessInfo );
 }
 
-void UnsaturatedSoilsElement_2phase_SmallStrain_Scale_WaterPressure::SetValueOnIntegrationPoints( const Kratos::Variable< ConstitutiveLaw::Pointer >& rVariable, std::vector< ConstitutiveLaw::Pointer >& rValues, const Kratos::ProcessInfo& rCurrentProcessInfo )
+void UnsaturatedSoilsElement_2phase_SmallStrain_Scale_WaterPressure::SetValuesOnIntegrationPoints( const Kratos::Variable< ConstitutiveLaw::Pointer >& rVariable, std::vector< ConstitutiveLaw::Pointer >& rValues, const ProcessInfo& rCurrentProcessInfo )
 {
     if ( rVariable == CONSTITUTIVE_LAW )
     {
@@ -2784,7 +2697,7 @@ void UnsaturatedSoilsElement_2phase_SmallStrain_Scale_WaterPressure::SetValueOnI
     }
 }
 
-void UnsaturatedSoilsElement_2phase_SmallStrain_Scale_WaterPressure::SetValueOnIntegrationPoints( const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo )
+void UnsaturatedSoilsElement_2phase_SmallStrain_Scale_WaterPressure::SetValuesOnIntegrationPoints( const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo )
 {
     if( rVariable == K0 )
     {
@@ -2813,7 +2726,7 @@ UnsaturatedSoilsElement_2phase_SmallStrain_Scale_WaterPressure::IntegrationMetho
     return mThisIntegrationMethod;
 }
 
-int UnsaturatedSoilsElement_2phase_SmallStrain_Scale_WaterPressure::Check(const Kratos::ProcessInfo& rCurrentProcessInfo)
+int UnsaturatedSoilsElement_2phase_SmallStrain_Scale_WaterPressure::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
 

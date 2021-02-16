@@ -30,7 +30,7 @@ see license.txt
 #include "utilities/math_utils.h"
 #include "geometries/point_3d.h"
 //#include "spatial_containers/bounding_volume_tree.h"
-#include "structural_application.h"
+#include "structural_application_variables.h"
 
 
 namespace Kratos
@@ -123,7 +123,7 @@ namespace Kratos
                     //TODO
 
                     Element::Pointer pTargetElement;
-                    Point<3> LocalPoint;
+                    PointType LocalPoint;
                     if( FindPartnerElement( *(*it), rpElements, pTargetElement, LocalPoint ) )
                     {
                         // Create the linking condition

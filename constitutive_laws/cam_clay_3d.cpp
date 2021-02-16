@@ -65,7 +65,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "utilities/math_utils.h"
 #include "utilities/kratos_log.h"
 #include "constitutive_laws/cam_clay_3d.h"
-#include "structural_application.h"
+#include "structural_application_variables.h"
 
 #define DEBUG_CAM_CLAY
 #define DEBUG_ELEMENT_ID 1

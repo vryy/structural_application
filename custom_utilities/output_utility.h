@@ -71,9 +71,12 @@ namespace Kratos
 class OutputUtility
 {
 public:
-    typedef Geometry<Node<3> >::IntegrationPointsArrayType IntegrationPointsArrayType;
-    typedef Geometry<Node<3> >::GeometryType GeometryType;
-    typedef Geometry<Node<3> >::CoordinatesArrayType CoordinatesArrayType;
+
+    typedef Element::GeometryType GeometryType;
+    typedef GeometryType::IntegrationPointsArrayType IntegrationPointsArrayType;
+    typedef GeometryType::CoordinatesArrayType CoordinatesArrayType;
+
+    KRATOS_CLASS_POINTER_DEFINITION( OutputUtility );
 
     /**
      * Constructor.
@@ -119,6 +122,35 @@ public:
         return( output[gp_index] );
     }
 
+    std::size_t GetNumberOfPlasticPoints( ModelPart& rModelPart, const double& tol )
+    {
+        std::vector<double> output;
+        std::size_t npoints = 0;
+
+        for (ModelPart::ElementsContainerType::iterator it = rModelPart.Elements().begin();
+            it != rModelPart.Elements().end(); ++it)
+        {
+            it->CalculateOnIntegrationPoints(PLASTICITY_INDICATOR, output,
+                    rModelPart.GetProcessInfo() );
+
+            for (std::size_t i = 0; i < output.size(); ++i)
+            {
+                if (output[i] > tol)
+                    ++npoints;
+            }
+        }
+
+        return npoints;
+    }
+
+    void ListPlasticPoints( ModelPart& rModelPart )
+    {
+        const double tol = 1.0e-8;
+        std::size_t nplastic_points = GetNumberOfPlasticPoints(rModelPart, tol);
+
+        std::cout << "Number of plastic points in model_part " << rModelPart.Name()
+                  << " (tol=" << tol << "): " << nplastic_points << std::endl;
+    }
 
 };//Class OutputUtility
 }//namespace Kratos.

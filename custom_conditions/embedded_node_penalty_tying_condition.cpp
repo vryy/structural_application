@@ -15,7 +15,7 @@ see license.txt
 #include "custom_conditions/embedded_node_penalty_tying_condition.h"
 #include "custom_utilities/sd_math_utils.h"
 #include "includes/kratos_flags.h"
-#include "structural_application.h"
+#include "structural_application_variables.h"
 
 
 namespace Kratos
@@ -71,7 +71,7 @@ namespace Kratos
      * calculates only the RHS vector (certainly to be removed due to contact algorithm)
      */
     void EmbeddedNodePenaltyTyingCondition::CalculateRightHandSide( VectorType& rRightHandSideVector,
-            ProcessInfo& rCurrentProcessInfo)
+            const ProcessInfo& rCurrentProcessInfo)
     {
         //calculation flags
         bool CalculateStiffnessMatrixFlag = false;
@@ -90,7 +90,7 @@ namespace Kratos
      */
     void EmbeddedNodePenaltyTyingCondition::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix,
                                               VectorType& rRightHandSideVector,
-                                              ProcessInfo& rCurrentProcessInfo)
+                                              const ProcessInfo& rCurrentProcessInfo)
     {
         //calculation flags
         bool CalculateStiffnessMatrixFlag = true;
@@ -108,7 +108,7 @@ namespace Kratos
      */
     void EmbeddedNodePenaltyTyingCondition::CalculateAll( MatrixType& rLeftHandSideMatrix,
                                       VectorType& rRightHandSideVector,
-                                      ProcessInfo& rCurrentProcessInfo,
+                                      const ProcessInfo& rCurrentProcessInfo,
                                       bool CalculateStiffnessMatrixFlag,
                                       bool CalculateResidualVectorFlag)
     {
@@ -210,7 +210,7 @@ namespace Kratos
     * All Equation IDs are given Master first, Slave second
     */
     void EmbeddedNodePenaltyTyingCondition::EquationIdVector( EquationIdVectorType& rResult,
-                                          ProcessInfo& CurrentProcessInfo)
+                                          const ProcessInfo& CurrentProcessInfo) const
     {
 //        if( mpMasterElement->GetValue(IS_INACTIVE) || !mpMasterElement->Is(ACTIVE) )
 //        {
@@ -247,7 +247,7 @@ namespace Kratos
      */
     //************************************************************************************
     //************************************************************************************
-    void EmbeddedNodePenaltyTyingCondition::GetDofList( DofsVectorType& ConditionalDofList, ProcessInfo& CurrentProcessInfo)
+    void EmbeddedNodePenaltyTyingCondition::GetDofList( DofsVectorType& ConditionalDofList, const ProcessInfo& CurrentProcessInfo) const
     {
         ConditionalDofList.resize(0);
 //        if( mpMasterElement->GetValue(IS_INACTIVE) || !mpMasterElement->Is(ACTIVE) )

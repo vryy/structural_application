@@ -58,7 +58,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // Project includes
 #include "includes/define.h"
 #include "custom_conditions/master_contact_point_2d.h"
-#include "structural_application.h"
+#include "structural_application_variables.h"
 #include "utilities/math_utils.h"
 #include "custom_utilities/sd_math_utils.h"
 
@@ -185,7 +185,7 @@ bool MasterContactPoint2D::ClosestPoint( GeometryType::CoordinatesArrayType& rRe
  * calculates only the RHS vector (certainly to be removed due to contact algorithm)
  */
 void MasterContactPoint2D::CalculateRightHandSide( VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo)
+        const ProcessInfo& rCurrentProcessInfo)
 {
     unsigned int ndof = GetGeometry().size()*2;
     if( rRightHandSideVector.size() != ndof )
@@ -201,7 +201,7 @@ void MasterContactPoint2D::CalculateRightHandSide( VectorType& rRightHandSideVec
  */
 void MasterContactPoint2D::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo)
+        const ProcessInfo& rCurrentProcessInfo)
 {
     unsigned int ndof = GetGeometry().size()*2;
     if( rRightHandSideVector.size() != ndof )
@@ -221,7 +221,7 @@ void MasterContactPoint2D::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix
  */
 void MasterContactPoint2D::CalculateAll( MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo,
+        const ProcessInfo& rCurrentProcessInfo,
         bool CalculateStiffnessMatrixFlag,
         bool CalculateResidualVectorFlag)
 {
@@ -263,8 +263,7 @@ void MasterContactPoint2D::CalculateAndAdd_PressureForce( Vector& residualvector
  * REMOVED: the DOFs are managed by the linking conditions
  */
 void MasterContactPoint2D::EquationIdVector( EquationIdVectorType& rResult,
-        ProcessInfo& CurrentProcessInfo
-                                           )
+        const ProcessInfo& CurrentProcessInfo ) const
 {
 
     KRATOS_TRY
@@ -288,7 +287,7 @@ void MasterContactPoint2D::EquationIdVector( EquationIdVectorType& rResult,
  * REMOVED: the DOFs are managed by the linking conditions
  */
 void MasterContactPoint2D::GetDofList( DofsVectorType& ConditionalDofList,
-                                       ProcessInfo& CurrentProcessInfo)
+                                       const ProcessInfo& CurrentProcessInfo) const
 {
     ConditionalDofList.resize(0);
 
@@ -300,7 +299,7 @@ void MasterContactPoint2D::GetDofList( DofsVectorType& ConditionalDofList,
 
 }
 
-void MasterContactPoint2D::GetValueOnIntegrationPoints(const Variable<array_1d<double,3> >& rVariable, std::vector<array_1d<double,3> >& rValues, const ProcessInfo& rCurrentProcessInfo)
+void MasterContactPoint2D::CalculateOnIntegrationPoints(const Variable<array_1d<double,3> >& rVariable, std::vector<array_1d<double,3> >& rValues, const ProcessInfo& rCurrentProcessInfo)
 {
 }
 } // Namespace Kratos

@@ -94,17 +94,17 @@ public:
                                 PropertiesType::Pointer pProperties) const;
 
     void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType&
-                              rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
+                              rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo);
 
-    void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo&
+    void CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo&
                                 rCurrentProcessInfo);
-    //virtual void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo);
+    //virtual void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo);
 
-    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo&
-                          rCurrentProcessInfo);
+    void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo&
+                          rCurrentProcessInfo) const;
 
-    void GetDofList(DofsVectorType& ConditionalDofList,ProcessInfo&
-                    CurrentProcessInfo);
+    void GetDofList(DofsVectorType& ConditionalDofList, const ProcessInfo&
+                    CurrentProcessInfo) const;
 
     ///@}
     ///@name Access

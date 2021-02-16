@@ -57,14 +57,14 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
 // Project includes
-#include "custom_elements/unsaturated_soils_element_2phase_small_strain_staggered.h"
 #include "includes/define.h"
-#include "utilities/math_utils.h"
-#include "custom_utilities/sd_math_utils.h"
 #include "geometries/hexahedra_3d_8.h"
 #include "geometries/tetrahedra_3d_4.h"
 #include "geometries/prism_3d_6.h"
-#include "structural_application.h"
+#include "utilities/math_utils.h"
+#include "custom_utilities/sd_math_utils.h"
+#include "custom_elements/unsaturated_soils_element_2phase_small_strain_staggered.h"
+#include "structural_application_variables.h"
 
 #define ENABLE_DEBUG_CONSTITUTIVE_LAW
 
@@ -226,12 +226,12 @@ void UnsaturatedSoilsElement_2phase_SmallStrain_Staggered::ResetConstitutiveLaw(
 * THIS method is called from the scheme at the start of each solution step
 * @param rCurrentProcessInfo
 */
-void UnsaturatedSoilsElement_2phase_SmallStrain_Staggered::InitializeSolutionStep( ProcessInfo& CurrentProcessInfo )
+void UnsaturatedSoilsElement_2phase_SmallStrain_Staggered::InitializeSolutionStep( const ProcessInfo& CurrentProcessInfo )
 {
     if(mConstitutiveLawVector[0]->Has(CURRENT_STRAIN_VECTOR))
     {
         std::vector<Vector> Values;
-        this->GetValueOnIntegrationPoints(CURRENT_STRAIN_VECTOR, Values, CurrentProcessInfo);
+        this->CalculateOnIntegrationPoints(CURRENT_STRAIN_VECTOR, Values, CurrentProcessInfo);
         for ( unsigned int Point = 0; Point < mConstitutiveLawVector.size(); ++Point )
         {
             mConstitutiveLawVector[Point]->SetValue( CURRENT_STRAIN_VECTOR, Values[Point], CurrentProcessInfo );
@@ -246,12 +246,12 @@ void UnsaturatedSoilsElement_2phase_SmallStrain_Staggered::InitializeSolutionSte
     }
 }
 
-void UnsaturatedSoilsElement_2phase_SmallStrain_Staggered::InitializeNonLinearIteration( ProcessInfo& CurrentProcessInfo )
+void UnsaturatedSoilsElement_2phase_SmallStrain_Staggered::InitializeNonLinearIteration( const ProcessInfo& CurrentProcessInfo )
 {
     if(mConstitutiveLawVector[0]->Has(CURRENT_STRAIN_VECTOR))
     {
         std::vector<Vector> Values;
-        this->GetValueOnIntegrationPoints(CURRENT_STRAIN_VECTOR, Values, CurrentProcessInfo);
+        this->CalculateOnIntegrationPoints(CURRENT_STRAIN_VECTOR, Values, CurrentProcessInfo);
         for ( unsigned int Point = 0; Point < mConstitutiveLawVector.size(); ++Point )
         {
             mConstitutiveLawVector[Point]->SetValue( CURRENT_STRAIN_VECTOR, Values[Point], CurrentProcessInfo );
@@ -269,7 +269,7 @@ void UnsaturatedSoilsElement_2phase_SmallStrain_Staggered::InitializeNonLinearIt
 //************************************************************************************
 //************************************************************************************
 void UnsaturatedSoilsElement_2phase_SmallStrain_Staggered::CalculateAll( MatrixType& rLeftHandSideMatrix,
-        VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo,
+        VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo,
         bool CalculateStiffnessMatrixFlag, bool CalculateResidualVectorFlag )
 {
     KRATOS_TRY
@@ -544,7 +544,7 @@ void UnsaturatedSoilsElement_2phase_SmallStrain_Staggered::CalculateAll( MatrixT
 //************************************************************************************
 
 void UnsaturatedSoilsElement_2phase_SmallStrain_Staggered::CalculateRightHandSide( VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo )
+        const ProcessInfo& rCurrentProcessInfo )
 {
     //calculation flags
     bool CalculateStiffnessMatrixFlag = false;
@@ -558,7 +558,7 @@ void UnsaturatedSoilsElement_2phase_SmallStrain_Staggered::CalculateRightHandSid
 //************************************************************************************
 
 void UnsaturatedSoilsElement_2phase_SmallStrain_Staggered::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix,
-        VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo )
+        VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo )
 {
     //calculation flags
     bool CalculateStiffnessMatrixFlag = true;
@@ -570,7 +570,7 @@ void UnsaturatedSoilsElement_2phase_SmallStrain_Staggered::CalculateLocalSystem(
 ////************************************************************************************
 ////************************************************************************************
 
-void UnsaturatedSoilsElement_2phase_SmallStrain_Staggered::CalculateMassMatrix( MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo )
+void UnsaturatedSoilsElement_2phase_SmallStrain_Staggered::CalculateMassMatrix( MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo )
 {
     DampMatrix(rMassMatrix, rCurrentProcessInfo);
 }
@@ -578,7 +578,7 @@ void UnsaturatedSoilsElement_2phase_SmallStrain_Staggered::CalculateMassMatrix( 
 ////************************************************************************************
 ////************************************************************************************
 
-void UnsaturatedSoilsElement_2phase_SmallStrain_Staggered::CalculateDampingMatrix( MatrixType& rDampMatrix, ProcessInfo& rCurrentProcessInfo )
+void UnsaturatedSoilsElement_2phase_SmallStrain_Staggered::CalculateDampingMatrix( MatrixType& rDampMatrix, const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 
@@ -659,12 +659,12 @@ void UnsaturatedSoilsElement_2phase_SmallStrain_Staggered::CalculateDampingMatri
 ////************************************************************************************
 ////************************************************************************************
 
-void UnsaturatedSoilsElement_2phase_SmallStrain_Staggered::FinalizeNonLinearIteration( ProcessInfo& CurrentProcessInfo )
+void UnsaturatedSoilsElement_2phase_SmallStrain_Staggered::FinalizeNonLinearIteration( const ProcessInfo& CurrentProcessInfo )
 {
     if(mConstitutiveLawVector[0]->Has(CURRENT_STRAIN_VECTOR))
     {
         std::vector<Vector> Values;
-        this->GetValueOnIntegrationPoints(CURRENT_STRAIN_VECTOR, Values, CurrentProcessInfo);
+        this->CalculateOnIntegrationPoints(CURRENT_STRAIN_VECTOR, Values, CurrentProcessInfo);
         for ( unsigned int Point = 0; Point < mConstitutiveLawVector.size(); ++Point )
         {
             mConstitutiveLawVector[Point]->SetValue( CURRENT_STRAIN_VECTOR, Values[Point], CurrentProcessInfo );
@@ -682,12 +682,12 @@ void UnsaturatedSoilsElement_2phase_SmallStrain_Staggered::FinalizeNonLinearIter
 ////************************************************************************************
 ////************************************************************************************
 
-void UnsaturatedSoilsElement_2phase_SmallStrain_Staggered::FinalizeSolutionStep( ProcessInfo& CurrentProcessInfo )
+void UnsaturatedSoilsElement_2phase_SmallStrain_Staggered::FinalizeSolutionStep( const ProcessInfo& CurrentProcessInfo )
 {
     if(mConstitutiveLawVector[0]->Has(CURRENT_STRAIN_VECTOR))
     {
         std::vector<Vector> Values;
-        this->GetValueOnIntegrationPoints(CURRENT_STRAIN_VECTOR, Values, CurrentProcessInfo);
+        this->CalculateOnIntegrationPoints(CURRENT_STRAIN_VECTOR, Values, CurrentProcessInfo);
         for ( unsigned int Point = 0; Point < mConstitutiveLawVector.size(); ++Point )
         {
             mConstitutiveLawVector[Point]->SetValue( CURRENT_STRAIN_VECTOR, Values[Point], CurrentProcessInfo );
@@ -718,98 +718,6 @@ void UnsaturatedSoilsElement_2phase_SmallStrain_Staggered::FinalizeSolutionStep(
 
 //************************************************************************************
 //************************************************************************************
-//************************************************************************************
-void UnsaturatedSoilsElement_2phase_SmallStrain_Staggered::CalculateOnIntegrationPoints( const Variable<double >& rVariable, std::vector<double>& Output, const ProcessInfo& rCurrentProcessInfo )
-{
-    KRATOS_TRY
-
-    unsigned int number_of_nodes = GetGeometry().size();
-
-    #ifdef ENABLE_BEZIER_GEOMETRY
-    // initialize the geometry
-    GetGeometry().Initialize(mThisIntegrationMethod);
-    #endif
-
-    //reading integration points and local gradients
-    const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
-
-    if ( Output.size() != integration_points.size() )
-        Output.resize( integration_points.size() );
-
-    const Matrix& Ncontainer = GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod );
-
-    Vector N( number_of_nodes );
-
-    double capillaryPressure;
-
-    double waterPressure;
-
-    double saturation;
-
-    /////////////////////////////////////////////////////////////////////////
-    //// Integration in space sum_(beta=0)^(number of quadrature points)
-    /////////////////////////////////////////////////////////////////////////
-    for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
-    {
-        // Shape Functions on current spatial quadrature point
-        if ( N.size() != number_of_nodes )
-            N.resize( number_of_nodes );
-
-        noalias( N ) = row( Ncontainer, PointNumber );
-        GeometryType::CoordinatesArrayType gp_position;
-        gp_position = GetGeometry().GlobalCoordinates( gp_position, GetGeometry().IntegrationPoints()[PointNumber] );
-
-        GetPressures( N, capillaryPressure, waterPressure );
-
-        saturation = GetSaturation( capillaryPressure );
-
-        if ( rVariable == SATURATION )
-        {
-            Output[PointNumber] = saturation;
-        }
-
-        if ( rVariable == WATER_PRESSURE )
-        {
-            Output[PointNumber] = waterPressure;
-        }
-
-        if ( rVariable == EXCESS_PORE_WATER_PRESSURE )
-        {
-            Output[PointNumber] = waterPressure - mReferencePressures[PointNumber];
-        }
-
-        if ( rVariable == AIR_PRESSURE )
-        {
-            Output[PointNumber] = 0.0;
-        }
-    /////////////////////////////////////////////////////////////////////////
-    //// End Integration in space sum_(beta=0)^(number of quadrature points)
-    /////////////////////////////////////////////////////////////////////////
-    }
-
-    #ifdef ENABLE_BEZIER_GEOMETRY
-    // finalize the geometry
-    GetGeometry().Clean();
-    #endif
-
-    KRATOS_CATCH( "" )
-}
-
-/**
-* Calculate Vector Variables at each integration point, used for postprocessing etc.
-* @param rVariable Global name of the variable to be calculated
-* @param output Vector to store the values on the qudrature points, output of the method
-* @param rCurrentProcessInfo
-*/
-void UnsaturatedSoilsElement_2phase_SmallStrain_Staggered::CalculateOnIntegrationPoints( const Variable<Vector>& rVariable,
-        std::vector<Vector>& Output, const ProcessInfo& rCurrentProcessInfo )
-{
-    GetValueOnIntegrationPoints( rVariable, Output, rCurrentProcessInfo );
-}
-
-
-//************************************************************************************
-//************************************************************************************
 
 inline void UnsaturatedSoilsElement_2phase_SmallStrain_Staggered::CalculateAndAddExtForceContribution( const Vector& N, const ProcessInfo& CurrentProcessInfo, Vector& BodyForce, VectorType& rRightHandSideVector, double weight )
 {
@@ -822,7 +730,7 @@ inline void UnsaturatedSoilsElement_2phase_SmallStrain_Staggered::CalculateAndAd
 //************************************************************************************
 
 void UnsaturatedSoilsElement_2phase_SmallStrain_Staggered::EquationIdVector( EquationIdVectorType& rResult,
-        ProcessInfo& CurrentProcessInfo )
+        const ProcessInfo& CurrentProcessInfo ) const
 {
     DofsVectorType ElementalDofList;
     this->GetDofList(ElementalDofList, CurrentProcessInfo);
@@ -835,7 +743,7 @@ void UnsaturatedSoilsElement_2phase_SmallStrain_Staggered::EquationIdVector( Equ
 //************************************************************************************
 
 void UnsaturatedSoilsElement_2phase_SmallStrain_Staggered::GetDofList( DofsVectorType& ElementalDofList,
-        ProcessInfo& CurrentProcessInfo )
+        const ProcessInfo& CurrentProcessInfo ) const
 {
     ElementalDofList.resize( 0 );
 
@@ -859,7 +767,7 @@ void UnsaturatedSoilsElement_2phase_SmallStrain_Staggered::GetDofList( DofsVecto
 
 //************************************************************************************
 //************************************************************************************
-void UnsaturatedSoilsElement_2phase_SmallStrain_Staggered::GetValuesVector( Vector& values, int Step )
+void UnsaturatedSoilsElement_2phase_SmallStrain_Staggered::GetValuesVector( Vector& values, int Step ) const
 {
     // TODO
 }
@@ -1582,7 +1490,7 @@ void UnsaturatedSoilsElement_2phase_SmallStrain_Staggered::InitializeMaterial
     KRATOS_CATCH( "" )
 }
 
-void UnsaturatedSoilsElement_2phase_SmallStrain_Staggered::GetValueOnIntegrationPoints( const Variable<Matrix>& rVariable, std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo )
+void UnsaturatedSoilsElement_2phase_SmallStrain_Staggered::CalculateOnIntegrationPoints( const Variable<Matrix>& rVariable, std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo )
 {
     if ( rValues.size() != mConstitutiveLawVector.size() )
         rValues.resize( mConstitutiveLawVector.size() );
@@ -1599,7 +1507,7 @@ void UnsaturatedSoilsElement_2phase_SmallStrain_Staggered::GetValueOnIntegration
     }
 }
 
-void UnsaturatedSoilsElement_2phase_SmallStrain_Staggered::GetValueOnIntegrationPoints( const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo )
+void UnsaturatedSoilsElement_2phase_SmallStrain_Staggered::CalculateOnIntegrationPoints( const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo )
 {
     const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
 
@@ -1801,7 +1709,7 @@ void UnsaturatedSoilsElement_2phase_SmallStrain_Staggered::GetValueOnIntegration
     }
 }
 
-void UnsaturatedSoilsElement_2phase_SmallStrain_Staggered::GetValueOnIntegrationPoints( const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo )
+void UnsaturatedSoilsElement_2phase_SmallStrain_Staggered::CalculateOnIntegrationPoints( const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 
@@ -1887,6 +1795,11 @@ void UnsaturatedSoilsElement_2phase_SmallStrain_Staggered::GetValueOnIntegration
         {
             rValues[PointNumber] = waterPressure - mReferencePressures[PointNumber];
         }
+
+        if ( rVariable == AIR_PRESSURE )
+        {
+            rValues[PointNumber] = 0.0;
+        }
     }
     /////////////////////////////////////////////////////////////////////////
     //// End Integration in space sum_(beta=0)^(number of quadrature points)
@@ -1899,7 +1812,7 @@ void UnsaturatedSoilsElement_2phase_SmallStrain_Staggered::GetValueOnIntegration
     KRATOS_CATCH( "" )
 }
 
-void UnsaturatedSoilsElement_2phase_SmallStrain_Staggered::SetValueOnIntegrationPoints( const Variable<Matrix>& rVariable, std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo )
+void UnsaturatedSoilsElement_2phase_SmallStrain_Staggered::SetValuesOnIntegrationPoints( const Variable<Matrix>& rVariable, std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo )
 {
     if ( rValues.size() != mConstitutiveLawVector.size() )
     {
@@ -1916,7 +1829,7 @@ void UnsaturatedSoilsElement_2phase_SmallStrain_Staggered::SetValueOnIntegration
     }
 }
 
-void UnsaturatedSoilsElement_2phase_SmallStrain_Staggered::SetValueOnIntegrationPoints( const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo )
+void UnsaturatedSoilsElement_2phase_SmallStrain_Staggered::SetValuesOnIntegrationPoints( const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo )
 {
     if ( rValues.size() != mConstitutiveLawVector.size() )
         return;
@@ -1934,7 +1847,7 @@ void UnsaturatedSoilsElement_2phase_SmallStrain_Staggered::SetValueOnIntegration
             mConstitutiveLawVector[i]->SetValue( rVariable, rValues[i], rCurrentProcessInfo );
 }
 
-void UnsaturatedSoilsElement_2phase_SmallStrain_Staggered::SetValueOnIntegrationPoints( const Kratos::Variable< ConstitutiveLaw::Pointer >& rVariable, std::vector< ConstitutiveLaw::Pointer >& rValues, const Kratos::ProcessInfo& rCurrentProcessInfo )
+void UnsaturatedSoilsElement_2phase_SmallStrain_Staggered::SetValuesOnIntegrationPoints( const Kratos::Variable< ConstitutiveLaw::Pointer >& rVariable, std::vector< ConstitutiveLaw::Pointer >& rValues, const ProcessInfo& rCurrentProcessInfo )
 {
     if ( rVariable == CONSTITUTIVE_LAW )
     {
@@ -1946,7 +1859,7 @@ void UnsaturatedSoilsElement_2phase_SmallStrain_Staggered::SetValueOnIntegration
     }
 }
 
-void UnsaturatedSoilsElement_2phase_SmallStrain_Staggered::SetValueOnIntegrationPoints( const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo )
+void UnsaturatedSoilsElement_2phase_SmallStrain_Staggered::SetValuesOnIntegrationPoints( const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo )
 {
     if( rVariable == K0 )
     {
@@ -1975,7 +1888,7 @@ UnsaturatedSoilsElement_2phase_SmallStrain_Staggered::IntegrationMethod Unsatura
     return mThisIntegrationMethod;
 }
 
-int UnsaturatedSoilsElement_2phase_SmallStrain_Staggered::Check(const Kratos::ProcessInfo& rCurrentProcessInfo)
+int UnsaturatedSoilsElement_2phase_SmallStrain_Staggered::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
 

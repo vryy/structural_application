@@ -84,6 +84,12 @@ namespace Kratos
         // Counted pointer of Contact_Link_3D_Lagrange_Tying
         KRATOS_CLASS_POINTER_DEFINITION(Contact_Link_3D_Lagrange_Tying);
 
+        #ifdef SD_APP_FORWARD_COMPATIBILITY
+        typedef Point PointType;
+        #else
+        typedef Point<3> PointType;
+        #endif
+
         /**
          * Default constructor.
          */
@@ -98,8 +104,8 @@ namespace Kratos
                                        PropertiesType::Pointer pProperties,
                                        Condition::Pointer Master,
                                        Condition::Pointer Slave,
-                                       Point<3>& MasterContactLocalPoint,
-                                       Point<3>& SlaveContactLocalPoint,
+                                       PointType& MasterContactLocalPoint,
+                                       PointType& SlaveContactLocalPoint,
                                        int SlaveIntegrationPointIndex
                                        );
         /**
@@ -121,24 +127,24 @@ namespace Kratos
                                   GeometryType::Pointer pGeom,
                                   PropertiesType::Pointer pProperties) const;
 
-        void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo);
+        void InitializeSolutionStep(const ProcessInfo& CurrentProcessInfo);
         /**
          * Calculates the local system contributions for this contact element
          */
         void CalculateLocalSystem( MatrixType& rLeftHandSideMatrix,
                                   VectorType& rRightHandSideVector,
-                                  ProcessInfo& rCurrentProcessInfo);
+                                  const ProcessInfo& rCurrentProcessInfo);
 
         void CalculateRightHandSide( VectorType& rRightHandSideVector,
-                                    ProcessInfo& rCurrentProcessInfo);
+                                    const ProcessInfo& rCurrentProcessInfo);
 
-        void CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo);
+        void CalculateDampingMatrix(MatrixType& rDampingMatrix, const ProcessInfo& rCurrentProcessInfo);
 
         void EquationIdVector( EquationIdVectorType& rResult,
-                              ProcessInfo& rCurrentProcessInfo);
+                              const ProcessInfo& rCurrentProcessInfo) const;
 
         void GetDofList( DofsVectorType& ConditionalDofList,
-                        ProcessInfo& CurrentProcessInfo);
+                        const ProcessInfo& CurrentProcessInfo) const;
 
         /**
          * Turn back information as a string.
@@ -162,7 +168,7 @@ namespace Kratos
     private:
         void CalculateAll( MatrixType& rLeftHandSideMatrix,
                           VectorType& rRightHandSideVector,
-                          ProcessInfo& rCurrentProcessInfo,
+                          const ProcessInfo& rCurrentProcessInfo,
                           bool CalculateStiffnessMatrixFlag,
                           bool CalculateResidualVectorFlag);
 
@@ -213,7 +219,7 @@ namespace Kratos
         Matrix TangentialVectors_inOrigin( Condition::Pointer Surface,
                                           const GeometryType::CoordinatesArrayType& rPoint );
 
-        Point<3>& GlobalCoordinates(Condition::Pointer Surface, Point<3>& rResult, Point<3> const& LocalCoordinates);
+        PointType& GlobalCoordinates(Condition::Pointer Surface, PointType& rResult, PointType const& LocalCoordinates);
 
 
         Vector GetRelativTangentialVelocity(Matrix& T);
@@ -258,10 +264,10 @@ namespace Kratos
         Matrix mTMaster;
         //             Condition::Pointer mpSlave;
         //             Condition::Pointer mpMaster;
-        //             Point<3> mMasterContactLocalPoint;
-        //             Point<3> mSlaveContactLocalPoint;
-        //             Point<3> mMasterContactGlobalPoint;
-        //             Point<3> mSlaveContactGlobalPoint;
+        //             PointType mMasterContactLocalPoint;
+        //             PointType mSlaveContactLocalPoint;
+        //             PointType mMasterContactGlobalPoint;
+        //             PointType mSlaveContactGlobalPoint;
     }; // Class Contact_Link_3D_Lagrange_Tying
 }  // namespace Kratos.
 

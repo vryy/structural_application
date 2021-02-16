@@ -57,11 +57,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 // Project includes
 #include "includes/define.h"
-#include "custom_conditions/slave_contact_face_3D_newmark.h"
-#include "structural_application.h"
+#include "custom_conditions/slave_contact_face_3D.h"
+#include "structural_application_variables.h"
 #include "utilities/math_utils.h"
 #include "custom_utilities/sd_math_utils.h"
-#include "includes/deprecated_variables.h"
 
 namespace Kratos
 {
@@ -151,13 +150,13 @@ SlaveContactFace3D::~SlaveContactFace3D()
 //     }
 //************************************************************************************
 //************************************************************************************
-void SlaveContactFace3D::CalculateOnIntegrationPoints( const Variable<double>& rVariable, std::vector<double>& Output, const ProcessInfo& rCurrentProcessInfo )
+void SlaveContactFace3D::CalculateOnIntegrationPoints( const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo )
 {
     //reading integration points and local gradients
     const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints();
 
-    if ( Output.size() != integration_points.size() )
-        Output.resize( integration_points.size() );
+    if ( rValues.size() != integration_points.size() )
+        rValues.resize( integration_points.size() );
 
     double result = 0.0;
 
@@ -189,14 +188,12 @@ void SlaveContactFace3D::CalculateOnIntegrationPoints( const Variable<double>& r
     {
         if ( rVariable == NORMAL_CONTACT_STRESS )
         {
-
-            Output[PointNumber] = result / reference;
-
+            rValues[PointNumber] = result / reference;
         }
 
         if ( rVariable == TANGENTIAL_CONTACT_STRESS )
         {
-            Output[PointNumber] =  result_friction / reference;
+            rValues[PointNumber] =  result_friction / reference;
         }
 
         if ( rVariable == CONTACT_PENETRATION )
@@ -204,26 +201,12 @@ void SlaveContactFace3D::CalculateOnIntegrationPoints( const Variable<double>& r
             //Output[PointNumber]=  this->GetValue(STICK)[PointNumber] ;
             if( this->GetValue( GAPS )[PointNumber] > 0.0 )
             {
-                Output[PointNumber] = this->GetValue( GAPS )[PointNumber];
+                rValues[PointNumber] = this->GetValue( GAPS )[PointNumber];
             }
             else
-                Output[PointNumber] =  0.0 ;
+                rValues[PointNumber] =  0.0 ;
         }
     }
-}
-
-void SlaveContactFace3D::GetValueOnIntegrationPoints( const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo )
-{
-    std::vector<double> result( GetGeometry().IntegrationPoints().size() );
-    std::fill(result.begin(), result.end(), 0);
-
-    CalculateOnIntegrationPoints( rVariable, result, rCurrentProcessInfo );
-
-    if ( rValues.size() != GetGeometry().IntegrationPoints().size() )
-        rValues.resize( GetGeometry().IntegrationPoints().size() );
-
-    for ( unsigned int i = 0; i < result.size(); i++ )
-        rValues[i] = result[i];
 }
 
 //************************************************************************************
@@ -246,7 +229,7 @@ void SlaveContactFace3D::GetValueOnIntegrationPoints( const Variable<double>& rV
  * calculates only the RHS vector (certainly to be removed due to contact algorithm)
  */
 void SlaveContactFace3D::CalculateRightHandSide( VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo )
+        const ProcessInfo& rCurrentProcessInfo )
 {
     unsigned int ndof = GetGeometry().size() * 3;
 
@@ -263,7 +246,7 @@ void SlaveContactFace3D::CalculateRightHandSide( VectorType& rRightHandSideVecto
  */
 void SlaveContactFace3D::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo )
+        const ProcessInfo& rCurrentProcessInfo )
 {
     unsigned int ndof = GetGeometry().size() * 3;
 
@@ -287,7 +270,7 @@ void SlaveContactFace3D::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix,
  */
 void SlaveContactFace3D::CalculateAll( MatrixType& rLeftHandSideMatrix,
                                        VectorType& rRightHandSideVector,
-                                       ProcessInfo& rCurrentProcessInfo,
+                                       const ProcessInfo& rCurrentProcessInfo,
                                        bool CalculateStiffnessMatrixFlag,
                                        bool CalculateResidualVectorFlag )
 {
@@ -327,7 +310,7 @@ void SlaveContactFace3D::CalculateAndAdd_PressureForce( Vector& residualvector,
  * REMOVED: the DOFs are managed by the linking conditions
  */
 void SlaveContactFace3D::EquationIdVector( EquationIdVectorType& rResult,
-        ProcessInfo& CurrentProcessInfo )
+        const ProcessInfo& CurrentProcessInfo ) const
 {
     KRATOS_TRY
     unsigned int number_of_nodes = GetGeometry().size();
@@ -349,18 +332,11 @@ void SlaveContactFace3D::EquationIdVector( EquationIdVectorType& rResult,
 
 //************************************************************************************
 //************************************************************************************
-void SlaveContactFace3D::MasterElementsEquationIdVectors( EquationIdVectorContainerType& rResult,
-        ProcessInfo& rCurrentProcessInfo )
-{
-}
-
-//************************************************************************************
-//************************************************************************************
 /**
  * REMOVED: the DOFs are managed by the linking conditions
  */
 void SlaveContactFace3D::GetDofList( DofsVectorType& ConditionalDofList,
-                                     ProcessInfo& CurrentProcessInfo )
+                                     const ProcessInfo& CurrentProcessInfo ) const
 {
     ConditionalDofList.resize( 0 );
 
@@ -401,7 +377,7 @@ Matrix SlaveContactFace3D::TangentialVectors_inOrigin( const GeometryType::Coord
 * or that no common error is found.
 * @param rCurrentProcessInfo
 */
-int SlaveContactFace3D::Check( const Kratos::ProcessInfo& rCurrentProcessInfo )
+int SlaveContactFace3D::Check( const ProcessInfo& rCurrentProcessInfo )
 {
     return 0;
 }

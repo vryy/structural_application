@@ -59,7 +59,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // Project includes
 #include "includes/define.h"
 #include "custom_conditions/pointforce2D.h"
-#include "structural_application.h"
+#include "structural_application_variables.h"
 #include "utilities/math_utils.h"
 
 namespace Kratos
@@ -100,7 +100,7 @@ PointForce2D::~PointForce2D()
 
 //************************************************************************************
 //************************************************************************************
-void PointForce2D::CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+void PointForce2D::CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
     if(rRightHandSideVector.size() != 2)
@@ -115,7 +115,7 @@ void PointForce2D::CalculateRightHandSide(VectorType& rRightHandSideVector, Proc
 
 //************************************************************************************
 //************************************************************************************
-void PointForce2D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+void PointForce2D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -136,7 +136,7 @@ void PointForce2D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorT
 
 //************************************************************************************
 //************************************************************************************
-void PointForce2D::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& CurrentProcessInfo)
+void PointForce2D::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& CurrentProcessInfo) const
 {
     int number_of_nodes = GetGeometry().PointsNumber();
     unsigned int index;
@@ -153,7 +153,7 @@ void PointForce2D::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& 
 
 //************************************************************************************
 //************************************************************************************
-void PointForce2D::GetDofList(DofsVectorType& ConditionalDofList,ProcessInfo& CurrentProcessInfo)
+void PointForce2D::GetDofList(DofsVectorType& ConditionalDofList, const ProcessInfo& CurrentProcessInfo) const
 {
     unsigned int dim = 2;
     ConditionalDofList.resize(GetGeometry().size()*dim);

@@ -143,13 +143,13 @@ public:
 
     void Initialize(const ProcessInfo& rCurrentProcessInfo);
 
-    virtual void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo);
+    virtual void InitializeSolutionStep(const ProcessInfo& CurrentProcessInfo);
 
-    virtual void FinalizeSolutionStep(ProcessInfo& CurrentProcessInfo);
+    virtual void FinalizeSolutionStep(const ProcessInfo& CurrentProcessInfo);
 
-    virtual void GetDofList(DofsVectorType& ElementalDofList,ProcessInfo& CurrentProcessInfo);
+    virtual void GetDofList(DofsVectorType& ElementalDofList, const ProcessInfo& CurrntProcessInfo) const;
 
-    virtual void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo);
+    virtual void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const;
 
     void CalculateExternalLoadVector(Matrix& Rotation,  Vector& LocalBody, Vector& GlobalBody);
 
@@ -157,9 +157,9 @@ public:
 
     void CalculateLocalMatrix(Matrix& LocalMatrix);
 
-    virtual void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
+    virtual void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo);
 
-    virtual int Check(const ProcessInfo& rCurrentProcessInfo);
+    virtual int Check(const ProcessInfo& rCurrentProcessInfo) const;
 
     ///@}
     ///@name Access

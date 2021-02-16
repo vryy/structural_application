@@ -1,0 +1,96 @@
+set(CMAKE_INCLUDE_CURRENT_DIR ON)
+
+message("**** configuring KratosStructuralApplication ****")
+
+################### PYBIND11
+include(pybind11Tools)
+
+include_directories( ${CMAKE_SOURCE_DIR}/kratos )
+include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/.. )
+
+add_definitions(-DSD_APP_FORWARD_COMPATIBILITY)
+
+## Structural Core sources
+file(GLOB_RECURSE KRATOS_STRUCTURAL_APPLICATION_CORE
+    ${CMAKE_CURRENT_SOURCE_DIR}/structural_application.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python3/legacy_structural_app_vars.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python3/structural_application_variables3.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/line_force.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/faceforce3D.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/pile_kinematic_linear.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/tip_condition.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/crisfield_truss_element.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/truss_element.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/beam_element.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/timoshenko_beam_element.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/timoshenko_linear_beam_element.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/eas_element_q4e4.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/kinematic_linear.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/total_lagrangian.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/constitutive_laws/dummy_consitutive_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/constitutive_laws/plane_strain.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/constitutive_laws/plane_stress.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/constitutive_laws/isotropic_3d.cpp
+)
+
+## Structural testing sources
+if(${KRATOS_BUILD_TESTING} MATCHES ON)
+    file(GLOB_RECURSE KRATOS_STRUCTURAL_APPLICATION_TESTING_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests_python3/*.cpp)
+endif(${KRATOS_BUILD_TESTING} MATCHES ON)
+
+## Structural python interface sources
+file(GLOB_RECURSE KRATOS_STRUCTURAL_APPLICATION_PYTHON_INTERFACE
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python3/add_constitutive_laws_to_python.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python3/add_custom_utilities_to_python.cpp
+    #${CMAKE_CURRENT_SOURCE_DIR}/custom_python3/add_custom_processes_to_python.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python3/structural_python_application.cpp
+)
+
+add_library(KratosStructuralCore SHARED ${KRATOS_STRUCTURAL_APPLICATION_CORE} ${KRATOS_STRUCTURAL_APPLICATION_TESTING_SOURCES})
+target_link_libraries(KratosStructuralCore PUBLIC KratosCore)
+set_target_properties(KratosStructuralCore PROPERTIES COMPILE_DEFINITIONS "STRUCTURAL_APPLICATION=EXPORT,API")
+
+###############################################################
+## define library Kratos which defines the basic python interface
+pybind11_add_module(KratosStructuralApplication MODULE THIN_LTO ${KRATOS_STRUCTURAL_APPLICATION_PYTHON_INTERFACE})
+target_link_libraries(KratosStructuralApplication PRIVATE KratosStructuralCore)
+set_target_properties(KratosStructuralApplication PROPERTIES PREFIX "")
+
+# changing the .dll suffix to .pyd (Windows)
+if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+    set_target_properties(KratosStructuralApplication PROPERTIES SUFFIX .pyd)
+endif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+
+# changing the .dylib suffix to .so (OS X)
+if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+    set_target_properties(KratosStructuralApplication PROPERTIES SUFFIX .so)
+endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+
+# # Cotire
+# if(USE_COTIRE MATCHES ON)
+#     cotire(KratosStructuralCore)
+#     cotire(KratosStructuralApplication)
+# endif(USE_COTIRE MATCHES ON)
+
+# Add to the KratosMultiphisics Python module
+kratos_python_install(${INSTALL_PYTHON_USING_LINKS} ${CMAKE_CURRENT_SOURCE_DIR}/StructuralApplication3.py KratosMultiphysics/StructuralApplication/__init__.py )
+
+# Install python files
+get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
+kratos_python_install_directory(${INSTALL_PYTHON_USING_LINKS} ${CMAKE_CURRENT_SOURCE_DIR}/python_scripts3 KratosMultiphysics/${CURRENT_DIR_NAME} )
+
+# Kratos Testing. Install everything except sources to ensure that reference and configuration files are copied.
+if(${INSTALL_TESTING_FILES} MATCHES ON )
+    get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
+    install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests_python3 DESTINATION applications/${CURRENT_DIR_NAME}
+        PATTERN "*.git" EXCLUDE
+        PATTERN "*.c" EXCLUDE
+        PATTERN "*.h" EXCLUDE
+        PATTERN "*.cpp" EXCLUDE
+        PATTERN "*.hpp" EXCLUDE
+  )
+endif(${INSTALL_TESTING_FILES} MATCHES ON)
+
+# Install targets
+install(TARGETS KratosStructuralCore DESTINATION libs )
+install(TARGETS KratosStructuralApplication DESTINATION libs )

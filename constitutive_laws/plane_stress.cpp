@@ -66,7 +66,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "utilities/math_utils.h"
 #include "includes/variables.h"
 #include "includes/process_info.h"
-#include "structural_application.h"
+#include "structural_application_variables.h"
 #include "includes/properties.h"
 
 namespace Kratos
@@ -274,6 +274,21 @@ void PlaneStress::FinalizeSolutionStep( const Properties& props,
 {
 }
 
+void PlaneStress::CalculateMaterialResponseCauchy (Parameters& rValues)
+{
+    const Vector& StrainVector = rValues.GetStrainVector();
+    Vector& StressVector = rValues.GetStressVector();
+    Matrix& AlgorithmicTangent = rValues.GetConstitutiveMatrix();
+
+    if(StressVector.size() != 3)
+        StressVector.resize(3, false);
+    CalculateStress( StrainVector, StressVector );
+
+    if(AlgorithmicTangent.size1() != 3 || AlgorithmicTangent.size2() != 3)
+        AlgorithmicTangent.resize(3, 3, false);
+    CalculateConstitutiveMatrix( StrainVector, AlgorithmicTangent );
+}
+
 void PlaneStress::CalculateMaterialResponse( const Vector& StrainVector,
         const Matrix& DeformationGradient,
         Vector& StressVector,
@@ -286,18 +301,13 @@ void PlaneStress::CalculateMaterialResponse( const Vector& StrainVector,
         int CalculateTangent,
         bool SaveInternalVariables )
 {
-    if(CalculateStresses == true)
-    {
-        if(StressVector.size() != 3)
-            StressVector.resize(3, false);
-        CalculateStress(StrainVector, StressVector);
-    }
-    if(CalculateTangent == 1)
-    {
-        if(AlgorithmicTangent.size1() != 3 || AlgorithmicTangent.size2() != 3)
-            AlgorithmicTangent.resize(3, 3, false);
-        CalculateConstitutiveMatrix(StrainVector, AlgorithmicTangent);
-    }
+    ConstitutiveLaw::Parameters const_params;
+    Vector ThisStrainVector = StrainVector;
+    const_params.SetStrainVector(ThisStrainVector);
+    const_params.SetStressVector(StressVector);
+    const_params.SetConstitutiveMatrix(AlgorithmicTangent);
+
+    this->CalculateMaterialResponseCauchy(const_params);
 }
 
 /**

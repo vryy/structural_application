@@ -59,7 +59,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // Project includes
 #include "includes/define.h"
 #include "custom_conditions/pointmoment3D.h"
-#include "structural_application.h"
+#include "structural_application_variables.h"
 #include "utilities/math_utils.h"
 
 namespace Kratos
@@ -96,7 +96,7 @@ PointMoment3D::~PointMoment3D()
 
 //************************************************************************************
 //************************************************************************************
-void PointMoment3D::CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+void PointMoment3D::CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
     if(rRightHandSideVector.size() != 3)
@@ -111,7 +111,7 @@ void PointMoment3D::CalculateRightHandSide(VectorType& rRightHandSideVector, Pro
 
 //************************************************************************************
 //************************************************************************************
-void PointMoment3D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+void PointMoment3D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -133,7 +133,7 @@ void PointMoment3D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, Vector
 
 //************************************************************************************
 //************************************************************************************
-void PointMoment3D::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& CurrentProcessInfo)
+void PointMoment3D::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& CurrentProcessInfo) const
 {
     int number_of_nodes = GetGeometry().PointsNumber();
     unsigned int index;
@@ -150,7 +150,7 @@ void PointMoment3D::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo&
 
 //************************************************************************************
 //************************************************************************************
-void PointMoment3D::GetDofList(DofsVectorType& ConditionalDofList,ProcessInfo& CurrentProcessInfo)
+void PointMoment3D::GetDofList(DofsVectorType& ConditionalDofList, const ProcessInfo& CurrentProcessInfo) const
 {
     unsigned int dim = 3;
     ConditionalDofList.resize(GetGeometry().size()*dim);

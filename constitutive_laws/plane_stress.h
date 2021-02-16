@@ -94,12 +94,6 @@ public:
      */
     PlaneStress();
 
-    virtual BaseType::Pointer Clone() const
-    {
-        BaseType::Pointer p_clone(new PlaneStress());
-        return p_clone;
-    }
-
     /**
      * Destructor.
      */
@@ -108,9 +102,17 @@ public:
     /**
      * Operators
      */
+
     /**
      * Operations
      */
+
+    BaseType::Pointer Clone() const final
+    {
+        BaseType::Pointer p_clone(new PlaneStress());
+        return p_clone;
+    }
+
     bool Has(const Variable<int>& rThisVariable);
     bool Has(const Variable<double>& rThisVariable);
     bool Has(const Variable<Vector>& rThisVariable);
@@ -210,7 +212,13 @@ public:
                     double& Output,
                     const ProcessInfo& rCurrentProcessInfo);
 
+    /**
+     * Computes the material response in terms of Cauchy stresses and constitutive tensor
+     * @see Parameters
+     */
+    void CalculateMaterialResponseCauchy (Parameters& rValues) final;
 
+    /// DEPRECATED interface
     void CalculateMaterialResponse(const Vector& StrainVector,
                                    const Matrix& DeformationGradient,
                                    Vector& StressVector,

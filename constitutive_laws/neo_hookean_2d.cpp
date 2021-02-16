@@ -21,7 +21,7 @@ LICENSE: see soil_mechanics_application/LICENSE.txt
 #include "utilities/math_utils.h"
 #include "includes/process_info.h"
 #include "includes/properties.h"
-#include "structural_application.h"
+#include "structural_application_variables.h"
 
 namespace Kratos
 {

@@ -83,6 +83,12 @@ public:
     // Counted pointer of ContactLink3D
     KRATOS_CLASS_POINTER_DEFINITION(ContactLink3D);
 
+    #ifdef SD_APP_FORWARD_COMPATIBILITY
+    typedef Point PointType;
+    #else
+    typedef Point<3> PointType;
+    #endif
+
     /**
      * Default constructor.
      */
@@ -97,8 +103,8 @@ public:
                    PropertiesType::Pointer pProperties,
                    Condition::Pointer Master,
                    Condition::Pointer Slave,
-                   Point<3>& MasterContactLocalPoint,
-                   Point<3>& SlaveContactLocalPoint,
+                   PointType& MasterContactLocalPoint,
+                   PointType& SlaveContactLocalPoint,
                    int SlaveIntegrationPointIndex
                  );
     /**
@@ -125,18 +131,18 @@ public:
      */
     void CalculateLocalSystem( MatrixType& rLeftHandSideMatrix,
                                VectorType& rRightHandSideVector,
-                               ProcessInfo& rCurrentProcessInfo);
+                               const ProcessInfo& rCurrentProcessInfo);
 
     void CalculateRightHandSide( VectorType& rRightHandSideVector,
-                                 ProcessInfo& rCurrentProcessInfo);
+                                 const ProcessInfo& rCurrentProcessInfo);
 
-    void CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo);
+    void CalculateDampingMatrix(MatrixType& rDampingMatrix, const ProcessInfo& rCurrentProcessInfo);
 
     void EquationIdVector( EquationIdVectorType& rResult,
-                           ProcessInfo& rCurrentProcessInfo);
+                           const ProcessInfo& rCurrentProcessInfo) const;
 
     void GetDofList( DofsVectorType& ConditionalDofList,
-                     ProcessInfo& CurrentProcessInfo);
+                     const ProcessInfo& CurrentProcessInfo) const;
 
 
     /**
@@ -155,7 +161,7 @@ protected:
 private:
     void CalculateAll( MatrixType& rLeftHandSideMatrix,
                        VectorType& rRightHandSideVector,
-                       ProcessInfo& rCurrentProcessInfo,
+                       const ProcessInfo& rCurrentProcessInfo,
                        bool CalculateStiffnessMatrixFlag,
                        bool CalculateResidualVectorFlag);
 
@@ -206,7 +212,7 @@ private:
     Matrix TangentialVectors_inOrigin( Condition::Pointer Surface,
                                        const GeometryType::CoordinatesArrayType& rPoint );
 
-    Point<3>& GlobalCoordinates(Condition::Pointer Surface, Point<3>& rResult, Point<3> const& LocalCoordinates);
+    PointType& GlobalCoordinates(Condition::Pointer Surface, PointType& rResult, PointType const& LocalCoordinates);
 
 
     Vector GetRelativTangentialVelocity(Matrix& T);
@@ -231,10 +237,10 @@ private:
 
 //             Condition::Pointer mpSlave;
 //             Condition::Pointer mpMaster;
-//             Point<3> mMasterContactLocalPoint;
-//             Point<3> mSlaveContactLocalPoint;
-//             Point<3> mMasterContactGlobalPoint;
-//             Point<3> mSlaveContactGlobalPoint;
+//             PointType mMasterContactLocalPoint;
+//             PointType mSlaveContactLocalPoint;
+//             PointType mMasterContactGlobalPoint;
+//             PointType mSlaveContactGlobalPoint;
 }; // Class ContactLink3D
 }  // namespace Kratos.
 

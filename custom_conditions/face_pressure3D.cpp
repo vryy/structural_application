@@ -59,7 +59,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // Project includes
 #include "includes/define.h"
 #include "custom_conditions/face_pressure3D.h"
-#include "structural_application.h"
+#include "structural_application_variables.h"
 #include "utilities/math_utils.h"
 #include "custom_utilities/sd_math_utils.h"
 
@@ -123,8 +123,7 @@ FacePressure3D::~FacePressure3D()
 
 void FacePressure3D::EquationIdVector(
     EquationIdVectorType& rResult,
-    ProcessInfo& rCurrentProcessInfo )
-
+    const ProcessInfo& rCurrentProcessInfo ) const
 {
     KRATOS_TRY
     unsigned int number_of_nodes = GetGeometry().size();
@@ -149,8 +148,7 @@ void FacePressure3D::EquationIdVector(
 
 void FacePressure3D::GetDofList(
     DofsVectorType& ElementalDofList,
-    ProcessInfo& rCurrentProcessInfo )
-
+    const ProcessInfo& rCurrentProcessInfo ) const
 {
     ElementalDofList.resize( 0 );
 
@@ -171,7 +169,7 @@ void FacePressure3D::GetDofList(
 
 void FacePressure3D::CalculateRightHandSide(
     VectorType& rRightHandSideVector,
-    ProcessInfo& rCurrentProcessInfo )
+    const ProcessInfo& rCurrentProcessInfo )
 
 {
     //calculation flags
@@ -188,7 +186,7 @@ void FacePressure3D::CalculateRightHandSide(
 void FacePressure3D::CalculateLocalSystem(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
-    ProcessInfo& rCurrentProcessInfo )
+    const ProcessInfo& rCurrentProcessInfo )
 
 {
     //calculation flags
@@ -204,7 +202,7 @@ void FacePressure3D::CalculateLocalSystem(
 
 void FacePressure3D::CalculateMassMatrix(
     MatrixType& rMassMatrix,
-    ProcessInfo& rCurrentProcessInfo )
+    const ProcessInfo& rCurrentProcessInfo )
 
 {
     KRATOS_TRY
@@ -219,7 +217,7 @@ void FacePressure3D::CalculateMassMatrix(
 
 void FacePressure3D::CalculateDampingMatrix(
     MatrixType& rDampingMatrix,
-    ProcessInfo& rCurrentProcessInfo )
+    const ProcessInfo& rCurrentProcessInfo )
 
 {
     KRATOS_TRY
@@ -235,8 +233,7 @@ void FacePressure3D::CalculateDampingMatrix(
 
 void FacePressure3D::GetValuesVector(
     Vector& values,
-    int Step )
-
+    int Step ) const
 {
     unsigned int number_of_nodes = GetGeometry().size();
     unsigned int MatSize = number_of_nodes * 3;
@@ -259,8 +256,7 @@ void FacePressure3D::GetValuesVector(
 
 void FacePressure3D::GetFirstDerivativesVector(
     Vector& values,
-    int Step )
-
+    int Step ) const
 {
     unsigned int number_of_nodes = GetGeometry().size();
     unsigned int MatSize = number_of_nodes * 3;
@@ -276,7 +272,6 @@ void FacePressure3D::GetFirstDerivativesVector(
         values[index+1] = vel[1];
         values[index+2] = vel[2];
     }
-
 }
 
 //***********************************************************************************
@@ -284,8 +279,7 @@ void FacePressure3D::GetFirstDerivativesVector(
 
 void FacePressure3D::GetSecondDerivativesVector(
     Vector& values,
-    int Step )
-
+    int Step ) const
 {
     unsigned int number_of_nodes = GetGeometry().size();
     unsigned int MatSize = number_of_nodes * 3;

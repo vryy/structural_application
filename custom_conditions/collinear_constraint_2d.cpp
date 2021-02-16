@@ -57,11 +57,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 // Project includes
 #include "includes/define.h"
-#include "includes/legacy_structural_app_vars.h"
-#include "structural_application.h"
 #include "utilities/math_utils.h"
-#include "custom_utilities/sd_math_utils.h"
 #include "geometries/line_2d_3.h"
+#include "custom_utilities/sd_math_utils.h"
+#include "structural_application_variables.h"
 #include "custom_conditions/collinear_constraint_2d.h"
 
 namespace Kratos
@@ -127,7 +126,7 @@ CollinearConstraint2D::~CollinearConstraint2D()
  * calculates only the RHS vector (certainly to be removed due to contact algorithm)
  */
 void CollinearConstraint2D::CalculateRightHandSide( VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo)
+        const ProcessInfo& rCurrentProcessInfo)
 {
 
     //calculation flags
@@ -149,7 +148,7 @@ void CollinearConstraint2D::CalculateRightHandSide( VectorType& rRightHandSideVe
  */
 void CollinearConstraint2D::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo)
+        const ProcessInfo& rCurrentProcessInfo)
 {
     //calculation flags
     bool CalculateStiffnessMatrixFlag = true;
@@ -169,7 +168,7 @@ void CollinearConstraint2D::CalculateLocalSystem( MatrixType& rLeftHandSideMatri
  */
 void CollinearConstraint2D::CalculateAll( MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo,
+        const ProcessInfo& rCurrentProcessInfo,
         bool CalculateStiffnessMatrixFlag,
         bool CalculateResidualVectorFlag)
 {
@@ -254,8 +253,7 @@ void CollinearConstraint2D::CalculateAll( MatrixType& rLeftHandSideMatrix,
 //************************************************************************************
 
 void CollinearConstraint2D::EquationIdVector( EquationIdVectorType& rResult,
-        ProcessInfo& CurrentProcessInfo
-                                            )
+        const ProcessInfo& CurrentProcessInfo ) const
 {
     //determining size of DOF list
     //dimension of space
@@ -273,7 +271,7 @@ void CollinearConstraint2D::EquationIdVector( EquationIdVectorType& rResult,
 //************************************************************************************
 
 void CollinearConstraint2D::GetDofList( DofsVectorType& ConditionalDofList,
-                                        ProcessInfo& CurrentProcessInfo)
+                                        const ProcessInfo& CurrentProcessInfo) const
 {
     //determining size of DOF list
     //dimension of space

@@ -42,9 +42,11 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ==============================================================================
 */
 //   Project Name:        Kratos
-//   Last Modified by:    $Author: janosch $
+//   Original Author:     $Author: janosch $
 //   Date:                $Date: 2009-01-14 17:14:42 $
-//   Revision:            $Revision: 1.2 $
+//   Last Modified by:    $Author: hbui $
+//   Date:                $Date: 16 Feb 2021 $
+//   Revision:            $Revision: 1.3 $
 //
 
 // System includes
@@ -54,19 +56,11 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
 // Project includes
-#include "includes/define.h"
 #include "custom_elements/crisfield_truss_element.h"
-#include "utilities/math_utils.h"
-#include "constitutive_laws/isotropic_2d.h"
-#include "constitutive_laws/isotropic_3d.h"
-#include "custom_utilities/sd_math_utils.h"
-#include "structural_application.h"
+#include "structural_application_variables.h"
 
 namespace Kratos
 {
-//double CrisfieldTrussElement::msStrain;
-//double CrisfieldTrussElement::msStress;
-//double CrisfieldTrussElement::msKappa;
 
 /**
 * Constructor.
@@ -92,25 +86,6 @@ CrisfieldTrussElement::CrisfieldTrussElement(IndexType NewId, GeometryType::Poin
 CrisfieldTrussElement::CrisfieldTrussElement(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties)
     : Element(NewId, pGeometry, pProperties)
 {
-    dimension = GetGeometry().WorkingSpaceDimension();
-    number_of_nodes = GetGeometry().size();
-
-    //setting up the nodal degrees of freedom
-    for(unsigned int i = 0 ; i != number_of_nodes ; ++i)
-    {
-        (GetGeometry()[i].pAddDof(DISPLACEMENT_X,REACTION_X));
-        (GetGeometry()[i].pAddDof(DISPLACEMENT_Y,REACTION_Y));
-        if(dimension == 3)
-        {
-            (GetGeometry()[i].pAddDof(DISPLACEMENT_Z,REACTION_Z));
-        }
-    }
-
-    //initializing static variables
-    unsigned int dof = number_of_nodes * dimension;
-    msA.resize(dof, dof, false);
-    msX.resize(dof, false);
-    msU.resize(dof, false);
 }
 
 /**
@@ -139,46 +114,6 @@ Element::Pointer CrisfieldTrussElement::Create(IndexType NewId, NodesArrayType c
 void CrisfieldTrussElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
-    unsigned int dof = number_of_nodes * dimension;
-
-    //cross-section mArea
-    //if( Has( AREA ) )
-    //mArea = GetValue( AREA );
-    //else
-    mArea = GetProperties()[CROSS_AREA];
-
-    //length mLength (in ref. config)
-    mLength = 0.0;
-    mLength += (GetGeometry()[1].X0()-GetGeometry()[0].X0())*(GetGeometry()[1].X0()-GetGeometry()[0].X0());
-    mLength += (GetGeometry()[1].Y0()-GetGeometry()[0].Y0())*(GetGeometry()[1].Y0()-GetGeometry()[0].Y0());
-    if(dimension == 3)
-        mLength += (GetGeometry()[1].Z0()-GetGeometry()[0].Z0())*(GetGeometry()[1].Z0()-GetGeometry()[0].Z0());
-    mLength = sqrt( mLength );
-//      KRATOS_WATCH(mLength);
-
-    //position vector msX (in ref. config)
-    for (unsigned int i = 0; i< number_of_nodes; i++)
-    {
-        int index= i*dimension;
-        msX[index] = GetGeometry()[i].X0();
-        msX[index+1] = GetGeometry()[i].Y0();
-        if(dimension==3)
-            msX[index+2] = GetGeometry()[i].Z0();
-    }
-//      KRATOS_WATCH( msX );
-
-    //matrix A
-    noalias(msA) = ZeroMatrix(dof,dof);
-    for (unsigned int i = 0 ; i < dof ; i++)
-    {
-        for(unsigned int j = 0 ; j < dof ; j++)
-        {
-            if(i==j)
-                msA(i,j) = 1;
-            if(abs(static_cast<int>(i-j))==dimension)
-                msA(i,j) = -1;
-        }
-    }
 
     KRATOS_CATCH("")
 }
@@ -189,10 +124,10 @@ void CrisfieldTrussElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
 * @param rLeftHandSideMatrix elemental stiffness matrix
 * @param rRightHandSideVector elemental residual vetor
 * @param rCurrentProcessInfo process info
-* @see CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo)
-* @see CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+* @see CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo)
+* @see CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
 */
-void CrisfieldTrussElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+void CrisfieldTrussElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
 {
     //calculation flags
     bool CalculateStiffnessMatrixFlag = true;
@@ -206,10 +141,10 @@ void CrisfieldTrussElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix
 * This calculates only the elemental stiffness matrix
 * @param rLeftHandSideMatrix elemental stiffness matrix
 * @param rCurrentProcessInfo process info
-* @see CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
-* @see CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+* @see CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
+* @see CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
 */
-void CrisfieldTrussElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo)
+void CrisfieldTrussElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo)
 {
     //calculation flags
     bool CalculateStiffnessMatrixFlag = true;
@@ -224,10 +159,10 @@ void CrisfieldTrussElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatri
 * This calculates only the elemental residual vector
 * @param rRightHandSideVector elemental residual vetor
 * @param rCurrentProcessInfo process info
-* @see CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
-* @see CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo)
+* @see CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
+* @see CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo)
 */
-void CrisfieldTrussElement::CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+void CrisfieldTrussElement::CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
 {
     //calculation flags
     bool CalculateStiffnessMatrixFlag = false;
@@ -242,12 +177,16 @@ void CrisfieldTrussElement::CalculateRightHandSide(VectorType& rRightHandSideVec
 * @param rResult equation ID vector
 * @param rCurrentProcessInfo process info
 */
-void CrisfieldTrussElement::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& CurrentProcessInfo)
+void CrisfieldTrussElement::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& CurrentProcessInfo) const
 {
+    unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    unsigned int number_of_nodes = GetGeometry().size();
     unsigned int dof = number_of_nodes*dimension;
+
     if(rResult.size() != dof)
         rResult.resize(dof);
-    for (unsigned int i=0; i<number_of_nodes; i++)
+
+    for (unsigned int i = 0; i < number_of_nodes; ++i)
     {
         int index = i*dimension;
         rResult[index] = GetGeometry()[i].GetDof(DISPLACEMENT_X).EquationId();
@@ -262,14 +201,18 @@ void CrisfieldTrussElement::EquationIdVector(EquationIdVectorType& rResult, Proc
 * @param ElementalDofList elemental DOF vector
 * @param rCurrentProcessInfo process info
 */
-void CrisfieldTrussElement::GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& CurrentProcessInfo)
+void CrisfieldTrussElement::GetDofList(DofsVectorType& ElementalDofList, const ProcessInfo& CurrentProcessInfo) const
 {
+    unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    unsigned int number_of_nodes = GetGeometry().size();
+
     ElementalDofList.resize(0);
-    for (unsigned int i=0; i<number_of_nodes; i++)
+
+    for (unsigned int i = 0; i < number_of_nodes; ++i)
     {
         ElementalDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_X));
         ElementalDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_Y));
-        if(GetGeometry().WorkingSpaceDimension() == 3)
+        if(dimension == 3)
             ElementalDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_Z));
     }
 }
@@ -280,27 +223,31 @@ void CrisfieldTrussElement::GetDofList(DofsVectorType& ElementalDofList, Process
 * @param rCurrentProcessInfo process info
 * TODO: assign the mass matrix
 */
-void CrisfieldTrussElement::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
+void CrisfieldTrussElement::CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
-    int MatSize = number_of_nodes * dimension;
-    rMassMatrix.resize(MatSize,MatSize);
-    rMassMatrix = ZeroMatrix(MatSize,MatSize);
-    KRATOS_CATCH("")
-}
 
-/**
-* Get the damping matrix of the element.
-* @param rDampingMatrix damping matrix
-* @param rCurrentProcessInfo process info
-* TODO: assign the damping matrix
-*/
-void CrisfieldTrussElement::CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo)
-{
-    KRATOS_TRY
+    unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    unsigned int number_of_nodes = GetGeometry().size();
     int MatSize = number_of_nodes * dimension;
-    rDampingMatrix.resize(MatSize,MatSize);
-    noalias(rDampingMatrix)= ZeroMatrix(MatSize,MatSize);
+
+    if(rMassMatrix.size1() != MatSize || rMassMatrix.size2() != MatSize)
+        rMassMatrix.resize(MatSize, MatSize, false);
+    noalias(rMassMatrix) = ZeroMatrix(MatSize, MatSize); //resetting LHS
+
+    double rho = GetProperties()[DENSITY];
+    double A = GetProperties()[CROSS_AREA];
+    double Length = CalculateLength();
+    double c = rho*A*Length / 6;
+
+    for (unsigned int i = 0; i < dimension; ++i)
+    {
+        rMassMatrix(i, i) = 2*c;
+        rMassMatrix(i+dimension, i+dimension) = 2*c;
+        rMassMatrix(i, i+dimension) = c;
+        rMassMatrix(i+dimension, i) = c;
+    }
+
     KRATOS_CATCH("")
 }
 
@@ -311,8 +258,10 @@ void CrisfieldTrussElement::CalculateDampingMatrix(MatrixType& rDampingMatrix, P
 * @see GetFirstDerivativesVector(Vector& values, int Step)
 * @see GetSecondDerivativesVector(Vector& values, int Step)
 */
-void CrisfieldTrussElement::GetValuesVector(Vector& values, int Step)
+void CrisfieldTrussElement::GetValuesVector(Vector& values, int Step) const
 {
+    unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    unsigned int number_of_nodes = GetGeometry().size();
     unsigned int MatSize = number_of_nodes * dimension;
     if(values.size() != MatSize)
         values.resize(MatSize);
@@ -334,8 +283,10 @@ void CrisfieldTrussElement::GetValuesVector(Vector& values, int Step)
 * @see GetValuesVector(Vector& values, int Step)
 * @see GetSecondDerivativesVector(Vector& values, int Step)
 */
-void CrisfieldTrussElement::GetFirstDerivativesVector(Vector& values, int Step)
+void CrisfieldTrussElement::GetFirstDerivativesVector(Vector& values, int Step) const
 {
+    unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    unsigned int number_of_nodes = GetGeometry().size();
     unsigned int MatSize = number_of_nodes * dimension;
     if(values.size() != MatSize)
         values.resize(MatSize);
@@ -356,8 +307,10 @@ void CrisfieldTrussElement::GetFirstDerivativesVector(Vector& values, int Step)
 * @see GetValuesVector(Vector& values, int Step)
 * @see GetFirstDerivativesVector(Vector& values, int Step)
 */
-void CrisfieldTrussElement::GetSecondDerivativesVector(Vector& values, int Step)
+void CrisfieldTrussElement::GetSecondDerivativesVector(Vector& values, int Step) const
 {
+    unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    unsigned int number_of_nodes = GetGeometry().size();
     unsigned int MatSize = number_of_nodes * dimension;
     if(values.size() != MatSize)
         values.resize(MatSize);
@@ -399,93 +352,81 @@ void CrisfieldTrussElement::CalculateOnIntegrationPoints(const Variable<double>&
 */
 void CrisfieldTrussElement::CalculateAll(MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo,
+        const ProcessInfo& rCurrentProcessInfo,
         bool CalculateStiffnessMatrixFlag,
         bool CalculateResidualVectorFlag)
 {
     KRATOS_TRY
+
+    unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    unsigned int number_of_nodes = GetGeometry().size();
     unsigned int MatSize = number_of_nodes * dimension;
 
     //resizing the LHS tangent stiffness matrix if required
     if (CalculateStiffnessMatrixFlag == true)
     {
-        if(rLeftHandSideMatrix.size1() != MatSize)
-            rLeftHandSideMatrix.resize(MatSize,MatSize,false);
-        noalias(rLeftHandSideMatrix) = ZeroMatrix(MatSize,MatSize); //resetting LHS
+        if(rLeftHandSideMatrix.size1() != MatSize || rLeftHandSideMatrix.size2() != MatSize)
+            rLeftHandSideMatrix.resize(MatSize, MatSize, false);
+        noalias(rLeftHandSideMatrix) = ZeroMatrix(MatSize, MatSize); //resetting LHS
     }
 
     //resizing the RHS residual vector if required
     if (CalculateResidualVectorFlag == true)
     {
         if(rRightHandSideVector.size() != MatSize)
-            rRightHandSideVector.resize(MatSize);
+            rRightHandSideVector.resize(MatSize, false);
         rRightHandSideVector = ZeroVector(MatSize); //resetting RHS
     }
 
-    //setting displacement vector msU
-    for ( unsigned int i=0; i<number_of_nodes; i++)
-    {
-        int index = i*dimension;
-        msU[index] = GetGeometry()[i].GetSolutionStepValue(DISPLACEMENT_X);
-        msU[index+1] = GetGeometry()[i].GetSolutionStepValue(DISPLACEMENT_Y);
-        if(dimension == 3)
-            msU[index+2] = GetGeometry()[i].GetSolutionStepValue(DISPLACEMENT_Z);
-    }
-//      KRATOS_WATCH( msU );
+    Matrix A(MatSize, MatSize);
+    Vector X(MatSize);
+    Vector U(MatSize);
+
+    CalculateA(A);
+    CalculateX(X);
+    CalculateU(U);
 
     //calculation of GREEN-LAGRANGE strain
-    double weight_strain = 1.0 / mLength / mLength;
-    double msStrain = CalculateStrain(msA, msX, msU, weight_strain);
-//      KRATOS_WATCH( msStrain );
-
+    double Length = CalculateLength();
+    double Area = GetProperties()[CROSS_AREA];
+    double weight_strain = 1.0 / pow(Length, 2);
+    double Strain = CalculateStrain(A, X, U, weight_strain);
+//      KRATOS_WATCH( Strain );
 
     //Calculation of 2nd-Piola-Kirchhoff stress
 
     //** Method 1: according to St. Venant Model
     double E = GetProperties()[YOUNG_MODULUS];
-    double msStress = E * msStrain;
-
-    //** Method 2: according to Scalar Damage Model
-//      double E = GetProperties()[YOUNG_MODULUS];
-//      double kappa0 =0.2;
-//      double alpha = 1.0;
-//      double beta = 10.0;
-//      double d;
-//      if( fabs(msStrain) > msKappa)
-//          msKappa = fabs(msStrain);
-//      if (msKappa > kappa0)
-//          d = 1 - kappa0 / msKappa * (1-alpha+alpha*exp(beta*(kappa0-msKappa)));
-//      else
-//          d = 0;
-//      msStress = (1 - d) * E * msStrain;
-//      KRATOS_WATCH( d );
-
-//      KRATOS_WATCH( msStress );
+    double Stress = E * Strain;
+    if (this->Has(PRESTRESS)) // enable prestress (i.e. cable element)
+    {
+        const Vector& prestress = this->GetValue(PRESTRESS);
+        Stress += prestress[0];
+    }
+//      KRATOS_WATCH( Stress );
 
     //calculation of the residual force vector if required
     if (CalculateResidualVectorFlag == true)
     {
-
         CalculateAndAdd_ExtForce(rRightHandSideVector, rCurrentProcessInfo);
 
-        double weight_IntForce = ( mArea / mLength) * msStress;
-	//KRATOS_WATCH(msStress)
-	//KRATOS_WATCH(mLength)
-        CalculateAndMinus_IntForce(rRightHandSideVector, rCurrentProcessInfo, msX, msU, weight_IntForce);
+        double weight_IntForce = ( Area / Length) * Stress;
+    //KRATOS_WATCH(Stress)
+    //KRATOS_WATCH(Length)
+        CalculateAndMinus_IntForce(rRightHandSideVector, rCurrentProcessInfo, X, U, weight_IntForce);
 
 //          KRATOS_WATCH( rRightHandSideVector );
     }
 
     //calculation of the tangent stiffness matrix if required
-    //KRATOS_WATCH(mArea);
+    //KRATOS_WATCH(Area)
     if (CalculateStiffnessMatrixFlag == true)
     {
+        double weight_Km = E * Area / pow(Length, 3);
+        CalculateAndAddKm(rLeftHandSideMatrix, A, X, U, weight_Km);
 
-        double weight_Km = E * mArea / mLength / mLength / mLength;
-        CalculateAndAddKm(rLeftHandSideMatrix, msA, msX, msU, weight_Km);
-
-        double weight_Kg = mArea * msStress / mLength ;
-        CalculateAndAddKg(rLeftHandSideMatrix, msA, weight_Kg);
+        double weight_Kg = Area * Stress / Length ;
+        CalculateAndAddKg(rLeftHandSideMatrix, A, weight_Kg);
 
 //          KRATOS_WATCH( rLeftHandSideMatrix );
     }
@@ -499,9 +440,12 @@ void CrisfieldTrussElement::CalculateAll(MatrixType& rLeftHandSideMatrix,
 * @param rRightHandSideVector elemental residual vector
 * @param CurrentProcessInfo process info
 */
-void CrisfieldTrussElement::CalculateAndAdd_ExtForce(VectorType& rRightHandSideVector, const ProcessInfo& CurrentProcessInfo)
+void CrisfieldTrussElement::CalculateAndAdd_ExtForce(VectorType& rRightHandSideVector, const ProcessInfo& CurrentProcessInfo) const
 {
     KRATOS_TRY
+
+    unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    unsigned int number_of_nodes = GetGeometry().size();
     for (unsigned int i=0; i<number_of_nodes; i++)
     {
         int index = dimension*i;
@@ -510,6 +454,7 @@ void CrisfieldTrussElement::CalculateAndAdd_ExtForce(VectorType& rRightHandSideV
             rRightHandSideVector[index+j] += GetProperties()[BODY_FORCE][j];
         }
     }
+
     KRATOS_CATCH("")
 }
 
@@ -522,14 +467,17 @@ void CrisfieldTrussElement::CalculateAndAdd_ExtForce(VectorType& rRightHandSideV
 * @param U displacement vector
 * @param weight weighting factor
 */
-void CrisfieldTrussElement::CalculateAndMinus_IntForce(VectorType& rRightHandSideVector, const ProcessInfo& CurrentProcessInfo, Vector& X, Vector& U, double weight)
+void CrisfieldTrussElement::CalculateAndMinus_IntForce(VectorType& rRightHandSideVector, const ProcessInfo& CurrentProcessInfo, Vector& X, Vector& U, double weight) const
 {
     KRATOS_TRY
+
+    unsigned int dimension = GetGeometry().WorkingSpaceDimension();
     for (int i=0; i<dimension; i++)
     {
         rRightHandSideVector[i] -= weight*( X[i]+U[i]-X[dimension+i]-U[dimension+i] );
         rRightHandSideVector[dimension+i] -= rRightHandSideVector[i];
     }
+
     KRATOS_CATCH("")
 }
 
@@ -542,18 +490,13 @@ void CrisfieldTrussElement::CalculateAndMinus_IntForce(VectorType& rRightHandSid
 * @param U displacement vector
 * @param weight weighting factor
 */
-void CrisfieldTrussElement::CalculateAndAddKm(MatrixType& rLeftHandSideMatrix, const Matrix& A, Vector& X, Vector& U, double weight)
+void CrisfieldTrussElement::CalculateAndAddKm(MatrixType& rLeftHandSideMatrix, const Matrix& A, Vector& X, Vector& U, double weight) const
 {
     KRATOS_TRY
+
     Vector V(X.size());
     noalias(V) = prod(A,(X+U));
-    for(unsigned int i=0; i<V.size(); i++)
-    {
-        for(unsigned int j=0; j<V.size(); j++)
-        {
-            rLeftHandSideMatrix(i,j)= rLeftHandSideMatrix(i,j) + weight * V[i] * V[j];
-        }
-    }
+    noalias(rLeftHandSideMatrix) += weight * outer_prod(V, V);
 
     KRATOS_CATCH("")
 }
@@ -565,10 +508,12 @@ void CrisfieldTrussElement::CalculateAndAddKm(MatrixType& rLeftHandSideMatrix, c
 * @param A matrix A
 * @param weight weighting factor
 */
-void CrisfieldTrussElement::CalculateAndAddKg(MatrixType& rLeftHandSideMatrix, const Matrix& A, double weight)
+void CrisfieldTrussElement::CalculateAndAddKg(MatrixType& rLeftHandSideMatrix, const Matrix& A, double weight) const
 {
     KRATOS_TRY
+
     noalias(rLeftHandSideMatrix) += weight * A;
+
     KRATOS_CATCH("")
 }
 
@@ -581,9 +526,10 @@ void CrisfieldTrussElement::CalculateAndAddKg(MatrixType& rLeftHandSideMatrix, c
 * @param U displacement vector
 * @param weight weighting factor
 */
-double CrisfieldTrussElement::CalculateStrain(const Matrix& A, const Vector& X, const Vector& U, double weight)
+double CrisfieldTrussElement::CalculateStrain(const Matrix& A, const Vector& X, const Vector& U, double weight) const
 {
     KRATOS_TRY
+
     Vector V = ZeroVector(X.size());
     noalias(V) = prod(A,U);
     double strain = 0;
@@ -591,44 +537,119 @@ double CrisfieldTrussElement::CalculateStrain(const Matrix& A, const Vector& X, 
     {
         strain += (X[i]+0.5*U[i])*V[i];
     }
+
     return strain * weight ;
+
     KRATOS_CATCH("")
 }
 
-    int CrisfieldTrussElement::Check( const ProcessInfo& rCurrentProcessInfo )
+/**
+ * Calculate the matrix A
+ */
+void CrisfieldTrussElement::CalculateA(Matrix& A) const
+{
+    unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    unsigned int number_of_nodes = GetGeometry().size();
+    unsigned int dof = number_of_nodes * dimension;
+    noalias(A) = ZeroMatrix(dof, dof);
+    for (unsigned int i = 0 ; i < dof ; i++)
     {
-        KRATOS_TRY
+        for(unsigned int j = 0 ; j < dof ; j++)
+        {
+            if(i==j)
+                A(i,j) = 1;
+            if(abs(static_cast<int>(i-j))==dimension)
+                A(i,j) = -1;
+        }
+    }
+}
 
-        //verify that the variables are correctly initialized
+/**
+ * Calculate the vector X, i.e. elemental position vector
+ */
+void CrisfieldTrussElement::CalculateX(Vector& X) const
+{
+    unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    unsigned int number_of_nodes = GetGeometry().size();
+    //position vector X (in ref. config)
+    for (unsigned int i = 0; i < number_of_nodes; ++i)
+    {
+        int index= i*dimension;
+        X[index] = GetGeometry()[i].X0();
+        X[index+1] = GetGeometry()[i].Y0();
+        if(dimension==3)
+            X[index+2] = GetGeometry()[i].Z0();
+    }
+}
 
-        if ( VELOCITY.Key() == 0 )
-            KRATOS_THROW_ERROR( std::invalid_argument, "VELOCITY has Key zero! (check if the application is correctly registered", "" );
+/**
+ * Calculate the vector U, i.e. elemental deformation vector
+ */
+void CrisfieldTrussElement::CalculateU(Vector& U) const
+{
+    unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    unsigned int number_of_nodes = GetGeometry().size();
+    //setting displacement vector U
+    for ( unsigned int i = 0; i < number_of_nodes; ++i)
+    {
+        int index = i*dimension;
+        U[index] = GetGeometry()[i].GetSolutionStepValue(DISPLACEMENT_X);
+        U[index+1] = GetGeometry()[i].GetSolutionStepValue(DISPLACEMENT_Y);
+        if(dimension == 3)
+            U[index+2] = GetGeometry()[i].GetSolutionStepValue(DISPLACEMENT_Z);
+    }
+}
 
-        if ( DISPLACEMENT.Key() == 0 )
-            KRATOS_THROW_ERROR( std::invalid_argument, "DISPLACEMENT has Key zero! (check if the application is correctly registered", "" );
+/**
+ * Calculate the length in current configuration
+ */
+double CrisfieldTrussElement::CalculateLength() const
+{
+    unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
-        if ( ACCELERATION.Key() == 0 )
-            KRATOS_THROW_ERROR( std::invalid_argument, "ACCELERATION has Key zero! (check if the application is correctly registered", "" );
+    //length Length (in ref. config)
+    double Length = 0.0;
+    Length += pow(GetGeometry()[1].X0()-GetGeometry()[0].X0(), 2);
+    Length += pow(GetGeometry()[1].Y0()-GetGeometry()[0].Y0(), 2);
+    if(dimension == 3)
+        Length += pow(GetGeometry()[1].Z0()-GetGeometry()[0].Z0(), 2);
+    return sqrt( Length );
+}
 
-        if ( DENSITY.Key() == 0 )
-            KRATOS_THROW_ERROR( std::invalid_argument, "DENSITY has Key zero! (check if the application is correctly registered", "" );
+int CrisfieldTrussElement::Check( const ProcessInfo& rCurrentProcessInfo ) const
+{
+    KRATOS_TRY
 
-        if ( BODY_FORCE.Key() == 0 )
-            KRATOS_THROW_ERROR( std::invalid_argument, "BODY_FORCE has Key zero! (check if the application is correctly registered", "" );
+    //verify that the variables are correctly initialized
 
-        if ( AREA.Key() == 0 )
-            KRATOS_THROW_ERROR( std::invalid_argument, "AREA has Key zero! (check if the application is correctly registered", "" );
+    if ( VELOCITY.Key() == 0 )
+        KRATOS_THROW_ERROR( std::invalid_argument, "VELOCITY has Key zero! (check if the application is correctly registered", "" );
 
-	if ( this->GetProperties().Has( BODY_FORCE ) == false )
-            KRATOS_THROW_ERROR( std::logic_error, "BODY_FORCE not provided for property ", this->GetProperties().Id())
+    if ( DISPLACEMENT.Key() == 0 )
+        KRATOS_THROW_ERROR( std::invalid_argument, "DISPLACEMENT has Key zero! (check if the application is correctly registered", "" );
 
-	if ( this->GetProperties().Has( CROSS_AREA ) == false )
-            KRATOS_THROW_ERROR( std::logic_error, "CROSS_AREA not provided for property ", this->GetProperties().Id())
+    if ( ACCELERATION.Key() == 0 )
+        KRATOS_THROW_ERROR( std::invalid_argument, "ACCELERATION has Key zero! (check if the application is correctly registered", "" );
 
-        return 0;
+    if ( DENSITY.Key() == 0 )
+        KRATOS_THROW_ERROR( std::invalid_argument, "DENSITY has Key zero! (check if the application is correctly registered", "" );
 
-         KRATOS_CATCH(" ")
+    if ( BODY_FORCE.Key() == 0 )
+        KRATOS_THROW_ERROR( std::invalid_argument, "BODY_FORCE has Key zero! (check if the application is correctly registered", "" );
 
-      }
+    if ( AREA.Key() == 0 )
+        KRATOS_THROW_ERROR( std::invalid_argument, "AREA has Key zero! (check if the application is correctly registered", "" );
+
+    if ( this->GetProperties().Has( BODY_FORCE ) == false )
+        KRATOS_THROW_ERROR( std::logic_error, "BODY_FORCE not provided for property ", this->GetProperties().Id())
+
+    if ( this->GetProperties().Has( CROSS_AREA ) == false )
+        KRATOS_THROW_ERROR( std::logic_error, "CROSS_AREA not provided for property ", this->GetProperties().Id())
+
+    return 0;
+
+    KRATOS_CATCH(" ")
+
+}
 
 } // Namespace Kratos

@@ -65,7 +65,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "utilities/math_utils.h"
 #include "includes/variables.h"
 #include "includes/process_info.h"
-#include "structural_application.h"
+#include "structural_application_variables.h"
 #include "custom_utilities/sd_math_utils.h"
 #include "includes/properties.h"
 #include "casm.h"

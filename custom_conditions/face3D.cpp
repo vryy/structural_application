@@ -59,7 +59,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // Project includes
 #include "includes/define.h"
 #include "custom_conditions/face3D.h"
-#include "structural_application.h"
+#include "structural_application_variables.h"
 #include "utilities/math_utils.h"
 #include "custom_utilities/sd_math_utils.h"
 
@@ -132,7 +132,7 @@ Face3D::~Face3D()
 
 void Face3D::EquationIdVector(
     EquationIdVectorType& rResult,
-    ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
     unsigned int number_of_nodes = GetGeometry().size();
@@ -155,7 +155,7 @@ void Face3D::EquationIdVector(
 
 void Face3D::GetDofList(
     DofsVectorType& ElementalDofList,
-    ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo) const
 {
     ElementalDofList.resize(0);
 
@@ -176,7 +176,7 @@ void Face3D::GetDofList(
 
 void Face3D::CalculateRightHandSide(
     VectorType& rRightHandSideVector,
-    ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo)
 {
     //calculation flags
     bool CalculateStiffnessMatrixFlag = false;
@@ -192,7 +192,7 @@ void Face3D::CalculateRightHandSide(
 void Face3D::CalculateLocalSystem(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
-    ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo)
 {
     //calculation flags
     bool CalculateStiffnessMatrixFlag = true;
@@ -207,7 +207,7 @@ void Face3D::CalculateLocalSystem(
 
 void Face3D::CalculateMassMatrix(
     MatrixType& rMassMatrix,
-    ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -221,7 +221,7 @@ void Face3D::CalculateMassMatrix(
 
 void Face3D::CalculateDampingMatrix(
     MatrixType& rDampingMatrix,
-    ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -236,7 +236,7 @@ void Face3D::CalculateDampingMatrix(
 
 void Face3D::GetValuesVector(
     Vector& values,
-    int Step)
+    int Step) const
 {
     unsigned int number_of_nodes = GetGeometry().size();
     unsigned int MatSize = number_of_nodes * 3;
@@ -257,7 +257,7 @@ void Face3D::GetValuesVector(
 
 void Face3D::GetFirstDerivativesVector(
     Vector& values,
-    int Step)
+    int Step) const
 {
     unsigned int number_of_nodes = GetGeometry().size();
     unsigned int MatSize = number_of_nodes * 3;
@@ -279,7 +279,7 @@ void Face3D::GetFirstDerivativesVector(
 
 void Face3D::GetSecondDerivativesVector(
     Vector& values,
-    int Step)
+    int Step) const
 {
     unsigned int number_of_nodes = GetGeometry().size();
     unsigned int MatSize = number_of_nodes * 3;
@@ -421,9 +421,6 @@ void Face3D::SubtractMatrix(
     KRATOS_CATCH("")
 }
 
-
-
-
 //***********************************************************************************
 //***********************************************************************************
 
@@ -543,11 +540,10 @@ void Face3D::CalculateAll(
         }
     }
 
-
     KRATOS_CATCH("")
 }
 
-int Face3D::Check( const ProcessInfo& rCurrentProcessInfo )
+int Face3D::Check( const ProcessInfo& rCurrentProcessInfo ) const
 {
     return 0;
 }

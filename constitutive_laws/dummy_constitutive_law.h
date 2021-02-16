@@ -55,7 +55,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // System includes
 
 // External includes
-#include "boost/smart_ptr.hpp"
 
 // Project includes
 #include "includes/define.h"
@@ -95,9 +94,9 @@ public:
      */
     DummyConstitutiveLaw();
 
-    virtual  ConstitutiveLaw::Pointer Clone() const
+    ConstitutiveLaw::Pointer Clone() const final
     {
-         ConstitutiveLaw::Pointer p_clone( new DummyConstitutiveLaw() );
+        ConstitutiveLaw::Pointer p_clone( new DummyConstitutiveLaw() );
         return p_clone;
     }
 
@@ -136,37 +135,37 @@ public:
     /**
      * Material parameters are inizialized
      */
-    virtual void InitializeMaterial( const Properties& props,
+    void InitializeMaterial( const Properties& props,
                              const GeometryType& geom,
-                             const Vector& ShapeFunctionsValues );
+                             const Vector& ShapeFunctionsValues ) final;
 
-    virtual void InitializeNonLinearIteration(const Properties& rMaterialProperties,
-                          const GeometryType& rElementGeometry,
-                          const Vector& rShapeFunctionsValues,
-                          const ProcessInfo& rCurrentProcessInfo);
+    void ResetMaterial( const Properties& props,
+                        const GeometryType& geom,
+                        const Vector& ShapeFunctionsValues ) final;
+
+    void InitializeNonLinearIteration( const Properties& rMaterialProperties,
+                                       const GeometryType& rElementGeometry,
+                                       const Vector& rShapeFunctionsValues,
+                                       const ProcessInfo& rCurrentProcessInfo) final;
 
     /**
      * As this constitutive law describes only linear elastic material properties
      * this function is rather useless and in fact does nothing
      */
-    virtual void InitializeSolutionStep( const Properties& props,
+    void InitializeSolutionStep( const Properties& props,
                                  const GeometryType& geom, //this is just to give the array of nodes
                                  const Vector& ShapeFunctionsValues,
-                                 const ProcessInfo& CurrentProcessInfo );
+                                 const ProcessInfo& CurrentProcessInfo ) final;
 
-    virtual void ResetMaterial( const Properties& props,
-                        const GeometryType& geom,
-                        const Vector& ShapeFunctionsValues );
+    void FinalizeNonLinearIteration( const Properties& rMaterialProperties,
+                                     const GeometryType& rElementGeometry,
+                                     const Vector& rShapeFunctionsValues,
+                                     const ProcessInfo& rCurrentProcessInfo) final;
 
-    virtual void FinalizeNonLinearIteration(const Properties& rMaterialProperties,
-                        const GeometryType& rElementGeometry,
-                        const Vector& rShapeFunctionsValues,
-                        const ProcessInfo& rCurrentProcessInfo);
-
-    virtual void FinalizeSolutionStep( const Properties& props,
+    void FinalizeSolutionStep( const Properties& props,
                                const GeometryType& geom, //this is just to give the array of nodes
                                const Vector& ShapeFunctionsValues,
-                               const ProcessInfo& CurrentProcessInfo );
+                               const ProcessInfo& CurrentProcessInfo ) final;
 
 
     /**
@@ -178,11 +177,11 @@ public:
      * @param CurrentProcessInfo
      * @return
      */
-    virtual int Check( const Properties& props,
-                       const GeometryType& geom,
-                       const ProcessInfo& CurrentProcessInfo );
+    int Check( const Properties& props,
+               const GeometryType& geom,
+               const ProcessInfo& CurrentProcessInfo ) final;
 
-    virtual void CalculateMaterialResponse( const Vector& StrainVector,
+    void CalculateMaterialResponse( const Vector& StrainVector,
                                     const Matrix& DeformationGradient,
                                     Vector& StressVector,
                                     Matrix& AlgorithmicTangent,
@@ -199,32 +198,38 @@ public:
      * returns the size of the strain vector of the current constitutive law
      * NOTE: this function HAS TO BE IMPLEMENTED by any derived class
      */
-    virtual SizeType GetStrainSize()
+    SizeType GetStrainSize() final
     {
         return 6;
     }
 
     /**
-     * converts a strain vector styled variable into its form, which the
-     * deviatoric parts are no longer multiplied by 2
-     */
-    //             void Calculate(const Variable<Matrix >& rVariable, Matrix& rResult, const ProcessInfo& rCurrentProcessInfo);
-
-    /**
      * Input and output
      */
+
     /**
      * Turn back information as a string.
      */
-    //virtual String Info() const;
+    std::string Info() const final
+    {
+        return "DummyConstitutiveLaw";
+    }
+
     /**
      * Print information about this object.
      */
-    //virtual void PrintInfo(std::ostream& rOStream) const;
+    void PrintInfo(std::ostream& rOStream) const final
+    {
+        rOStream << Info();
+    }
+
     /**
      * Print object's data.
      */
-    //virtual void PrintData(std::ostream& rOStream) const;
+    void PrintData(std::ostream& rOStream) const
+    {
+        rOStream << "ElemId: " << mElemId << ", GaussId: " << mGaussId << std::endl;
+    }
 
 protected:
     /**
@@ -240,12 +245,12 @@ private:
 
     friend class Serializer;
 
-    virtual void save( Serializer& rSerializer ) const
+    void save( Serializer& rSerializer ) const final
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, ConstitutiveLaw );
     }
 
-    virtual void load( Serializer& rSerializer )
+    void load( Serializer& rSerializer ) final
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ConstitutiveLaw );
     }

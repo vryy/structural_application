@@ -65,7 +65,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "utilities/math_utils.h"
 #include "includes/variables.h"
 #include "includes/process_info.h"
-#include "structural_application.h"
+#include "structural_application_variables.h"
 #include "includes/properties.h"
 
 namespace Kratos
@@ -326,7 +326,22 @@ void Isotropic3D::FinalizeSolutionStep( const Properties& props,
 {
 }
 
-void  Isotropic3D::CalculateMaterialResponse( const Vector& StrainVector,
+void Isotropic3D::CalculateMaterialResponseCauchy (Parameters& rValues)
+{
+    const Vector& StrainVector = rValues.GetStrainVector();
+    Vector& StressVector = rValues.GetStressVector();
+    Matrix& AlgorithmicTangent = rValues.GetConstitutiveMatrix();
+
+    if(AlgorithmicTangent.size1() != 6 || AlgorithmicTangent.size2() != 6)
+        AlgorithmicTangent.resize(6, 6, false);
+    CalculateElasticMatrix( AlgorithmicTangent, mE, mNU );
+
+    if(StressVector.size() != 6)
+        StressVector.resize(6, false);
+    CalculateStress( StrainVector, AlgorithmicTangent, StressVector );
+}
+
+void Isotropic3D::CalculateMaterialResponse( const Vector& StrainVector,
         const Matrix& DeformationGradient,
         Vector& StressVector,
         Matrix& AlgorithmicTangent,
@@ -338,8 +353,13 @@ void  Isotropic3D::CalculateMaterialResponse( const Vector& StrainVector,
         int CalculateTangent,
         bool SaveInternalVariables )
 {
-    CalculateElasticMatrix( AlgorithmicTangent, mE, mNU );
-    CalculateStress( StrainVector, AlgorithmicTangent, StressVector );
+    ConstitutiveLaw::Parameters const_params;
+    Vector ThisStrainVector = StrainVector;
+    const_params.SetStrainVector(ThisStrainVector);
+    const_params.SetStressVector(StressVector);
+    const_params.SetConstitutiveMatrix(AlgorithmicTangent);
+
+    this->CalculateMaterialResponseCauchy(const_params);
 }
 
 /**

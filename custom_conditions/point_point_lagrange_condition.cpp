@@ -58,7 +58,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // Project includes
 #include "includes/define.h"
 #include "custom_conditions/point_point_lagrange_condition.h"
-#include "structural_application.h"
+#include "structural_application_variables.h"
 #include "utilities/math_utils.h"
 #include "custom_utilities/sd_math_utils.h"
 #include "geometries/line_3d_2.h"
@@ -130,7 +130,7 @@ PointPointLagrangeCondition::~PointPointLagrangeCondition()
  * calculates only the RHS vector (certainly to be removed due to contact algorithm)
  */
 void PointPointLagrangeCondition::CalculateRightHandSide( VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo)
+        const ProcessInfo& rCurrentProcessInfo)
 {
 
     //calculation flags
@@ -152,7 +152,7 @@ void PointPointLagrangeCondition::CalculateRightHandSide( VectorType& rRightHand
  */
 void PointPointLagrangeCondition::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo)
+        const ProcessInfo& rCurrentProcessInfo)
 {
     //calculation flags
     bool CalculateStiffnessMatrixFlag = true;
@@ -172,7 +172,7 @@ void PointPointLagrangeCondition::CalculateLocalSystem( MatrixType& rLeftHandSid
  */
 void PointPointLagrangeCondition::CalculateAll( MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo,
+        const ProcessInfo& rCurrentProcessInfo,
         bool CalculateStiffnessMatrixFlag,
         bool CalculateResidualVectorFlag)
 {
@@ -212,7 +212,7 @@ void PointPointLagrangeCondition::CalculateAll( MatrixType& rLeftHandSideMatrix,
         displacements[3*i+2] = GetGeometry()[i].GetSolutionStepValue(DISPLACEMENT_Z);
     }
 
-	Vector rel_Disp = ZeroVector(3);
+    Vector rel_Disp = ZeroVector(3);
     for( unsigned int i=0; i<2; i++ )
     {
         rel_Disp[0] = displacements[0]-displacements[3];
@@ -221,20 +221,20 @@ void PointPointLagrangeCondition::CalculateAll( MatrixType& rLeftHandSideMatrix,
     }
  //       KRATOS_WATCH (rel_Disp)
 
-	Vector relDisp = ZeroVector(3);
-	noalias(relDisp) += GetGeometry()[0].GetSolutionStepValue(DISPLACEMENT) - GetGeometry()[1].GetSolutionStepValue(DISPLACEMENT);
+    Vector relDisp = ZeroVector(3);
+    noalias(relDisp) += GetGeometry()[0].GetSolutionStepValue(DISPLACEMENT) - GetGeometry()[1].GetSolutionStepValue(DISPLACEMENT);
  //       KRATOS_WATCH (relDisp)
 
     double mStiffness = GetProperties()[LINING_JOINT_STIFFNESS];
-	rRightHandSideVector[0] -= relDisp[0];
-	rRightHandSideVector[1] -= relDisp[1];
-	rRightHandSideVector[2] -= relDisp[2];
-	rRightHandSideVector[3] += relDisp[0];
-	rRightHandSideVector[3+1] += relDisp[1];
-	rRightHandSideVector[3+2] += relDisp[2];
-	rRightHandSideVector[2*3] += relDisp[0]/mStiffness;
-	rRightHandSideVector[2*3+1] += relDisp[1]/mStiffness;
-	rRightHandSideVector[2*3+2] += relDisp[2]/mStiffness;
+    rRightHandSideVector[0] -= relDisp[0];
+    rRightHandSideVector[1] -= relDisp[1];
+    rRightHandSideVector[2] -= relDisp[2];
+    rRightHandSideVector[3] += relDisp[0];
+    rRightHandSideVector[3+1] += relDisp[1];
+    rRightHandSideVector[3+2] += relDisp[2];
+    rRightHandSideVector[2*3] += relDisp[0]/mStiffness;
+    rRightHandSideVector[2*3+1] += relDisp[1]/mStiffness;
+    rRightHandSideVector[2*3+2] += relDisp[2]/mStiffness;
 
     for ( unsigned int i = 0; i < 3; i++ )
     {
@@ -246,13 +246,13 @@ void PointPointLagrangeCondition::CalculateAll( MatrixType& rLeftHandSideMatrix,
 }
 
 void PointPointLagrangeCondition::EquationIdVector( EquationIdVectorType& rResult,
-        ProcessInfo& CurrentProcessInfo)
+        const ProcessInfo& CurrentProcessInfo) const
 {
 
     //determining size of DOF list
     //dimension of space
     unsigned int dim = 3;
-	unsigned int index;
+    unsigned int index;
     rResult.resize(3*dim,false);
     for( unsigned int i=0; i<2; i++ )
     {
@@ -263,20 +263,20 @@ void PointPointLagrangeCondition::EquationIdVector( EquationIdVectorType& rResul
     }
 
     index = dim*2;
-	rResult[index] = GetGeometry()[0].GetDof(LAGRANGE_DISPLACEMENT_X).EquationId();
-	rResult[index+1] = GetGeometry()[0].GetDof(LAGRANGE_DISPLACEMENT_Y).EquationId();
-	rResult[index+2] = GetGeometry()[0].GetDof(LAGRANGE_DISPLACEMENT_Z).EquationId();
+    rResult[index] = GetGeometry()[0].GetDof(LAGRANGE_DISPLACEMENT_X).EquationId();
+    rResult[index+1] = GetGeometry()[0].GetDof(LAGRANGE_DISPLACEMENT_Y).EquationId();
+    rResult[index+2] = GetGeometry()[0].GetDof(LAGRANGE_DISPLACEMENT_Z).EquationId();
 }
 
 //************************************************************************************
 //************************************************************************************
 void PointPointLagrangeCondition::GetDofList( DofsVectorType& ConditionalDofList,
-                                        ProcessInfo& CurrentProcessInfo)
+                                        const ProcessInfo& CurrentProcessInfo) const
 {
 //determining size of DOF list
     //dimension of space
     unsigned int dim = 3;
-	unsigned int index;
+    unsigned int index;
     ConditionalDofList.resize(3*dim);
     for( unsigned int i=0; i<2; i++ )
     {

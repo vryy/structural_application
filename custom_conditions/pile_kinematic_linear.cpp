@@ -57,10 +57,13 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "pile_kinematic_linear.h"
 #include "utilities/math_utils.h"
 #include "custom_utilities/sd_math_utils.h"
-#include "structural_application.h"
+#include "structural_application_variables.h"
 
 namespace Kratos
 {
+
+typedef Pile_Kinematic_Linear::PointType PointType;
+
 //************************************************************************************
 //************************************************************************************
 Pile_Kinematic_Linear::Pile_Kinematic_Linear( IndexType NewId, GeometryType::Pointer pGeometry )
@@ -83,8 +86,8 @@ Pile_Kinematic_Linear::Pile_Kinematic_Linear( IndexType NewId,
                                               PropertiesType::Pointer pProperties,
                                               Element::Pointer soilElement,
                                               Element::Pointer pileElement,
-                                              Point<3>& rSoilLocalPoint,
-                                              Point<3>& rPileLocalPoint,
+                                              PointType& rSoilLocalPoint,
+                                              PointType& rPileLocalPoint,
                                               int PileIntegrationPointIndex )
 : Condition( NewId, pGeometry, pProperties )
 {
@@ -95,8 +98,8 @@ Pile_Kinematic_Linear::Pile_Kinematic_Linear( IndexType NewId,
 
     mPileIntegrationPointIndex = PileIntegrationPointIndex;
     //Test for calculating coordinates at time step midpoint
-    mSoilGlobalPoint = mpSoilElement->GetGeometry().GlobalCoordinates( mSoilGlobalPoint, mSoilLocalPoint );
-    mPileGlobalPoint = mpPileElement->GetGeometry().GlobalCoordinates( mPileGlobalPoint, mPileLocalPoint );
+    mpSoilElement->GetGeometry().GlobalCoordinates( mSoilGlobalPoint, mSoilLocalPoint );
+    mpPileElement->GetGeometry().GlobalCoordinates( mPileGlobalPoint, mPileLocalPoint );
 
     mvPile.resize( 3 );
     mTPile.resize( 2, 3 );
@@ -119,7 +122,7 @@ void Pile_Kinematic_Linear::Initialize(const ProcessInfo& rCurrentProcessInfo)
     KRATOS_CATCH( "" )
 }
 
-void Pile_Kinematic_Linear::InitializeSolutionStep( ProcessInfo& CurrentProcessInfo )
+void Pile_Kinematic_Linear::InitializeSolutionStep( const ProcessInfo& CurrentProcessInfo )
 {
 }
 
@@ -297,7 +300,7 @@ Matrix Pile_Kinematic_Linear::TangentialVectorsTotal( Element::Pointer rElement,
 }
 
 void Pile_Kinematic_Linear::CalculateRightHandSide( VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo )
+        const ProcessInfo& rCurrentProcessInfo )
 {
     //calculation flags
     bool CalculateStiffnessMatrixFlag = false;
@@ -316,7 +319,7 @@ void Pile_Kinematic_Linear::CalculateRightHandSide( VectorType& rRightHandSideVe
  */
 void Pile_Kinematic_Linear::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo )
+        const ProcessInfo& rCurrentProcessInfo )
 {
     //calculation flags
     bool CalculateStiffnessMatrixFlag = true;
@@ -332,7 +335,7 @@ void Pile_Kinematic_Linear::CalculateLocalSystem( MatrixType& rLeftHandSideMatri
  */
 void Pile_Kinematic_Linear::CalculateAll( MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo,
+        const ProcessInfo& rCurrentProcessInfo,
         bool CalculateStiffnessMatrixFlag,
         bool CalculateResidualVectorFlag )
 {
@@ -487,6 +490,7 @@ void Pile_Kinematic_Linear::CalculateAll( MatrixType& rLeftHandSideMatrix,
     noalias( mPileGlobalPoint ) = GetGlobalCoordinates( mpPileElement, mPileGlobalPoint, mPileLocalPoint );
 
     noalias( mSoilGlobalPoint ) = GetGlobalCoordinates( mpSoilElement, mSoilGlobalPoint, mSoilLocalPoint );
+
     double norm_vPile;
     norm_vPile = sqrt( vPile( 0 ) * vPile( 0 ) + vPile( 1 ) * vPile( 1 ) + vPile(2 ) * vPile( 2 ) );
 //    KRATOS_WATCH( vPile );
@@ -1121,7 +1125,7 @@ void Pile_Kinematic_Linear::CalculateAll( MatrixType& rLeftHandSideMatrix,
  * with regard to the current Pile and Soil partners.
  * All Conditions are assumed to be defined in 3D space and havin 3 DOFs per node
  */
-void Pile_Kinematic_Linear::DampMatrix( MatrixType& rDampMatrix, ProcessInfo& rCurrentProcessInfo )
+void Pile_Kinematic_Linear::DampMatrix( MatrixType& rDampMatrix, const ProcessInfo& rCurrentProcessInfo )
 {
 
     KRATOS_TRY
@@ -1274,13 +1278,10 @@ void Pile_Kinematic_Linear::DampMatrix( MatrixType& rDampMatrix, ProcessInfo& rC
 
     }
 
-
-    noalias( mPileGlobalPoint ) = ZeroVector( 3 );
-    noalias( mSoilGlobalPoint ) = ZeroVector( 3 );
-
     noalias( mPileGlobalPoint ) = GetGlobalCoordinates( mpPileElement, mPileGlobalPoint, mPileLocalPoint );
 
     noalias( mSoilGlobalPoint ) = GetGlobalCoordinates( mpSoilElement, mSoilGlobalPoint, mSoilLocalPoint );
+
     Vector relDispS( 3 );
 
     noalias( relDispS ) = ( mPileGlobalPoint - mSoilGlobalPoint );
@@ -1307,9 +1308,6 @@ void Pile_Kinematic_Linear::DampMatrix( MatrixType& rDampMatrix, ProcessInfo& rC
         TPileN( 1, 1 ) ==0;
         TPileN( 1, 2 ) ==0;
     }
-
-    noalias( mPileGlobalPoint ) = ZeroVector( 3 );
-    noalias( mSoilGlobalPoint ) = ZeroVector( 3 );
 
     noalias( mPileGlobalPoint ) = GetGlobalCoordinates( mpPileElement, mPileGlobalPoint, mPileLocalPoint );
 
@@ -1399,10 +1397,6 @@ void Pile_Kinematic_Linear::DampMatrix( MatrixType& rDampMatrix, ProcessInfo& rC
         vOriginPileProjB[2] = ( vOrigintPileB[2] - T( 0, 2 ) * T0B );
 
     }
-
-
-    noalias( mPileGlobalPoint ) = ZeroVector( 3 );
-    noalias( mSoilGlobalPoint ) = ZeroVector( 3 );
 
     noalias( mPileGlobalPoint ) = GetGlobalCoordinates( mpPileElement, mPileGlobalPoint, mPileLocalPoint );
 
@@ -2208,7 +2202,6 @@ void Pile_Kinematic_Linear::UpdatePileLocalPoint( )
         mPileLocalPoint[1] = Xi2;
 
         //updating rResult
-        mPileGlobalPoint = ZeroVector( 3 );
 
         mPileGlobalPoint = GetGlobalCoordinates( mpPileElement, mPileGlobalPoint, mPileLocalPoint );
 
@@ -2231,7 +2224,7 @@ void Pile_Kinematic_Linear::UpdatePileLocalPoint( )
  * All Equation IDs are given Pile first, Soil second
  */
 void Pile_Kinematic_Linear::EquationIdVector( EquationIdVectorType& rResult,
-        ProcessInfo& CurrentProcessInfo )
+        const ProcessInfo& CurrentProcessInfo ) const
 {
     //determining size of DOF list
     //dimension of space
@@ -2272,7 +2265,7 @@ void Pile_Kinematic_Linear::EquationIdVector( EquationIdVectorType& rResult,
  * All DOF are given Pile first, Soil second
  */
 void Pile_Kinematic_Linear::GetDofList( DofsVectorType& ConditionalDofList,
-                                        ProcessInfo& CurrentProcessInfo )
+                                        const ProcessInfo& CurrentProcessInfo ) const
 {
 
     //determining size of DOF list
@@ -2399,7 +2392,7 @@ Vector Pile_Kinematic_Linear::GetRelativVelocity()
 * @param LocalCoordinates local coordinates
 * @return global coordinates
 */
-Point<3>& Pile_Kinematic_Linear::GetGlobalCoordinates( Element::Pointer rElement, Point<3>& rResult, const Point<3>& LocalCoordinates )
+PointType& Pile_Kinematic_Linear::GetGlobalCoordinates( Element::Pointer rElement, PointType& rResult, const PointType& LocalCoordinates )
 {
     noalias( rResult ) = ZeroVector( 3 );
 

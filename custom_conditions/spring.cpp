@@ -59,7 +59,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // Project includes
 #include "includes/define.h"
 #include "custom_conditions/spring.h"
-#include "structural_application.h"
+#include "structural_application_variables.h"
 #include "utilities/math_utils.h"
 
 namespace Kratos
@@ -97,7 +97,7 @@ Spring2D::~Spring2D()
 {
 }
 
-void Spring2D::InitializeSolutionStep(ProcessInfo& CurrentProcessInfo)
+void Spring2D::InitializeSolutionStep(const ProcessInfo& CurrentProcessInfo)
 {
 
     mfail = false;
@@ -105,7 +105,7 @@ void Spring2D::InitializeSolutionStep(ProcessInfo& CurrentProcessInfo)
 
 //************************************************************************************
 //************************************************************************************
-void Spring2D::CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+void Spring2D::CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
     if(rRightHandSideVector.size() != 4)
@@ -200,7 +200,7 @@ void Spring2D::CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessI
 
 //************************************************************************************
 //************************************************************************************
-void Spring2D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+void Spring2D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
     /*
@@ -235,7 +235,7 @@ void Spring2D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType&
 
 //************************************************************************************
 //************************************************************************************
-void Spring2D::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& CurrentProcessInfo)
+void Spring2D::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& CurrentProcessInfo) const
 {
     int number_of_nodes = GetGeometry().PointsNumber();
     unsigned int index;
@@ -252,7 +252,7 @@ void Spring2D::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& Curr
 
 //************************************************************************************
 //************************************************************************************
-void Spring2D::GetDofList(DofsVectorType& ConditionalDofList,ProcessInfo& CurrentProcessInfo)
+void Spring2D::GetDofList(DofsVectorType& ConditionalDofList, const ProcessInfo& CurrentProcessInfo) const
 {
     unsigned int dim = 2;
     ConditionalDofList.resize(GetGeometry().size()*dim);

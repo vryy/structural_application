@@ -54,7 +54,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 // Project includes
 #include "custom_conditions/foundation_condition.h"
-#include "structural_application.h"
+#include "structural_application_variables.h"
 #include "custom_utilities/sd_math_utils.h"
 
 namespace Kratos
@@ -80,23 +80,23 @@ namespace Kratos
     }
 
     FoundationCondition::FoundationCondition( IndexType NewId, GeometryType::Pointer pGeometry,
-                                  	PropertiesType::Pointer pProperties,
-					Element::Pointer& soilElement,
-					Element::Pointer& foundationElement,
-					Point<3>& rSoilLocalPoint,
-					Point<3>& rFoundationLocalPoint)
-	: Condition( NewId, pGeometry, pProperties )
-	{
-       		mSoilLocalPoint = rSoilLocalPoint;
-		mFoundationLocalPoint = rFoundationLocalPoint;
-		mpSoilElement = soilElement;
-		mpFoundationElement = foundationElement;
-		//Test for calculating coordinates at time step midpoint
-        	//mSoilGlobalPoint = GlobalCoordinates(mpSoilElement, mSoilGlobalPoint, mSoilLocalPoint );
-		//Test for calculating coordinates at time step midpoint
-        	//mTipGlobalPoint = GlobalCoordinates(mpFoundationElement, mTipGlobalPoint, mFoundationLocalPoint );
+                                    PropertiesType::Pointer pProperties,
+          Element::Pointer& soilElement,
+          Element::Pointer& foundationElement,
+          PointType& rSoilLocalPoint,
+          PointType& rFoundationLocalPoint)
+  : Condition( NewId, pGeometry, pProperties )
+  {
+          mSoilLocalPoint = rSoilLocalPoint;
+    mFoundationLocalPoint = rFoundationLocalPoint;
+    mpSoilElement = soilElement;
+    mpFoundationElement = foundationElement;
+    //Test for calculating coordinates at time step midpoint
+          //mSoilGlobalPoint = GlobalCoordinates(mpSoilElement, mSoilGlobalPoint, mSoilLocalPoint );
+    //Test for calculating coordinates at time step midpoint
+          //mTipGlobalPoint = GlobalCoordinates(mpFoundationElement, mTipGlobalPoint, mFoundationLocalPoint );
 //
-	}
+  }
 
     //********************************************************
     //**** Operations ****************************************
@@ -139,7 +139,7 @@ namespace Kratos
      * calculates only the RHS vector (certainly to be removed due to contact algorithm)
      */
     void FoundationCondition::CalculateRightHandSide( VectorType& rRightHandSideVector,
-            ProcessInfo& rCurrentProcessInfo)
+            const ProcessInfo& rCurrentProcessInfo)
     {
         //calculation flags
         bool CalculateStiffnessMatrixFlag = false;
@@ -158,7 +158,7 @@ namespace Kratos
      */
     void FoundationCondition::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix,
                                               VectorType& rRightHandSideVector,
-                                              ProcessInfo& rCurrentProcessInfo)
+                                              const ProcessInfo& rCurrentProcessInfo)
     {
         //calculation flags
         bool CalculateStiffnessMatrixFlag = true;
@@ -175,35 +175,35 @@ namespace Kratos
      */
     void FoundationCondition::CalculateAll( MatrixType& rLeftHandSideMatrix,
                                       VectorType& rRightHandSideVector,
-                                      ProcessInfo& rCurrentProcessInfo,
+                                      const ProcessInfo& rCurrentProcessInfo,
                                       bool CalculateStiffnessMatrixFlag,
                                       bool CalculateResidualVectorFlag)
     {
 
-	KRATOS_TRY
+  KRATOS_TRY
 
-	Vector uSoil = ZeroVector(3);
-	for( unsigned int node = 0; node < mpSoilElement->GetGeometry().size(); node++ )
-	{
-		uSoil+=mpSoilElement->GetGeometry().ShapeFunctionValue(node,mSoilLocalPoint)*mpSoilElement->GetGeometry()[node].GetSolutionStepValue(DISPLACEMENT);
-	}
-	//KRATOS_WATCH(uSoil);
-//	KRATOS_WATCH(mSoilLocalPoint);
-	Vector uFoundation = ZeroVector(3);
-	for( unsigned int node = 0; node < mpFoundationElement->GetGeometry().size(); node++ )
-	{
-		uFoundation+=mpFoundationElement->GetGeometry().ShapeFunctionValue(node,mFoundationLocalPoint)*mpFoundationElement->GetGeometry()[node].GetSolutionStepValue(DISPLACEMENT);
-	}
-//	KRATOS_WATCH(uTip);
-//	KRATOS_WATCH(mSoilLocalPoint);
+  Vector uSoil = ZeroVector(3);
+  for( unsigned int node = 0; node < mpSoilElement->GetGeometry().size(); node++ )
+  {
+    uSoil+=mpSoilElement->GetGeometry().ShapeFunctionValue(node,mSoilLocalPoint)*mpSoilElement->GetGeometry()[node].GetSolutionStepValue(DISPLACEMENT);
+  }
+  //KRATOS_WATCH(uSoil);
+//  KRATOS_WATCH(mSoilLocalPoint);
+  Vector uFoundation = ZeroVector(3);
+  for( unsigned int node = 0; node < mpFoundationElement->GetGeometry().size(); node++ )
+  {
+    uFoundation+=mpFoundationElement->GetGeometry().ShapeFunctionValue(node,mFoundationLocalPoint)*mpFoundationElement->GetGeometry()[node].GetSolutionStepValue(DISPLACEMENT);
+  }
+//  KRATOS_WATCH(uTip);
+//  KRATOS_WATCH(mSoilLocalPoint);
 
-	Vector relDisp = uSoil-uFoundation;
-	//KRATOS_WATCH( relDisp );
+  Vector relDisp = uSoil-uFoundation;
+  //KRATOS_WATCH( relDisp );
         unsigned int soilNN = mpSoilElement->GetGeometry().size();
         unsigned int foundationNN = mpFoundationElement->GetGeometry().size();
         unsigned int dimension = 3;
         unsigned int MatSize = (soilNN+foundationNN)*dimension+3;
-	///	KRATOS_WATCH(foundationNN);
+  /// KRATOS_WATCH(foundationNN);
         //resizing as needed the RHS
         if (CalculateResidualVectorFlag == true) //calculation of the matrix is required
         {
@@ -219,26 +219,26 @@ namespace Kratos
         }
         else return;
 
-	//subtracting relDisp*penalty from soil nodes' reaction vector
+  //subtracting relDisp*penalty from soil nodes' reaction vector
 
-	for( unsigned int node=0; node < soilNN; node++ )
-	{
-		rRightHandSideVector[3*node]   -= relDisp[0];///(mpSoilElement->GetGeometry().ShapeFunctionValue(node,mSoilLocalPoint));
-		rRightHandSideVector[3*node+1] -= relDisp[1];///(mpSoilElement->GetGeometry().ShapeFunctionValue(node,mSoilLocalPoint));
-		rRightHandSideVector[3*node+2] -= relDisp[2];////(mpSoilElement->GetGeometry().ShapeFunctionValue(node,mSoilLocalPoint));
-	}
+  for( unsigned int node=0; node < soilNN; node++ )
+  {
+    rRightHandSideVector[3*node]   -= relDisp[0];///(mpSoilElement->GetGeometry().ShapeFunctionValue(node,mSoilLocalPoint));
+    rRightHandSideVector[3*node+1] -= relDisp[1];///(mpSoilElement->GetGeometry().ShapeFunctionValue(node,mSoilLocalPoint));
+    rRightHandSideVector[3*node+2] -= relDisp[2];////(mpSoilElement->GetGeometry().ShapeFunctionValue(node,mSoilLocalPoint));
+  }
 
-	for( unsigned int node=0; node < foundationNN; node++ )
-	{
+  for( unsigned int node=0; node < foundationNN; node++ )
+  {
 
-		rRightHandSideVector[3*soilNN+3*node]   += relDisp[0];////(mpFoundationElement->GetGeometry().ShapeFunctionValue(node, mFoundationLocalPoint));
-		rRightHandSideVector[3*soilNN+3*node+1] += relDisp[1];////(mpFoundationElement->GetGeometry().ShapeFunctionValue(node, mFoundationLocalPoint));
-		rRightHandSideVector[3*soilNN+3*node+2] += relDisp[2];////(mpFoundationElement->GetGeometry().ShapeFunctionValue(node, mFoundationLocalPoint));
-	}
+    rRightHandSideVector[3*soilNN+3*node]   += relDisp[0];////(mpFoundationElement->GetGeometry().ShapeFunctionValue(node, mFoundationLocalPoint));
+    rRightHandSideVector[3*soilNN+3*node+1] += relDisp[1];////(mpFoundationElement->GetGeometry().ShapeFunctionValue(node, mFoundationLocalPoint));
+    rRightHandSideVector[3*soilNN+3*node+2] += relDisp[2];////(mpFoundationElement->GetGeometry().ShapeFunctionValue(node, mFoundationLocalPoint));
+  }
 
-//	KRATOS_WATCH(Id())
-//	KRATOS_WATCH(rRightHandSideVector)
-/*	for ( unsigned int i = (soilNN+foundationNN)*3 ; i < (soilNN+foundationNN+1)*3; i++ )
+//  KRATOS_WATCH(Id())
+//  KRATOS_WATCH(rRightHandSideVector)
+/*  for ( unsigned int i = (soilNN+foundationNN)*3 ; i < (soilNN+foundationNN+1)*3; i++ )
         {
                rRightHandSideVector[i] -= relDisp[i] / 3;
         }*/
@@ -247,18 +247,18 @@ namespace Kratos
 // std::cout<<"#################### THIS IS IN CALCULATE ALL ####################"<<std::endl;
 
         Vector soil_local_shape = ZeroVector(soilNN);
-    	Vector side_local_shape = ZeroVector(foundationNN);
+      Vector side_local_shape = ZeroVector(foundationNN);
 
 //         interface_local_shape= mpInterfaceElement->GetShapeFunctionValues(mSurfaceIntegrationPointIndex, mLeftOrRight);
 
-//		double soil_incremental_area= mpSoilElement->GetIncrementalArea(mSurfaceIntegrationPointIndex, mLeftOrRight);
+//    double soil_incremental_area= mpSoilElement->GetIncrementalArea(mSurfaceIntegrationPointIndex, mLeftOrRight);
 
 
 
         for( IndexType PointNumber = 0; PointNumber < mpFoundationElement->GetGeometry().size(); PointNumber++ )
         {
             side_local_shape[PointNumber] = mpFoundationElement->GetGeometry().ShapeFunctionValue( PointNumber, mFoundationLocalPoint);
-	   // KRATOS_WATCH (side_local_shape);
+     // KRATOS_WATCH (side_local_shape);
         }
         for ( unsigned int i = 0; i < 3; i++ )
         {
@@ -266,7 +266,7 @@ namespace Kratos
                 {
                     for (  unsigned int soil_node = 0; soil_node < soilNN; soil_node++ )
 
-                    {	//KRATOS_WATCH (mpSoilElement->GetGeometry().ShapeFunctionValue(soil_node,mSoilLocalPoint))
+                    { //KRATOS_WATCH (mpSoilElement->GetGeometry().ShapeFunctionValue(soil_node,mSoilLocalPoint))
                         //rLeftHandSideMatrix( soil_node * 3 + i, soilNN * 3 + foundationNN * 3 + i ) -= 4.0*(mpSoilElement->GetGeometry().ShapeFunctionValue(soil_node,mSoilLocalPoint));
                        // rLeftHandSideMatrix( soilNN * 3 + foundationNN * 3 + i, soil_node * 3 + i ) -= 4.0*(mpSoilElement->GetGeometry().ShapeFunctionValue(soil_node,mSoilLocalPoint));
                        // rLeftHandSideMatrix( soilNN * 3 + foundation_node * 3 + i, soilNN * 3 + foundationNN * 3 + i ) += 0.5*(mpFoundationElement->GetGeometry().ShapeFunctionValue(foundation_node, mFoundationLocalPoint));
@@ -277,8 +277,8 @@ namespace Kratos
                         rLeftHandSideMatrix( soilNN * 3 + foundationNN * 3 + i, soilNN * 3 + foundation_node * 3 + i ) += 1.0*(mpFoundationElement->GetGeometry().ShapeFunctionValue(foundation_node, mFoundationLocalPoint));
                      }
                  }
-	}
-//	KRATOS_WATCH (rLeftHandSideMatrix);
+  }
+//  KRATOS_WATCH (rLeftHandSideMatrix);
 
  /*       for( unsigned int foundation_node = 0; foundation_node < foundationNN; foundation_node++ )
         {
@@ -298,8 +298,8 @@ namespace Kratos
             }
         }*/
 //        KRATOS_WATCH(rLeftHandSideMatrix);
-   		KRATOS_CATCH("")
-	}
+      KRATOS_CATCH("")
+  }
 
 
 
@@ -313,38 +313,38 @@ namespace Kratos
 * All conditions are assumed to be defined in 3D space with 3 DOFs per node.
 * All Equation IDs are given Master first, Slave second
 */
-	void FoundationCondition::EquationIdVector( EquationIdVectorType& rResult,
-                                          ProcessInfo& CurrentProcessInfo)
-	{
+  void FoundationCondition::EquationIdVector( EquationIdVectorType& rResult,
+                                          const ProcessInfo& CurrentProcessInfo) const
+  {
         //determining size of DOF list
         //dimension of space
-		unsigned int soilNN = mpSoilElement->GetGeometry().size();
-	        unsigned int foundationNN = mpFoundationElement->GetGeometry().size();
-		unsigned int ndofs = 3*(soilNN+foundationNN)+3;
-	        unsigned int index;
-		rResult.resize(ndofs,false);
- 	        for( unsigned int node=0; node<soilNN; node++ )
- 	        {
-			index = node*3;
-			rResult[index]   = mpSoilElement->GetGeometry()[node].GetDof(DISPLACEMENT_X).EquationId();
-			rResult[index+1] = mpSoilElement->GetGeometry()[node].GetDof(DISPLACEMENT_Y).EquationId();
-			rResult[index+2] = mpSoilElement->GetGeometry()[node].GetDof(DISPLACEMENT_Z).EquationId();
- 	        }
- 	        for( unsigned int node=0; node<foundationNN; node++ )
- 	        {
-			index = soilNN*3+node*3;
-			rResult[index]   = mpFoundationElement->GetGeometry()[node].GetDof(DISPLACEMENT_X).EquationId();
-			rResult[index+1] = mpFoundationElement->GetGeometry()[node].GetDof(DISPLACEMENT_Y).EquationId();
-			rResult[index+2] = mpFoundationElement->GetGeometry()[node].GetDof(DISPLACEMENT_Z).EquationId();
-//			rResult[index+3] = mpFoundationElement->GetGeometry()[node].GetDof(ROTATION_X).EquationId();
-//			rResult[index+4] = mpFoundationElement->GetGeometry()[node].GetDof(ROTATION_Y).EquationId();
-//			rResult[index+5] = mpFoundationElement->GetGeometry()[node].GetDof(ROTATION_Z).EquationId();
- 	        }
-	        index = soilNN*3+foundationNN*3;
-		rResult[index] = mpFoundationElement->GetGeometry()[0].GetDof(LAGRANGE_DISPLACEMENT_X).EquationId();
-		rResult[index+1] = mpFoundationElement->GetGeometry()[0].GetDof(LAGRANGE_DISPLACEMENT_Y).EquationId();
-		rResult[index+2] = mpFoundationElement->GetGeometry()[0].GetDof(LAGRANGE_DISPLACEMENT_Z).EquationId();
-  	  }
+    unsigned int soilNN = mpSoilElement->GetGeometry().size();
+          unsigned int foundationNN = mpFoundationElement->GetGeometry().size();
+    unsigned int ndofs = 3*(soilNN+foundationNN)+3;
+          unsigned int index;
+    rResult.resize(ndofs,false);
+          for( unsigned int node=0; node<soilNN; node++ )
+          {
+      index = node*3;
+      rResult[index]   = mpSoilElement->GetGeometry()[node].GetDof(DISPLACEMENT_X).EquationId();
+      rResult[index+1] = mpSoilElement->GetGeometry()[node].GetDof(DISPLACEMENT_Y).EquationId();
+      rResult[index+2] = mpSoilElement->GetGeometry()[node].GetDof(DISPLACEMENT_Z).EquationId();
+          }
+          for( unsigned int node=0; node<foundationNN; node++ )
+          {
+      index = soilNN*3+node*3;
+      rResult[index]   = mpFoundationElement->GetGeometry()[node].GetDof(DISPLACEMENT_X).EquationId();
+      rResult[index+1] = mpFoundationElement->GetGeometry()[node].GetDof(DISPLACEMENT_Y).EquationId();
+      rResult[index+2] = mpFoundationElement->GetGeometry()[node].GetDof(DISPLACEMENT_Z).EquationId();
+//      rResult[index+3] = mpFoundationElement->GetGeometry()[node].GetDof(ROTATION_X).EquationId();
+//      rResult[index+4] = mpFoundationElement->GetGeometry()[node].GetDof(ROTATION_Y).EquationId();
+//      rResult[index+5] = mpFoundationElement->GetGeometry()[node].GetDof(ROTATION_Z).EquationId();
+          }
+          index = soilNN*3+foundationNN*3;
+    rResult[index] = mpFoundationElement->GetGeometry()[0].GetDof(LAGRANGE_DISPLACEMENT_X).EquationId();
+    rResult[index+1] = mpFoundationElement->GetGeometry()[0].GetDof(LAGRANGE_DISPLACEMENT_Y).EquationId();
+    rResult[index+2] = mpFoundationElement->GetGeometry()[0].GetDof(LAGRANGE_DISPLACEMENT_Z).EquationId();
+      }
     //************************************************************************************
     //************************************************************************************
     /**
@@ -354,17 +354,17 @@ namespace Kratos
      */
     //************************************************************************************
     //************************************************************************************
-    void FoundationCondition::GetDofList( DofsVectorType& ConditionalDofList, ProcessInfo& CurrentProcessInfo)
+    void FoundationCondition::GetDofList( DofsVectorType& ConditionalDofList, const ProcessInfo& CurrentProcessInfo) const
     {
         //determining size of DOF list
         //dimension of space
         unsigned int soilNN = mpSoilElement->GetGeometry().size();
         unsigned int foundationNN = mpFoundationElement->GetGeometry().size();
         unsigned int index;
-	unsigned int ndofs = 3*(soilNN+foundationNN)+3;
-//	KRATOS_WATCH(ndofs);
+        unsigned int ndofs = 3*(soilNN+foundationNN)+3;
+//  KRATOS_WATCH(ndofs);
         ConditionalDofList.resize(ndofs);
-	for( unsigned int node=0; node<soilNN; node++ )
+        for( unsigned int node=0; node<soilNN; node++ )
         {
             index = node*3;
             ConditionalDofList[index]   = mpSoilElement->GetGeometry()[node].pGetDof(DISPLACEMENT_X);
@@ -381,10 +381,10 @@ namespace Kratos
    //         ConditionalDofList[index+4] = mpFoundationElement->GetGeometry()[node].pGetDof(ROTATION_Y);
      //       ConditionalDofList[index+5] = mpFoundationElement->GetGeometry()[node].pGetDof(ROTATION_Z);
         }
-	index = soilNN*3+foundationNN*3;
-	ConditionalDofList[index] = mpFoundationElement->GetGeometry()[0].pGetDof(LAGRANGE_DISPLACEMENT_X);
-	ConditionalDofList[index+1] = mpFoundationElement->GetGeometry()[0].pGetDof(LAGRANGE_DISPLACEMENT_Y);
-	ConditionalDofList[index+2] = mpFoundationElement->GetGeometry()[0].pGetDof(LAGRANGE_DISPLACEMENT_Z);
-	//KRATOS_WATCH(ConditionalDofList[0]);
+  index = soilNN*3+foundationNN*3;
+  ConditionalDofList[index] = mpFoundationElement->GetGeometry()[0].pGetDof(LAGRANGE_DISPLACEMENT_X);
+  ConditionalDofList[index+1] = mpFoundationElement->GetGeometry()[0].pGetDof(LAGRANGE_DISPLACEMENT_Y);
+  ConditionalDofList[index+2] = mpFoundationElement->GetGeometry()[0].pGetDof(LAGRANGE_DISPLACEMENT_Z);
+  //KRATOS_WATCH(ConditionalDofList[0]);
     }
 } // Namespace Kratos

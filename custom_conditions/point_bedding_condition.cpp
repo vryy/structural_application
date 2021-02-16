@@ -58,7 +58,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // Project includes
 #include "includes/define.h"
 #include "custom_conditions/point_bedding_condition.h"
-#include "structural_application.h"
+#include "structural_application_variables.h"
 #include "utilities/math_utils.h"
 #include "custom_utilities/sd_math_utils.h"
 #include "geometries/point_3d.h"
@@ -125,7 +125,7 @@ PointBeddingCondition::~PointBeddingCondition()
  * calculates only the RHS vector (certainly to be removed due to contact algorithm)
  */
 void PointBeddingCondition::CalculateRightHandSide( VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo)
+        const ProcessInfo& rCurrentProcessInfo)
 {
 
     //calculation flags
@@ -147,7 +147,7 @@ void PointBeddingCondition::CalculateRightHandSide( VectorType& rRightHandSideVe
  */
 void PointBeddingCondition::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo)
+        const ProcessInfo& rCurrentProcessInfo)
 {
     //calculation flags
     bool CalculateStiffnessMatrixFlag = true;
@@ -167,7 +167,7 @@ void PointBeddingCondition::CalculateLocalSystem( MatrixType& rLeftHandSideMatri
  */
 void PointBeddingCondition::CalculateAll( MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo,
+        const ProcessInfo& rCurrentProcessInfo,
         bool CalculateStiffnessMatrixFlag,
         bool CalculateResidualVectorFlag)
 {
@@ -229,8 +229,7 @@ void PointBeddingCondition::CalculateAll( MatrixType& rLeftHandSideMatrix,
 //************************************************************************************
 
 void PointBeddingCondition::EquationIdVector( EquationIdVectorType& rResult,
-        ProcessInfo& CurrentProcessInfo
-                                            )
+        const ProcessInfo& CurrentProcessInfo ) const
 {
 
     //determining size of DOF list
@@ -242,14 +241,13 @@ void PointBeddingCondition::EquationIdVector( EquationIdVectorType& rResult,
         rResult[dim*i] = GetGeometry()[i].GetDof(DISPLACEMENT_X).EquationId();
         rResult[dim*i+1] = GetGeometry()[i].GetDof(DISPLACEMENT_Y).EquationId();
         rResult[dim*i+2] = GetGeometry()[i].GetDof(DISPLACEMENT_Z).EquationId();
-
     }
 }
 
 //************************************************************************************
 //************************************************************************************
 void PointBeddingCondition::GetDofList( DofsVectorType& ConditionalDofList,
-                                        ProcessInfo& CurrentProcessInfo)
+                                        const ProcessInfo& CurrentProcessInfo) const
 {
 //determining size of DOF list
     //dimension of space
@@ -260,9 +258,7 @@ void PointBeddingCondition::GetDofList( DofsVectorType& ConditionalDofList,
         ConditionalDofList[dim*i] = GetGeometry()[i].pGetDof(DISPLACEMENT_X);
         ConditionalDofList[dim*i+1] = GetGeometry()[i].pGetDof(DISPLACEMENT_Y);
         ConditionalDofList[dim*i+2] = GetGeometry()[i].pGetDof(DISPLACEMENT_Z);
-
     }
-
 }
 
 } // Namespace Kratos

@@ -58,7 +58,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "boost/smart_ptr.hpp"
 
 // Project includes
-#include "structural_application.h"
 #include "includes/define.h"
 #include "includes/serializer.h"
 #include "includes/variables.h"

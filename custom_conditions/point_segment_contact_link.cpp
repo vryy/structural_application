@@ -58,7 +58,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // Project includes
 #include "includes/define.h"
 #include "custom_conditions/point_segment_contact_link.h"
-#include "structural_application.h"
+#include "structural_application_variables.h"
 #include "utilities/math_utils.h"
 #include "custom_utilities/sd_math_utils.h"
 
@@ -113,8 +113,8 @@ namespace Kratos
                                   PropertiesType::Pointer pProperties,
                                   Condition::Pointer Master,
                                   Condition::Pointer Slave
-                                  //Point<3>& MasterContactLocalPoint,
-                                  //Point<3>& SlaveContactLocalPoint,
+                                  //PointType& MasterContactLocalPoint,
+                                  //PointType& SlaveContactLocalPoint,
                                   //int SlaveIntegrationPointIndex
                                 )  : Condition( NewId, pGeometry, pProperties )
                                 {
@@ -222,7 +222,7 @@ namespace Kratos
      * calculates only the RHS vector (certainly to be removed due to contact algorithm)
      */
     void PointSegmentContactLink::CalculateRightHandSide( VectorType& rRightHandSideVector,
-            ProcessInfo& rCurrentProcessInfo)
+            const ProcessInfo& rCurrentProcessInfo)
     {
 
               //calculation flags
@@ -244,7 +244,7 @@ namespace Kratos
      */
     void PointSegmentContactLink::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix,
                                               VectorType& rRightHandSideVector,
-                                              ProcessInfo& rCurrentProcessInfo)
+                                              const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
@@ -256,7 +256,7 @@ namespace Kratos
      */
     void PointSegmentContactLink::CalculateAll( MatrixType& rLeftHandSideMatrix,
                                       VectorType& rRightHandSideVector,
-                                      ProcessInfo& rCurrentProcessInfo,
+                                      const ProcessInfo& rCurrentProcessInfo,
                                       bool CalculateStiffnessMatrixFlag,
                                       bool CalculateResidualVectorFlag)
     {
@@ -297,7 +297,7 @@ namespace Kratos
 	    double segmentlength  = GetValue( CONTACT_LINK_MASTER )->GetGeometry().Length();
 	    double shi            = inner_prod(r,Tangential)/segmentlength;
 
-	    Point<3> rPoint;
+	    PointType rPoint;
 	    rPoint[0] = shi;
 	    rPoint[1] = shi;
 	    rPoint[2] = shi;
@@ -316,7 +316,7 @@ namespace Kratos
 
 	    /// contact position on the target facet
 	    Condition::GeometryType& segmentgeom = GetValue( CONTACT_LINK_MASTER )->GetGeometry();
-	    Point<3> Xts;
+	    PointType Xts;
 	    noalias(Xts) = MasterShapeFunctionValues[0]*segmentgeom[0] + MasterShapeFunctionValues[1]*segmentgeom[1];
 
 	    double penalty = 1.00;   //200e9 * 50.0;
@@ -349,8 +349,7 @@ namespace Kratos
     //************************************************************************************
 
    void PointSegmentContactLink::EquationIdVector( EquationIdVectorType& rResult,
-                                         ProcessInfo& CurrentProcessInfo
-                                       )
+                                         const ProcessInfo& CurrentProcessInfo) const
    {
 
         //determining size of DOF list
@@ -379,7 +378,7 @@ namespace Kratos
     //************************************************************************************
     //************************************************************************************
    void PointSegmentContactLink::GetDofList( DofsVectorType& ConditionalDofList,
-                                   ProcessInfo& CurrentProcessInfo)
+                                   const ProcessInfo& CurrentProcessInfo) const
    {
 
         //determining size of DOF list
@@ -407,7 +406,7 @@ namespace Kratos
 
    }
 
-   void PointSegmentContactLink::GetValueOnIntegrationPoints(const Variable<array_1d<double,3> >& rVariable, std::vector<array_1d<double,3> >& rValues, const ProcessInfo& rCurrentProcessInfo)
+   void PointSegmentContactLink::CalculateOnIntegrationPoints(const Variable<array_1d<double,3> >& rVariable, std::vector<array_1d<double,3> >& rValues, const ProcessInfo& rCurrentProcessInfo)
    {
       const unsigned int& size =  GetGeometry().IntegrationPoints().size();
       rValues.resize(size);
@@ -428,7 +427,7 @@ namespace Kratos
 
    }
 
-   void PointSegmentContactLink::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
+   void PointSegmentContactLink::CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo)
    {
      Condition::GeometryType& geom = this->GetGeometry();
      const unsigned int dimension  = geom.WorkingSpaceDimension();
@@ -513,7 +512,7 @@ namespace Kratos
       KRATOS_CATCH("")
     }
 
-     void PointSegmentContactLink::GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo)
+     void PointSegmentContactLink::CalculateOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo)
      {
 
         const int& size =  GetGeometry().IntegrationPoints().size();

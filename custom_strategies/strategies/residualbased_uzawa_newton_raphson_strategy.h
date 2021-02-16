@@ -59,14 +59,13 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 /* Project includes */
 #include "includes/define.h"
 #include "includes/model_part.h"
-#include "includes/legacy_structural_app_vars.h"
 #include "utilities/math_utils.h"
 #include "solving_strategies/strategies/solving_strategy.h"
 #include "solving_strategies/strategies/residualbased_newton_raphson_strategy.h"
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
 
 #include "custom_conditions/contact_link_3D.h"
-#include "structural_application.h"
+#include "structural_application_variables.h"
 
 //default builder and solver
 #include "solving_strategies/builder_and_solvers/residualbased_elimination_builder_and_solver.h"

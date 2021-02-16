@@ -57,7 +57,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // Project includes
 // #include "includes/define.h"
 #include "custom_elements/truss_element.h"
-#include "structural_application.h"
+#include "structural_application_variables.h"
 
 namespace Kratos
 {
@@ -119,7 +119,7 @@ void TrussElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
 //THIS is the main method here the integration in space (loop over the integration points) is done
 //************************************************************************************
 void TrussElement::CalculateAll(MatrixType& rLeftHandSideMatrix,
-                                VectorType& rRightHandSideVector,ProcessInfo& rCurrentProcessInfo,
+                                VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo,
                                 bool CalculateStiffnessMatrixFlag, bool CalculateResidualVectorFlag)
 {
     KRATOS_TRY
@@ -188,7 +188,7 @@ void TrussElement::CalculateAll(MatrixType& rLeftHandSideMatrix,
 //************************************************************************************
 //************************************************************************************
 void TrussElement::CalculateRightHandSide(VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo)
+        const ProcessInfo& rCurrentProcessInfo)
 {
     //calculation flags
     bool CalculateStiffnessMatrixFlag = false;
@@ -205,7 +205,7 @@ void TrussElement::CalculateRightHandSide(VectorType& rRightHandSideVector,
 //************************************************************************************
 
 void TrussElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
-                                        VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+                                        VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
 {
     //calculation flags
     bool CalculateStiffnessMatrixFlag = true;
@@ -220,7 +220,7 @@ void TrussElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
 //************************************************************************************
 //************************************************************************************
 
-void TrussElement::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
+void TrussElement::CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo)
 {
     if(rMassMatrix.size1() != 6 || rMassMatrix.size2() != 6)
         rMassMatrix.resize(6, 6, false);
@@ -246,7 +246,7 @@ void TrussElement::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCu
 //************************************************************************************
 //************************************************************************************
 
-void TrussElement::CalculateDampingMatrix(MatrixType& rDampMatrix, ProcessInfo& rCurrentProcessInfo)
+void TrussElement::CalculateDampingMatrix(MatrixType& rDampMatrix, const ProcessInfo& rCurrentProcessInfo)
 {
     double alpha = GetProperties()[RAYLEIGH_DAMPING_ALPHA];
     double beta = GetProperties()[RAYLEIGH_DAMPING_BETA];
@@ -277,7 +277,7 @@ TrussElement::IntegrationMethod TrussElement::GetIntegrationMethod() const
 //************************************************************************************
 
 void TrussElement::EquationIdVector(EquationIdVectorType& rResult,
-                                    ProcessInfo& CurrentProcessInfo)
+                                    const ProcessInfo& CurrentProcessInfo) const
 {
     if(rResult.size() != 6)
         rResult.resize(6);
@@ -293,8 +293,8 @@ void TrussElement::EquationIdVector(EquationIdVectorType& rResult,
 //************************************************************************************
 //************************************************************************************
 
-void TrussElement::GetDofList(DofsVectorType& ElementalDofList,ProcessInfo&
-                              CurrentProcessInfo)
+void TrussElement::GetDofList(DofsVectorType& ElementalDofList, const ProcessInfo&
+                              CurrentProcessInfo) const
 {
     ElementalDofList.resize(0);
 
@@ -309,7 +309,7 @@ void TrussElement::GetDofList(DofsVectorType& ElementalDofList,ProcessInfo&
 //************************************************************************************
 //************************************************************************************
 
-void TrussElement::GetValuesVector(Vector& values, int Step)
+void TrussElement::GetValuesVector(Vector& values, int Step) const
 {
     if(values.size() != 6)
         values.resize(6, false);
@@ -325,7 +325,7 @@ void TrussElement::GetValuesVector(Vector& values, int Step)
 //************************************************************************************
 //************************************************************************************
 
-void TrussElement::GetFirstDerivativesVector(Vector& values, int Step)
+void TrussElement::GetFirstDerivativesVector(Vector& values, int Step) const
 {
     if(values.size() != 6)
         values.resize(6, false);
@@ -341,7 +341,7 @@ void TrussElement::GetFirstDerivativesVector(Vector& values, int Step)
 //************************************************************************************
 //************************************************************************************
 
-void TrussElement::GetSecondDerivativesVector(Vector& values, int Step)
+void TrussElement::GetSecondDerivativesVector(Vector& values, int Step) const
 {
     if(values.size() != 6)
         values.resize(6, false);

@@ -53,7 +53,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // System includes
 
 // External includes
-#include "boost/smart_ptr.hpp"
 
 // Project includes
 #include "includes/define.h"
@@ -61,7 +60,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/element.h"
 #include "includes/ublas_interface.h"
 #include "includes/variables.h"
-#include "includes/constitutive_law.h"
 
 namespace Kratos
 {
@@ -85,9 +83,12 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-
-class CrisfieldTrussElement
-    : public Element
+/**
+ * Implementation of Crisfield truss element.
+ * Reference:
+ *  Kuhl and Crisfield, Energy-Conserving and Decaying Algorithms in Nonlinear Structural Dynamics, IJNME, 1999.
+ */
+class CrisfieldTrussElement : public Element
 {
 public:
     ///@name Type Definitions
@@ -139,13 +140,13 @@ public:
     * @param ThisNodes array of nodes
     * @param pProperties properties pointer
     */
-    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const;
+    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const final;
 
     /**
     * Initialization of the Crisfield truss element.
     * This initializes the cross-section, length, position vector and matrix A for the element
     */
-    void Initialize(const ProcessInfo& rCurrentProcessInfo);
+    void Initialize(const ProcessInfo& rCurrentProcessInfo) final;
 
     /**
     * Calculation of the local system.
@@ -153,44 +154,44 @@ public:
     * @param rLeftHandSideMatrix elemental stiffness matrix
     * @param rRightHandSideVector elemental residual vetor
     * @param rCurrentProcessInfo process info
-    * @see CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo)
-    * @see CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+    * @see CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo)
+    * @see CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
     */
-    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
+    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) final;
 
     /**
     * Calculation of the left hand side.
     * This calculates only the elemental stiffness matrix
     * @param rLeftHandSideMatrix elemental stiffness matrix
     * @param rCurrentProcessInfo process info
-    * @see CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
-    * @see CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+    * @see CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
+    * @see CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
     */
-    void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo);
+    void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo) final;
 
     /**
     * Calculation of the right hand side.
     * This calculates only the elemental residual vector
     * @param rRightHandSideVector elemental residual vetor
     * @param rCurrentProcessInfo process info
-    * @see CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
-    * @see CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo)
+    * @see CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
+    * @see CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo)
     */
-    void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
+    void CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) final;
 
     /**
     * Get the equation ID vector of the element.
     * @param rResult equation ID vector
     * @param rCurrentProcessInfo process info
     */
-    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo);
+    void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const final;
 
     /**
     * Get the DOF list of the element.
     * @param ElementalDofList elemental DOF vector
     * @param rCurrentProcessInfo process info
     */
-    void GetDofList(DofsVectorType& ElementalDofList,ProcessInfo& CurrentProcessInfo);
+    void GetDofList(DofsVectorType& ElementalDofList, const ProcessInfo& CurrentProcessInfo) const final;
 
     /**
     * Get the mass matrix of the element.
@@ -198,15 +199,7 @@ public:
     * @param rCurrentProcessInfo process info
     * TODO: assign the mass matrix
     */
-    void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo);
-
-    /**
-    * Get the damping matrix of the element.
-    * @param rDampingMatrix damping matrix
-    * @param rCurrentProcessInfo process info
-    * TODO: assign the damping matrix
-    */
-    void CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo);
+    void CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo) final;
 
     /**
     * Get the displacement vector of the element
@@ -215,7 +208,7 @@ public:
     * @see GetFirstDerivativesVector(Vector& values, int Step)
     * @see GetSecondDerivativesVector(Vector& values, int Step)
     */
-    void GetValuesVector(Vector& values, int Step = 0);
+    void GetValuesVector(Vector& values, int Step = 0) const final;
 
     /**
     * Get the velocity vector of the element
@@ -224,7 +217,7 @@ public:
     * @see GetValuesVector(Vector& values, int Step)
     * @see GetSecondDerivativesVector(Vector& values, int Step)
     */
-    void GetFirstDerivativesVector(Vector& values, int Step = 0);
+    void GetFirstDerivativesVector(Vector& values, int Step = 0) const final;
 
     /**
     * Get the acceleration vector of the element
@@ -233,11 +226,11 @@ public:
     * @see GetValuesVector(Vector& values, int Step)
     * @see GetFirstDerivativesVector(Vector& values, int Step)
     */
-    void GetSecondDerivativesVector(Vector& values, int Step = 0);
+    void GetSecondDerivativesVector(Vector& values, int Step = 0) const final;
 
-// 	  void CalculateOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& Output, const ProcessInfo& rCurrentProcessInfo);
+//    void CalculateOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& Output, const ProcessInfo& rCurrentProcessInfo);
 
-// 	  void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo);
+    int Check( const ProcessInfo& rCurrentProcessInfo ) const;
 
     ///@}
     ///@name Access
@@ -254,13 +247,22 @@ public:
     ///@{
 
     /// Turn back information as a string.
-//      virtual String Info() const;
+    std::string Info() const final
+    {
+        return "CrisfieldTrussElement";
+    }
 
     /// Print information about this object.
-//      virtual void PrintInfo(std::ostream& rOStream) const;
+    void PrintInfo(std::ostream& rOStream) const final
+    {
+        rOStream << Info();
+    }
 
     /// Print object's data.
-//      virtual void PrintData(std::ostream& rOStream) const;
+    void PrintData(std::ostream& rOStream) const
+    {
+        rOStream << "Lenght: " << CalculateLength() << std::endl;
+    }
 
 
     ///@}
@@ -310,26 +312,11 @@ protected:
 private:
     ///@name Static Member Variables
     ///@{
-    Matrix msA;
-    Vector msX;
-    Vector msU;
-    //double msStrain;
-    //double msStress;
-    //double msKappa; //history parameter for Scalar Damage Model
-    double mLength;
-    double mArea;
-    int dimension;
-    unsigned int number_of_nodes;
 
 
     ///@}
     ///@name Member Variables
     ///@{
-
-//	  Geometry< Point<3,double> >::Pointer  mpReferenceGeometry;
-
-    //double mTotalDomainInitialSize;
-
 
 
     ///@}
@@ -345,9 +332,9 @@ private:
     * @param CalculateStiffnessMatrixFlag flag for elemental stiffness matrix
     * @param CalculateResidualVectorFlag flag for elemental residual vector
     */
-    void CalculateAll(	MatrixType& rLeftHandSideMatrix,
+    void CalculateAll(  MatrixType& rLeftHandSideMatrix,
                         VectorType& rRightHandSideVector,
-                        ProcessInfo& rCurrentProcessInfo,
+                        const ProcessInfo& rCurrentProcessInfo,
                         bool CalculateStiffnessMatrixFlag,
                         bool CalculateResidualVectorFlag);
 
@@ -359,7 +346,7 @@ private:
     */
     void CalculateAndAdd_ExtForce(
         VectorType& rRightHandSideVector,
-        const ProcessInfo& CurrentProcessInfo);
+        const ProcessInfo& CurrentProcessInfo) const;
 
     /**
     * Auxiliary function.
@@ -375,7 +362,7 @@ private:
         const ProcessInfo& CurrentProcessInfo,
         Vector& X,
         Vector& U,
-        double weight);
+        double weight) const;
 
     /**
     * Auxiliary function.
@@ -386,11 +373,11 @@ private:
     * @param U displacement vector
     * @param weight weighting factor
     */
-    void CalculateAndAddKm(	MatrixType& rLeftHandSideMatrix,
+    void CalculateAndAddKm( MatrixType& rLeftHandSideMatrix,
                             const Matrix& A,
                             Vector& X,
                             Vector& U,
-                            double weight);
+                            double weight) const;
 
     /**
     * Auxiliary function.
@@ -399,9 +386,9 @@ private:
     * @param A matrix A
     * @param weight weighting factor
     */
-    void CalculateAndAddKg(	MatrixType& rLeftHandSideMatrix,
+    void CalculateAndAddKg( MatrixType& rLeftHandSideMatrix,
                             const Matrix& A,
-                            double weight);
+                            double weight) const;
 
     /**
     * Auxiliary function.
@@ -412,12 +399,30 @@ private:
     * @param U displacement vector
     * @param weight weighting factor
     */
-    double CalculateStrain(	const Matrix& A,
+    double CalculateStrain( const Matrix& A,
                             const Vector& X,
                             const Vector& U,
-                            double weight );
+                            double weight ) const;
 
-    int Check( const ProcessInfo& rCurrentProcessInfo );
+    /**
+     * Calculate the matrix A
+     */
+    void CalculateA(Matrix& A) const;
+
+    /**
+     * Calculate the vector X, i.e. elemental position vector
+     */
+    void CalculateX(Vector& X) const;
+
+    /**
+     * Calculate the vector U, i.e. elemental deformation vector
+     */
+    void CalculateU(Vector& U) const;
+
+    /**
+     * Calculate the length in current configuration
+     */
+    double CalculateLength() const;
 
     ///@}
     ///@name Private Operations
@@ -437,12 +442,12 @@ private:
     // A private default constructor necessary for serialization
     CrisfieldTrussElement() {};
 
-    virtual void save(Serializer& rSerializer) const
+    void save(Serializer& rSerializer) const final
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element );
     }
 
-    virtual void load(Serializer& rSerializer)
+    void load(Serializer& rSerializer) final
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element );
     }
@@ -479,11 +484,11 @@ private:
 
 /// input stream function
 /*  inline std::istream& operator >> (std::istream& rIStream,
-				    CrisfieldTrussElement& rThis);
+                    CrisfieldTrussElement& rThis);
 */
 /// output stream function
 /*  inline std::ostream& operator << (std::ostream& rOStream,
-				    const CrisfieldTrussElement& rThis)
+                    const CrisfieldTrussElement& rThis)
     {
       rThis.PrintInfo(rOStream);
       rOStream << std::endl;

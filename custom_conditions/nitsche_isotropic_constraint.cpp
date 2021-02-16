@@ -57,8 +57,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 // Project includes
 #include "includes/define.h"
-#include "includes/legacy_structural_app_vars.h"
-#include "structural_application.h"
+#include "structural_application_variables.h"
 #include "utilities/math_utils.h"
 #include "custom_utilities/sd_math_utils.h"
 #include "geometries/line_2d_3.h"
@@ -183,7 +182,7 @@ void NitscheIsotropicConstraint::Initialize(const ProcessInfo& rCurrentProcessIn
  * calculates only the RHS vector (certainly to be removed due to contact algorithm)
  */
 void NitscheIsotropicConstraint::CalculateRightHandSide( VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo)
+        const ProcessInfo& rCurrentProcessInfo)
 {
 
     //calculation flags
@@ -205,7 +204,7 @@ void NitscheIsotropicConstraint::CalculateRightHandSide( VectorType& rRightHandS
  */
 void NitscheIsotropicConstraint::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo)
+        const ProcessInfo& rCurrentProcessInfo)
 {
     //calculation flags
     bool CalculateStiffnessMatrixFlag = true;
@@ -225,7 +224,7 @@ void NitscheIsotropicConstraint::CalculateLocalSystem( MatrixType& rLeftHandSide
  */
 void NitscheIsotropicConstraint::CalculateAll( MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo,
+        const ProcessInfo& rCurrentProcessInfo,
         bool CalculateStiffnessMatrixFlag,
         bool CalculateResidualVectorFlag)
 {
@@ -424,8 +423,7 @@ void NitscheIsotropicConstraint::CalculateAll( MatrixType& rLeftHandSideMatrix,
 //************************************************************************************
 
 void NitscheIsotropicConstraint::EquationIdVector( EquationIdVectorType& rResult,
-        ProcessInfo& CurrentProcessInfo
-                                            )
+        const ProcessInfo& CurrentProcessInfo ) const
 {
     //determining size of DOF list
     //dimension of space
@@ -446,7 +444,7 @@ void NitscheIsotropicConstraint::EquationIdVector( EquationIdVectorType& rResult
 //************************************************************************************
 
 void NitscheIsotropicConstraint::GetDofList( DofsVectorType& ConditionalDofList,
-                                        ProcessInfo& CurrentProcessInfo)
+                                        const ProcessInfo& CurrentProcessInfo) const
 {
     //determining size of DOF list
     //dimension of space
@@ -614,7 +612,7 @@ void NitscheIsotropicConstraint::CalculateElasticMatrix3D( Matrix& C, const doub
     C( 5, 5 ) = c4;
 }
 
-int NitscheIsotropicConstraint::Check( const Kratos::ProcessInfo& rCurrentProcessInfo )
+int NitscheIsotropicConstraint::Check( const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 

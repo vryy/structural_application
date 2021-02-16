@@ -110,40 +110,40 @@ public:
 
     void EquationIdVector(
         EquationIdVectorType& rResult,
-        ProcessInfo& rCurrentProcessInfo );
+        const ProcessInfo& rCurrentProcessInfo ) const;
 
     void GetDofList(
         DofsVectorType& ElementalDofList,
-        ProcessInfo& rCurrentProcessInfo );
+        const ProcessInfo& rCurrentProcessInfo ) const;
 
     void CalculateRightHandSide(
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo );
+        const ProcessInfo& rCurrentProcessInfo );
 
     void CalculateLocalSystem(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo );
+        const ProcessInfo& rCurrentProcessInfo );
 
     void CalculateMassMatrix(
         MatrixType& rMassMatrix,
-        ProcessInfo& rCurrentProcessInfo );
+        const ProcessInfo& rCurrentProcessInfo );
 
     void CalculateDampingMatrix(
         MatrixType& rDampingMatrix,
-        ProcessInfo& rCurrentProcessInfo );
+        const ProcessInfo& rCurrentProcessInfo );
 
     void GetValuesVector(
         Vector& values,
-        int Step = 0 );
+        int Step = 0 ) const;
 
     void GetFirstDerivativesVector(
         Vector& values,
-        int Step = 0 );
+        int Step = 0 ) const;
 
     void GetSecondDerivativesVector(
         Vector& values,
-        int Step = 0 );
+        int Step = 0 ) const;
 
     /**
      * This function provides the place to perform checks on the completeness of the input.
@@ -152,7 +152,7 @@ public:
      * or that no common error is found.
      * @param rCurrentProcessInfo
      */
-    virtual int Check( const ProcessInfo& rCurrentProcessInfo );
+    int Check( const ProcessInfo& rCurrentProcessInfo ) const;
 
 
 protected:

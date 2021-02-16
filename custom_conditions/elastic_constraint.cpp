@@ -60,7 +60,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/define.h"
 #include "geometries/point_3d.h"
 #include "custom_conditions/elastic_constraint.h"
-#include "structural_application.h"
+#include "structural_application_variables.h"
 #include "utilities/math_utils.h"
 #include "custom_utilities/sd_math_utils.h"
 
@@ -105,7 +105,7 @@ Condition::Pointer ElasticConstraint::Create(IndexType NewId, GeometryType::Poin
 
 //************************************************************************************
 //************************************************************************************
-void ElasticConstraint::CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+void ElasticConstraint::CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -122,7 +122,7 @@ void ElasticConstraint::CalculateRightHandSide(VectorType& rRightHandSideVector,
 
 //************************************************************************************
 //************************************************************************************
-void ElasticConstraint::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+void ElasticConstraint::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -320,7 +320,7 @@ void ElasticConstraint::CalculateAll( MatrixType& rLeftHandSideMatrix, VectorTyp
 
 //************************************************************************************
 //************************************************************************************
-void ElasticConstraint::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& CurrentProcessInfo)
+void ElasticConstraint::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& CurrentProcessInfo) const
 {
     unsigned int number_of_nodes = GetGeometry().size();
     unsigned int index;
@@ -340,7 +340,7 @@ void ElasticConstraint::EquationIdVector(EquationIdVectorType& rResult, ProcessI
 
 //************************************************************************************
 //************************************************************************************
-void ElasticConstraint::GetDofList(DofsVectorType& ConditionalDofList,ProcessInfo& CurrentProcessInfo)
+void ElasticConstraint::GetDofList(DofsVectorType& ConditionalDofList, const ProcessInfo& CurrentProcessInfo) const
 {
     unsigned int number_of_nodes = GetGeometry().size();
     unsigned int index;

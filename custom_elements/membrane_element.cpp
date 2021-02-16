@@ -61,7 +61,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/define.h"
 #include "custom_elements/membrane_element.h"
 #include "includes/constitutive_law.h"
-#include "structural_application.h"
+#include "structural_application_variables.h"
 
 
 namespace Kratos
@@ -105,7 +105,7 @@ namespace Kratos
 
     void MembraneElement::EquationIdVector(
         EquationIdVectorType& rResult,
-        ProcessInfo& rCurrentProcessInfo )
+        const ProcessInfo& rCurrentProcessInfo ) const
 
     {
         KRATOS_TRY
@@ -131,7 +131,7 @@ namespace Kratos
 
     void MembraneElement::GetDofList(
         DofsVectorType& ElementalDofList,
-        ProcessInfo& rCurrentProcessInfo )
+        const ProcessInfo& rCurrentProcessInfo ) const
 
     {
         ElementalDofList.resize( 0 );
@@ -257,7 +257,7 @@ namespace Kratos
 
     void MembraneElement::CalculateRightHandSide(
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo )
+        const ProcessInfo& rCurrentProcessInfo )
 
     {
         //calculation flags
@@ -278,7 +278,7 @@ namespace Kratos
     void MembraneElement::CalculateLocalSystem(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo )
+        const ProcessInfo& rCurrentProcessInfo )
 
     {
         //calculation flags
@@ -295,9 +295,7 @@ namespace Kratos
         const Variable<Matrix>& rVariable,
         std::vector<Matrix>& Output,
         const ProcessInfo& rCurrentProcessInfo )
-
     {
-
         //reading integration points and local gradients
         const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints();
         //const Matrix& Ncontainer = GetGeometry().ShapeFunctionsValues();
@@ -382,25 +380,24 @@ namespace Kratos
             }
             // VM
             else if(rVariable==CAUCHY_STRESS_TENSOR)  // to compute Cauchy_Stress
-	    {
-		  if(Output[PointNumber].size2() != 6)
-		      Output[PointNumber].resize(1,6);
+    	    {
+    		  if(Output[PointNumber].size2() != 6)
+    		      Output[PointNumber].resize(1,6);
 
-                boost::numeric::ublas::bounded_matrix<double, 2, 2> msF;
-	      	noalias(msF) = ZeroMatrix(2,2); //VM
-		noalias(msF)=tmp; //VM
-		Vector CauchyStressVector( 3 );
+                    boost::numeric::ublas::bounded_matrix<double, 2, 2> msF;
+    	      	noalias(msF) = ZeroMatrix(2,2); //VM
+    		noalias(msF)=tmp; //VM
+    		Vector CauchyStressVector( 3 );
 
-	      mConstitutiveLawVector[PointNumber]->CalculateCauchyStresses(CauchyStressVector, msF, StressVector, StrainVector); // VM para calculo cauchy
-	      noalias(mCauchyStressesVector[PointNumber])= ZeroVector(6);
-	      Calculate_GlobalStressVector(mCauchyStressesVector[PointNumber], CauchyStressVector, mV1[PointNumber], mV2[PointNumber]);	//saving the stress vector
+    	      mConstitutiveLawVector[PointNumber]->CalculateCauchyStresses(CauchyStressVector, msF, StressVector, StrainVector); // VM para calculo cauchy
+    	      noalias(mCauchyStressesVector[PointNumber])= ZeroVector(6);
+    	      Calculate_GlobalStressVector(mCauchyStressesVector[PointNumber], CauchyStressVector, mV1[PointNumber], mV2[PointNumber]);	//saving the stress vector
 
-		   for(unsigned int ii = 0; ii<6; ii++)
-					Output[PointNumber](0,ii) = mCauchyStressesVector[PointNumber][ii];
-				 ////KRATOS_WATCH(Output[PointNumber]);
-	     }
+    		   for(unsigned int ii = 0; ii<6; ii++)
+    					Output[PointNumber](0,ii) = mCauchyStressesVector[PointNumber][ii];
+    				 ////KRATOS_WATCH(Output[PointNumber]);
+    	     }
         // VM
-
         }
 
     }
@@ -410,7 +407,7 @@ namespace Kratos
 
     void MembraneElement::CalculateMassMatrix(
         MatrixType& rMassMatrix,
-        ProcessInfo& rCurrentProcessInfo )
+        const ProcessInfo& rCurrentProcessInfo )
 
     {
         KRATOS_TRY
@@ -450,7 +447,7 @@ namespace Kratos
 
     void MembraneElement::CalculateDampingMatrix(
         MatrixType& rDampingMatrix,
-        ProcessInfo& rCurrentProcessInfo )
+        const ProcessInfo& rCurrentProcessInfo )
 
     {
         KRATOS_TRY
@@ -488,7 +485,7 @@ namespace Kratos
     //***********************************************************************************
 
     void MembraneElement::FinalizeSolutionStep(
-        ProcessInfo& rCurrentProcessInfo )
+        const ProcessInfo& rCurrentProcessInfo )
     {
         for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); i++ )
             mConstitutiveLawVector[i]->FinalizeSolutionStep( GetProperties(),
@@ -502,7 +499,7 @@ namespace Kratos
 
     void MembraneElement::GetValuesVector(
         Vector& values,
-        int Step )
+        int Step ) const
 
     {
         const unsigned int number_of_nodes = GetGeometry().size();
@@ -526,7 +523,7 @@ namespace Kratos
 
     void MembraneElement::GetFirstDerivativesVector(
         Vector& values,
-        int Step )
+        int Step ) const
 
     {
         const unsigned int number_of_nodes = GetGeometry().size();
@@ -551,7 +548,7 @@ namespace Kratos
 
     void MembraneElement::GetSecondDerivativesVector(
         Vector& values,
-        int Step )
+        int Step ) const
 
     {
         const unsigned int number_of_nodes = GetGeometry().size();
@@ -1216,29 +1213,7 @@ namespace Kratos
         return v;
     }
 
-    //************************************************************************************
-    //************************************************************************************
-    void MembraneElement::GetValueOnIntegrationPoints( const Variable<Matrix>& rVariable,
-            std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo )
-    {
-        if ( rVariable == GREEN_LAGRANGE_STRAIN_TENSOR )
-        {
-            CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
-        }
-
-        if ( rVariable == PK2_STRESS_TENSOR )
-        {
-            CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
-        }
-        // VM
-        if(rVariable==CAUCHY_STRESS_TENSOR)
-	{
-	    CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
-	}
-	// VM
-    }
-
- int  MembraneElement::Check( const ProcessInfo& rCurrentProcessInfo )
+    int MembraneElement::Check( const ProcessInfo& rCurrentProcessInfo ) const
     {
         KRATOS_TRY
 

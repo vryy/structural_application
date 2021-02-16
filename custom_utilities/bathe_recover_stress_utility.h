@@ -26,8 +26,8 @@
 #include "includes/element.h"
 #include "containers/weak_pointer_vector.h"
 #include "includes/serializer.h"
-#include "sd_math_utils.h"
-#include "structural_application.h"
+#include "custom_utilities/sd_math_utils.h"
+#include "structural_application_variables.h"
 
 
 //#define UTILITY_DEBUG_LEVEL1
@@ -48,10 +48,16 @@ public:
     typedef double CoordinateType;
     typedef std::size_t IndexType;
 
+    #ifdef SD_APP_FORWARD_COMPATIBILITY
+    typedef GlobalPointersVector<Element> NeighborElementsType;
+    #else
+    typedef WeakPointerVector<Element> NeighborElementsType;
+    #endif
+
     BatheRecoverStressUtility(unsigned int ExpansionLevel) : mExpansionLevel(ExpansionLevel) {}
     virtual ~BatheRecoverStressUtility() {}
-    
-    
+
+
     //recovery stress routine for 2d
     void CalculateImprovedStressOnIntegrationPoints( Element& rCurrentElement, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo )
     {
@@ -60,13 +66,13 @@ public:
             KRATOS_THROW_ERROR(std::logic_error, "This recovery routine currently works in 2d only", "");
     
         // build list of neighbours of the current element
-        WeakPointerVector<Element>& neighb_elems = GetNeighborElements( rCurrentElement, mExpansionLevel );
+        NeighborElementsType& neighb_elems = GetNeighborElements( rCurrentElement, mExpansionLevel );
         
         // from list of neighbour elements iterate through all the integration points and calculate the left hand side and right hand side contribution
         
         #ifdef UTILITY_DEBUG_LEVEL1
         std::cout << rCurrentElement.Id() << ":";
-        for( WeakPointerVector<Element>::iterator ie = neighb_elems.begin(); ie != neighb_elems.end(); ++ie )
+        for( NeighborElementsType::iterator ie = neighb_elems.begin(); ie != neighb_elems.end(); ++ie )
             std::cout << " " << ie->Id();
         std::cout << std::endl;
         #endif
@@ -88,7 +94,7 @@ public:
         
         
         //calculate left hand side and right hand side
-        for( WeakPointerVector<Element>::iterator ie = neighb_elems.begin(); ie != neighb_elems.end(); ++ie )
+        for( NeighborElementsType::iterator ie = neighb_elems.begin(); ie != neighb_elems.end(); ++ie )
         {
             
             //contribution of left hand side
@@ -215,7 +221,7 @@ private:
     }
     
     
-    WeakPointerVector<Element>& GetNeighborElements(Element& rCurrentElement, unsigned int ExpansionLevel)
+    NeighborElementsType& GetNeighborElements(Element& rCurrentElement, unsigned int ExpansionLevel)
     {
         
         if( ExpansionLevel < 1 )
@@ -223,21 +229,21 @@ private:
     
         if( ExpansionLevel == 1 )
         {
-            WeakPointerVector<Element>& neighb_elems = rCurrentElement.GetValue(NEIGHBOUR_ELEMENTS);
+            NeighborElementsType& neighb_elems = rCurrentElement.GetValue(NEIGHBOUR_ELEMENTS);
             
             bool CurrentElementIsIncluded = false;
             
             for( unsigned int i = 0; i < rCurrentElement.GetGeometry().size(); i++ )
             {
-                WeakPointerVector<Element>& tmp_elems = rCurrentElement.GetGeometry()[i].GetValue(NEIGHBOUR_ELEMENTS);
+                NeighborElementsType& tmp_elems = rCurrentElement.GetGeometry()[i].GetValue(NEIGHBOUR_ELEMENTS);
                     
-                for( WeakPointerVector<Element>::iterator i_tmp = tmp_elems.begin(); i_tmp != tmp_elems.end(); ++i_tmp )
+                for( NeighborElementsType::iterator i_tmp = tmp_elems.begin(); i_tmp != tmp_elems.end(); ++i_tmp )
                 {
                     if( i_tmp->Id() != rCurrentElement.Id() )
                     {
                         bool isCounted = false;
                         
-                        for( WeakPointerVector<Element>::iterator i_tmp1 = neighb_elems.begin(); i_tmp1 != neighb_elems.end(); ++i_tmp1 )
+                        for( NeighborElementsType::iterator i_tmp1 = neighb_elems.begin(); i_tmp1 != neighb_elems.end(); ++i_tmp1 )
                         {
                             if( i_tmp->Id() == i_tmp1->Id() )
                             {
@@ -266,24 +272,24 @@ private:
         }
         else
         {
-            WeakPointerVector<Element>& neighb_elems = GetNeighborElements( rCurrentElement, ExpansionLevel - 1 );
+            NeighborElementsType& neighb_elems = GetNeighborElements( rCurrentElement, ExpansionLevel - 1 );
             
-            WeakPointerVector<Element> more_elems;
+            NeighborElementsType more_elems;
             
-            for( WeakPointerVector<Element>::iterator ie = neighb_elems.begin(); ie != neighb_elems.end(); ++ie )
+            for( NeighborElementsType::iterator ie = neighb_elems.begin(); ie != neighb_elems.end(); ++ie )
             {
                 for( unsigned int i = 0; i < ie->GetGeometry().size(); i++ )
                 {
-                    WeakPointerVector<Element>& tmp_elems = ie->GetGeometry()[i].GetValue(NEIGHBOUR_ELEMENTS);
+                    NeighborElementsType& tmp_elems = ie->GetGeometry()[i].GetValue(NEIGHBOUR_ELEMENTS);
                     
-                    for( WeakPointerVector<Element>::iterator i_tmp = tmp_elems.begin(); i_tmp != tmp_elems.end(); ++i_tmp )
+                    for( NeighborElementsType::iterator i_tmp = tmp_elems.begin(); i_tmp != tmp_elems.end(); ++i_tmp )
                     {
                     
                         if( i_tmp->Id() != rCurrentElement.Id() )
                         {
                             bool isCounted = false;
                             
-                            for( WeakPointerVector<Element>::iterator i_tmp1 = neighb_elems.begin(); i_tmp1 != neighb_elems.end(); ++i_tmp1 )
+                            for( NeighborElementsType::iterator i_tmp1 = neighb_elems.begin(); i_tmp1 != neighb_elems.end(); ++i_tmp1 )
                             {
                                 if( i_tmp->Id() == i_tmp1->Id() )
                                 {
@@ -294,7 +300,7 @@ private:
                             
                             if( isCounted == false )
                             {
-                                for( WeakPointerVector<Element>::iterator i_tmp2 = more_elems.begin(); i_tmp2 != more_elems.end(); ++i_tmp2 )
+                                for( NeighborElementsType::iterator i_tmp2 = more_elems.begin(); i_tmp2 != more_elems.end(); ++i_tmp2 )
                                 {
                                     if( i_tmp->Id() == i_tmp2->Id() )
                                     {
@@ -313,7 +319,7 @@ private:
                 }
             }
             
-            for( WeakPointerVector<Element>::iterator i_tmp = more_elems.begin(); i_tmp != more_elems.end(); ++i_tmp )
+            for( NeighborElementsType::iterator i_tmp = more_elems.begin(); i_tmp != more_elems.end(); ++i_tmp )
             {
                 neighb_elems.push_back( Element::WeakPointer( *(i_tmp.base()) ) );
             }
@@ -323,7 +329,7 @@ private:
     }
     
     
-    void CalculateLHS( const WeakPointerVector<Element>::iterator& ie,
+    void CalculateLHS( const NeighborElementsType::iterator& ie,
                         Matrix& Et_Operator,
                         Matrix& DtEt_Operator,
                         Matrix& Ebart_Operator,
@@ -382,7 +388,7 @@ private:
         }
     }
     
-    void CalculateRHS( const WeakPointerVector<Element>::iterator& ie,
+    void CalculateRHS( const NeighborElementsType::iterator& ie,
                         Matrix& Et_Operator,
                         Matrix& DtEt_Operator,
                         Matrix& Ebart_Operator,
@@ -413,7 +419,7 @@ private:
         //get the stresses
         std::vector<Vector> Stresses;
         Stresses.resize( integration_points.size() );
-        ie->GetValueOnIntegrationPoints( STRESSES, Stresses, rCurrentProcessInfo );
+        ie->CalculateOnIntegrationPoints( STRESSES, Stresses, rCurrentProcessInfo );
         
         for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
 		{

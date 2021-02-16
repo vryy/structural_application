@@ -57,8 +57,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // System includes
 
 // External includes
-#include "boost/smart_ptr.hpp"
-#include "boost/timer.hpp"
+
 // Project includes
 #include "includes/define.h"
 #include "processes/process.h"
@@ -80,10 +79,12 @@ namespace Kratos
 class PileUtility
 {
 public:
-    typedef ModelPart::ElementsContainerType ElementsArrayType;
-    typedef ModelPart::ConditionsContainerType ConditionsArrayType;
-    typedef Geometry<Node<3> >::IntegrationPointsArrayType IntegrationPointsArrayType;
-    typedef Geometry<Node<3> > GeometryType;
+    typedef ModelPart::ElementsContainerType ElementsContainerType;
+    typedef ModelPart::ConditionsContainerType ConditionsContainerType;
+    typedef Element::GeometryType GeometryType;
+    typedef GeometryType::PointType NodeType;
+    typedef NodeType::PointType PointType;
+    typedef GeometryType::IntegrationPointsArrayType IntegrationPointsArrayType;
     typedef Properties PropertiesType;
     typedef std::size_t IndexType;
 
@@ -106,17 +107,34 @@ public:
     {
     }
 
+
+    /// Get the last condition id of the model part
+    static std::size_t GetLastConditionId(ModelPart& r_model_part)
+    {
+        std::size_t lastCondId = 0;
+        for(typename ModelPart::ConditionsContainerType::ptr_iterator it = r_model_part.Conditions().ptr_begin();
+                it != r_model_part.Conditions().ptr_end(); ++it)
+        {
+            if((*it)->Id() > lastCondId)
+                lastCondId = (*it)->Id();
+        }
+
+        return lastCondId;
+    }
+
+
     /**
      * Initializes mesh tying by means of lagrange multipliers
      */
     void InitializePileUtility( ModelPart& model_part, std::vector<unsigned int>& pile_elements, std::vector<unsigned int>& soil_elements )
     {
-        ElementsArrayType::Pointer piles( new ElementsArrayType() );
-        ElementsArrayType::Pointer soil_elems( new ElementsArrayType() );
+        ElementsContainerType::Pointer piles( new ElementsContainerType() );
+        ElementsContainerType::Pointer soil_elems( new ElementsContainerType() );
 
 
-        Node<3> point( 0.0, 0.0, 0.0 );
-        GeometryType::Pointer tempGeometry = GeometryType::Pointer(new Point3D<Node<3> >(point) );
+        // NodeType::Pointer point( new NodeType(0.0, 0.0, 0.0 ) );
+        // GeometryType::Pointer tempGeometry = GeometryType::Pointer(new Point3D<NodeType>(point) );
+        GeometryType::Pointer tempGeometry;
 //        KRATOS_WATCH( tempGeometry );
 //        KRATOS_WATCH( *tempGeometry );
 
@@ -124,20 +142,21 @@ public:
         PropertiesType::Pointer tempProperties( new PropertiesType( properties_index + 1 ) );
         model_part.AddProperties( tempProperties );
 
-
         std::cout << "Initializing PileUtility..." << std::endl;
 
         for ( unsigned int it = 0; it != pile_elements.size(); it++ )
         {
-            piles->push_back( model_part.GetElement( pile_elements[it] ) );
+            piles->push_back( model_part.pGetElement( pile_elements[it] ) );
         }
 
         for ( unsigned int it = 0; it != soil_elements.size(); it++ )
         {
-            soil_elems->push_back( model_part.GetElement( soil_elements[it] ) );
+            soil_elems->push_back( model_part.pGetElement( soil_elements[it] ) );
         }
 
-        for ( ElementsArrayType::ptr_iterator it = piles->ptr_begin();
+        std::size_t last_cond_id = GetLastConditionId(model_part);
+        std::size_t num_links = 0;
+        for ( ElementsContainerType::ptr_iterator it = piles->ptr_begin();
                 it != piles->ptr_end(); ++it )
         {
             /******KRATOS_WATCH(it);*/
@@ -145,33 +164,35 @@ public:
 
             for ( IndexType i = 0; i < ( *it )->GetGeometry().IntegrationPoints().size(); i++ )
             {
-                Point<3> PilePoint;
-                Point<3> PileLocalPoint = ( *it )->GetGeometry().IntegrationPoints()[i];
-                PilePoint = ( *it )->GetGeometry().GlobalCoordinates( PilePoint, PileLocalPoint );
-                Point<3> SoilLocalPoint;
+                PointType PilePoint;
+                PointType PileLocalPoint = ( *it )->GetGeometry().IntegrationPoints()[i];
+                ( *it )->GetGeometry().GlobalCoordinates( PilePoint, PileLocalPoint );
+                PointType SoilLocalPoint;
                 Element::Pointer TargetElement;
 
                 if ( FindPartnerElement( PilePoint, soil_elems, TargetElement, SoilLocalPoint ) )
                 {
-
-                    Point<3> SoilGlobalPoint;
-                    SoilGlobalPoint = TargetElement->GetGeometry().GlobalCoordinates( SoilGlobalPoint, SoilLocalPoint );
+                    PointType SoilGlobalPoint;
+                    TargetElement->GetGeometry().GlobalCoordinates( SoilGlobalPoint, SoilLocalPoint );
 
                     int a = ( model_part.Conditions().end() - 1 )->Id();
 
-                    IndexType newId = a + 1;
+                    IndexType newId = last_cond_id + 1;
 
-
+                    tempGeometry = GeometryType::Pointer( new GeometryType() );
                     Condition::Pointer newLink = Condition::Pointer( new Pile_Kinematic_Linear( newId, tempGeometry, tempProperties, TargetElement, *it,
                    // Condition::Pointer newLink = Condition::Pointer( new PileCondition( newId, tempGeometry, tempProperties, TargetElement, *it,
                                                  SoilLocalPoint, PileLocalPoint, i ) );
 
                     model_part.Conditions().push_back( newLink );
 
+                    ++last_cond_id;
+                    ++num_links;
                 }
-
             }
         }
+
+        std::cout << "PileUtility is initialized successfully, " << num_links << " links have been added to the model_part" << std::endl;
 
         return;
     }//InitializePileUtility
@@ -188,12 +209,12 @@ public:
      * TODO: find a faster method for outside search (hextree? etc.), maybe outside this
      * function by restriction of OldMeshElementsArray
      */
-    bool FindPartnerElement( Point<3>& sourcePoint,
-                             const ElementsArrayType::Pointer& SoilElements,
-                             Element::Pointer& TargetElement, Point<3>& rResult )
+    bool FindPartnerElement( PointType& sourcePoint,
+                             const ElementsContainerType::Pointer& SoilElements,
+                             Element::Pointer& TargetElement, PointType& rResult )
     {
         bool partner_found = false;
-        ElementsArrayType::Pointer SoilElementsCandidates( new ElementsArrayType() );
+        ElementsContainerType::Pointer SoilElementsCandidates( new ElementsContainerType() );
         std::vector<double > OldMinDist;
         bool newMinDistFound = false;
 
@@ -207,7 +228,7 @@ public:
             SoilElementsCandidates->clear();
             // (global search)
 
-            for ( ElementsArrayType::ptr_iterator it = SoilElements->ptr_begin();
+            for ( ElementsContainerType::ptr_iterator it = SoilElements->ptr_begin();
                     it != SoilElements->ptr_end(); ++it )
             {
                 //loop over all nodes in tested element
@@ -249,7 +270,7 @@ public:
 
 //                     KRATOS_WATCH(OldElementsSet->size());
 
-            for ( ElementsArrayType::ptr_iterator it = SoilElementsCandidates->ptr_begin();
+            for ( ElementsContainerType::ptr_iterator it = SoilElementsCandidates->ptr_begin();
                     it != SoilElementsCandidates->ptr_end(); ++it )
             {
 //                         std::cout << "checking elements list" << std::endl;

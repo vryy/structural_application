@@ -58,16 +58,15 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // Project includes
 
 #include "includes/define.h"
-#include "structural_application/custom_constitutive_laws/isotropic_linear_elastic.h"
-
+#include "includes/properties.h"
 #include "includes/constitutive_law.h"
-
-#include "utilities/math_utils.h"
-#include "structural_application/custom_utilities/sd_math_utils.h"
 #include "includes/variables.h"
 #include "includes/process_info.h"
-#include "structural_application/structural_application.h"
-#include "includes/properties.h"
+#include "utilities/math_utils.h"
+#include "custom_utilities/sd_math_utils.h"
+#include "structural_application_variables.h"
+#include "custom_constitutive_laws/isotropic_linear_elastic.h"
+
 
 namespace Kratos
 {

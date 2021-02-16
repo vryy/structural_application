@@ -57,8 +57,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 // Project includes
 #include "includes/define.h"
-#include "includes/legacy_structural_app_vars.h"
-#include "structural_application.h"
+#include "structural_application_variables.h"
 #include "utilities/math_utils.h"
 #include "custom_utilities/sd_math_utils.h"
 #include "geometries/point_2d.h"
@@ -123,7 +122,7 @@ InclinedConstraint2D::~InclinedConstraint2D()
  * calculates only the RHS vector (certainly to be removed due to contact algorithm)
  */
 void InclinedConstraint2D::CalculateRightHandSide( VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo)
+        const ProcessInfo& rCurrentProcessInfo)
 {
 
     //calculation flags
@@ -145,7 +144,7 @@ void InclinedConstraint2D::CalculateRightHandSide( VectorType& rRightHandSideVec
  */
 void InclinedConstraint2D::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo)
+        const ProcessInfo& rCurrentProcessInfo)
 {
     //calculation flags
     bool CalculateStiffnessMatrixFlag = true;
@@ -165,7 +164,7 @@ void InclinedConstraint2D::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix
  */
 void InclinedConstraint2D::CalculateAll( MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo,
+        const ProcessInfo& rCurrentProcessInfo,
         bool CalculateStiffnessMatrixFlag,
         bool CalculateResidualVectorFlag)
 {
@@ -219,8 +218,7 @@ void InclinedConstraint2D::CalculateAll( MatrixType& rLeftHandSideMatrix,
 //************************************************************************************
 
 void InclinedConstraint2D::EquationIdVector( EquationIdVectorType& rResult,
-        ProcessInfo& CurrentProcessInfo
-                                            )
+        const ProcessInfo& CurrentProcessInfo) const
 {
     //determining size of DOF list
     //dimension of space
@@ -238,7 +236,7 @@ void InclinedConstraint2D::EquationIdVector( EquationIdVectorType& rResult,
 //************************************************************************************
 
 void InclinedConstraint2D::GetDofList( DofsVectorType& ConditionalDofList,
-                                        ProcessInfo& CurrentProcessInfo)
+                                        const ProcessInfo& CurrentProcessInfo) const
 {
     //determining size of DOF list
     //dimension of space

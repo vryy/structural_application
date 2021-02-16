@@ -58,10 +58,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // Project includes
 #include "includes/define.h"
 #include "custom_conditions/master_contact_face_3D_newmark.h"
-#include "structural_application.h"
+#include "structural_application_variables.h"
 #include "utilities/math_utils.h"
 #include "custom_utilities/sd_math_utils.h"
-#include "includes/deprecated_variables.h"
 
 namespace Kratos
 {
@@ -195,7 +194,7 @@ bool MasterContactFace3DNewmark::ClosestPoint( GeometryType::CoordinatesArrayTyp
  * calculates only the RHS vector (certainly to be removed due to contact algorithm)
  */
 void MasterContactFace3DNewmark::CalculateRightHandSide( VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo)
+        const ProcessInfo& rCurrentProcessInfo)
 {
     rRightHandSideVector.resize(0,false);
 }
@@ -208,7 +207,7 @@ void MasterContactFace3DNewmark::CalculateRightHandSide( VectorType& rRightHandS
  */
 void MasterContactFace3DNewmark::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo)
+        const ProcessInfo& rCurrentProcessInfo)
 {
     rRightHandSideVector.resize(0,false);
     rLeftHandSideMatrix(0,0);
@@ -222,7 +221,7 @@ void MasterContactFace3DNewmark::CalculateLocalSystem( MatrixType& rLeftHandSide
  */
 void MasterContactFace3DNewmark::CalculateAll( MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo,
+        const ProcessInfo& rCurrentProcessInfo,
         bool CalculateStiffnessMatrixFlag,
         bool CalculateResidualVectorFlag)
 {
@@ -264,8 +263,7 @@ void MasterContactFace3DNewmark::CalculateAndAdd_PressureForce( Vector& residual
  * REMOVED: the DOFs are managed by the linking conditions
  */
 void MasterContactFace3DNewmark::EquationIdVector( EquationIdVectorType& rResult,
-        ProcessInfo& CurrentProcessInfo
-                                                 )
+        const ProcessInfo& CurrentProcessInfo) const
 {
     rResult.resize(0);
 }
@@ -276,7 +274,7 @@ void MasterContactFace3DNewmark::EquationIdVector( EquationIdVectorType& rResult
  * REMOVED: the DOFs are managed by the linking conditions
  */
 void MasterContactFace3DNewmark::GetDofList( DofsVectorType& ConditionalDofList,
-        ProcessInfo& CurrentProcessInfo)
+        const ProcessInfo& CurrentProcessInfo) const
 {
 }
 } // Namespace Kratos

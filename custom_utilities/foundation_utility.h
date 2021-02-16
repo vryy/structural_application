@@ -66,26 +66,29 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/element.h"
 #include "includes/model_part.h"
 #include "includes/variables.h"
-#include "structural_application.h"
+#include "structural_application_variables.h"
 //#include "custom_conditions/tip_condition.h"
 #include "custom_conditions/foundation_condition.h"
 #include "utilities/math_utils.h"
-/////#include "structural_application.h"
+/////#include "structural_application_variables.h"
 #include "geometries/point_3d.h"
 
 
 namespace Kratos
 {
     /**
-     * Steering Utility
-         */
+     * Foundation Utility
+     */
     class FoundationUtility
     {
         public:
             typedef ModelPart::ElementsContainerType ElementsArrayType;
             typedef ModelPart::ConditionsContainerType ConditionsArrayType;
-            typedef Geometry<Node<3> >::IntegrationPointsArrayType IntegrationPointsArrayType;
-            typedef Geometry<Node<3> > GeometryType;
+            typedef Element::GeometryType GeometryType;
+            typedef GeometryType::PointType NodeType;
+            typedef NodeType::PointType PointType;
+            typedef GeometryType::CoordinatesArrayType CoordinatesArrayType;
+            typedef GeometryType::IntegrationPointsArrayType IntegrationPointsArrayType;
             typedef Properties PropertiesType;
             typedef std::size_t IndexType;
 
@@ -116,10 +119,10 @@ namespace Kratos
                 ElementsArrayType::Pointer foundations( new ElementsArrayType() );
                 ElementsArrayType::Pointer soil_elems( new ElementsArrayType() );
 //        KRATOS_WATCH("foundation_utility, line 117");
-//                 Geometry<Node<3> >::Pointer tempGeometry;
+//                 Geometry<NodeType >::Pointer tempGeometry;
 //                 tempGeometry = geometry_object.Create( temp_points );
-                // Node<3> point( 0.0, 0.0, 0.0 );
-                // GeometryType::Pointer tempGeometry = GeometryType::Pointer(new Point3D<Node<3> >(point) );
+                // NodeType point( 0.0, 0.0, 0.0 );
+                // GeometryType::Pointer tempGeometry = GeometryType::Pointer(new Point3D<NodeType>(point) );
                 GeometryType::Pointer tempGeometry = GeometryType::Pointer(new GeometryType());
        //         KRATOS_WATCH( tempGeometry );
         //        KRATOS_WATCH( *tempGeometry );
@@ -132,12 +135,12 @@ namespace Kratos
                 std::size_t nconds = 0;
                 for( unsigned int it = 0; it != foundation_elements.size(); it++ )
                 {
-                    foundations->push_back( model_part.GetElement( foundation_elements[it]) );
+                    foundations->push_back( model_part.pGetElement( foundation_elements[it]) );
                 }
 
                 for( unsigned int it = 0; it != soil_elements.size(); it++ )
                 {
-                    soil_elems->push_back( model_part.GetElement( soil_elements[it]) );
+                    soil_elems->push_back( model_part.pGetElement( soil_elements[it]) );
                 }
                 for( ElementsArrayType::ptr_iterator it = foundations->ptr_begin();
                                  it != foundations->ptr_end(); ++it )
@@ -145,10 +148,10 @@ namespace Kratos
                     /******KRATOS_WATCH(it);*/
                     for( IndexType i = 0; i < (*it)->GetGeometry().IntegrationPoints().size(); i++ )
                     {
-                        Point<3> FoundationPoint;
-                        Point<3> FoundationLocalPoint = (*it)->GetGeometry().IntegrationPoints()[i];
-                        FoundationPoint = (*it)->GetGeometry().GlobalCoordinates( FoundationPoint, FoundationLocalPoint );
-                        Point<3> SoilLocalPoint;
+                        PointType FoundationPoint;
+                        PointType FoundationLocalPoint = (*it)->GetGeometry().IntegrationPoints()[i];
+                        (*it)->GetGeometry().GlobalCoordinates( FoundationPoint, FoundationLocalPoint );
+                        PointType SoilLocalPoint;
                         Element::Pointer TargetElement;
                         if( FindPartnerElement( FoundationPoint, soil_elems, TargetElement, SoilLocalPoint ) )
                         {
@@ -158,8 +161,8 @@ namespace Kratos
                         ///    KRATOS_WATCH(FoundationLocalPoint);
                         ///    KRATOS_WATCH(SoilLocalPoint);
                         ///    KRATOS_WATCH(FoundationPoint);
-                            Point<3> SoilGlobalPoint;
-                            SoilGlobalPoint = TargetElement->GetGeometry().GlobalCoordinates( SoilGlobalPoint, SoilLocalPoint );
+                            PointType SoilGlobalPoint;
+                            TargetElement->GetGeometry().GlobalCoordinates( SoilGlobalPoint, SoilLocalPoint );
                             //j +=  TargetElement->GetGeometry().IntegrationPoints().size();
                     //        KRATOS_WATCH( SoilGlobalPoint );
                             int a = (model_part.Conditions().end()-1)->Id();
@@ -196,9 +199,9 @@ namespace Kratos
              * TODO: find a faster method for outside search (hextree? etc.), maybe outside this
              * function by restriction of OldMeshElementsArray
              */
-            bool FindPartnerElement( Point<3>& sourcePoint,
+            bool FindPartnerElement( PointType& sourcePoint,
                                      const ElementsArrayType::Pointer& FoundationSoilElements,
-                                     Element::Pointer& TargetElement, Point<3>& rResult)
+                                     Element::Pointer& TargetElement, PointType& rResult)
             {
                 bool partner_found= false;
                 ElementsArrayType::Pointer SoilElementsCandidates( new ElementsArrayType() );

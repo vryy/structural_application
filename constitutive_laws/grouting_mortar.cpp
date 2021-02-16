@@ -57,16 +57,13 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // Project includes
 
 #include "includes/define.h"
-#include "constitutive_laws/grouting_mortar.h"
-
+#include "includes/properties.h"
 #include "includes/constitutive_law.h"
-
-#include "utilities/math_utils.h"
-#include "../structural_application/custom_utilities/sd_math_utils.h"
 #include "includes/variables.h"
 #include "includes/process_info.h"
-#include "ekate_auxiliary_application.h"
-#include "includes/properties.h"
+#include "utilities/math_utils.h"
+#include "custom_utilities/sd_math_utils.h"
+#include "constitutive_laws/grouting_mortar.h"
 
 //TODO: check the time conversion with Jelena
 

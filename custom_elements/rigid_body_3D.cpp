@@ -16,7 +16,7 @@
 // Project includes
 #include "includes/define.h"
 #include "custom_elements/rigid_body_3D.h"
-#include "structural_application.h"
+#include "structural_application_variables.h"
 #include "utilities/math_utils.h"
 
 namespace Kratos
@@ -75,7 +75,7 @@ RigidBody3D::~RigidBody3D()
 
 //************************************************************************************
 //************************************************************************************
-void RigidBody3D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+void RigidBody3D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -120,7 +120,7 @@ void RigidBody3D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorTy
 
 //************************************************************************************
 //************************************************************************************
-void RigidBody3D::CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+void RigidBody3D::CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
 {
     //resizing as needed the RHS
     if(rRightHandSideVector.size() != 6)
@@ -136,7 +136,7 @@ void RigidBody3D::CalculateRightHandSide(VectorType& rRightHandSideVector, Proce
 //this subroutine calculates the forces on the center node.
 //the nodes on the external surface are in geometry at position 1..n
 //the center node at position 1
-void RigidBody3D::CalculateForces(VectorType& rExtForces, ProcessInfo& rCurrentProcessInfo)
+void RigidBody3D::CalculateForces(VectorType& rExtForces, const ProcessInfo& rCurrentProcessInfo)
 {
     unsigned int ndofs = 6;
     noalias(rExtForces) = ZeroVector(ndofs);
@@ -195,7 +195,7 @@ void RigidBody3D::CalculateForces(VectorType& rExtForces, ProcessInfo& rCurrentP
 //************************************************************************************
 //this subroutine is used to update the external shape once the central node is moved
 //it should be called just after the update phase
-void RigidBody3D::UpdateExtShape(ProcessInfo& rCurrentProcessInfo)
+void RigidBody3D::UpdateExtShape(const ProcessInfo& rCurrentProcessInfo)
 {
     array_1d<double,3> NodeDisp, RotationalDisplacement, vel, dist;
 
@@ -292,18 +292,18 @@ void RigidBody3D::UpdateExtShape(ProcessInfo& rCurrentProcessInfo)
 
 //************************************************************************************
 //************************************************************************************
-void RigidBody3D::FinalizeNonLinearIteration(ProcessInfo& CurrentProcessInfo)
+void RigidBody3D::FinalizeNonLinearIteration(const ProcessInfo& CurrentProcessInfo)
 {
     UpdateExtShape(CurrentProcessInfo);
 }
-void RigidBody3D::InitializeNonLinearIteration(ProcessInfo& CurrentProcessInfo)
+void RigidBody3D::InitializeNonLinearIteration(const ProcessInfo& CurrentProcessInfo)
 {
     UpdateExtShape(CurrentProcessInfo);
 }
-/*	  void RigidBody3D::FinalizeSolutionStep(ProcessInfo& CurrentProcessInfo)
+/*	  void RigidBody3D::FinalizeSolutionStep(const ProcessInfo& CurrentProcessInfo)
 		{UpdateExtShape(CurrentProcessInfo);}*/
 
-// 	  void RigidBody3D::InitializeNonLinearIteration(ProcessInfo& CurrentProcessInfo)
+// 	  void RigidBody3D::InitializeNonLinearIteration(const ProcessInfo& CurrentProcessInfo)
 // 	  {
 // 		  Vector temp(6);
 // 		  CalculateForces(temp, CurrentProcessInfo);
@@ -311,7 +311,7 @@ void RigidBody3D::InitializeNonLinearIteration(ProcessInfo& CurrentProcessInfo)
 //
 // 	  }
 //
-// 	  void RigidBody3D::InitializeSolutionStep(ProcessInfo& CurrentProcessInfo)
+// 	  void RigidBody3D::InitializeSolutionStep(const ProcessInfo& CurrentProcessInfo)
 // 		{
 //
 // 			Vector temp(6);
@@ -322,7 +322,7 @@ void RigidBody3D::InitializeNonLinearIteration(ProcessInfo& CurrentProcessInfo)
 
 //************************************************************************************
 //************************************************************************************
-void RigidBody3D::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& CurrentProcessInfo)
+void RigidBody3D::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& CurrentProcessInfo) const
 {
     unsigned int ndofs = 6;
 
@@ -340,7 +340,7 @@ void RigidBody3D::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& C
 
 //************************************************************************************
 //************************************************************************************
-void RigidBody3D::GetDofList(DofsVectorType& ElementalDofList,ProcessInfo& CurrentProcessInfo)
+void RigidBody3D::GetDofList(DofsVectorType& ElementalDofList, const ProcessInfo& CurrentProcessInfo) const
 {
     unsigned int ndofs = 6;
 
@@ -358,7 +358,7 @@ void RigidBody3D::GetDofList(DofsVectorType& ElementalDofList,ProcessInfo& Curre
 
 //************************************************************************************
 //************************************************************************************
-void RigidBody3D::GetValuesVector(Vector& values, int Step)
+void RigidBody3D::GetValuesVector(Vector& values, int Step) const
 {
     if(values.size() != 6)	values.resize(6,false);
     values[0] = GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT_X,Step);
@@ -370,7 +370,7 @@ void RigidBody3D::GetValuesVector(Vector& values, int Step)
 }
 //************************************************************************************
 //************************************************************************************
-void RigidBody3D::GetFirstDerivativesVector(Vector& values, int Step)
+void RigidBody3D::GetFirstDerivativesVector(Vector& values, int Step) const
 {
     if(values.size() != 6)	values.resize(6,false);
     values[0] = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY_X,Step);
@@ -382,7 +382,7 @@ void RigidBody3D::GetFirstDerivativesVector(Vector& values, int Step)
 }
 //************************************************************************************
 //************************************************************************************
-void RigidBody3D::GetSecondDerivativesVector(Vector& values, int Step)
+void RigidBody3D::GetSecondDerivativesVector(Vector& values, int Step) const
 {
     if(values.size() != 6)	values.resize(6,false);
     values[0] = GetGeometry()[0].FastGetSolutionStepValue(ACCELERATION_X,Step);
@@ -395,7 +395,7 @@ void RigidBody3D::GetSecondDerivativesVector(Vector& values, int Step)
 
 //************************************************************************************
 //************************************************************************************
-void RigidBody3D::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
+void RigidBody3D::CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
     if(rMassMatrix.size1() != 6)
@@ -415,7 +415,7 @@ void RigidBody3D::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCur
 
 //************************************************************************************
 //************************************************************************************
-void RigidBody3D::CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo)
+void RigidBody3D::CalculateDampingMatrix(MatrixType& rDampingMatrix, const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 

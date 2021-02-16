@@ -78,7 +78,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
 /* Project includes */
-#include "structural_application.h"
+#include "structural_application_variables.h"
 
 #include "includes/define.h"
 #include "includes/model_part.h"

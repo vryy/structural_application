@@ -56,11 +56,11 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 // Project includes
 #include "includes/kratos_flags.h"
-#include "kinematic_linear.h"
 #include "utilities/math_utils.h"
+#include "custom_elements/kinematic_linear.h"
 #include "custom_utilities/bathe_recover_stress_utility.h"
 #include "custom_utilities/sd_math_utils.h"
-#include "structural_application.h"
+#include "structural_application_variables.h"
 
 //#define ENABLE_DEBUG_CONSTITUTIVE_LAW
 
@@ -253,167 +253,6 @@ namespace Kratos
     }
 
     /**
-     * Calculate double Variables at each integration point, used for post-processing etc.
-     * @param rVariable Global name of the variable to be calculated
-     * @param output Vector to store the values on the quadrature points, output of the method
-     * @param rCurrentProcessInfo
-     */
-    void KinematicLinear::CalculateOnIntegrationPoints( const Variable<double>& rVariable, std::vector<double>& Output, const ProcessInfo& rCurrentProcessInfo )
-    {
-        this->GetValueOnIntegrationPoints( rVariable, Output, rCurrentProcessInfo );
-
-        for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); ++i )
-        {
-            mConstitutiveLawVector[i]->SetValue(rVariable, Output[i], rCurrentProcessInfo);
-        }
-    }
-
-    /**
-     * Calculate double Variables at each integration point, used for post-processing etc.
-     * @param rVariable Global name of the variable to be calculated
-     * @param output Vector to store the values on the quadrature points, output of the method
-     * @param rCurrentProcessInfo
-     */
-    void KinematicLinear::CalculateOnIntegrationPoints( const Variable<array_1d<double, 3> >& rVariable, std::vector<array_1d<double, 3> >& Output, const ProcessInfo& rCurrentProcessInfo )
-    {
-        this->GetValueOnIntegrationPoints( rVariable, Output, rCurrentProcessInfo );
-
-        for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); ++i )
-        {
-            mConstitutiveLawVector[i]->SetValue(rVariable, Output[i], rCurrentProcessInfo);
-        }
-    }
-
-    /**
-     * Calculate Vector Variables at each integration point, used for post-processing etc.
-     * @param rVariable Global name of the variable to be calculated
-     * @param output Vector to store the values on the quadrature points, output of the method
-     * @param rCurrentProcessInfo
-     */
-    void KinematicLinear::CalculateOnIntegrationPoints( const Variable<Vector>& rVariable,
-            std::vector<Vector>& Output, const ProcessInfo& rCurrentProcessInfo )
-    {
-        this->GetValueOnIntegrationPoints( rVariable, Output, rCurrentProcessInfo );
-
-        for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); ++i )
-        {
-            mConstitutiveLawVector[i]->SetValue(rVariable, Output[i], rCurrentProcessInfo);
-        }
-    }
-
-    /**
-     * Calculate Matrix Variables at each integration point, used for post-processing etc.
-     * @param rVariable Global name of the variable to be calculated
-     * @param output Vector to store the values on the quadrature points, output of the method
-     * @param rCurrentProcessInfo
-     */
-    void KinematicLinear::CalculateOnIntegrationPoints( const Variable<Matrix>& rVariable,
-            std::vector<Matrix>& Output, const ProcessInfo& rCurrentProcessInfo )
-    {
-        KRATOS_TRY
-
-        // TODO: This needs to be reviewed (BUI)
-
-        unsigned int number_of_nodes = GetGeometry().size();
-        unsigned int dim = GetGeometry().WorkingSpaceDimension();;
-        unsigned int strain_size = dim * ( dim + 1 ) / 2;
-
-        //Initialize local variables
-        Matrix B( strain_size, number_of_nodes*dim );
-        Matrix TanC( strain_size, strain_size );
-        Vector StrainVector( strain_size );
-        Vector StressVector( strain_size );
-        Matrix DN_DX( number_of_nodes, dim );
-        Matrix CurrentDisp( number_of_nodes, dim );
-        Matrix InvJ0(dim, dim);
-        double DetJ0;
-
-        #ifdef ENABLE_BEZIER_GEOMETRY
-        //initialize the geometry
-        GetGeometry().Initialize(mThisIntegrationMethod);
-        #endif
-
-        //reading integration points and local gradients
-        const GeometryType::IntegrationPointsArrayType& integration_points =
-            GetGeometry().IntegrationPoints( mThisIntegrationMethod );
-        const Matrix& Ncontainer = GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod );
-
-        if ( Output.size() != integration_points.size() )
-            Output.resize( integration_points.size() );
-
-        const GeometryType::ShapeFunctionsGradientsType& DN_De =
-            GetGeometry().ShapeFunctionsLocalGradients( mThisIntegrationMethod );
-
-        //initializing the Jacobian in the reference configuration
-        GeometryType::JacobiansType J0;
-        Matrix DeltaPosition(GetGeometry().size(), 3);
-
-        for ( unsigned int node = 0; node < GetGeometry().size(); ++node )
-        {
-            noalias( row( DeltaPosition, node ) ) = GetGeometry()[node].Coordinates() - GetGeometry()[node].GetInitialPosition();
-        }
-
-        J0 = GetGeometry().Jacobian( J0, mThisIntegrationMethod, DeltaPosition );
-
-        //Current displacements
-        for ( unsigned int node = 0; node < GetGeometry().size(); ++node )
-            noalias( row( CurrentDisp, node ) ) = GetGeometry()[node].GetSolutionStepValue( DISPLACEMENT );
-
-        //Declaration of the integration weight
-        //    double Weight;
-
-        //loop over all integration points
-        for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); ++PointNumber )
-        {
-            MathUtils<double>::InvertMatrix( J0[PointNumber], InvJ0, DetJ0 );
-            noalias( DN_DX ) = prod( DN_De[PointNumber], InvJ0 );
-            //Initializing B_Operator at the current integration point
-            CalculateBoperator( B, DN_DX );
-
-            //calculate strain
-            CalculateStrain( B, CurrentDisp, StrainVector );
-            //assign the integration weight at the current integration point
-            //        Weight = integration_points[PointNumber].Weight();
-
-            //calculate material response
-            mConstitutiveLawVector[PointNumber]->CalculateMaterialResponse(
-                StrainVector,
-                ZeroMatrix( 1 ),
-                StressVector,
-                TanC,
-                rCurrentProcessInfo,
-                GetProperties(),
-                GetGeometry(),
-                row( Ncontainer, PointNumber ),
-                true,
-                0,
-                true
-            );
-
-            if ( Output[PointNumber].size2() != StrainVector.size() )
-                Output[PointNumber].resize( 1, StrainVector.size(), false );
-
-            if ( rVariable == GREEN_LAGRANGE_STRAIN_TENSOR )
-            {
-                for ( unsigned int ii = 0; ii < StrainVector.size(); ++ii )
-                    Output[PointNumber]( 0, ii ) = StrainVector[ii];
-            }
-            else if ( rVariable == PK2_STRESS_TENSOR )
-            {
-                for ( unsigned int ii = 0; ii < StrainVector.size(); ++ii )
-                    Output[PointNumber]( 0, ii ) = StressVector[ii];
-            }
-        }
-
-        #ifdef ENABLE_BEZIER_GEOMETRY
-        // clean the geometry
-        GetGeometry().Clean();
-        #endif
-
-        KRATOS_CATCH( "" )
-    }
-
-    /**
      * Initialization of the Material law at each integration point
      */
     void KinematicLinear::InitializeMaterial(const ProcessInfo& rCurrentProcessInfo)
@@ -517,7 +356,7 @@ namespace Kratos
      */
     void KinematicLinear::CalculateAll(MatrixType& rLeftHandSideMatrix,
                                        VectorType& rRightHandSideVector,
-                                       ProcessInfo& rCurrentProcessInfo,
+                                       const ProcessInfo& rCurrentProcessInfo,
                                        bool CalculateStiffnessMatrixFlag,
                                        bool CalculateResidualVectorFlag)
     {
@@ -541,6 +380,16 @@ namespace Kratos
         Matrix CurrentDisp( number_of_nodes, dim );
         Matrix InvJ0(dim, dim);
         double DetJ0;
+
+        //constitutive law
+        ConstitutiveLaw::Parameters const_params;
+        const_params.SetStrainVector(StrainVector);
+        const_params.SetStressVector(StressVector);
+        const_params.SetConstitutiveMatrix(TanC);
+        const_params.SetProcessInfo(rCurrentProcessInfo);
+        const_params.SetMaterialProperties(GetProperties());
+        const_params.SetElementGeometry(GetGeometry());
+        ConstitutiveLaw::StressMeasure stress_measure = ConstitutiveLaw::StressMeasure_Cauchy;
 
         //resize the LHS=StiffnessMatrix if its size is not correct
         if ( CalculateStiffnessMatrixFlag == true ) //calculation of the matrix is required
@@ -666,19 +515,7 @@ namespace Kratos
             std::cout << "StrainVector: " << StrainVector << std::endl;
             #endif
 
-            mConstitutiveLawVector[PointNumber]->CalculateMaterialResponse(
-                StrainVector,
-                ZeroMatrix( 1 ),
-                StressVector,
-                TanC,
-                rCurrentProcessInfo,
-                GetProperties(),
-                GetGeometry(),
-                row( Ncontainer, PointNumber ),
-                true,
-                ( int )CalculateStiffnessMatrixFlag,
-                true
-            );
+            mConstitutiveLawVector[PointNumber]->CalculateMaterialResponse(const_params, stress_measure);
 
             #ifdef ENABLE_DEBUG_CONSTITUTIVE_LAW
             std::cout << "StressVector: " << StressVector << std::endl;
@@ -760,7 +597,7 @@ namespace Kratos
      */
     void KinematicLinear::CalculateRightHandSide(
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo
+        const ProcessInfo& rCurrentProcessInfo
     )
     {
         //calculation flags
@@ -800,7 +637,7 @@ namespace Kratos
      * @param rCurrentProcessInfo
      */
     void KinematicLinear::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix,
-            VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo )
+            VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo )
     {
         //calculation flags
         bool CalculateStiffnessMatrixFlag = true;
@@ -813,14 +650,14 @@ namespace Kratos
      * THIS method is called from the scheme at the start of each solution step
      * @param rCurrentProcessInfo
      */
-    void KinematicLinear::InitializeSolutionStep( ProcessInfo& CurrentProcessInfo )
+    void KinematicLinear::InitializeSolutionStep( const ProcessInfo& CurrentProcessInfo )
     {
         if(mConstitutiveLawVector.size() > 0)
         {
             if ( mConstitutiveLawVector[0]->Has( CURRENT_STRAIN_VECTOR ) )
             {
                 std::vector<Vector> Values;
-                this->GetValueOnIntegrationPoints( CURRENT_STRAIN_VECTOR, Values, CurrentProcessInfo );
+                this->CalculateOnIntegrationPoints( CURRENT_STRAIN_VECTOR, Values, CurrentProcessInfo );
                 for ( unsigned int Point = 0; Point < mConstitutiveLawVector.size(); ++Point )
                 {
                     mConstitutiveLawVector[Point]->SetValue( CURRENT_STRAIN_VECTOR, Values[Point], CurrentProcessInfo );
@@ -864,7 +701,7 @@ namespace Kratos
         }
     }
 
-    void KinematicLinear::InitializeNonLinearIteration(ProcessInfo& CurrentProcessInfo)
+    void KinematicLinear::InitializeNonLinearIteration(const ProcessInfo& CurrentProcessInfo)
     {
         //reset all resistant forces at node
         for ( unsigned int i = 0; i < GetGeometry().size(); ++i )
@@ -877,7 +714,7 @@ namespace Kratos
 //        if( mConstitutiveLawVector[0]->Has( CURRENT_STRAIN_VECTOR ) )
 //        {
 //            std::vector<Vector> Values;
-//            this->GetValueOnIntegrationPoints( CURRENT_STRAIN_VECTOR, Values, CurrentProcessInfo );
+//            this->CalculateOnIntegrationPoints( CURRENT_STRAIN_VECTOR, Values, CurrentProcessInfo );
 //            for ( unsigned int Point = 0; Point < mConstitutiveLawVector.size(); ++Point )
 //            {
 //                mConstitutiveLawVector[Point]->SetValue( CURRENT_STRAIN_VECTOR, Values[Point], CurrentProcessInfo );
@@ -920,14 +757,14 @@ namespace Kratos
         }
     }
 
-    void KinematicLinear::FinalizeNonLinearIteration(ProcessInfo& CurrentProcessInfo)
+    void KinematicLinear::FinalizeNonLinearIteration(const ProcessInfo& CurrentProcessInfo)
     {
         if(mConstitutiveLawVector.size() > 0)
         {
             if(mConstitutiveLawVector[0]->Has(CURRENT_STRAIN_VECTOR))
             {
                 std::vector<Vector> Values;
-                this->GetValueOnIntegrationPoints(CURRENT_STRAIN_VECTOR, Values, CurrentProcessInfo);
+                this->CalculateOnIntegrationPoints(CURRENT_STRAIN_VECTOR, Values, CurrentProcessInfo);
                 for ( unsigned int Point = 0; Point < mConstitutiveLawVector.size(); ++Point )
                 {
                     mConstitutiveLawVector[Point]->SetValue( CURRENT_STRAIN_VECTOR, Values[Point], CurrentProcessInfo );
@@ -976,14 +813,14 @@ namespace Kratos
      * start and end point variables can be transferred n --> n+1
      * @param rCurrentProcessInfo
      */
-    void KinematicLinear::FinalizeSolutionStep( ProcessInfo& CurrentProcessInfo )
+    void KinematicLinear::FinalizeSolutionStep( const ProcessInfo& CurrentProcessInfo )
     {
 //        if(mConstitutiveLawVector.size() > 0)
 //        {
 //            if(mConstitutiveLawVector[0]->Has(CURRENT_STRAIN_VECTOR))
 //            {
 //                std::vector<Vector> Values;
-//                this->GetValueOnIntegrationPoints(CURRENT_STRAIN_VECTOR, Values, CurrentProcessInfo);
+//                this->CalculateOnIntegrationPoints(CURRENT_STRAIN_VECTOR, Values, CurrentProcessInfo);
 //                for ( unsigned int Point = 0; Point < mConstitutiveLawVector.size(); ++Point )
 //                {
 //                    mConstitutiveLawVector[Point]->SetValue( CURRENT_STRAIN_VECTOR, Values[Point], CurrentProcessInfo );
@@ -1027,12 +864,12 @@ namespace Kratos
         }
     }
 
-    void KinematicLinear::MassMatrix( MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo )
+    void KinematicLinear::MassMatrix( MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo )
     {
         KRATOS_THROW_ERROR(std::logic_error, "Deprecated method", __FUNCTION__)
     }
 
-    void KinematicLinear::CalculateMassMatrix( MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo )
+    void KinematicLinear::CalculateMassMatrix( MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo )
     {
         KRATOS_TRY
 
@@ -1075,12 +912,12 @@ namespace Kratos
         KRATOS_CATCH( "" )
     }
 
-    void KinematicLinear::DampMatrix( MatrixType& rDampMatrix, ProcessInfo& rCurrentProcessInfo )
+    void KinematicLinear::DampMatrix( MatrixType& rDampMatrix, const ProcessInfo& rCurrentProcessInfo )
     {
         KRATOS_THROW_ERROR(std::logic_error, "Deprecated method", __FUNCTION__)
     }
 
-    void KinematicLinear::CalculateDampingMatrix( MatrixType& rDampMatrix, ProcessInfo& rCurrentProcessInfo )
+    void KinematicLinear::CalculateDampingMatrix( MatrixType& rDampMatrix, const ProcessInfo& rCurrentProcessInfo )
     {
         KRATOS_TRY
         unsigned int number_of_nodes = GetGeometry().size();
@@ -1122,7 +959,7 @@ namespace Kratos
 
     //************************************************************************************
     //************************************************************************************
-    void KinematicLinear::GetValuesVector( Vector& values, int Step )
+    void KinematicLinear::GetValuesVector( Vector& values, int Step ) const
     {
         const unsigned int number_of_nodes = GetGeometry().size();
         const unsigned int dim = GetGeometry().WorkingSpaceDimension();
@@ -1144,7 +981,7 @@ namespace Kratos
 
     //************************************************************************************
     //************************************************************************************
-    void KinematicLinear::GetFirstDerivativesVector( Vector& values, int Step )
+    void KinematicLinear::GetFirstDerivativesVector( Vector& values, int Step ) const
     {
         const unsigned int number_of_nodes = GetGeometry().size();
         const unsigned int dim = GetGeometry().WorkingSpaceDimension();
@@ -1165,7 +1002,7 @@ namespace Kratos
 
     //************************************************************************************
     //************************************************************************************
-    void KinematicLinear::GetSecondDerivativesVector( Vector& values, int Step )
+    void KinematicLinear::GetSecondDerivativesVector( Vector& values, int Step ) const
     {
         const unsigned int number_of_nodes = GetGeometry().size();
         const unsigned int dim = GetGeometry().WorkingSpaceDimension();
@@ -1199,7 +1036,7 @@ namespace Kratos
      * @param rCurrentProcessInfo
      */
     void KinematicLinear::EquationIdVector( EquationIdVectorType& rResult,
-            ProcessInfo& CurrentProcessInfo )
+            const ProcessInfo& CurrentProcessInfo ) const
     {
         unsigned int dim = ( GetGeometry().WorkingSpaceDimension() );
         unsigned int mat_size = GetGeometry().size() * dim;
@@ -1224,8 +1061,8 @@ namespace Kratos
      *                           of this element
      * @param rCurrentProcessInfo
      */
-    void KinematicLinear::GetDofList( DofsVectorType& ElementalDofList, ProcessInfo&
-            CurrentProcessInfo )
+    void KinematicLinear::GetDofList( DofsVectorType& ElementalDofList, const ProcessInfo&
+            CurrentProcessInfo ) const
     {
         unsigned int dim = GetGeometry().WorkingSpaceDimension();
 
@@ -1546,14 +1383,107 @@ namespace Kratos
         KRATOS_CATCH( "" )
     }
 
-    void KinematicLinear::GetValueOnIntegrationPoints( const Variable<Matrix>& rVariable, std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo )
+    void KinematicLinear::CalculateOnIntegrationPoints( const Variable<Matrix>& rVariable, std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo )
     {
-        if ( rVariable == PK2_STRESS_TENSOR || rVariable == GREEN_LAGRANGE_STRAIN_TENSOR )
+        KRATOS_TRY
+
+        // TODO: This needs to be reviewed (BUI)
+
+        unsigned int number_of_nodes = GetGeometry().size();
+        unsigned int dim = GetGeometry().WorkingSpaceDimension();;
+        unsigned int strain_size = dim * ( dim + 1 ) / 2;
+
+        //Initialize local variables
+        Matrix B( strain_size, number_of_nodes*dim );
+        Matrix TanC( strain_size, strain_size );
+        Vector StrainVector( strain_size );
+        Vector StressVector( strain_size );
+        Matrix DN_DX( number_of_nodes, dim );
+        Matrix CurrentDisp( number_of_nodes, dim );
+        Matrix InvJ0(dim, dim);
+        double DetJ0;
+
+        //constitutive law
+        ConstitutiveLaw::Parameters const_params;
+        const_params.SetStrainVector(StrainVector);
+        const_params.SetStressVector(StressVector);
+        const_params.SetConstitutiveMatrix(TanC);
+        const_params.SetProcessInfo(rCurrentProcessInfo);
+        const_params.SetMaterialProperties(GetProperties());
+        const_params.SetElementGeometry(GetGeometry());
+        ConstitutiveLaw::StressMeasure stress_measure = ConstitutiveLaw::StressMeasure_Cauchy;
+
+        #ifdef ENABLE_BEZIER_GEOMETRY
+        //initialize the geometry
+        GetGeometry().Initialize(mThisIntegrationMethod);
+        #endif
+
+        //reading integration points and local gradients
+        const GeometryType::IntegrationPointsArrayType& integration_points =
+            GetGeometry().IntegrationPoints( mThisIntegrationMethod );
+        const Matrix& Ncontainer = GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod );
+
+        if ( rValues.size() != integration_points.size() )
+            rValues.resize( integration_points.size() );
+
+        const GeometryType::ShapeFunctionsGradientsType& DN_De =
+            GetGeometry().ShapeFunctionsLocalGradients( mThisIntegrationMethod );
+
+        //initializing the Jacobian in the reference configuration
+        GeometryType::JacobiansType J0;
+        Matrix DeltaPosition(GetGeometry().size(), 3);
+
+        for ( unsigned int node = 0; node < GetGeometry().size(); ++node )
         {
-            CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
+            noalias( row( DeltaPosition, node ) ) = GetGeometry()[node].Coordinates() - GetGeometry()[node].GetInitialPosition();
         }
 
-        return;
+        J0 = GetGeometry().Jacobian( J0, mThisIntegrationMethod, DeltaPosition );
+
+        //Current displacements
+        for ( unsigned int node = 0; node < GetGeometry().size(); ++node )
+            noalias( row( CurrentDisp, node ) ) = GetGeometry()[node].GetSolutionStepValue( DISPLACEMENT );
+
+        //Declaration of the integration weight
+        //    double Weight;
+
+        //loop over all integration points
+        for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); ++PointNumber )
+        {
+            MathUtils<double>::InvertMatrix( J0[PointNumber], InvJ0, DetJ0 );
+            noalias( DN_DX ) = prod( DN_De[PointNumber], InvJ0 );
+            //Initializing B_Operator at the current integration point
+            CalculateBoperator( B, DN_DX );
+
+            //calculate strain
+            CalculateStrain( B, CurrentDisp, StrainVector );
+            //assign the integration weight at the current integration point
+            //        Weight = integration_points[PointNumber].Weight();
+
+            //calculate material response
+            mConstitutiveLawVector[PointNumber]->CalculateMaterialResponse(const_params, stress_measure);
+
+            if ( rValues[PointNumber].size2() != StrainVector.size() )
+                rValues[PointNumber].resize( 1, StrainVector.size(), false );
+
+            if ( rVariable == GREEN_LAGRANGE_STRAIN_TENSOR )
+            {
+                for ( unsigned int ii = 0; ii < StrainVector.size(); ++ii )
+                    rValues[PointNumber]( 0, ii ) = StrainVector[ii];
+            }
+            else if ( rVariable == PK2_STRESS_TENSOR )
+            {
+                for ( unsigned int ii = 0; ii < StrainVector.size(); ++ii )
+                    rValues[PointNumber]( 0, ii ) = StressVector[ii];
+            }
+        }
+
+        #ifdef ENABLE_BEZIER_GEOMETRY
+        // clean the geometry
+        GetGeometry().Clean();
+        #endif
+
+        KRATOS_CATCH( "" )
     }
 
     /**
@@ -1567,7 +1497,7 @@ namespace Kratos
      * @param rValues Vector to store the values on the quadrature points, output of the method
      * @param rCurrentProcessInfo
      */
-    void KinematicLinear::GetValueOnIntegrationPoints( const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo )
+    void KinematicLinear::CalculateOnIntegrationPoints( const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo )
     {
         if ( rValues.size() != mConstitutiveLawVector.size() )
             rValues.resize( mConstitutiveLawVector.size() );
@@ -1589,7 +1519,7 @@ namespace Kratos
                 if(Type == 0)
                 {
                     // no recovery
-                    GetValueOnIntegrationPoints( STRESSES, rValues, rCurrentProcessInfo );
+                    CalculateOnIntegrationPoints( STRESSES, rValues, rCurrentProcessInfo );
                 }
                 else if(Type == 1)
                 {
@@ -1664,7 +1594,7 @@ namespace Kratos
         else if ( rVariable == PRINCIPAL_STRESS )
         {
             std::vector<Vector> stresses;
-            this->GetValueOnIntegrationPoints( STRESSES, stresses, rCurrentProcessInfo );
+            this->CalculateOnIntegrationPoints( STRESSES, stresses, rCurrentProcessInfo );
 
             Matrix sigma(3, 3);
             const double conv = 1.e-8;
@@ -1683,7 +1613,7 @@ namespace Kratos
         else if ( rVariable == PRINCIPAL_STRAIN )
         {
             std::vector<Vector> strain;
-            this->GetValueOnIntegrationPoints( STRAIN, strain, rCurrentProcessInfo );
+            this->CalculateOnIntegrationPoints( STRAIN, strain, rCurrentProcessInfo );
 
             Matrix epsilon(3, 3);
             const double conv = 1.e-8;
@@ -1698,6 +1628,32 @@ namespace Kratos
 
                 noalias(rValues[i]) = SD_MathUtils<double>::OrganizeEigenvalues(eigenvalues);
             }
+        }
+        else if ( rVariable == NODAL_STRESS_VECTOR )
+        {
+            #ifdef ENABLE_BEZIER_GEOMETRY
+            //initialize the geometry
+            GetGeometry().Initialize(mThisIntegrationMethod);
+            #endif
+
+            const Matrix& Ncontainer = GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod );
+
+            Vector StressVector(strain_size);
+
+            for (unsigned int i = 0; i < mConstitutiveLawVector.size(); ++i)
+            {
+                noalias(StressVector) = ZeroVector(strain_size);
+                for (unsigned int j = 0; j < GetGeometry().size(); ++j)
+                    noalias(StressVector) += Ncontainer(i, j)*GetGeometry()[j].GetSolutionStepValue(STRESSES);
+
+                if (rValues[i].size() != strain_size)
+                    rValues[i].resize(strain_size);
+                noalias(rValues[i]) = StressVector;
+            }
+
+            #ifdef ENABLE_BEZIER_GEOMETRY
+            GetGeometry().Clean();
+            #endif
         }
         else
         {
@@ -1717,7 +1673,7 @@ namespace Kratos
      * @param rValues Vector to store the values on the quadrature points, output of the method
      * @param rCurrentProcessInfo
      */
-    void KinematicLinear::GetValueOnIntegrationPoints( const Variable<array_1d<double, 3> >& rVariable, std::vector<array_1d<double, 3> >& rValues, const ProcessInfo& rCurrentProcessInfo)
+    void KinematicLinear::CalculateOnIntegrationPoints( const Variable<array_1d<double, 3> >& rVariable, std::vector<array_1d<double, 3> >& rValues, const ProcessInfo& rCurrentProcessInfo)
     {
         if ( rValues.size() != mConstitutiveLawVector.size() )
             rValues.resize( mConstitutiveLawVector.size() );
@@ -1803,7 +1759,7 @@ namespace Kratos
      * @param rValues Vector to store the values on the quadrature points, output of the method
      * @param rCurrentProcessInfo
      */
-    void KinematicLinear::GetValueOnIntegrationPoints( const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo )
+    void KinematicLinear::CalculateOnIntegrationPoints( const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo )
     {
         if ( rValues.size() != mConstitutiveLawVector.size() )
             rValues.resize( mConstitutiveLawVector.size() );
@@ -1819,12 +1775,12 @@ namespace Kratos
         else if( rVariable == STRAIN_ENERGY )
         {
             std::vector<Vector> StrainList(rValues.size());
-//            GetValueOnIntegrationPoints(STRAIN, StrainList, rCurrentProcessInfo);
-            GetValueOnIntegrationPoints(THREED_STRAIN, StrainList, rCurrentProcessInfo);
+//            CalculateOnIntegrationPoints(STRAIN, StrainList, rCurrentProcessInfo);
+            CalculateOnIntegrationPoints(THREED_STRAIN, StrainList, rCurrentProcessInfo);
 
             std::vector<Vector> StressList(rValues.size());
-//            GetValueOnIntegrationPoints(STRESSES, StressList, rCurrentProcessInfo);
-            GetValueOnIntegrationPoints(THREED_STRESSES, StressList, rCurrentProcessInfo);
+//            CalculateOnIntegrationPoints(STRESSES, StressList, rCurrentProcessInfo);
+            CalculateOnIntegrationPoints(THREED_STRESSES, StressList, rCurrentProcessInfo);
 
             for( unsigned int i = 0; i < rValues.size(); ++i )
             {
@@ -1876,7 +1832,7 @@ namespace Kratos
         }
     }
 
-    void KinematicLinear::GetValueOnIntegrationPoints( const Variable<int>& rVariable, std::vector<int>& rValues, const ProcessInfo& rCurrentProcessInfo )
+    void KinematicLinear::CalculateOnIntegrationPoints( const Variable<int>& rVariable, std::vector<int>& rValues, const ProcessInfo& rCurrentProcessInfo )
     {
         if(rVariable == PARENT_ELEMENT_ID)
         {
@@ -1894,7 +1850,8 @@ namespace Kratos
         }
     }
 
-    void KinematicLinear::GetValueOnIntegrationPoints( const Variable<std::string>& rVariable, std::vector<std::string>& rValues, const ProcessInfo& rCurrentProcessInfo )
+    #ifndef SD_APP_FORWARD_COMPATIBILITY
+    void KinematicLinear::CalculateOnIntegrationPoints( const Variable<std::string>& rVariable, std::vector<std::string>& rValues, const ProcessInfo& rCurrentProcessInfo )
     {
         if ( rValues.size() != mConstitutiveLawVector.size() )
             rValues.resize( mConstitutiveLawVector.size() );
@@ -1904,8 +1861,9 @@ namespace Kratos
             rValues[Point] = mConstitutiveLawVector[Point]->GetValue(rVariable, rValues[Point]);
         }
     }
+    #endif
 
-    void KinematicLinear::GetValueOnIntegrationPoints( const Variable<ConstitutiveLaw::Pointer>& rVariable, std::vector<ConstitutiveLaw::Pointer>& rValues, const ProcessInfo& rCurrentProcessInfo )
+    void KinematicLinear::CalculateOnIntegrationPoints( const Variable<ConstitutiveLaw::Pointer>& rVariable, std::vector<ConstitutiveLaw::Pointer>& rValues, const ProcessInfo& rCurrentProcessInfo )
     {
         if ( rValues.size() != mConstitutiveLawVector.size() )
             rValues.resize( mConstitutiveLawVector.size() );
@@ -1925,7 +1883,7 @@ namespace Kratos
      * @param rValues Vector of the values on the quadrature points
      * @param rCurrentProcessInfo
      */
-    void KinematicLinear::SetValueOnIntegrationPoints( const Variable<Matrix>& rVariable, std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo )
+    void KinematicLinear::SetValuesOnIntegrationPoints( const Variable<Matrix>& rVariable, const std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo )
     {
         if ( rValues.size() != mConstitutiveLawVector.size() )
         {
@@ -1946,7 +1904,7 @@ namespace Kratos
      * @param rValues Vector of the values on the quadrature points
      * @param rCurrentProcessInfo
      */
-    void KinematicLinear::SetValueOnIntegrationPoints( const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo )
+    void KinematicLinear::SetValuesOnIntegrationPoints( const Variable<Vector>& rVariable, const std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo )
     {
         if ( rValues.size() != mConstitutiveLawVector.size() )
         {
@@ -1967,8 +1925,8 @@ namespace Kratos
      * @param rValue value on the quadrature points
      * @param rCurrentProcessInfo
      */
-    void KinematicLinear::SetValueOnIntegrationPoints( const Variable<double>& rVariable,
-            std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo )
+    void KinematicLinear::SetValuesOnIntegrationPoints( const Variable<double>& rVariable,
+            const std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo )
     {
         if ( rVariable == K0 )
         {
@@ -1988,8 +1946,8 @@ namespace Kratos
      * @param rValue value on the quadrature points
      * @param rCurrentProcessInfo
      */
-    void KinematicLinear::SetValueOnIntegrationPoints( const Variable<int>& rVariable,
-            std::vector<int>& rValues, const ProcessInfo& rCurrentProcessInfo )
+    void KinematicLinear::SetValuesOnIntegrationPoints( const Variable<int>& rVariable,
+            const std::vector<int>& rValues, const ProcessInfo& rCurrentProcessInfo )
     {
         for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); ++i )
         {
@@ -1997,7 +1955,8 @@ namespace Kratos
         }
     }
 
-    void KinematicLinear::SetValueOnIntegrationPoints( const Kratos::Variable< ConstitutiveLaw::Pointer >& rVariable, std::vector< ConstitutiveLaw::Pointer >& rValues, const Kratos::ProcessInfo& rCurrentProcessInfo )
+    void KinematicLinear::SetValuesOnIntegrationPoints( const Kratos::Variable<ConstitutiveLaw::Pointer>& rVariable,
+            const std::vector< ConstitutiveLaw::Pointer >& rValues, const ProcessInfo& rCurrentProcessInfo )
     {
         if ( rVariable == CONSTITUTIVE_LAW )
         {
@@ -2042,7 +2001,7 @@ namespace Kratos
         }
     }
 
-    int KinematicLinear::Check( const Kratos::ProcessInfo& rCurrentProcessInfo )
+    int KinematicLinear::Check( const Kratos::ProcessInfo& rCurrentProcessInfo ) const
     {
         KRATOS_TRY
 

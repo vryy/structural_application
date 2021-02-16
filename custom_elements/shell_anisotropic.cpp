@@ -56,7 +56,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // Project includes
 #include "includes/define.h"
 #include "custom_elements/shell_anisotropic.h"
-#include "structural_application.h"
+#include "structural_application_variables.h"
 #include "utilities/math_utils.h"
 
 namespace Kratos
@@ -123,7 +123,7 @@ ShellAnisotropic::~ShellAnisotropic()
 
 //************************************************************************************
 //************************************************************************************
-void ShellAnisotropic::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+void ShellAnisotropic::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
 {
     CalculateAllMatrices(rLeftHandSideMatrix,rRightHandSideVector,rCurrentProcessInfo);
 }
@@ -605,7 +605,7 @@ double ShellAnisotropic::CalculateBeta( const boost::numeric::ublas::bounded_mat
 void ShellAnisotropic::CalculateAllMatrices(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
-    ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo)
 {
     //calculate local coordinates and rotation matrix
     array_1d<double,3> v1;
@@ -708,7 +708,7 @@ void ShellAnisotropic::CalculateAllMatrices(
 
 //************************************************************************************
 //************************************************************************************
-void ShellAnisotropic::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& CurrentProcessInfo)
+void ShellAnisotropic::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& CurrentProcessInfo) const
 {
     int number_of_nodes = 3;
     if(rResult.size() != 18)
@@ -730,7 +730,7 @@ void ShellAnisotropic::EquationIdVector(EquationIdVectorType& rResult, ProcessIn
 
 //************************************************************************************
 //************************************************************************************
-void ShellAnisotropic::GetDofList(DofsVectorType& ElementalDofList,ProcessInfo& CurrentProcessInfo)
+void ShellAnisotropic::GetDofList(DofsVectorType& ElementalDofList, const ProcessInfo& CurrentProcessInfo) const
 {
     ElementalDofList.resize(0);
 
@@ -748,7 +748,7 @@ void ShellAnisotropic::GetDofList(DofsVectorType& ElementalDofList,ProcessInfo& 
 
 //************************************************************************************
 //************************************************************************************
-void ShellAnisotropic::GetValuesVector(Vector& values, int Step)
+void ShellAnisotropic::GetValuesVector(Vector& values, int Step) const
 {
     const unsigned int number_of_nodes = 3;
     //const unsigned int dim = 3;
@@ -1862,7 +1862,7 @@ void ShellAnisotropic::Initialize(const ProcessInfo& rCurrentProcessInfo)
 
 //************************************************************************************
 //************************************************************************************
-void ShellAnisotropic::FinalizeNonLinearIteration(ProcessInfo& CurrentProcessInfo)
+void ShellAnisotropic::FinalizeNonLinearIteration(const ProcessInfo& CurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -1888,7 +1888,7 @@ void ShellAnisotropic::FinalizeNonLinearIteration(ProcessInfo& CurrentProcessInf
 
 //************************************************************************************
 //************************************************************************************
-void ShellAnisotropic::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
+void ShellAnisotropic::CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 

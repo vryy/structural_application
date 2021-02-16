@@ -60,7 +60,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/define.h"
 #include "geometries/point_3d.h"
 #include "custom_conditions/pointforce3D.h"
-#include "structural_application.h"
+#include "structural_application_variables.h"
 #include "utilities/math_utils.h"
 
 namespace Kratos
@@ -106,7 +106,7 @@ PointForce3D::~PointForce3D()
 
 //************************************************************************************
 //************************************************************************************
-void PointForce3D::CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+void PointForce3D::CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
     if(rRightHandSideVector.size() != 3)
@@ -121,7 +121,7 @@ void PointForce3D::CalculateRightHandSide(VectorType& rRightHandSideVector, Proc
 
 //************************************************************************************
 //************************************************************************************
-void PointForce3D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+void PointForce3D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
     if(rLeftHandSideMatrix.size1() != 3)
@@ -141,7 +141,7 @@ void PointForce3D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorT
 
 //************************************************************************************
 //************************************************************************************
-void PointForce3D::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& CurrentProcessInfo)
+void PointForce3D::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& CurrentProcessInfo) const
 {
     int number_of_nodes = GetGeometry().PointsNumber();
     unsigned int index;
@@ -158,7 +158,7 @@ void PointForce3D::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& 
 
 //************************************************************************************
 //************************************************************************************
-void PointForce3D::GetDofList(DofsVectorType& ConditionalDofList,ProcessInfo& CurrentProcessInfo)
+void PointForce3D::GetDofList(DofsVectorType& ConditionalDofList, const ProcessInfo& CurrentProcessInfo) const
 {
     unsigned int dim = 3;
     ConditionalDofList.resize(GetGeometry().size()*dim);

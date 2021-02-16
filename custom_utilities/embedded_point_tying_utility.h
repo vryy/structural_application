@@ -30,7 +30,7 @@ see license.txt
 #include "utilities/math_utils.h"
 #include "geometries/point_3d.h"
 //#include "spatial_containers/bounding_volume_tree.h"
-#include "structural_application.h"
+#include "structural_application_variables.h"
 
 
 namespace Kratos
@@ -109,8 +109,8 @@ namespace Kratos
                 ModelPart::ConditionsContainerType LinkingConditions;
                 boost::progress_display show_progress( rpSlaveElements.size() );
                 GeometryData::IntegrationMethod ThisIntegrationMethod;
-                Point<3> LocalPoint;
-                Point<3> GlobalPoint;
+                PointType LocalPoint;
+                PointType GlobalPoint;
                 for( typename ModelPart::ElementsContainerType::ptr_iterator it = rpSlaveElements.ptr_begin();
                         it != rpSlaveElements.ptr_end(); ++it )
                 {
@@ -126,7 +126,7 @@ namespace Kratos
                         noalias(GlobalPoint) = (*it)->GetGeometry().GlobalCoordinates(GlobalPoint, LocalPoint);
 
                         Element::Pointer pTargetElement;
-                        Point<3> TargetLocalPoint;
+                        PointType TargetLocalPoint;
                         if( FindPartnerElement( GlobalPoint, rpMasterElements, pTargetElement, TargetLocalPoint ) )
                         {
                             // Create the linking condition

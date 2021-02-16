@@ -52,12 +52,13 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #if !defined(KRATOS_VARIABLE_TRANSFER_UTILITY_INCLUDED )
 #define  KRATOS_VARIABLE_TRANSFER_UTILITY_INCLUDED
+
 //System includes
 #ifdef _OPENMP
 #include <omp.h>
 #endif
+
 //External includes
-#include "boost/smart_ptr.hpp"
 #include "boost/timer.hpp"
 #include "boost/progress.hpp"
 
@@ -73,7 +74,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "spaces/ublas_space.h"
 #include "geometries/hexahedra_3d_8.h"
 #include "geometries/tetrahedra_3d_4.h"
-#include "structural_application.h"
+#include "structural_application_variables.h"
 
 namespace Kratos
 {
@@ -84,14 +85,17 @@ public:
     typedef PointerVectorSet<TDofType, IndexedObject> DofsArrayType;
     typedef ModelPart::ElementsContainerType ElementsArrayType;
     typedef ModelPart::ConditionsContainerType ConditionsArrayType;
-    typedef double* ContainerType;
     typedef Element::DofsVectorType DofsVectorType;
-    typedef Geometry<Node<3> >::IntegrationPointsArrayType IntegrationPointsArrayType;
-    typedef Geometry<Node<3> >::GeometryType GeometryType;
-    typedef Geometry<Node<3> >::CoordinatesArrayType CoordinatesArrayType;
+    typedef Element::GeometryType GeometryType;
+    typedef GeometryType::PointType NodeType;
+    typedef NodeType::PointType PointType;
+    typedef GeometryType::IntegrationPointsArrayType IntegrationPointsArrayType;
+    typedef GeometryType::CoordinatesArrayType CoordinatesArrayType;
     typedef UblasSpace<double, CompressedMatrix, Vector> SpaceType;
     typedef UblasSpace<double, Matrix, Vector> DenseSpaceType;
     typedef LinearSolver<SpaceType, DenseSpaceType> LinearSolverType;
+
+    KRATOS_CLASS_POINTER_DEFINITION( VariableTransferUtility );
 
     /**
      * Constructor.
@@ -178,7 +182,7 @@ public:
         Element::Pointer correspondingElement;
 //				FixDataValueContainer newNodalValues;
 //				FixDataValueContainer oldNodalValues;
-        Point<3>  localPoint;
+        PointType  localPoint;
 
         for(ModelPart::NodeIterator it = rTarget.NodesBegin() ;
                 it != rTarget.NodesEnd() ; it++)
@@ -298,7 +302,7 @@ public:
         Element::Pointer correspondingElement;
 //				FixDataValueContainer newNodalValues;
 //				FixDataValueContainer oldNodalValues;
-        Point<3>  localPoint;
+        PointType  localPoint;
         Vector shape_functions_values;
 
         for(ModelPart::NodeIterator it = rTarget.NodesBegin() ;
@@ -356,8 +360,8 @@ public:
     void TransferPrestressIdentically( Element& rSource, Element& rTarget, const ProcessInfo& CurrentProcessInfo )
     {
         std::vector<Vector> PreStresses;
-        rSource.GetValueOnIntegrationPoints(PRESTRESS, PreStresses, CurrentProcessInfo);
-        rTarget.SetValueOnIntegrationPoints(PRESTRESS, PreStresses, CurrentProcessInfo);
+        rSource.CalculateOnIntegrationPoints(PRESTRESS, PreStresses, CurrentProcessInfo);
+        rTarget.SetValuesOnIntegrationPoints(PRESTRESS, PreStresses, CurrentProcessInfo);
     }
 
     /**
@@ -373,8 +377,8 @@ public:
         for( ModelPart::ElementIterator it = rSource.ElementsBegin();
                 it != rSource.ElementsEnd(); ++it )
         {
-            it->GetValueOnIntegrationPoints(PRESTRESS, PreStresses, rSource.GetProcessInfo());
-            rTarget.Elements()[it->Id()].SetValueOnIntegrationPoints(PRESTRESS, PreStresses, rTarget.GetProcessInfo());
+            it->CalculateOnIntegrationPoints(PRESTRESS, PreStresses, rSource.GetProcessInfo());
+            rTarget.Elements()[it->Id()].SetValuesOnIntegrationPoints(PRESTRESS, PreStresses, rTarget.GetProcessInfo());
         }
         std::cout << __FUNCTION__ << " from " << rSource.Name() << " to " << rTarget.Name() << " completed" << std::endl;
     }
@@ -634,7 +638,7 @@ public:
                 }
             }
 
-            (*it)->SetValueOnIntegrationPoints( rThisVariable, ValuesOnIntPoint,
+            (*it)->SetValuesOnIntegrationPoints( rThisVariable, ValuesOnIntPoint,
                                                 model_part.GetProcessInfo());
         }
     }
@@ -687,7 +691,7 @@ public:
 
 //                     std::cout << "line 444" << std::endl;
 
-            (*it)->SetValueOnIntegrationPoints( rThisVariable, ValuesOnIntPoint,
+            (*it)->SetValuesOnIntegrationPoints( rThisVariable, ValuesOnIntPoint,
                                                 model_part.GetProcessInfo());
         }
 //                 std::cout << "line 449" << std::endl;
@@ -732,7 +736,7 @@ public:
                       (*it)->GetGeometry()[node].GetSolutionStepValue(rThisVariable);
                 }
             }
-            (*it)->SetValueOnIntegrationPoints( rThisVariable, ValuesOnIntPoint,
+            (*it)->SetValuesOnIntegrationPoints( rThisVariable, ValuesOnIntPoint,
                                                 model_part.GetProcessInfo());
         }
     }
@@ -764,10 +768,10 @@ public:
 
             for(unsigned int point=0; point< integration_points.size(); point++)
             {
-                Point<3> sourceLocalPoint;
-                Point<3> targetLocalPoint;
+                PointType sourceLocalPoint;
+                PointType targetLocalPoint;
                 noalias(targetLocalPoint)= integration_points[point];
-                Point<3> targetGlobalPoint;
+                PointType targetGlobalPoint;
                 (*it)->GetGeometry().GlobalCoordinates(targetGlobalPoint,targetLocalPoint);
                 Element::Pointer sourceElement;
                 //Calculate Value of rVariable(firstvalue, secondvalue) in OldMesh
@@ -781,7 +785,7 @@ public:
                         ValueMatrixInOldMesh(*sourceElement, sourceLocalPoint, rThisVariable );
                 }
             }
-            (*it)->SetValueOnIntegrationPoints( rThisVariable, ValuesOnIntPoint,
+            (*it)->SetValuesOnIntegrationPoints( rThisVariable, ValuesOnIntPoint,
                                                 rTarget.GetProcessInfo());
         }
     }
@@ -800,7 +804,7 @@ public:
     void TransferVariablesToGaussPoints(ModelPart& rSource, ModelPart& rTarget,
                                         Variable<Kratos::Vector>& rThisVariable, std::size_t ncomponents = 6)
     {
-        std::cout << "At TransferVariablesToGaussPoints(" << rSource.Name() << "," << rTarget.Name() << ", Variable<Vector> " << rThisVariable.Name() << std::endl;
+        std::cout << __LINE__ << " : At TransferVariablesToGaussPoints(" << rSource.Name() << "," << rTarget.Name() << ", Variable<Vector> " << rThisVariable.Name() << std::endl;
         ElementsArrayType& SourceMeshElementsArray= rSource.Elements();
         ElementsArrayType& TargetMeshElementsArray= rTarget.Elements();
 
@@ -833,13 +837,12 @@ public:
                     = (*it)->GetGeometry().IntegrationPoints((*it)->GetIntegrationMethod());
 
                 std::vector<Vector> ValuesOnIntPoint(integration_points.size());
-//                KRATOS_WATCH(integration_points.size())
                 for(unsigned int point = 0; point< integration_points.size(); ++point)
                 {
-                    Point<3> sourceLocalPoint;
-                    Point<3> targetLocalPoint;
+                    PointType sourceLocalPoint;
+                    PointType targetLocalPoint;
                     noalias(targetLocalPoint) = integration_points[point];
-                    Point<3> targetGlobalPoint;
+                    PointType targetGlobalPoint;
                     (*it)->GetGeometry().GlobalCoordinates(targetGlobalPoint,targetLocalPoint);
 //                    KRATOS_WATCH(targetGlobalPoint)
                     Element::Pointer sourceElement;
@@ -853,7 +856,7 @@ public:
                             ValueVectorInOldMesh(*sourceElement, sourceLocalPoint, rThisVariable );
                     }
                 }
-                (*it)->SetValueOnIntegrationPoints( rThisVariable, ValuesOnIntPoint,
+                (*it)->SetValuesOnIntegrationPoints( rThisVariable, ValuesOnIntPoint,
                                                     rTarget.GetProcessInfo());
 
                 ++show_progress;
@@ -881,7 +884,7 @@ public:
     void TransferVariablesToGaussPoints(ModelPart& rSource, Element::Pointer pTargetElement,
                                         Variable<Kratos::Vector>& rThisVariable, std::size_t ncomponents = 6)
     {
-        std::cout << "At " << __FUNCTION__ << " for element " << pTargetElement->Id() << std::endl;
+        std::cout << __LINE__ << ": At " << __FUNCTION__ << " for element " << pTargetElement->Id() << std::endl;
         ElementsArrayType& SourceMeshElementsArray= rSource.Elements();
 
         if( (pTargetElement->GetValue(IS_INACTIVE) == true) && !pTargetElement->Is(ACTIVE) )
@@ -895,10 +898,10 @@ public:
                 KRATOS_WATCH(integration_points.size())
         for(unsigned int point = 0; point< integration_points.size(); ++point)
         {
-            Point<3> sourceLocalPoint;
-            Point<3> targetLocalPoint;
+            PointType sourceLocalPoint;
+            PointType targetLocalPoint;
             noalias(targetLocalPoint) = integration_points[point];
-            Point<3> targetGlobalPoint;
+            PointType targetGlobalPoint;
             pTargetElement->GetGeometry().GlobalCoordinates(targetGlobalPoint,targetLocalPoint);
 //                    KRATOS_WATCH(targetGlobalPoint)
             Element::Pointer sourceElement;
@@ -915,8 +918,8 @@ public:
             else
                 noalias(ValuesOnIntPoint[point]) = ZeroVector(ncomponents);
         }
-        std::cout << __FUNCTION__ << " for element " << pTargetElement->Id() << " before SetValueOnIntegrationPoints, ValuesOnIntPoint.size(): " << ValuesOnIntPoint.size() << std::endl;
-        pTargetElement->SetValueOnIntegrationPoints( rThisVariable, ValuesOnIntPoint, rSource.GetProcessInfo());
+        std::cout << __FUNCTION__ << " for element " << pTargetElement->Id() << " before SetValuesOnIntegrationPoints, ValuesOnIntPoint.size(): " << ValuesOnIntPoint.size() << std::endl;
+        pTargetElement->SetValuesOnIntegrationPoints( rThisVariable, ValuesOnIntPoint, rSource.GetProcessInfo());
         std::cout << __FUNCTION__ << " for element " << pTargetElement->Id() << " completed" << std::endl;
     }
 
@@ -936,8 +939,8 @@ public:
         ModelPart::ElementsContainerType::ptr_iterator it2 = rTarget.ptr_begin();
         for( std::size_t i = 0; i < rSource.size(); ++i )
         {
-            (*it1)->GetValueOnIntegrationPoints(rVariable, Values, CurrentProcessInfo);
-            (*it2)->SetValueOnIntegrationPoints(rVariable, Values, CurrentProcessInfo);
+            (*it1)->CalculateOnIntegrationPoints(rVariable, Values, CurrentProcessInfo);
+            (*it2)->SetValuesOnIntegrationPoints(rVariable, Values, CurrentProcessInfo);
             ++it1;
             ++it2;
         }
@@ -971,7 +974,7 @@ public:
                 KRATOS_WATCH(integration_points.size())
         for(unsigned int point = 0; point< integration_points.size(); ++point)
         {
-            Point<3> sourceLocalPoint;
+            PointType sourceLocalPoint;
             noalias(sourceLocalPoint) = integration_points[point];
 
             Element& sourceElement = SourceMeshElementsArray[pTargetElement->Id()];
@@ -982,8 +985,8 @@ public:
 
 /*            if (point==0) KRATOS_WATCH(ValuesOnIntPoint[point])*/
         }
-/*        std::cout << __FUNCTION__ << " for element " << pTargetElement->Id() << " before SetValueOnIntegrationPoints, ValuesOnIntPoint.size(): " << ValuesOnIntPoint.size() << std::endl;*/
-        pTargetElement->SetValueOnIntegrationPoints( rThisVariable, ValuesOnIntPoint, rSource.GetProcessInfo());
+/*        std::cout << __FUNCTION__ << " for element " << pTargetElement->Id() << " before SetValuesOnIntegrationPoints, ValuesOnIntPoint.size(): " << ValuesOnIntPoint.size() << std::endl;*/
+        pTargetElement->SetValuesOnIntegrationPoints( rThisVariable, ValuesOnIntPoint, rSource.GetProcessInfo());
 /*        std::cout << __FUNCTION__ << " for element " << pTargetElement->Id() << " completed" << std::endl;*/
     }
 
@@ -1015,10 +1018,10 @@ public:
 
             for(unsigned int point=0; point< integration_points.size(); point++)
             {
-                Point<3> sourceLocalPoint;
-                Point<3> targetLocalPoint;
+                PointType sourceLocalPoint;
+                PointType targetLocalPoint;
                 noalias(targetLocalPoint)= integration_points[point];
-                Point<3> targetGlobalPoint;
+                PointType targetGlobalPoint;
                 (*it)->GetGeometry().GlobalCoordinates(targetGlobalPoint,targetLocalPoint);
                 Element::Pointer sourceElement;
                 //Calculate Value of rVariable(firstvalue, secondvalue) in OldMesh
@@ -1029,7 +1032,7 @@ public:
                         MappedValue(*sourceElement, sourceLocalPoint, rThisVariable );
                 }
             }
-            (*it)->SetValueOnIntegrationPoints( rThisVariable, ValuesOnIntPoint,
+            (*it)->SetValuesOnIntegrationPoints( rThisVariable, ValuesOnIntPoint,
                                                 rTarget.GetProcessInfo());
         }
     }
@@ -1051,7 +1054,7 @@ public:
         const Matrix& Ncontainer = rSource.GetGeometry().ShapeFunctionsValues(rSource.GetIntegrationMethod());
 
         std::vector<double> ValuesOnIntPoint(integration_points.size());
-        rSource.GetValueOnIntegrationPoints(rThisVariable, ValuesOnIntPoint, CurrentProcessInfo);
+        rSource.CalculateOnIntegrationPoints(rThisVariable, ValuesOnIntPoint, CurrentProcessInfo);
 
         double DetJ;
         for(std::size_t point = 0; point< integration_points.size(); ++point)
@@ -1104,7 +1107,7 @@ public:
                 target_values[point] += N[i] * rValues[i];
         }
 
-        rTarget.SetValueOnIntegrationPoints(rThisVariable, target_values, CurrentProcessInfo);
+        rTarget.SetValuesOnIntegrationPoints(rThisVariable, target_values, CurrentProcessInfo);
     }
 
     /**
@@ -1149,7 +1152,7 @@ public:
         const Matrix& Ncontainer = rSource.GetGeometry().ShapeFunctionsValues(rSource.GetIntegrationMethod());
 
         std::vector<array_1d<double, 3> > ValuesOnIntPoint(integration_points.size());
-        rSource.GetValueOnIntegrationPoints(rThisVariable, ValuesOnIntPoint, CurrentProcessInfo);
+        rSource.CalculateOnIntegrationPoints(rThisVariable, ValuesOnIntPoint, CurrentProcessInfo);
 
         double DetJ;
         for(std::size_t point = 0; point< integration_points.size(); ++point)
@@ -1208,7 +1211,7 @@ public:
             }
         }
 
-        rTarget.SetValueOnIntegrationPoints(rThisVariable, target_values, CurrentProcessInfo);
+        rTarget.SetValuesOnIntegrationPoints(rThisVariable, target_values, CurrentProcessInfo);
     }
 
     /**
@@ -1254,7 +1257,7 @@ public:
         const Matrix& Ncontainer = rSource.GetGeometry().ShapeFunctionsValues(rSource.GetIntegrationMethod());
 
         std::vector<Vector> ValuesOnIntPoint(integration_points.size());
-        rSource.GetValueOnIntegrationPoints(rThisVariable, ValuesOnIntPoint, CurrentProcessInfo);
+        rSource.CalculateOnIntegrationPoints(rThisVariable, ValuesOnIntPoint, CurrentProcessInfo);
         // std::cout << "ValuesOnIntPoint:" << std::endl;
         // for (std::size_t i = 0; i < ValuesOnIntPoint.size(); ++i)
         //     std::cout << " " << ValuesOnIntPoint[i] << std::endl;
@@ -1324,7 +1327,7 @@ public:
             }
         }
 
-        rTarget.SetValueOnIntegrationPoints(rThisVariable, target_values, CurrentProcessInfo);
+        rTarget.SetValuesOnIntegrationPoints(rThisVariable, target_values, CurrentProcessInfo);
     }
 
     /**
@@ -1433,7 +1436,7 @@ public:
                     J = (*it)->GetGeometry().Jacobian(J, (*it)->GetIntegrationMethod());
                     std::vector<Matrix> ValuesOnIntPoint(integration_points.size());
 
-                    (*it)->GetValueOnIntegrationPoints(rThisVariable, ValuesOnIntPoint, model_part.GetProcessInfo());
+                    (*it)->CalculateOnIntegrationPoints(rThisVariable, ValuesOnIntPoint, model_part.GetProcessInfo());
 
                     const Matrix& Ncontainer = (*it)->GetGeometry().ShapeFunctionsValues((*it)->GetIntegrationMethod());
 
@@ -1549,7 +1552,7 @@ public:
 //                J = (*it)->GetGeometry().Jacobian(J, (*it)->GetIntegrationMethod());
 //                std::vector<Vector> ValuesOnIntPoint(integration_points.size());
 
-//                (*it)->GetValueOnIntegrationPoints(rThisVariable, ValuesOnIntPoint, model_part.GetProcessInfo());
+//                (*it)->CalculateOnIntegrationPoints(rThisVariable, ValuesOnIntPoint, model_part.GetProcessInfo());
 
 //                const Matrix& Ncontainer = (*it)->GetGeometry().ShapeFunctionsValues((*it)->GetIntegrationMethod());
 
@@ -1700,7 +1703,7 @@ public:
                     J = (*it)->GetGeometry().Jacobian(J, (*it)->GetIntegrationMethod());
                     std::vector<Vector> ValuesOnIntPoint(integration_points.size());
 
-                    (*it)->GetValueOnIntegrationPoints(rThisVariable, ValuesOnIntPoint, model_part.GetProcessInfo());
+                    (*it)->CalculateOnIntegrationPoints(rThisVariable, ValuesOnIntPoint, model_part.GetProcessInfo());
 
                     const Matrix& Ncontainer = (*it)->GetGeometry().ShapeFunctionsValues((*it)->GetIntegrationMethod());
 
@@ -1901,7 +1904,7 @@ public:
                     J = (*it)->GetGeometry().Jacobian(J, (*it)->GetIntegrationMethod());
                     std::vector<Vector> ValuesOnIntPoint(integration_points.size());
 
-                    (*it)->GetValueOnIntegrationPoints(rThisVariable, ValuesOnIntPoint, model_part.GetProcessInfo());
+                    (*it)->CalculateOnIntegrationPoints(rThisVariable, ValuesOnIntPoint, model_part.GetProcessInfo());
 
                     const Matrix& Ncontainer = (*it)->GetGeometry().ShapeFunctionsValues((*it)->GetIntegrationMethod());
 
@@ -1997,7 +2000,7 @@ public:
 //
 //            std::vector<double> ValuesOnIntPoint(integration_points.size());
 //
-//            (*it)->GetValueOnIntegrationPoints(rThisVariable, ValuesOnIntPoint, model_part.GetProcessInfo());
+//            (*it)->CalculateOnIntegrationPoints(rThisVariable, ValuesOnIntPoint, model_part.GetProcessInfo());
 //
 //            const Matrix& Ncontainer = (*it)->GetGeometry().ShapeFunctionsValues((*it)->GetIntegrationMethod());
 //
@@ -2147,7 +2150,7 @@ public:
 //                    J = (*it)->GetGeometry().Jacobian(J, (*it)->GetIntegrationMethod());
 //                    std::vector<double> ValuesOnIntPoint(integration_points.size());
 
-//                    (*it)->GetValueOnIntegrationPoints(rThisVariable, ValuesOnIntPoint, model_part.GetProcessInfo());
+//                    (*it)->CalculateOnIntegrationPoints(rThisVariable, ValuesOnIntPoint, model_part.GetProcessInfo());
 ////                    std::cout << "ValuesOnIntPoint at element " << (*it)->Id() << ":";
 ////                    for(std::size_t i = 0; i < integration_points.size(); ++i)
 ////                        std::cout << " " << ValuesOnIntPoint[i];
@@ -2337,7 +2340,7 @@ public:
                     J = (*it)->GetGeometry().Jacobian(J, (*it)->GetIntegrationMethod());
 
                     std::vector<double> ValuesOnIntPoint(integration_points.size());
-                    (*it)->GetValueOnIntegrationPoints(rThisVariable, ValuesOnIntPoint, model_part.GetProcessInfo());
+                    (*it)->CalculateOnIntegrationPoints(rThisVariable, ValuesOnIntPoint, model_part.GetProcessInfo());
 //                    std::cout << "ValuesOnIntPoint at element " << (*it)->Id() << ":";
 //                    for(std::size_t i = 0; i < integration_points.size(); ++i)
 //                        std::cout << " " << ValuesOnIntPoint[i];
@@ -2564,7 +2567,7 @@ public:
                     J = (*it)->GetGeometry().Jacobian(J, (*it)->GetIntegrationMethod());
                     std::vector<array_1d<double, 3> > ValuesOnIntPoint(integration_points.size());
 
-                    (*it)->GetValueOnIntegrationPoints(rThisVariable, ValuesOnIntPoint, model_part.GetProcessInfo());
+                    (*it)->CalculateOnIntegrationPoints(rThisVariable, ValuesOnIntPoint, model_part.GetProcessInfo());
 
                     const Matrix& Ncontainer = (*it)->GetGeometry().ShapeFunctionsValues((*it)->GetIntegrationMethod());
 
@@ -2712,10 +2715,10 @@ public:
                     {
                         MathUtils<double>::InvertMatrix(J[point],InvJ,DetJ);
 
-                        Point<3> sourceLocalPoint;
-                        Point<3> targetLocalPoint;
+                        PointType sourceLocalPoint;
+                        PointType targetLocalPoint;
                         noalias(targetLocalPoint)= integration_points[point];
-                        Point<3> targetGlobalPoint;
+                        PointType targetGlobalPoint;
                         (*it)->GetGeometry().GlobalCoordinates(targetGlobalPoint,
                                                                targetLocalPoint);
                         Element::Pointer sourceElement;
@@ -2847,10 +2850,10 @@ public:
                 {
                     MathUtils<double>::InvertMatrix(J[point],InvJ,DetJ);
 
-                    Point<3> sourceLocalPoint;
-                    Point<3> targetLocalPoint;
+                    PointType sourceLocalPoint;
+                    PointType targetLocalPoint;
                     noalias(targetLocalPoint)= integration_points[point];
-                    Point<3> targetGlobalPoint;
+                    PointType targetGlobalPoint;
                     (*it)->GetGeometry().GlobalCoordinates(targetGlobalPoint,
                                                            targetLocalPoint);
                     Element::Pointer sourceElement;
@@ -2898,7 +2901,7 @@ public:
         for(ModelPart::NodeIterator it = rTarget.NodesBegin(); it != rTarget.NodesEnd(); ++it)
         {
             //Calculate Value of rVariable(firstvalue, secondvalue) in OldMesh
-            Point<3> sourceLocalPoint;
+            PointType sourceLocalPoint;
             Element::Pointer sourceElement;
             if(FindPartnerElement<1>(*it, SourceMeshElementsArray, sourceElement, sourceLocalPoint))
             {
@@ -2995,10 +2998,10 @@ public:
             {
                 MathUtils<double>::InvertMatrix(J[point],InvJ,DetJ);
 
-                Point<3> sourceLocalPoint;
-                Point<3> targetLocalPoint;
+                PointType sourceLocalPoint;
+                PointType targetLocalPoint;
                 noalias(targetLocalPoint)= integration_points[point];
-                Point<3> targetGlobalPoint;
+                PointType targetGlobalPoint;
                 (*it)->GetGeometry().GlobalCoordinates(targetGlobalPoint,
                                                        targetLocalPoint);
                 Element::Pointer sourceElement;
@@ -3048,12 +3051,12 @@ public:
      * @param oldElement corresponding element in source mesh
      * @param localPoint given target point to map the variable to
      * @param rThisVariable given variable to be transferred
-     * @see ValueVectorInOldMesh(Element& oldElement, Point<3>&  localPoint,
+     * @see ValueVectorInOldMesh(Element& oldElement, PointType&  localPoint,
     const Variable<Kratos::Vector>& rThisVariable )
-     * @see MappedValue( Element& sourceElement, Point<3>& targetPoint,
+     * @see MappedValue( Element& sourceElement, PointType& targetPoint,
     const Variable<double>& rThisVariable)
                  */
-    Matrix ValueMatrixInOldMesh(Element& oldElement, Point<3>&  localPoint,
+    Matrix ValueMatrixInOldMesh(Element& oldElement, PointType&  localPoint,
                                 const Variable<Kratos::Matrix>& rThisVariable )
     {
         Matrix newValue(3,3);
@@ -3084,12 +3087,12 @@ public:
      * @param oldElement corresponding element in source mesh
      * @param localPoint given target point to map the variable to
      * @param rThisVariable given variable to be transferred
-     * @see ValueMatrixInOldMesh(Element& oldElement, Point<3>&  localPoint,
+     * @see ValueMatrixInOldMesh(Element& oldElement, PointType&  localPoint,
     const Variable<Kratos::Matrix>& rThisVariable )
-     * @see MappedValue( Element& sourceElement, Point<3>& targetPoint,
+     * @see MappedValue( Element& sourceElement, PointType& targetPoint,
     const Variable<double>& rThisVariable)
                  */
-    Vector ValueVectorInOldMesh(Element& oldElement, Point<3>&  localPoint,
+    Vector ValueVectorInOldMesh(Element& oldElement, PointType&  localPoint,
                                 const Variable<Kratos::Vector>& rThisVariable )
     {
         Vector newValue(6);
@@ -3117,12 +3120,12 @@ public:
      * @param sourceElement corresponding element in source mesh
      * @param targetPoint given target point to map the variable to
      * @param rThisVariable given variable to be transferred
-     * @see ValueMatrixInOldMesh(Element& oldElement, Point<3>&  localPoint,
+     * @see ValueMatrixInOldMesh(Element& oldElement, PointType&  localPoint,
     const Variable<Kratos::Matrix>& rThisVariable )
-     * @see ValueVectorInOldMesh(Element& oldElement, Point<3>&  localPoint,
+     * @see ValueVectorInOldMesh(Element& oldElement, PointType&  localPoint,
     const Variable<Kratos::Vector>& rThisVariable )
                  */
-    double MappedValuePressure( Element& sourceElement, Point<3>& targetPoint,
+    double MappedValuePressure( Element& sourceElement, PointType& targetPoint,
                                 const Variable<double>& rThisVariable)
     {
         double newValue = 0.0;
@@ -3160,12 +3163,12 @@ public:
      * @param sourceElement corresponding element in source mesh
      * @param targetPoint given target point to map the variable to
      * @param rThisVariable given variable to be transferred
-     * @see ValueMatrixInOldMesh(Element& oldElement, Point<3>&  localPoint,
+     * @see ValueMatrixInOldMesh(Element& oldElement, PointType&  localPoint,
     const Variable<Kratos::Matrix>& rThisVariable )
-     * @see ValueVectorInOldMesh(Element& oldElement, Point<3>&  localPoint,
+     * @see ValueVectorInOldMesh(Element& oldElement, PointType&  localPoint,
     const Variable<Kratos::Vector>& rThisVariable )
                  */
-    double MappedValue( Element& sourceElement, Point<3>& targetPoint,
+    double MappedValue( Element& sourceElement, PointType& targetPoint,
                         const Variable<double>& rThisVariable)
     {
         double newValue = 0.0;
@@ -3190,7 +3193,7 @@ public:
      * @param targetPoint given target point to map the variable to
      * @param rThisVariable given variable to be transferred
                  */
-    Vector MappedValue( Element& sourceElement, Point<3>& targetPoint,
+    Vector MappedValue( Element& sourceElement, PointType& targetPoint,
                         const Variable<array_1d<double, 3 > >& rThisVariable)
     {
         Vector newValue = ZeroVector(3);
@@ -3220,7 +3223,7 @@ public:
     template<int TFrame>
     bool FindPartnerElement( CoordinatesArrayType& newNode,
                              ElementsArrayType& OldMeshElementsArray,
-                             Element::Pointer& oldElement, Point<3>&  rResult)
+                             Element::Pointer& oldElement, PointType&  rResult)
     {
         bool partner_found= false;
         //noalias(rResult)= ZeroVector(3);
@@ -3330,10 +3333,10 @@ public:
      * @param rThisVariable given variable to be transferred
      * @param firstvalue row index
      * @param secondvalue column index
-     * @see ValueVectorInOldMesh(Element& oldElement, Point<3>&  localPoint,
+     * @see ValueVectorInOldMesh(Element& oldElement, PointType&  localPoint,
     const Variable<Kratos::Vector>& rThisVariable, unsigned int firstvalue)
                  */
-    double ValueMatrixInOldMesh(Element& oldElement, Point<3>&  localPoint,
+    double ValueMatrixInOldMesh(Element& oldElement, PointType&  localPoint,
                                 const Variable<Kratos::Matrix>& rThisVariable, unsigned int firstvalue, unsigned int secondvalue )
     {
         double newValue = 0.0;
@@ -3357,10 +3360,10 @@ public:
      * @param targetPoint given target point to map the variable to
      * @param rThisVariable given variable to be transferred
      * @param firstvalue index
-     * @see ValueVectorInOldMesh(Element& oldElement, Point<3>&  localPoint,
+     * @see ValueVectorInOldMesh(Element& oldElement, PointType&  localPoint,
     const Variable<Kratos::Vector>& rThisVariable, unsigned int firstvalue)
      */
-    double ValueVectorInOldMesh(Element& oldElement, Point<3>&  localPoint,
+    double ValueVectorInOldMesh(Element& oldElement, PointType&  localPoint,
                                 const Variable<Kratos::Vector>& rThisVariable, unsigned int firstvalue )
     {
         double newValue = 0.0;
@@ -3375,6 +3378,7 @@ public:
     }
 
 protected:
+
     LinearSolverType::Pointer mpLinearSolver;
 
     //**********AUXILIARY FUNCTION**************************************************************
@@ -3463,7 +3467,7 @@ protected:
     }
 
     template<typename TElementsArrayType>
-    void ConstructMatrixStructure (
+    static void ConstructMatrixStructure (
         SpaceType::MatrixType& A,
         TElementsArrayType& rElements,
         std::map<std::size_t, std::size_t>& NodeRowId,
@@ -3549,7 +3553,7 @@ protected:
 
     //**********AUXILIARY FUNCTION**************************************************************
     //******************************************************************************************
-    inline void AddUnique(std::vector<std::size_t>& v, const std::size_t& candidate)
+    static inline void AddUnique(std::vector<std::size_t>& v, const std::size_t& candidate)
     {
         std::vector<std::size_t>::iterator i = v.begin();
         std::vector<std::size_t>::iterator endit = v.end();
@@ -3566,7 +3570,7 @@ protected:
 
     //**********AUXILIARY FUNCTION**************************************************************
     //******************************************************************************************
-    inline void CreatePartition(unsigned int number_of_threads,const int number_of_rows, vector<unsigned int>& partitions)
+    static inline void CreatePartition(unsigned int number_of_threads,const int number_of_rows, vector<unsigned int>& partitions)
     {
         partitions.resize(number_of_threads+1);
         int partition_size = number_of_rows / number_of_threads;
@@ -3577,10 +3581,8 @@ protected:
     }
 
 private:
+
     int mEchoLevel;
-
-
-
 
 };//Class Scheme
 }//namespace Kratos.
