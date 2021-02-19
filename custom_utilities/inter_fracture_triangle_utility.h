@@ -56,17 +56,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <omp.h>
 #endif
 
-#include "boost/smart_ptr.hpp"
-#include <boost/timer.hpp>
-#include <boost/numeric/ublas/matrix.hpp>
-#include <boost/numeric/ublas/vector.hpp>
-#include <boost/numeric/ublas/banded.hpp>
-#include <boost/numeric/ublas/matrix_sparse.hpp>
-#include <boost/numeric/ublas/triangular.hpp>
-#include <boost/numeric/ublas/operation.hpp>
-#include <boost/numeric/ublas/lu.hpp>
-
-
 
 // System includes
 #include <string>
@@ -78,26 +67,26 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
 /* Project includes */
-#include "structural_application_variables.h"
-
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "includes/node.h"
 #include "includes/variables.h"
+#include "includes/mesh.h"
+#include "includes/ublas_interface.h"
 #include "containers/array_1d.h"
+#include "containers/data_value_container.h"
 #include "processes/find_nodal_neighbours_process.h"
 #include "processes/find_elements_neighbours_process.h"
 #include "processes/find_conditions_neighbours_process.h"
-#include "containers/data_value_container.h"
-#include "includes/mesh.h"
+#include "processes/node_erase_process.h"
 #include "utilities/math_utils.h"
+#include "geometries/triangle_2d_3.h"
+#include "spatial_containers/spatial_containers.h"
 #include "custom_utilities/sd_math_utils.h"
 #include "custom_utilities/smoothing_utility.h"
-#include "geometries/triangle_2d_3.h"
-#include "processes/node_erase_process.h"
-#include "spatial_containers/spatial_containers.h"
 #include "custom_utilities/joint.h"
 #include "custom_utilities/disconnect_utility.h"
+#include "structural_application_variables.h"
 
 namespace Kratos
 {

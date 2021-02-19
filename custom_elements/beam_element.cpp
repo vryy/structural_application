@@ -9,12 +9,9 @@
 
 // System includes
 
-//custom_elements
 // External includes
 
 // Project includes
-
-#include "includes/define.h"
 #include "geometries/line_3d_2.h"
 #include "utilities/math_utils.h"
 #include "custom_utilities/sd_math_utils.h"

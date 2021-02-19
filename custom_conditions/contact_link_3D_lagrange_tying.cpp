@@ -53,10 +53,9 @@
 // External includes
 
 // Project includes
-#include "includes/define.h"
+#include "utilities/math_utils.h"
 #include "custom_conditions/contact_link_3D_lagrange_tying.h"
 #include "structural_application_variables.h"
-#include "utilities/math_utils.h"
 #include "custom_utilities/sd_math_utils.h"
 
 namespace Kratos

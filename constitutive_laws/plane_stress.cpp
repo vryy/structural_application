@@ -57,17 +57,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <cmath>
 
 // Project includes
-
-#include "includes/define.h"
-#include "plane_stress.h"
-
-#include "includes/constitutive_law.h"
-
 #include "utilities/math_utils.h"
-#include "includes/variables.h"
-#include "includes/process_info.h"
+#include "constitutive_laws/plane_stress.h"
 #include "structural_application_variables.h"
-#include "includes/properties.h"
 
 namespace Kratos
 {

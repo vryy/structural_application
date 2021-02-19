@@ -10,10 +10,8 @@
 
 
 // External includes
-#include "boost/smart_ptr.hpp"
 
 // Project includes
-#include "includes/define.h"
 #include "includes/element.h"
 #include "includes/condition.h"
 #include "includes/serializer.h"

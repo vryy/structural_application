@@ -54,8 +54,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
 // Project includes
-#include "pile_kinematic_linear.h"
 #include "utilities/math_utils.h"
+#include "custom_conditions/pile_kinematic_linear.h"
 #include "custom_utilities/sd_math_utils.h"
 #include "structural_application_variables.h"
 
@@ -390,8 +390,7 @@ void Pile_Kinematic_Linear::CalculateAll( MatrixType& rLeftHandSideMatrix,
     Matrix PileDN = ZeroMatrix( pileNN, ( dimension - 2 ) ); ////??????????????????????????????????????????
 
     noalias( PileDN ) = mpPileElement->GetGeometry().ShapeFunctionsLocalGradients( PileDN, mPileLocalPoint );
-      Matrix TSoil( 2, 3 );
-
+    Matrix TSoil( 2, 3 );
 
     //********************************
     //Calculating contact area
@@ -409,13 +408,7 @@ void Pile_Kinematic_Linear::CalculateAll( MatrixType& rLeftHandSideMatrix,
 
     double influence_area = mpPileElement->GetGeometry().IntegrationPoints()[mPileIntegrationPointIndex].Weight()
                             * DetJPile * circumference_pile*0.5;
-
-    //KRATOS_WATCH( influence_area );
-    for ( unsigned int n = 0; n < mpPileElement->GetGeometry().size(); n++ )
-    {
-        double DispX = mpPileElement->GetGeometry()[n].GetSolutionStepValue( DISPLACEMENT_X, 0 );
-    }
-
+    KRATOS_WATCH( influence_area );
 
     //********************************
     //Calculating normals and tangents
@@ -434,29 +427,31 @@ void Pile_Kinematic_Linear::CalculateAll( MatrixType& rLeftHandSideMatrix,
 
     for ( unsigned int n = 0; n < mpPileElement->GetGeometry().size(); n++ )
     {
-        TPileN( 0, 0 ) += ( mpPileElement->GetGeometry()[n].X())* PileDN( n, 0 );
-        TPileN( 0, 1 ) += ( mpPileElement->GetGeometry()[n].Y())* PileDN( n, 0 );
-        TPileN( 0, 2 ) += ( mpPileElement->GetGeometry()[n].Z() ) * PileDN( n, 0 );
-        TPileN( 1, 0 ) +=0;
-        TPileN( 1, 1 ) +=0;
-        TPileN( 1, 2 ) +=0;
+        TPileN( 0, 0 ) += ( mpPileElement->GetGeometry()[n].X()) * PileDN( n, 0 );
+        TPileN( 0, 1 ) += ( mpPileElement->GetGeometry()[n].Y()) * PileDN( n, 0 );
+        TPileN( 0, 2 ) += ( mpPileElement->GetGeometry()[n].Z()) * PileDN( n, 0 );
+        TPileN( 1, 0 ) += 0;
+        TPileN( 1, 1 ) += 0;
+        TPileN( 1, 2 ) += 0;
     }
+    KRATOS_WATCH(TPileN)
 
     //calculating normal vetors vectors
     Vector vCurentPile( 3 );
 
-   //calculating current position of target point on pile
+    //calculating current position of target point on pile
 
     noalias( vCurentPile ) = ZeroVector( 3 );
 
     for ( unsigned int n = 0; n < pileNN; n++ )
     {
-        vCurentPile[0] += ( mpPileElement->GetGeometry()[n].X() )*  PileShapeFunctionValues[n];
-        vCurentPile[1] += ( mpPileElement->GetGeometry()[n].Y())*  PileShapeFunctionValues[n];
-        vCurentPile[2] += ( mpPileElement->GetGeometry()[n].Z())*  PileShapeFunctionValues[n];
+        vCurentPile[0] += ( mpPileElement->GetGeometry()[n].X() ) * PileShapeFunctionValues[n];
+        vCurentPile[1] += ( mpPileElement->GetGeometry()[n].Y() ) * PileShapeFunctionValues[n];
+        vCurentPile[2] += ( mpPileElement->GetGeometry()[n].Z() ) * PileShapeFunctionValues[n];
 
     }
-   //calculating initial position of target point on pile
+    KRATOS_WATCH(vCurentPile)
+    //calculating initial position of target point on pile
 
     Vector vOrigintPile = ZeroVector( 3 );
 
@@ -468,8 +463,8 @@ void Pile_Kinematic_Linear::CalculateAll( MatrixType& rLeftHandSideMatrix,
                            *  PileShapeFunctionValues[n];
         vOrigintPile[2] += ( mpPileElement->GetGeometry()[n].Z()-mpPileElement->GetGeometry()[n].GetSolutionStepValue( DISPLACEMENT_Z,0 ))
                            *  PileShapeFunctionValues[n];
-
     }
+    KRATOS_WATCH(vOrigintPile)
 
     //calculating projection of curret point on nomal plane
     Vector vOriginPileProj( 3 );
@@ -481,8 +476,8 @@ void Pile_Kinematic_Linear::CalculateAll( MatrixType& rLeftHandSideMatrix,
         vOriginPileProj( 0 ) += ( vOrigintPile( 0 ) - TPileN( 0, 0 ) * T0 );
         vOriginPileProj( 1 ) += ( vOrigintPile( 1 ) - TPileN( 0, 1 ) * T0 );
         vOriginPileProj( 2 ) += ( vOrigintPile( 2 ) - TPileN( 0, 2 ) * T0 );
-
     }
+    KRATOS_WATCH(vOriginPileProj)
 
     //calculating normal vector
     vPile = vCurentPile - vOriginPileProj;
@@ -493,9 +488,9 @@ void Pile_Kinematic_Linear::CalculateAll( MatrixType& rLeftHandSideMatrix,
 
     double norm_vPile;
     norm_vPile = sqrt( vPile( 0 ) * vPile( 0 ) + vPile( 1 ) * vPile( 1 ) + vPile(2 ) * vPile( 2 ) );
-//    KRATOS_WATCH( vPile );
-    //KRATOS_WATCH (norm_vPile);
-     Vector relDisp( 3 );
+    KRATOS_WATCH( vPile );
+    KRATOS_WATCH (norm_vPile);
+    Vector relDisp( 3 );
 
     noalias( relDisp ) = ( mPileGlobalPoint - mSoilGlobalPoint );
     double NormrelDisp = MathUtils<double>::Norm3( relDisp );
@@ -514,9 +509,9 @@ void Pile_Kinematic_Linear::CalculateAll( MatrixType& rLeftHandSideMatrix,
     else
     {
  //     noalias( TPileN ) = TangentialVectors( mpPileElement, mPileLocalPoint);
-        TPileN( 1, 0 ) ==0;
-        TPileN( 1, 1 ) ==0;
-        TPileN( 1, 2 ) ==0;
+        TPileN( 1, 0 ) = 0;
+        TPileN( 1, 1 ) = 0;
+        TPileN( 1, 2 ) = 0;
     }
 
     //KRATOS_WATCH( TPileN );
@@ -527,7 +522,7 @@ void Pile_Kinematic_Linear::CalculateAll( MatrixType& rLeftHandSideMatrix,
     }
     else
     {
-        Gap == 0;
+        Gap = 0;
     }
 
     double penalty =1.0e+10;
@@ -538,7 +533,9 @@ void Pile_Kinematic_Linear::CalculateAll( MatrixType& rLeftHandSideMatrix,
     double normalStress = abs( penalty * Gap );
    // double normalStress = penalty * Gap;
 
-    //KRATOS_WATCH( normalStress );
+    KRATOS_WATCH( normalStress );
+    KRATOS_WATCH( penalty );
+    KRATOS_WATCH( Gap );
 
     //tangential vector on Pile surface
     Matrix T( 2, 3 );
@@ -608,9 +605,9 @@ void Pile_Kinematic_Linear::CalculateAll( MatrixType& rLeftHandSideMatrix,
     }
     else
     {
-        T( 1, 0 ) ==0;
-        T( 1, 1 ) ==0;
-        T( 1, 2 ) ==0;
+        T( 1, 0 ) = 0;
+        T( 1, 1 ) = 0;
+        T( 1, 2 ) = 0;
     }
 
     Matrix m( 2, 2 );
@@ -650,15 +647,13 @@ void Pile_Kinematic_Linear::CalculateAll( MatrixType& rLeftHandSideMatrix,
             for ( IndexType i = 0 ; i < mpSoilElement->GetGeometry().size() ; i++ )
             {
                 double shape_func = mpSoilElement->GetGeometry().ShapeFunctionValue( i, mSoilLocalPoint );
-                soil_velo += (( mpSoilElement->GetGeometry()[i] ).GetSolutionStepValue( DISPLACEMENT_DT ) ) *
-                             shape_func;
+                soil_velo += (( mpSoilElement->GetGeometry()[i] ).GetSolutionStepValue( DISPLACEMENT_DT ) ) * shape_func;
             }
 
             for ( IndexType i = 0 ; i < mpPileElement->GetGeometry().size() ; i++ )
             {
                 double shape_func = mpPileElement->GetGeometry().ShapeFunctionValue( i, mPileLocalPoint );
-                pile_velo += (( mpPileElement->GetGeometry()[i] ).GetSolutionStepValue( DISPLACEMENT_DT ) ) *
-                             shape_func;
+                pile_velo += (( mpPileElement->GetGeometry()[i] ).GetSolutionStepValue( DISPLACEMENT_DT ) ) * shape_func;
             }
 
             Vector norm_T( 2 );
@@ -667,69 +662,54 @@ void Pile_Kinematic_Linear::CalculateAll( MatrixType& rLeftHandSideMatrix,
 
             norm_T( 1 ) = sqrt( T( 1, 0 ) * T( 1, 0 ) + T( 1, 1 ) * T( 1, 1 ) + T( 1, 2 ) * T( 1, 2 ) );
 
-        if ((norm_T (0)) != 0)
-        {
-          relativTangentialVelocity( 0 ) = (( soil_velo( 0 ) - pile_velo( 0 ) ) * T( 0, 0 ) + ( soil_velo( 1 ) - pile_velo( 1 ) ) * T( 0, 1 )
-                                              + ( soil_velo( 2 ) - pile_velo( 2 ) ) * T( 0, 2 ) ) / norm_T( 0 );
-        } else
-        {
-         relativTangentialVelocity( 0 ) = 0;
+            if ((norm_T (0)) != 0)
+            {
+                relativTangentialVelocity( 0 ) = (( soil_velo( 0 ) - pile_velo( 0 ) ) * T( 0, 0 ) + ( soil_velo( 1 ) - pile_velo( 1 ) ) * T( 0, 1 )
+                                                + ( soil_velo( 2 ) - pile_velo( 2 ) ) * T( 0, 2 ) ) / norm_T( 0 );
+            }
+            else
+            {
+                relativTangentialVelocity( 0 ) = 0;
+            }
+
+            if ((norm_T (1)) != 0)
+            {
+                relativTangentialVelocity( 1 ) = (( soil_velo( 0 ) - pile_velo( 0 ) ) * T( 1, 0 ) + ( soil_velo( 1 ) - pile_velo( 1 ) ) * T( 1, 1 )
+                                                + ( soil_velo( 2 ) - pile_velo( 2 ) ) * T( 1, 2 ) ) / norm_T( 1 );
+            }
+            else
+            {
+                relativTangentialVelocity( 1 ) = 0;
+            }
+
+            tangentialStresses_trial[0] +=  relativTangentialVelocity( 0 ) * penalty_T;
+
+            tangentialStresses_trial[1] +=  relativTangentialVelocity( 1 ) * penalty_T;
+
+            normTangentialStresses_trial =  sqrt( tangentialStresses_trial[0] * m( 0, 0 ) * tangentialStresses_trial[0]
+                                                + tangentialStresses_trial[0] * m( 0, 1 ) * tangentialStresses_trial[1]
+                                                + tangentialStresses_trial[1] * m( 1, 0 ) * tangentialStresses_trial[0]
+                                                + tangentialStresses_trial[1] * m( 1, 1 ) * tangentialStresses_trial[1] );
+
+            if ( normTangentialStresses_trial > friction_coeff*normalStress )//Slip
+            {
+                tangentialStresses[0] = friction_coeff * normalStress * tangentialStresses_trial[0] / normTangentialStresses_trial;//
+                tangentialStresses[1] = friction_coeff * normalStress * tangentialStresses_trial[1] / normTangentialStresses_trial;//
+                Stick = false;
+            }
+            else //Stick
+            {
+                tangentialStresses[0] = tangentialStresses_trial[0];
+                tangentialStresses[1] = tangentialStresses_trial[1];
+                Stick = true;
+            }
         }
-
-        if ((norm_T (1)) != 0)
-        {
-        relativTangentialVelocity( 1 ) = (( soil_velo( 0 ) - pile_velo( 0 ) ) * T( 1, 0 ) + ( soil_velo( 1 ) - pile_velo( 1 ) ) * T( 1, 1 )
-                                              + ( soil_velo( 2 ) - pile_velo( 2 ) ) * T( 1, 2 ) ) / norm_T( 1 );
-        } else
-        {
-          relativTangentialVelocity( 1 ) = 0;
-        }
-
-
-
-
-
-
-        tangentialStresses_trial[0] +=  relativTangentialVelocity( 0 ) * penalty_T;
-
-        tangentialStresses_trial[1] +=  relativTangentialVelocity( 1 ) * penalty_T;
-
-
-
-        normTangentialStresses_trial =  sqrt( tangentialStresses_trial[0] * m( 0, 0 ) * tangentialStresses_trial[0]
-                                              + tangentialStresses_trial[0] * m( 0, 1 ) * tangentialStresses_trial[1]
-                                              + tangentialStresses_trial[1] * m( 1, 0 ) * tangentialStresses_trial[0]
-                                              + tangentialStresses_trial[1] * m( 1, 1 ) * tangentialStresses_trial[1] );
-
-
-
-
-      if ( normTangentialStresses_trial > friction_coeff*normalStress )//Slip
-      {
-            tangentialStresses[0] = friction_coeff * normalStress * tangentialStresses_trial[0] / normTangentialStresses_trial;//
-            tangentialStresses[1] = friction_coeff * normalStress * tangentialStresses_trial[1] / normTangentialStresses_trial;//
-            Stick = false;
-
-
-      }
-      else //Stick
-      {
-
-            tangentialStresses[0] = tangentialStresses_trial[0];
-            tangentialStresses[1] = tangentialStresses_trial[1];
-            Stick = true;
-      }
-
+        else
+            return;
     }
-    else
-      return;
-    }
-
-
 
     //Calculating Soil element's current integration weight
     double SoilIntegrationWeight = mpSoilElement->GetGeometry().IntegrationPoints()[mPileIntegrationPointIndex].Weight();
-
 
     if ( CalculateResidualVectorFlag == true )
     {
@@ -769,14 +749,13 @@ void Pile_Kinematic_Linear::CalculateAll( MatrixType& rLeftHandSideMatrix,
 
     //BEGIN OF CONTRIBUTION: MASTER-MASTER
 
-
     if (Gap != 0)
     {
-          Vector cont1 (2);
-    Vector cont2 (2);
-    Vector cont3 (2);
-    Vector cont4 (2);
-    noalias (cont1) = ZeroVector (2);
+        Vector cont1 (2);
+        Vector cont2 (2);
+        Vector cont3 (2);
+        Vector cont4 (2);
+        noalias (cont1) = ZeroVector (2);
         for ( unsigned int prim = 0; prim < pileNN ;  prim++ )
         {
             for ( unsigned int i = 0; i < dimension; i++ )
@@ -786,19 +765,17 @@ void Pile_Kinematic_Linear::CalculateAll( MatrixType& rLeftHandSideMatrix,
                     for ( unsigned int j = 0; j < dimension; j++ )
                     {
                         rLeftHandSideMatrix( prim*dimension + i, sec*dimension + j )
-                        += PileShapeFunctionValues[prim] * vPile[i]
-                           * PileShapeFunctionValues[sec] * vPile[j]
-                           * penalty * SoilIntegrationWeight * influence_area;
+                            += PileShapeFunctionValues[prim] * vPile[i]
+                                * PileShapeFunctionValues[sec] * vPile[j]
+                                * penalty * SoilIntegrationWeight * influence_area;
 
-                cont1 (0) =  prim*dimension + i;
-                cont1 (1) = sec*dimension + j;
+                        cont1 (0) =  prim*dimension + i;
+                        cont1 (1) = sec*dimension + j;
             //    KRATOS_WATCH (cont1)
                     }
                 }
             }
         }
-
-
 
         //END OF CONTRIBUTION: MASTER-MASTER
         //BEGIN OF CONTRIBUTION: MASTER-SLAVE
@@ -811,12 +788,10 @@ void Pile_Kinematic_Linear::CalculateAll( MatrixType& rLeftHandSideMatrix,
                     for ( unsigned int j = 0; j < dimension; j++ )
                     {
                         rLeftHandSideMatrix( prim*dimension + i, sec*dimension + j + pileNN*dimension )
-                        -= PileShapeFunctionValues[prim] * vPile[i]
-                           * SoilShapeFunctionValues[sec] * vPile[j] * penalty
-                           * SoilIntegrationWeight * influence_area;
-
+                            -= PileShapeFunctionValues[prim] * vPile[i]
+                                * SoilShapeFunctionValues[sec] * vPile[j] * penalty
+                                * SoilIntegrationWeight * influence_area;
             //   //KRATOS_WATCH (cont2);
-
                     }
                 }
             }
@@ -833,10 +808,9 @@ void Pile_Kinematic_Linear::CalculateAll( MatrixType& rLeftHandSideMatrix,
                     for ( unsigned int j = 0; j < dimension; j++ )
                     {
                         rLeftHandSideMatrix( prim*dimension + i + pileNN*dimension, sec*dimension + j )
-                        -= SoilShapeFunctionValues[prim] * vPile[i]
-                           * PileShapeFunctionValues[sec] * vPile[j] * penalty
-                           * SoilIntegrationWeight * influence_area;
-
+                            -= SoilShapeFunctionValues[prim] * vPile[i]
+                                * PileShapeFunctionValues[sec] * vPile[j] * penalty
+                                * SoilIntegrationWeight * influence_area;
                     }
                 }
             }
@@ -854,16 +828,15 @@ void Pile_Kinematic_Linear::CalculateAll( MatrixType& rLeftHandSideMatrix,
                     for ( unsigned int j = 0; j < dimension; j++ )
                     {
                         rLeftHandSideMatrix( prim*dimension + i + pileNN*dimension, sec*dimension + j + pileNN*dimension )
-                        += SoilShapeFunctionValues[prim] * vPile[i]
-                           * SoilShapeFunctionValues[sec] * vPile[j] * penalty
-                           * SoilIntegrationWeight * influence_area;
+                            += SoilShapeFunctionValues[prim] * vPile[i]
+                                * SoilShapeFunctionValues[sec] * vPile[j] * penalty
+                                * SoilIntegrationWeight * influence_area;
 
                     }
                 }
             }
         }
     }
-
     else
         return;
 
@@ -881,231 +854,218 @@ void Pile_Kinematic_Linear::CalculateAll( MatrixType& rLeftHandSideMatrix,
 //BEGIN OF CONTRIBUTION MASTER-MASTER
     if (normTangentialStresses_trial != 0)
     {
-      for ( unsigned int prim = 0; prim < pileNN; prim++ )
-      {
-        for ( unsigned int i = 0; i < dimension; i++ )
+        for ( unsigned int prim = 0; prim < pileNN; prim++ )
         {
-            Vector XiPrim = ZeroVector( 2 );
-
-        if ((norm_T (0)) != 0)
-        {
-          XiPrim[0] = -PileShapeFunctionValues[prim] * T( 0, i ) / norm_T( 0 );
-        }
-        else
-        {
-         XiPrim[0]=0;
-        }
-
-        if ((norm_T (1)) != 0)
-        {
-          XiPrim[1] = -PileShapeFunctionValues[prim] * T( 1, i ) / norm_T( 1 );
-        }
-        else
-        {
-          XiPrim[1]= 0;
-        }
-
-            for ( unsigned int sec = 0; sec < pileNN; sec++ )
+            for ( unsigned int i = 0; i < dimension; i++ )
             {
-                for ( unsigned int j = 0; j < dimension; j++ )
+                Vector XiPrim = ZeroVector( 2 );
+
+                if ((norm_T (0)) != 0)
                 {
-                    double normalStress_DU = PileShapeFunctionValues[sec]
-                                             * vPile[j] * penalty;
+                    XiPrim[0] = -PileShapeFunctionValues[prim] * T( 0, i ) / norm_T( 0 );
+                }
+                else
+                {
+                    XiPrim[0]=0;
+                }
 
-                    Vector tangentialStresses_DU( 2 );
-            if (normTangentialStresses_trial != 0)
-            {
-              tangentialStresses_DU( 0 ) = friction_coeff
-                                                 * normalStress_DU * tangentialStresses_trial[0] / normTangentialStresses_trial;
+                if ((norm_T (1)) != 0)
+                {
+                    XiPrim[1] = -PileShapeFunctionValues[prim] * T( 1, i ) / norm_T( 1 );
+                }
+                else
+                {
+                    XiPrim[1]= 0;
+                }
 
-              tangentialStresses_DU( 1 ) = friction_coeff
-                                                 * normalStress_DU * tangentialStresses_trial[1] / normTangentialStresses_trial;
-            } else
-            {
-              tangentialStresses_DU( 0 ) = 0;
-              tangentialStresses_DU( 1 ) = 0;
-            }
+                for ( unsigned int sec = 0; sec < pileNN; sec++ )
+                {
+                    for ( unsigned int j = 0; j < dimension; j++ )
+                    {
+                        double normalStress_DU = PileShapeFunctionValues[sec] * vPile[j] * penalty;
 
-                    rLeftHandSideMatrix( prim*dimension + i, sec*dimension + j) +=
-                        ( tangentialStresses_DU[0] * XiPrim[0] +
-                          tangentialStresses_DU[1] * XiPrim[1] )
-                        * SoilIntegrationWeight * influence_area;
+                        Vector tangentialStresses_DU( 2 );
+                        if (normTangentialStresses_trial != 0)
+                        {
+                            tangentialStresses_DU( 0 ) = friction_coeff * normalStress_DU * tangentialStresses_trial[0] / normTangentialStresses_trial;
+                            tangentialStresses_DU( 1 ) = friction_coeff * normalStress_DU * tangentialStresses_trial[1] / normTangentialStresses_trial;
+                        }
+                        else
+                        {
+                            tangentialStresses_DU( 0 ) = 0;
+                            tangentialStresses_DU( 1 ) = 0;
+                        }
+
+                        rLeftHandSideMatrix( prim*dimension + i, sec*dimension + j) +=
+                            ( tangentialStresses_DU[0] * XiPrim[0] + tangentialStresses_DU[1] * XiPrim[1] )
+                            * SoilIntegrationWeight * influence_area;
+                    }
                 }
             }
         }
-      }
 
+        //END OF CONTRIBUTION: MASTER-MASTER
 
-    //END OF CONTRIBUTION: MASTER-MASTER
-
-    //BEGIN OF CONTRIBUTION MASTER-SLAVE
-    for ( unsigned int prim = 0; prim < pileNN; prim++ )
-    {
-        for ( unsigned int i = 0; i < dimension; i++ )
+        //BEGIN OF CONTRIBUTION MASTER-SLAVE
+        for ( unsigned int prim = 0; prim < pileNN; prim++ )
         {
-            Vector XiPrim = ZeroVector( 2 );
-
-        if ((norm_T (0)) != 0)
-        {
-          XiPrim[0] = -PileShapeFunctionValues[prim] * T( 0, i ) / norm_T( 0 );
-        }
-        else
-        {
-         XiPrim[0]=0;
-        }
-
-        if ((norm_T (1)) != 0)
-        {
-          XiPrim[1] = -PileShapeFunctionValues[prim] * T( 1, i ) / norm_T( 1 );
-        }
-        else
-        {
-          XiPrim[1]= 0;
-        }
-
-            for ( unsigned int sec = 0; sec < soilNN; sec++ )
+            for ( unsigned int i = 0; i < dimension; i++ )
             {
-                for ( unsigned int j = 0; j < dimension; j++ )
+                Vector XiPrim = ZeroVector( 2 );
+
+                if ((norm_T (0)) != 0)
                 {
-                    double normalStress_DU = ( -1 ) * SoilShapeFunctionValues[sec]
-                                             * vPile[j] * penalty;
+                    XiPrim[0] = -PileShapeFunctionValues[prim] * T( 0, i ) / norm_T( 0 );
+                }
+                else
+                {
+                    XiPrim[0]=0;
+                }
 
-                    Vector tangentialStresses_DU( 2 );
-            if (normTangentialStresses_trial != 0)
-            {
-              tangentialStresses_DU( 0 ) = friction_coeff
-                                                 * normalStress_DU * tangentialStresses_trial[0] / normTangentialStresses_trial;
+                if ((norm_T (1)) != 0)
+                {
+                    XiPrim[1] = -PileShapeFunctionValues[prim] * T( 1, i ) / norm_T( 1 );
+                }
+                else
+                {
+                    XiPrim[1]= 0;
+                }
 
-              tangentialStresses_DU( 1 ) = friction_coeff
-                                                 * normalStress_DU * tangentialStresses_trial[1] / normTangentialStresses_trial;
-            } else
-            {
-              tangentialStresses_DU( 0 ) = 0;
-              tangentialStresses_DU( 1 ) = 0;
-            }
-                    rLeftHandSideMatrix( prim*dimension+ i, pileNN*dimension+ sec*dimension+ j ) +=
-                        ( tangentialStresses_DU[0] * XiPrim[0] +
-                          tangentialStresses_DU[1] * XiPrim[1] )
-                        * SoilIntegrationWeight * influence_area;
+                for ( unsigned int sec = 0; sec < soilNN; sec++ )
+                {
+                    for ( unsigned int j = 0; j < dimension; j++ )
+                    {
+                        double normalStress_DU = ( -1 ) * SoilShapeFunctionValues[sec] * vPile[j] * penalty;
+
+                        Vector tangentialStresses_DU( 2 );
+                        if (normTangentialStresses_trial != 0)
+                        {
+                            tangentialStresses_DU( 0 ) = friction_coeff * normalStress_DU * tangentialStresses_trial[0] / normTangentialStresses_trial;
+
+                            tangentialStresses_DU( 1 ) = friction_coeff * normalStress_DU * tangentialStresses_trial[1] / normTangentialStresses_trial;
+                        }
+                        else
+                        {
+                            tangentialStresses_DU( 0 ) = 0;
+                            tangentialStresses_DU( 1 ) = 0;
+                        }
+
+                        rLeftHandSideMatrix( prim*dimension+ i, pileNN*dimension+ sec*dimension+ j ) +=
+                            ( tangentialStresses_DU[0] * XiPrim[0] + tangentialStresses_DU[1] * XiPrim[1] )
+                            * SoilIntegrationWeight * influence_area;
+                    }
                 }
             }
         }
-    }
 
-    //END OF CONTRIBUTION: MASTER-SLAVE
-    //BEGIN OF CONTRIBUTION: SLAVE -MASTER
-    for ( unsigned int prim = 0; prim < soilNN; prim++ )
-    {
-        for ( unsigned int i = 0; i < dimension; i++ )
-        {
-            Vector XiPrim = ZeroVector( 2 );
-        if ((norm_T (0)) != 0)
-        {
+        //END OF CONTRIBUTION: MASTER-SLAVE
 
-          XiPrim[0] = SoilShapeFunctionValues[prim] * T( 0, i ) / norm_T( 0 );
-        }
-        else
+        //BEGIN OF CONTRIBUTION: SLAVE -MASTER
+        for ( unsigned int prim = 0; prim < soilNN; prim++ )
         {
-         XiPrim[0]=0;
-        }
-
-        if ((norm_T (1)) != 0)
-        {
-
-            XiPrim[1] = SoilShapeFunctionValues[prim] * T( 1, i ) / norm_T( 1 );
-        }
-        else
-        {
-          XiPrim[1]= 0;
-        }
-            for ( unsigned int sec = 0; sec < pileNN; sec++ )
+            for ( unsigned int i = 0; i < dimension; i++ )
             {
-                for ( unsigned int j = 0; j < dimension; j++ )
+                Vector XiPrim = ZeroVector( 2 );
+                if ((norm_T (0)) != 0)
                 {
-                    double normalStress_DU = PileShapeFunctionValues[sec]
-                                             * vPile[j] * penalty;
+                    XiPrim[0] = SoilShapeFunctionValues[prim] * T( 0, i ) / norm_T( 0 );
+                }
+                else
+                {
+                    XiPrim[0]=0;
+                }
 
-                    Vector tangentialStresses_DU( 2 );
-            if (normTangentialStresses_trial != 0)
-            {
-              tangentialStresses_DU( 0 ) = friction_coeff
-                                                 * normalStress_DU * tangentialStresses_trial[0] / normTangentialStresses_trial;
+                if ((norm_T (1)) != 0)
+                {
+                    XiPrim[1] = SoilShapeFunctionValues[prim] * T( 1, i ) / norm_T( 1 );
+                }
+                else
+                {
+                    XiPrim[1]= 0;
+                }
+                for ( unsigned int sec = 0; sec < pileNN; sec++ )
+                {
+                    for ( unsigned int j = 0; j < dimension; j++ )
+                    {
+                        double normalStress_DU = PileShapeFunctionValues[sec] * vPile[j] * penalty;
 
-              tangentialStresses_DU( 1 ) = friction_coeff
-                                                 * normalStress_DU * tangentialStresses_trial[1] / normTangentialStresses_trial;
-            } else
-            {
-              tangentialStresses_DU( 0 ) = 0;
-              tangentialStresses_DU( 1 ) = 0;
-            }
-                    rLeftHandSideMatrix( prim*dimension+ i + pileNN*dimension, sec*dimension+ j )     +=
-                        ( tangentialStresses_DU[0] * XiPrim[0] +
-                          tangentialStresses_DU[1] * XiPrim[1] )
-                        * SoilIntegrationWeight * influence_area;
+                        Vector tangentialStresses_DU( 2 );
+                        if (normTangentialStresses_trial != 0)
+                        {
+                            tangentialStresses_DU( 0 ) = friction_coeff * normalStress_DU * tangentialStresses_trial[0] / normTangentialStresses_trial;
+
+                            tangentialStresses_DU( 1 ) = friction_coeff * normalStress_DU * tangentialStresses_trial[1] / normTangentialStresses_trial;
+                        }
+                        else
+                        {
+                            tangentialStresses_DU( 0 ) = 0;
+                            tangentialStresses_DU( 1 ) = 0;
+                        }
+
+                        rLeftHandSideMatrix( prim*dimension+ i + pileNN*dimension, sec*dimension+ j ) +=
+                            ( tangentialStresses_DU[0] * XiPrim[0] + tangentialStresses_DU[1] * XiPrim[1] )
+                            * SoilIntegrationWeight * influence_area;
+                    }
                 }
             }
         }
-    }
 
-    //BEGIN OF CONTRIBUTION: SLAVE -MASTER
-    //BEGIN OF CONTRIBUTION: SLAVE -SLAVE
-    for ( unsigned int prim = 0; prim < soilNN; prim++ )
-    {
-        for ( unsigned int i = 0; i < dimension; i++ )
+        //BEGIN OF CONTRIBUTION: SLAVE -MASTER
+
+        //BEGIN OF CONTRIBUTION: SLAVE -SLAVE
+        for ( unsigned int prim = 0; prim < soilNN; prim++ )
         {
-            Vector XiPrim = ZeroVector( 2 );
-
-        if ((norm_T (0)) != 0)
-        {
-
-          XiPrim[0] = SoilShapeFunctionValues[prim] * T( 0, i ) / norm_T( 0 );
-        }
-        else
-        {
-         XiPrim[0]=0;
-        }
-
-        if ((norm_T (1)) != 0)
-        {
-
-            XiPrim[1] = SoilShapeFunctionValues[prim] * T( 1, i ) / norm_T( 1 );
-        }
-        else
-        {
-          XiPrim[1]= 0;
-        }
-
-            for ( unsigned int sec = 0; sec < soilNN; sec++ )
+            for ( unsigned int i = 0; i < dimension; i++ )
             {
-                for ( unsigned int j = 0; j < dimension; j++ )
+                Vector XiPrim = ZeroVector( 2 );
+
+                if ((norm_T (0)) != 0)
                 {
-                    double normalStress_DU = ( -1 ) * SoilShapeFunctionValues[sec]
-                                             * vPile[j] * penalty;
+                    XiPrim[0] = SoilShapeFunctionValues[prim] * T( 0, i ) / norm_T( 0 );
+                }
+                else
+                {
+                    XiPrim[0]=0;
+                }
 
-                    Vector tangentialStresses_DU( 2 );
-            if (normTangentialStresses_trial != 0)
-            {
-                    tangentialStresses_DU( 0 ) = friction_coeff
-                                                 * normalStress_DU * tangentialStresses_trial[0] / normTangentialStresses_trial;
+                if ((norm_T (1)) != 0)
+                {
+                    XiPrim[1] = SoilShapeFunctionValues[prim] * T( 1, i ) / norm_T( 1 );
+                }
+                else
+                {
+                    XiPrim[1]= 0;
+                }
 
-                    tangentialStresses_DU( 1 ) = friction_coeff
-                                                 * normalStress_DU * tangentialStresses_trial[1] / normTangentialStresses_trial;
-            } else
-            {
-              tangentialStresses_DU( 0 ) = 0;
-              tangentialStresses_DU( 1 ) = 0;
-            }
-                    rLeftHandSideMatrix( pileNN*dimension+ prim*dimension+ i, pileNN*dimension+ sec*dimension+ j )     +=
-                        ( tangentialStresses_DU[0] * XiPrim[0] +
-                          tangentialStresses_DU[1] * XiPrim[1] )
-                        * SoilIntegrationWeight * influence_area;
+                for ( unsigned int sec = 0; sec < soilNN; sec++ )
+                {
+                    for ( unsigned int j = 0; j < dimension; j++ )
+                    {
+                        double normalStress_DU = ( -1 ) * SoilShapeFunctionValues[sec] * vPile[j] * penalty;
+
+                        Vector tangentialStresses_DU( 2 );
+                        if (normTangentialStresses_trial != 0)
+                        {
+                            tangentialStresses_DU( 0 ) = friction_coeff * normalStress_DU * tangentialStresses_trial[0] / normTangentialStresses_trial;
+
+                            tangentialStresses_DU( 1 ) = friction_coeff * normalStress_DU * tangentialStresses_trial[1] / normTangentialStresses_trial;
+                        }
+                        else
+                        {
+                            tangentialStresses_DU( 0 ) = 0;
+                            tangentialStresses_DU( 1 ) = 0;
+                        }
+
+                        rLeftHandSideMatrix( pileNN*dimension+ prim*dimension+ i, pileNN*dimension+ sec*dimension+ j ) +=
+                            ( tangentialStresses_DU[0] * XiPrim[0] + tangentialStresses_DU[1] * XiPrim[1] )
+                            * SoilIntegrationWeight * influence_area;
+                    }
                 }
             }
         }
     }
-   }
-   else
-   return;
+    else
+        return;
 
     //BEGIN OF CONTRIBUTION: SLAVE -SLAVE
 //             //*****************************************************************
@@ -1304,9 +1264,9 @@ void Pile_Kinematic_Linear::DampMatrix( MatrixType& rDampMatrix, const ProcessIn
     }
     else
     {
-        TPileN( 1, 0 ) ==0;
-        TPileN( 1, 1 ) ==0;
-        TPileN( 1, 2 ) ==0;
+        TPileN( 1, 0 ) = 0;
+        TPileN( 1, 1 ) = 0;
+        TPileN( 1, 2 ) = 0;
     }
 
     noalias( mPileGlobalPoint ) = GetGlobalCoordinates( mpPileElement, mPileGlobalPoint, mPileLocalPoint );
@@ -1326,7 +1286,7 @@ void Pile_Kinematic_Linear::DampMatrix( MatrixType& rDampMatrix, const ProcessIn
     }
     else
     {
-        Gap ==0;
+        Gap = 0;
     }
 
 
@@ -1420,9 +1380,9 @@ void Pile_Kinematic_Linear::DampMatrix( MatrixType& rDampMatrix, const ProcessIn
     }
     else
     {
-        T( 1, 0 ) ==0;
-        T( 1, 1 ) ==0;
-        T( 1, 2 ) ==0;
+        T( 1, 0 ) = 0;
+        T( 1, 1 ) = 0;
+        T( 1, 2 ) = 0;
     }
     Vector norm_T( 2 );
 
@@ -1440,7 +1400,7 @@ void Pile_Kinematic_Linear::DampMatrix( MatrixType& rDampMatrix, const ProcessIn
       {
         for ( int j = 0; j < 2; j++ )
         {
-            m( i, j ) ==1;
+            m( i, j ) = 1;
         }
       }
 
@@ -1506,17 +1466,17 @@ void Pile_Kinematic_Linear::DampMatrix( MatrixType& rDampMatrix, const ProcessIn
     }
     else
     {
-        tangentialStresses_trial[0] ==0;
+        tangentialStresses_trial[0] = 0;
 
-        tangentialStresses_trial[1]== 0;
+        tangentialStresses_trial[1] = 0;
 
-        normTangentialStresses_trial == 0;
+        normTangentialStresses_trial = 0;
     }
 
     if (NormrelDispS == 0)
     {
-        tangentialStresses[0] == 0;
-        tangentialStresses[1] == 0;
+        tangentialStresses[0] = 0;
+        tangentialStresses[1] = 0;
     }
     else if ( normTangentialStresses_trial > friction_coeff*normalStress )//Slip
     {
@@ -1538,7 +1498,6 @@ void Pile_Kinematic_Linear::DampMatrix( MatrixType& rDampMatrix, const ProcessIn
 
     //Calculating Soil element's current integration weight
     double SoilIntegrationWeight = mpSoilElement->GetGeometry().IntegrationPoints()[mPileIntegrationPointIndex].Weight();
-
 
     //BEGIN OF CONTRIBUTION: MASTER-MASTER
     // std::cout << "MASTER-MASTER" << std::endl;

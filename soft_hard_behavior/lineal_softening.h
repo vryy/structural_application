@@ -48,18 +48,14 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define KRATOS_LINEAR_SOFTENING_CRITERIA
 
 /* System includes */
-
-/* External includes */
-#include "boost/smart_ptr.hpp"
-
-#include "custom_utilities/tensor_utils.h"
-#include "includes/ublas_interface.h"
-#include "includes/properties.h"
-#include "soft_hard_behavior/softening_hardening_criteria.h"
 #include <cmath>
 #include <string>
 #include <iostream>
 
+/* External includes */
+#include "includes/ublas_interface.h"
+#include "custom_utilities/tensor_utils.h"
+#include "soft_hard_behavior/softening_hardening_criteria.h"
 
 
 namespace Kratos

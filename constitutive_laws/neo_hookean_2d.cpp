@@ -16,11 +16,8 @@ LICENSE: see soil_mechanics_application/LICENSE.txt
 #include<cmath>
 
 // Project includes
-
-#include "constitutive_laws/neo_hookean_2d.h"
 #include "utilities/math_utils.h"
-#include "includes/process_info.h"
-#include "includes/properties.h"
+#include "constitutive_laws/neo_hookean_2d.h"
 #include "structural_application_variables.h"
 
 namespace Kratos

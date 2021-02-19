@@ -53,9 +53,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #if !defined(KRATOS_SEGMENT_2D_INCLUDED )
 #define  KRATOS_SEGMENT_2D_INCLUDED
 //System includes
-//External includes
-#include "boost/smart_ptr.hpp"
 #include <cmath>
+
+//External includes
 
 //Project includes
 #include "includes/define.h"

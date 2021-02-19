@@ -53,18 +53,18 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #if !defined(KRATOS_DISCONNECT_TRIANGLES_INCLUDED)
 #define  KRATOS_DISCONNECT_TRIANGLES_INCLUDED
+
 //System includes
 #ifdef _OPENMP
 #include <omp.h>
 #endif
-#include "utilities/openmp_utils.h"
+#include <cmath>
 
 //External includes
-#include "boost/smart_ptr.hpp"
-#include <cmath>
 
 //Project includes
 #include "includes/define.h"
+#include "utilities/openmp_utils.h"
 #include "containers/array_1d.h"
 #include "custom_utilities/sd_math_utils.h"
 #include "custom_utilities/joint.h"

@@ -57,7 +57,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // External includes
 
 // Project includes
-#include "includes/define.h"
 #include "includes/variables.h"
 #include "includes/constitutive_law.h"
 

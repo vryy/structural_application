@@ -54,23 +54,16 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // System includes
 #include <iostream>
 #include <limits>
-// External includes
 #include<cmath>
 
+// External includes
+
 // Project includes
-
-#include "includes/define.h"
+#include "utilities/math_utils.h"
 #include "constitutive_laws/viscofibers_hypermatrix_2d.h" // USAR 2D com "D" maiusculo?
-
-#include "includes/constitutive_law.h"  // nelson
 #include "custom_utilities/tensor_utils.h"  // nelson
 #include "custom_utilities/sd_math_utils.h"  // nelson
-
-#include "utilities/math_utils.h"
-#include "includes/variables.h"
-#include "includes/process_info.h"
 #include "structural_application_variables.h"
-#include "includes/properties.h"
 
 namespace Kratos
 {

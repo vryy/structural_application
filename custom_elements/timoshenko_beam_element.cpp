@@ -51,8 +51,8 @@
 
 // System includes
 
-
 // External includes
+#include "boost/math/constants/constants.hpp"
 
 // Project includes
 #include "timoshenko_beam_element.h"

@@ -24,7 +24,6 @@
 #endif
 
 // External includes
-#include "boost/smart_ptr.hpp"
 
 
 // Project includes

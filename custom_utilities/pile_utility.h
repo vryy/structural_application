@@ -126,7 +126,9 @@ public:
     /**
      * Initializes mesh tying by means of lagrange multipliers
      */
-    void InitializePileUtility( ModelPart& model_part, std::vector<unsigned int>& pile_elements, std::vector<unsigned int>& soil_elements )
+    void InitializePileUtility( ModelPart& model_part,
+        std::vector<unsigned int>& pile_elements, std::vector<unsigned int>& soil_elements,
+        Properties::Pointer linkProperties )
     {
         ElementsContainerType::Pointer piles( new ElementsContainerType() );
         ElementsContainerType::Pointer soil_elems( new ElementsContainerType() );
@@ -137,10 +139,6 @@ public:
         GeometryType::Pointer tempGeometry;
 //        KRATOS_WATCH( tempGeometry );
 //        KRATOS_WATCH( *tempGeometry );
-
-        int properties_index = model_part.NumberOfProperties();
-        PropertiesType::Pointer tempProperties( new PropertiesType( properties_index + 1 ) );
-        model_part.AddProperties( tempProperties );
 
         std::cout << "Initializing PileUtility..." << std::endl;
 
@@ -174,13 +172,13 @@ public:
                 {
                     PointType SoilGlobalPoint;
                     TargetElement->GetGeometry().GlobalCoordinates( SoilGlobalPoint, SoilLocalPoint );
-
+KRATOS_WATCH(SoilGlobalPoint)
                     int a = ( model_part.Conditions().end() - 1 )->Id();
 
                     IndexType newId = last_cond_id + 1;
 
                     tempGeometry = GeometryType::Pointer( new GeometryType() );
-                    Condition::Pointer newLink = Condition::Pointer( new Pile_Kinematic_Linear( newId, tempGeometry, tempProperties, TargetElement, *it,
+                    Condition::Pointer newLink = Condition::Pointer( new Pile_Kinematic_Linear( newId, tempGeometry, linkProperties, TargetElement, *it,
                    // Condition::Pointer newLink = Condition::Pointer( new PileCondition( newId, tempGeometry, tempProperties, TargetElement, *it,
                                                  SoilLocalPoint, PileLocalPoint, i ) );
 

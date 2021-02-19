@@ -58,39 +58,16 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
 // External includes
-#include "boost/smart_ptr.hpp"
 
 
 // Project includes
-#include "includes/define.h"
 #include "includes/condition.h"
 #include "includes/serializer.h"
-//#include "includes/ublas_interface.h"
+#include "includes/ublas_interface.h"
 #include "includes/variables.h"
-#include "geometries/line_2d_2.h"
-//#include "geometries/point_2d.h"
 
 namespace Kratos
 {
-
-typedef Condition BaseType;
-typedef BaseType::EquationIdVectorType EquationIdVectorType;
-typedef BaseType::MatrixType LHS_ContributionType;
-
-/**
-* REMOVED
-*/
-
-// typedef PointerVectorSet<StressConditionType, IndexedObject> StressConditionContainerType;
-// typedef PointerVectorSet< EquationIdVectorType, IndexedObject> EquationIdVectorContainerType;
-// typedef PointerVectorSet< LHS_ContributionType, IndexedObject> LHS_ContainerType;
-
-typedef Condition::GeometryType::Pointer PointerGeometryType;
-
-// typedef BaseType::SecondaryCondition SecondaryConditionType;
-// typedef PointerVectorSet< SecondaryConditionType, IndexedObject> SecondaryConditionContainerType;
-
-
 
 /**
  * Contact surface element for 3D contact problems.
@@ -100,6 +77,24 @@ typedef Condition::GeometryType::Pointer PointerGeometryType;
  */
 class MasterContactFace2D : public Condition
 {
+
+    typedef Condition BaseType;
+    typedef BaseType::EquationIdVectorType EquationIdVectorType;
+    typedef BaseType::MatrixType LHS_ContributionType;
+
+    /**
+    * REMOVED
+    */
+
+    // typedef PointerVectorSet<StressConditionType, IndexedObject> StressConditionContainerType;
+    // typedef PointerVectorSet< EquationIdVectorType, IndexedObject> EquationIdVectorContainerType;
+    // typedef PointerVectorSet< LHS_ContributionType, IndexedObject> LHS_ContainerType;
+
+    typedef Condition::GeometryType::Pointer PointerGeometryType;
+
+    // typedef BaseType::SecondaryCondition SecondaryConditionType;
+    // typedef PointerVectorSet< SecondaryConditionType, IndexedObject> SecondaryConditionContainerType;
+
 
 public:
     // Counted pointer of MasterContactFace2D

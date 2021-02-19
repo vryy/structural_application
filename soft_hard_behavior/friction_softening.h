@@ -48,13 +48,12 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define KRATOS_FRICTION_SOFTENING_CRITERIA
 
 /* System includes */
+#include <cmath>
 
 /* External includes */
-#include "boost/smart_ptr.hpp"
-#include "soft_hard_behavior/softening_hardening_criteria.h"
 #include "utilities/math_utils.h"
+#include "soft_hard_behavior/softening_hardening_criteria.h"
 #include "custom_utilities/sd_math_utils.h"
-#include <cmath>
 
 
 namespace Kratos

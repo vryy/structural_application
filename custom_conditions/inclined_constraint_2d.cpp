@@ -56,11 +56,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
 // Project includes
-#include "includes/define.h"
-#include "structural_application_variables.h"
-#include "utilities/math_utils.h"
-#include "custom_utilities/sd_math_utils.h"
 #include "geometries/point_2d.h"
+#include "structural_application_variables.h"
+#include "custom_utilities/sd_math_utils.h"
 #include "custom_conditions/inclined_constraint_2d.h"
 
 namespace Kratos

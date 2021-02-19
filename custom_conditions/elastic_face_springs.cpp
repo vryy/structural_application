@@ -57,7 +57,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
 // Project includes
-#include "includes/define.h"
 #include "geometries/point_3d.h"
 #include "custom_conditions/elastic_face_springs.h"
 #include "structural_application_variables.h"

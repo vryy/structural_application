@@ -52,19 +52,15 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
 // System includes
+#include<cmath>
 
 
 // External includes
 
 
 // Project includes
-#include<cmath>
-#include "includes/define.h"
-#include "constitutive_laws/isotropic_planestress_wrinkling.h"
 #include "utilities/math_utils.h"
-#include "includes/variables.h"
-#include "includes/process_info.h"
-#include "includes/properties.h"
+#include "constitutive_laws/isotropic_planestress_wrinkling.h"
 #include "structural_application_variables.h"
 
 namespace Kratos

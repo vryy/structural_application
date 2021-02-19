@@ -58,12 +58,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
 // External includes
-#include "boost/smart_ptr.hpp"
-#include "boost/math/constants/constants.hpp"
 
 
 // Project includes
-#include "includes/define.h"
 #include "includes/serializer.h"
 #include "includes/element.h"
 #include "includes/ublas_interface.h"

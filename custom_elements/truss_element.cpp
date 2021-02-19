@@ -55,7 +55,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // External includes
 
 // Project includes
-// #include "includes/define.h"
 #include "custom_elements/truss_element.h"
 #include "structural_application_variables.h"
 

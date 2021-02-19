@@ -45,13 +45,14 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #if !defined(TENSOR_UTILS)
 #define TENSOR_UTILS
 
+#include <cmath>
+
 #include "includes/define.h"
 #include "includes/variables.h"
 #include "includes/process_info.h"
 #include "includes/ublas_interface.h"
 #include "utilities/math_utils.h"
 #include "custom_utilities/sd_math_utils.h"
-#include <cmath>
 
 
 namespace Kratos

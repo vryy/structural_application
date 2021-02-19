@@ -11,17 +11,13 @@ see license.txt
 #define  KRATOS_EMBEDDED_NODE_PENALTY_TYING_CONDITION_H_INCLUDED
 
 // External includes
-#include "boost/smart_ptr.hpp"
 
 // Project includes
-#include "includes/define.h"
+#include "includes/element.h"
 #include "includes/condition.h"
 #include "includes/serializer.h"
 #include "includes/ublas_interface.h"
 #include "includes/variables.h"
-#include "includes/model_part.h"
-#include "includes/node.h"
-#include "utilities/math_utils.h"
 
 
 namespace Kratos

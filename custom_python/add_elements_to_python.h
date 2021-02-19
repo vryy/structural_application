@@ -60,18 +60,19 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
 // External includes
-#include "boost/smart_ptr.hpp"
 
 
 // Project includes
-#include "includes/define.h"
 
 
 namespace Kratos
 {
+
 namespace Python
 {
+
 void  AddCustomElementsToPython();
+
 }  // namespace Python.
 
 }  // namespace Kratos.

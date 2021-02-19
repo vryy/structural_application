@@ -55,9 +55,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // External includes
 
 // Project includes
+#include "includes/kratos_flags.h"
 #include "custom_conditions/embedded_point_lagrange_tying_condition.h"
 #include "custom_utilities/sd_math_utils.h"
-#include "includes/kratos_flags.h"
 #include "structural_application_variables.h"
 
 namespace Kratos

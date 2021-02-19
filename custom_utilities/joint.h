@@ -53,20 +53,20 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #if !defined(KRATOS_JOINTS_ELEMENTS_INCLUDED)
 #define  KRATOS_JOINTS_ELEMENTS_INCLUDED
+
 //System includes
-//External includes
-#include "boost/smart_ptr.hpp"
 #include <cmath>
+
+//External includes
 
 //Project includes
 #include "includes/define.h"
-#include "containers/array_1d.h"
-#include "custom_utilities/sd_math_utils.h"
-
-#include "includes/model_part.h"
 #include "includes/mesh.h"
-#include "geometries/geometry.h"
 #include "includes/element.h"
+#include "containers/array_1d.h"
+#include "includes/model_part.h"
+#include "geometries/geometry.h"
+#include "custom_utilities/sd_math_utils.h"
 
 
 

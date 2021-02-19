@@ -16,11 +16,9 @@
 
 
 // External includes
-#include "boost/smart_ptr.hpp"
 
 
 // Project includes
-#include "includes/define.h"
 #include "includes/serializer.h"
 #include "includes/element.h"
 #include "includes/ublas_interface.h"
@@ -31,8 +29,7 @@
 namespace Kratos
 {
 
-class BeamElement
-    :public Element
+class BeamElement : public Element
 {
 
     typedef GeometryData::IntegrationMethod IntegrationMethod;

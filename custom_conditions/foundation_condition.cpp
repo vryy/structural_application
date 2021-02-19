@@ -54,8 +54,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 // Project includes
 #include "custom_conditions/foundation_condition.h"
-#include "structural_application_variables.h"
 #include "custom_utilities/sd_math_utils.h"
+#include "structural_application_variables.h"
 
 namespace Kratos
 {

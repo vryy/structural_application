@@ -57,22 +57,19 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
 // External includes
-#include "boost/smart_ptr.hpp"
 
 // Project includes
-#include "includes/define.h"
 #include "includes/serializer.h"
-
 #include "includes/variables.h"
 #include "includes/constitutive_law.h"
-#include "fluency_criteria/fluency_criteria.h"
-#include "soft_hard_behavior/softening_hardening_criteria.h"
 #include "includes/constitutive_law.h"
-#include "utilities/math_utils.h"
-#include "custom_utilities/sd_math_utils.h"
-#include "custom_utilities/tensor_utils.h"
 #include "includes/process_info.h"
 #include "includes/properties.h"
+#include "utilities/math_utils.h"
+#include "fluency_criteria/fluency_criteria.h"
+#include "soft_hard_behavior/softening_hardening_criteria.h"
+#include "custom_utilities/sd_math_utils.h"
+#include "custom_utilities/tensor_utils.h"
 
 
 namespace Kratos

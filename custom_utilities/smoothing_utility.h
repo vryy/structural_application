@@ -55,18 +55,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #ifdef _OPENMP
 #include <omp.h>
 #endif
-
-#include "boost/smart_ptr.hpp"
-#include <boost/timer.hpp>
-#include <boost/numeric/ublas/matrix.hpp>
-#include <boost/numeric/ublas/vector.hpp>
-#include <boost/numeric/ublas/banded.hpp>
-#include <boost/numeric/ublas/matrix_sparse.hpp>
-#include <boost/numeric/ublas/triangular.hpp>
-#include <boost/numeric/ublas/operation.hpp>
-#include <boost/numeric/ublas/lu.hpp>
-
-
+#include <cmath>
+#include <algorithm>
 
 
 /* Project includes */
@@ -74,14 +64,13 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/model_part.h"
 #include "includes/node.h"
 #include "includes/variables.h"
+#include "includes/ublas_interface.h"
 #include "containers/array_1d.h"
+#include "utilities/math_utils.h"
 #include "processes/find_nodal_neighbours_process.h"
 #include "processes/find_elements_neighbours_process.h"
-#include "structural_application_variables.h"
-#include "utilities/math_utils.h"
 #include "custom_utilities/sd_math_utils.h"
-#include <cmath>
-#include <algorithm>
+#include "structural_application_variables.h"
 
 
 

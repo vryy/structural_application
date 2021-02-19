@@ -53,6 +53,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // System includes
 
 #if defined(KRATOS_PYTHON)
+
 // External includes
 #include <boost/python.hpp>
 

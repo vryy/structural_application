@@ -52,12 +52,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 // External includes
 
-
 // Project includes
-#include "includes/define.h"
+#include "utilities/math_utils.h"
 #include "custom_elements/shell_anisotropic_linear.h"
 #include "structural_application_variables.h"
-#include "utilities/math_utils.h"
 
 
 namespace Kratos

@@ -59,8 +59,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #endif
 
 //External includes
-#include "boost/smart_ptr.hpp"
-#include "boost/timer.hpp"
 #include "boost/progress.hpp"
 
 //Project includes

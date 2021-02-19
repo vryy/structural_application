@@ -57,23 +57,11 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include<cmath>
 #include <limits>
 
-
-
-/* External includes */
-#ifdef _OPENMP
-#include <omp.h>
-#endif
-
 // Project includes
-#include "includes/define.h"
-#include "constitutive_laws/isotropic_damage_3d.h"
-#include "includes/constitutive_law.h"
 #include "utilities/math_utils.h"
+#include "constitutive_laws/isotropic_damage_3d.h"
 #include "custom_utilities/sd_math_utils.h"
 #include "custom_utilities/tensor_utils.h"
-#include "includes/variables.h"
-#include "includes/process_info.h"
-#include "includes/properties.h"
 #include "structural_application_variables.h"
 
 

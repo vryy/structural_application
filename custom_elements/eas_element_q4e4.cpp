@@ -54,7 +54,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // External includes
 
 // Project includes
-// #include "includes/define.h"
 #include "utilities/math_utils.h"
 #include "custom_utilities/sd_math_utils.h"
 #include "custom_elements/eas_element_q4e4.h"

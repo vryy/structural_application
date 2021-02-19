@@ -60,11 +60,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
 // External includes
-#include "boost/smart_ptr.hpp"
 
 
 // Project includes
-#include "includes/define.h"
 #include "includes/element.h"
 #include "includes/serializer.h"
 #include "includes/ublas_interface.h"

@@ -58,17 +58,14 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
 // External includes
-#include "boost/smart_ptr.hpp"
 
 
 // Project includes
-#include "includes/define.h"
 #include "includes/condition.h"
 #include "includes/serializer.h"
-//#include "includes/ublas_interface.h"
+#include "includes/ublas_interface.h"
 #include "includes/variables.h"
-#include "custom_conditions/master_contact_point_2d.h"
-#include "custom_conditions/slave_contact_point_2d.h"
+#include "custom_conditions/master_contact_face_2d.h"
 
 namespace Kratos
 {

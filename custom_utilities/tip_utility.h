@@ -57,8 +57,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // System includes
 
 // External includes
-#include "boost/smart_ptr.hpp"
-#include "boost/timer.hpp"
+
 // Project includes
 #include "includes/define.h"
 #include "includes/node.h"
@@ -127,17 +126,16 @@ namespace Kratos
              * tip_elements: list of beam elements
              * tip_soil_elements: list of solid elements tied to the beam
              */
-            void InitializeTipUtility( ModelPart& model_part, std::vector<unsigned int>& tip_elements, std::vector<unsigned int>& tip_soil_elements )
+            void InitializeTipUtility( ModelPart& model_part,
+                std::vector<unsigned int>& tip_elements,
+                std::vector<unsigned int>& tip_soil_elements,
+                Properties::Pointer linkProperties )
             {
                 ElementsContainerType::Pointer tips( new ElementsContainerType() );
                 ElementsContainerType::Pointer tip_soil_elems( new ElementsContainerType() );
 
                 IntegrationMethod ThisIntegrationMethod;
                 GeometryType::Pointer tempGeometry;
-
-                std::size_t properties_index = model_part.NumberOfProperties();
-                PropertiesType::Pointer tempProperties( new PropertiesType( ++properties_index ) );
-                model_part.AddProperties( tempProperties );
 
                 std::cout << "Initializing TipUtility..." << std::endl;
                 for( unsigned int it = 0; it != tip_elements.size(); it++ )
@@ -176,7 +174,7 @@ namespace Kratos
                             TargetElement->GetGeometry().GlobalCoordinates( TipSoilGlobalPoint, TipSoilLocalPoint );
 
                             tempGeometry = GeometryType::Pointer( new GeometryType() );
-                            Condition::Pointer newLink = Condition::Pointer( new TipCondition( ++lastCondId, tempGeometry, tempProperties, TargetElement, *it, TipSoilLocalPoint, TipLocalPoint ) );
+                            Condition::Pointer newLink = Condition::Pointer( new TipCondition( ++lastCondId, tempGeometry, linkProperties, TargetElement, *it, TipSoilLocalPoint, TipLocalPoint ) );
 
                             model_part.Conditions().push_back( newLink );
                             ++number_of_tip_conditions;

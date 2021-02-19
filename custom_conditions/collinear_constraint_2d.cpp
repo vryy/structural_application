@@ -56,7 +56,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
 // Project includes
-#include "includes/define.h"
 #include "utilities/math_utils.h"
 #include "geometries/line_2d_3.h"
 #include "custom_utilities/sd_math_utils.h"

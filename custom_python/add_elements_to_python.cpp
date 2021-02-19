@@ -53,11 +53,11 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
 // System includes
+#include <cstring>
+
+// External includes
 #include <boost/python.hpp>
 #include <boost/python/suite/indexing/vector_indexing_suite.hpp>
-#include <cstring>
-// External includes
-#include "boost/smart_ptr.hpp"
 
 
 // Project includes

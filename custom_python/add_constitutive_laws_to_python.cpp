@@ -56,17 +56,16 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
 // System includes
+
+// External includes
 #include <boost/python.hpp>
 #include <boost/python/suite/indexing/vector_indexing_suite.hpp>
 
-// External includes
-#include "boost/smart_ptr.hpp"
-
 
 // Project includes
-#include "custom_python/add_constitutive_laws_to_python.h"
 #include "includes/define.h"
 #include "includes/constitutive_law.h"
+#include "custom_python/add_constitutive_laws_to_python.h"
 #include "constitutive_laws/dummy_constitutive_law.h"
 #include "constitutive_laws/tutorial_damage_model.h"
 #include "constitutive_laws/isotropic_2d.h"

@@ -52,21 +52,20 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #if !defined(KRATOS_INTERSECT_TRIANGLES_CASES_INCLUDED)
 #define  KRATOS_INTERSECT_TRIANGLES_CASES_INCLUDED
+
 //System includes
-//External includes
-#include "boost/smart_ptr.hpp"
 #include <cmath>
+
+//External includes
 
 //Project includes
 #include "includes/define.h"
 #include "containers/array_1d.h"
-#include "custom_utilities/sd_math_utils.h"
-
 #include "includes/model_part.h"
 #include "includes/mesh.h"
-#include "geometries/geometry.h"
 #include "includes/element.h"
-
+#include "geometries/geometry.h"
+#include "custom_utilities/sd_math_utils.h"
 #include "custom_utilities/segment_2d.h"
 
 

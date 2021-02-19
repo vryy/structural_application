@@ -56,11 +56,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
 // Project includes
-#include "includes/define.h"
-#include "custom_conditions/slave_contact_face_3D_newmark.h"
-#include "structural_application_variables.h"
 #include "utilities/math_utils.h"
+#include "custom_conditions/slave_contact_face_3D_newmark.h"
 #include "custom_utilities/sd_math_utils.h"
+#include "structural_application_variables.h"
 
 namespace Kratos
 {

@@ -53,10 +53,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // External includes
 
 // Project includes
-#include "includes/define.h"
+#include "utilities/math_utils.h"
 #include "custom_conditions/contact_link_3D_kinematic_linear.h"
 #include "structural_application_variables.h"
-#include "utilities/math_utils.h"
 #include "custom_utilities/sd_math_utils.h"
 
 // #define DEBUG_CONTACT_LINK

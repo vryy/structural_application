@@ -50,7 +50,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 /* System includes */
 
 /* External includes */
-#include "boost/smart_ptr.hpp"
 #include "soft_hard_behavior/softening_hardening_criteria.h"
 
 

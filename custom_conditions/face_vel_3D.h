@@ -60,23 +60,16 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
 // External includes
-#include "boost/smart_ptr.hpp"
 
 
 // Project includes
-#include "includes/define.h"
-#include "includes/serializer.h"
-#include "includes/condition.h"
-#include "includes/ublas_interface.h"
-#include "includes/variables.h"
 #include "custom_conditions/face3D.h"
 
 
 namespace Kratos
 {
 
-class FaceVel3D
-    : public Face3D
+class FaceVel3D : public Face3D
 {
 public:
 

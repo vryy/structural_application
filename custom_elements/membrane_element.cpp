@@ -58,9 +58,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
 // Project includes
-#include "includes/define.h"
 #include "custom_elements/membrane_element.h"
-#include "includes/constitutive_law.h"
 #include "structural_application_variables.h"
 
 

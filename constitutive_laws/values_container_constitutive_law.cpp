@@ -56,17 +56,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include<cmath>
 
 // Project includes
-
-#include "includes/define.h"
-#include "constitutive_laws/values_container_constitutive_law.h"
-
-#include "includes/constitutive_law.h"
-
 #include "utilities/math_utils.h"
-#include "includes/variables.h"
-#include "includes/process_info.h"
+#include "constitutive_laws/values_container_constitutive_law.h"
 #include "structural_application_variables.h"
-#include "includes/properties.h"
 
 namespace Kratos
 {

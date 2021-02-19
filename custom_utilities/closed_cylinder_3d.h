@@ -52,10 +52,11 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #if !defined(KRATOS_CLOSED_CYLINDER_3D_INCLUDED )
 #define  KRATOS_CLOSED_CYLINDER_3D_INCLUDED
+
 //System includes
-//External includes
-#include "boost/smart_ptr.hpp"
 #include <cmath>
+
+//External includes
 
 //Project includes
 #include "includes/define.h"

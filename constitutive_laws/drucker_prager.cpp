@@ -57,19 +57,10 @@
 
 // Project includes
 
-#include "includes/define.h"
-#include "constitutive_laws/drucker_prager.h"
-
-#include "includes/constitutive_law.h"
-
 #include "utilities/math_utils.h"
-#include "includes/variables.h"
-#include "includes/process_info.h"
+#include "constitutive_laws/drucker_prager.h"
 #include "structural_application_variables.h"
 #include "custom_utilities/sd_math_utils.h"
-#include "includes/properties.h"
-#include <math.h>
-#include "drucker_prager.h"
 
 namespace Kratos
 {

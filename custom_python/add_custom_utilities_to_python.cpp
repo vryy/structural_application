@@ -56,18 +56,16 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
 // System includes
+
+// External includes
 #include <boost/python.hpp>
 #include <boost/python/suite/indexing/vector_indexing_suite.hpp>
 #include <boost/python/stl_iterator.hpp>
 #include <boost/foreach.hpp>
 
-// External includes
-#include "boost/smart_ptr.hpp"
-
-
 // Project includes
-#include "custom_python/add_custom_utilities_to_python.h"
 #include "includes/define.h"
+#include "custom_python/add_custom_utilities_to_python.h"
 #include "custom_utilities/deactivation_utility.h"
 #include "custom_utilities/variable_transfer_utility.h"
 #include "custom_utilities/variable_projection_utility.h"
@@ -492,12 +490,14 @@ void SetAssociatedElement(DeactivationUtility& rDummy, Condition::Pointer pCond,
 // Auxilliary Utilities for connection of the pile to the ground //
 ///////////////////////////////////////////////////////////////////////
 void InitializePileUtility( PileUtility& dummy, ModelPart& model_part,
-                            boost::python::list pile_elements, int len_pile_elements,
-                            boost::python::list soil_elements, int len_soil_elements )
+                            boost::python::list pile_elements,
+                            boost::python::list soil_elements,
+                            Properties::Pointer linkProperties )
 {
     std::vector<unsigned int> vec_pile_elements;
     std::vector<unsigned int> vec_soil_elements;
 
+    int len_pile_elements = boost::python::len(pile_elements);
     for ( int it = 0; it < len_pile_elements; it++ )
     {
        boost::python::extract<int> x( pile_elements[it] );
@@ -507,6 +507,7 @@ void InitializePileUtility( PileUtility& dummy, ModelPart& model_part,
        else break;
     }
 
+    int len_soil_elements = boost::python::len(soil_elements);
     for ( int it = 0; it < len_soil_elements; it++ )
     {
         boost::python::extract<int> x( soil_elements[it] );
@@ -516,19 +517,21 @@ void InitializePileUtility( PileUtility& dummy, ModelPart& model_part,
         else break;
     }
 
-    dummy.InitializePileUtility( model_part, vec_pile_elements, vec_soil_elements );
+    dummy.InitializePileUtility( model_part, vec_pile_elements, vec_soil_elements, linkProperties );
 }
 
 ///////////////////////////////////////////////////////////////////////
 // Auxilliary Utilities for connection of the pile to the ground //
 ///////////////////////////////////////////////////////////////////////
 void InitializeTipUtility( TipUtility& dummy, ModelPart& model_part,
-                            boost::python::list tip_elements, int len_tip_elements,
-                            boost::python::list tip_soil_elements, int len_tip_soil_elements )
+                           boost::python::list tip_elements,
+                           boost::python::list tip_soil_elements,
+                           Properties::Pointer linkProperties )
 {
     std::vector<unsigned int> vec_tip_elements;
     std::vector<unsigned int> vec_tip_soil_elements;
 
+    int len_tip_elements = boost::python::len(tip_elements);
     for ( int it = 0; it < len_tip_elements; it++ )
     {
        boost::python::extract<int> x( tip_elements[it] );
@@ -538,6 +541,7 @@ void InitializeTipUtility( TipUtility& dummy, ModelPart& model_part,
        else break;
     }
 
+    int len_tip_soil_elements = boost::python::len(tip_soil_elements);
     for ( int it = 0; it < len_tip_soil_elements; it++ )
     {
         boost::python::extract<int> x( tip_soil_elements[it] );
@@ -547,19 +551,21 @@ void InitializeTipUtility( TipUtility& dummy, ModelPart& model_part,
         else break;
     }
 
-    dummy.InitializeTipUtility( model_part, vec_tip_elements, vec_tip_soil_elements );
+    dummy.InitializeTipUtility( model_part, vec_tip_elements, vec_tip_soil_elements, linkProperties );
 }
 
 ///////////////////////////////////////////////////////////////////////
 // Auxilliary Utilities for connection of the building to the ground //
 ///////////////////////////////////////////////////////////////////////
 void InitializeFoundationUtility( FoundationUtility& dummy, ModelPart& model_part,
-                            boost::python::list foundation_elements, int len_foundation_elements,
-                            boost::python::list soil_elements, int len_soil_elements )
+                            boost::python::list foundation_elements,
+                            boost::python::list soil_elements,
+                            Properties::Pointer linkProperties )
 {
     std::vector<unsigned int> vec_foundation_elements;
     std::vector<unsigned int> vec_soil_elements;
 
+    int len_foundation_elements = boost::python::len(foundation_elements);
     for ( int it = 0; it < len_foundation_elements; it++ )
     {
        boost::python::extract<int> x( foundation_elements[it] );
@@ -569,6 +575,7 @@ void InitializeFoundationUtility( FoundationUtility& dummy, ModelPart& model_par
        else break;
     }
 
+    int len_soil_elements = boost::python::len(soil_elements);
     for ( int it = 0; it < len_soil_elements; it++ )
     {
         boost::python::extract<int> x( soil_elements[it] );
@@ -578,7 +585,7 @@ void InitializeFoundationUtility( FoundationUtility& dummy, ModelPart& model_par
         else break;
     }
 
-    dummy.InitializeFoundationUtility( model_part, vec_foundation_elements, vec_soil_elements );
+    dummy.InitializeFoundationUtility( model_part, vec_foundation_elements, vec_soil_elements, linkProperties );
 }
 
 ///////////////////////////////////////////////////////////////////////

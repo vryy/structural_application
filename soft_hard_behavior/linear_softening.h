@@ -50,8 +50,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 /* System includes */
 
 /* External includes */
-#include "boost/smart_ptr.hpp"
 
+/* Project includes */
 //#include "custom_utilities/tensor_utils.h"
 //#include "includes/ublas_interface.h"
 //#include "includes/properties.h"

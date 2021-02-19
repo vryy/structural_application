@@ -53,12 +53,11 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // External includes
 
 // Project includes
-#include "includes/define.h"
+#include "geometries/plane.h"
 #include "custom_conditions/contact_link_3D_explicit.h"
 #include "structural_application_variables.h"
 #include "utilities/math_utils.h"
 #include "custom_utilities/sd_math_utils.h"
-#include "geometries/plane.h"
 
 namespace Kratos
 {

@@ -63,13 +63,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include<iomanip>
 
 
-
 /* External includes */
 #ifdef _OPENMP
 #include <omp.h>
 #endif
-
-#include "boost/smart_ptr.hpp"
 
 
 /* Project includes */

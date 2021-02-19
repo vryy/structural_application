@@ -17,9 +17,9 @@ see license.txt
 // External includes
 
 // Project includes
+#include "includes/kratos_flags.h"
 #include "custom_conditions/embedded_node_lagrange_tying_condition.h"
 #include "custom_utilities/sd_math_utils.h"
-#include "includes/kratos_flags.h"
 #include "structural_application_variables.h"
 
 

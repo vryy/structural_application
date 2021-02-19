@@ -56,32 +56,22 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
 // System includes
-#include <boost/python.hpp>
-#include <boost/python/suite/indexing/vector_indexing_suite.hpp>
 
 // External includes
-#include "boost/smart_ptr.hpp"
 
 
 // Project includes
-#include "custom_python/add_custom_utilities_to_python.h"
-#include "includes/define.h"
-#include "custom_utilities/deactivation_utility.h"
-#include "custom_utilities/variable_transfer_utility.h"
-#include "custom_utilities/restart_utility.h"
-#include "custom_utilities/contact_utility.h"
-#include "custom_utilities/volume_utility.h"  // VM
 
 namespace Kratos
 {
 
 namespace Python
 {
-using namespace boost::python;
 
 void  AddCustomUtilitiesToPython();
 
 }  // namespace Python.
+
 }  // namespace Kratos.
 
 #endif // KRATOS_ADD_CUSTOM_UTILITIES_TO_PYTHON_H_INCLUDED  defined 

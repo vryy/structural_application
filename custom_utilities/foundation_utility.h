@@ -57,8 +57,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // System includes
 
 // External includes
-#include "boost/smart_ptr.hpp"
-#include "boost/timer.hpp"
+
 // Project includes
 #include "includes/define.h"
 #include "processes/process.h"
@@ -114,7 +113,10 @@ namespace Kratos
             /**
              * Initializes mesh tying by means of lagrange multipliers
              */
-            void InitializeFoundationUtility( ModelPart& model_part, std::vector<unsigned int>& foundation_elements, std::vector<unsigned int>& soil_elements )
+            void InitializeFoundationUtility( ModelPart& model_part,
+                std::vector<unsigned int>& foundation_elements,
+                std::vector<unsigned int>& soil_elements,
+                Properties::Pointer linkProperties )
             {
                 ElementsArrayType::Pointer foundations( new ElementsArrayType() );
                 ElementsArrayType::Pointer soil_elems( new ElementsArrayType() );
@@ -127,9 +129,6 @@ namespace Kratos
        //         KRATOS_WATCH( tempGeometry );
         //        KRATOS_WATCH( *tempGeometry );
 //        KRATOS_WATCH("foundation_utiliy, line 120");
-                int properties_index = model_part.NumberOfProperties();
-                PropertiesType::Pointer tempProperties( new PropertiesType( properties_index + 1 ) );
-                model_part.AddProperties( tempProperties );
 
                 std::cout << "Initializing FoundationUtility..." << std::endl;
                 std::size_t nconds = 0;
@@ -172,13 +171,12 @@ namespace Kratos
         //                    unsigned int j;
         //                    for( IndexType j = 0; j < ( TargetElement->GetGeometry().IntegrationPoints().size()); j++ )
         //                    {
-                            Condition::Pointer newLink = Condition::Pointer( new FoundationCondition( newId, tempGeometry, tempProperties, TargetElement, *it, SoilLocalPoint, FoundationLocalPoint) );
+                            Condition::Pointer newLink = Condition::Pointer( new FoundationCondition( newId, tempGeometry, linkProperties, TargetElement, *it, SoilLocalPoint, FoundationLocalPoint) );
                             model_part.Conditions().push_back( newLink );
                             ++nconds;
                     //        KRATOS_WATCH (i);
         //                    }
                         }
-
                     }
                 }
 

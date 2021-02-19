@@ -55,12 +55,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include<cmath>
 
 // Project includes
-
-#include "includes/define.h"
-#include "includes/properties.h"
-#include "includes/constitutive_law.h"
-#include "includes/variables.h"
-#include "includes/process_info.h"
 #include "utilities/math_utils.h"
 #include "custom_utilities/sd_math_utils.h"
 #include "constitutive_laws/grouting_mortar.h"

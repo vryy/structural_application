@@ -54,7 +54,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define  KRATOS_OUTPUT_UTILITY_INCLUDED
 //System includes
 //External includes
-#include "boost/smart_ptr.hpp"
 
 //Project includes
 #include "includes/define.h"

@@ -59,18 +59,11 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 // Project includes
 
-#include "includes/define.h"
-#include "constitutive_laws/hyperelastic_3d.h"
-
-#include "includes/constitutive_law.h"  // nelson
+#include "utilities/math_utils.h"
 #include "custom_utilities/tensor_utils.h"  // nelson
 #include "custom_utilities/sd_math_utils.h"  // nelson
-
-#include "utilities/math_utils.h"
-#include "includes/variables.h"
-#include "includes/process_info.h"
+#include "constitutive_laws/hyperelastic_3d.h"
 #include "structural_application_variables.h"
-#include "includes/properties.h"
 
 namespace Kratos
 {

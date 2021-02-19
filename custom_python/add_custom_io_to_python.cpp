@@ -12,7 +12,6 @@
 // External includes
 #include <boost/python.hpp>
 
-
 // Project includes
 #include "includes/define.h"
 #include "includes/io.h"
