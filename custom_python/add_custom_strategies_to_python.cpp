@@ -95,6 +95,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_strategies/schemes/residualbased_predictorcorrector_bossak_scheme_rotation.h"
 #include "custom_strategies/schemes/residualbased_predictorcorrector_relaxation_scheme.h"
 #include "custom_strategies/schemes/residualbased_newmark_scheme.h"
+#include "custom_strategies/schemes/residualbased_theta_scheme.h"
 #include "custom_strategies/schemes/composit_scheme.h"
 #include "custom_strategies/schemes/volumetric_scheme.h"
 
@@ -142,6 +143,7 @@ void  AddCustomStrategiesToPython()
 
 
     typedef ResidualBasedNewmarkScheme< SparseSpaceType, LocalSpaceType > ResidualBasedNewmarkSchemeType;
+    typedef ResidualBasedThetaScheme< SparseSpaceType, LocalSpaceType > ResidualBasedThetaSchemeType;
 
 //             typedef TestingScheme< SparseSpaceType, LocalSpaceType >
 //                     TestingSchemeType;
@@ -225,7 +227,18 @@ void  AddCustomStrategiesToPython()
             bases< BaseSchemeType >, boost::noncopyable >
             (
                 "ResidualBasedNewmarkScheme", init< double >()
-            );
+            )
+            .def(init<>())
+            .def(init<int, double>())
+            ;
+
+    class_< ResidualBasedThetaSchemeType,
+            bases< BaseSchemeType >, boost::noncopyable >
+            (
+                "ResidualBasedThetaScheme", init< double >()
+            )
+            .def(init<>())
+            ;
 
 // 			class_< TestingSchemeType,
 // 			bases< BaseSchemeType >,  boost::noncopyable >

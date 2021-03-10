@@ -43,15 +43,15 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 /* *********************************************************
 *
-*   Last Modified by:    $Author: nagel $
-*   Date:                $Date: 2009-03-20 08:56:48 $
-*   Revision:            $Revision: 1.7 $
+*   Last Modified by:    $Author: hbui $
+*   Date:                $Date: 10/3/2020 $
+*   Revision:            $Revision: 1.0 $
 *
 * ***********************************************************/
 
 
-#if !defined(KRATOS_RESIDUALBASED_NEWMARK_SCHEME )
-#define  KRATOS_RESIDUALBASED_NEWMARK_SCHEME
+#if !defined(KRATOS_RESIDUALBASED_THETA_SCHEME )
+#define  KRATOS_RESIDUALBASED_THETA_SCHEME
 
 /* System includes */
 
@@ -68,7 +68,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "structural_application_variables.h"
 
 // #define ENABLE_ROTATION
-#define ENABLE_LAMBDA
+// #define ENABLE_LAMBDA
 
 namespace Kratos
 {
@@ -86,36 +86,18 @@ namespace Kratos
 /*@} */
 /**@name Kratos Classes */
 /*@{ */
-/** Short class definition.
-
-This class provides the implementation of the basic tasks that are needed by the solution strategy.
-It is intended to be the place for tailoring the solution strategies to problem specific tasks.
-
-Detail class definition.
-
-\URL[Example of use html]{ extended_documentation/no_ex_of_use.html}
-
-\URL[Example of use pdf]{ extended_documentation/no_ex_of_use.pdf}
-
-\URL[Example of use doc]{ extended_documentation/no_ex_of_use.doc}
-
-\URL[Example of use ps]{ extended_documentation/no_ex_of_use.ps}
-
-
-\URL[Extended documentation html]{ extended_documentation/no_ext_doc.html}
-
-\URL[Extended documentation pdf]{ extended_documentation/no_ext_doc.pdf}
-
-\URL[Extended documentation doc]{ extended_documentation/no_ext_doc.doc}
-
-\URL[Extended documentation ps]{ extended_documentation/no_ext_doc.ps}*/
-
+/** Implementation of theta time integration scheme
+Overview of the interpolation:
+    u = theta*u_(n+1) + (1-theta)*u_n
+    ud = (u_(n+1) - u_n) / dt
+    udd = (u_(n+1) - u_n)/dt^2 - ud_n/dt
+ */
 template<class TSparseSpace,  class TDenseSpace >
-class ResidualBasedNewmarkScheme: public Scheme<TSparseSpace,TDenseSpace>
+class ResidualBasedThetaScheme: public Scheme<TSparseSpace,TDenseSpace>
 {
 public:
     /**@name Type Definitions */
-    KRATOS_CLASS_POINTER_DEFINITION( ResidualBasedNewmarkScheme );
+    KRATOS_CLASS_POINTER_DEFINITION( ResidualBasedThetaScheme );
 
     typedef Scheme<TSparseSpace,TDenseSpace> BaseType;
 
@@ -139,21 +121,14 @@ public:
 
     /**
      * Constructor for PURE Newmark scheme
-     * @ref Chung&Hulbert: "A time integration algorithm for structural dynamics with improved
-     *  numerical dissipation: The generalized alpha method" Journal of applied mechanics, 60, 371-375
+     * @ref Stuart&Peplow: "The Dynamics of the Theta Method", SIAM, 1991
      */
-    ResidualBasedNewmarkScheme() : BaseType()
+    ResidualBasedThetaScheme() : BaseType()
     {
-        //For pure Newmark Scheme
-        mAlpha_f = 0.0;
-        mAlpha_m = 0.0;
-        mBeta = 1.0 / 4.0;
-        mGamma = 0.5;
+        //For pure Theta Scheme
+        mTheta = 0.5;
 
-        std::cout << "PURE Newmark Time !!!!!!!!!!!!!!!!!!!!!" << " alpha_f= " << mAlpha_f << " alpha_m= " << mAlpha_m << " beta= " << mBeta << " gamma= " << mGamma << std::endl;
-        //(...)_NULL DOF at the begin of time step, (...)_EINS DOF at the end of time step, (...)
-        // DOF at the midpoint of time step, Please recognize that the name of the DOF is (...)
-        // while the iteration is done towards the (...)_EINS DOF value at end of time step
+        std::cout << "PURE Theta Scheme !!!!!!!!!!!!!!!!!!!!!" << " theta = " << mTheta << std::endl;
     }
 
     /**
@@ -164,70 +139,18 @@ public:
      * @ref Chung&Hulbert: "A time integration algorithm for structural dynamics with improved
      *  numerical dissipation: The generalized alpha method" Journal of applied mechanics, 60, 371-375
      */
-    ResidualBasedNewmarkScheme(double mDissipationRadius ) : BaseType()
+    ResidualBasedThetaScheme(double theta ) : BaseType()
     {
-        mAlpha_f = mDissipationRadius / (1.0 + mDissipationRadius);
-        mAlpha_m = (2.0 * mDissipationRadius - 1.0) / (mDissipationRadius + 1.0);
-        mBeta = (1.0 + mAlpha_f - mAlpha_m) * (1.0 + mAlpha_f - mAlpha_m)/4.0;
-        mGamma = 0.5 + mAlpha_f - mAlpha_m;
+        //For pure Theta Scheme
+        mTheta = theta;
 
-        std::cout << "using the Generalized alpha Time Integration Scheme with radius= "<< mDissipationRadius << " alpha_f= " << mAlpha_f << " alpha_m= " << mAlpha_m << " beta= " << mBeta << " gamma= " << mGamma << std::endl;
+        std::cout << "Theta Scheme !!!!!!!!!!!!!!!!!!!!!" << " theta = " << mTheta << std::endl;
     }
 
     /**
-     * Constructor with full options.
-     * @param mDissipationRadius if the scheme is numerically energy conserving or not
-     *                              == 1.0 energy conserving
-     *                              < 1.0 numerically discipating
-     * @ref Chung&Hulbert: "A time integration algorithm for structural dynamics with improved
-     *  numerical dissipation: The generalized alpha method" Journal of applied mechanics, 60, 371-375
-     */
-    ResidualBasedNewmarkScheme(int option, double mDissipationRadius ) : BaseType()
-    {
-        if (option == 0)
-        {
-            mAlpha_f = 0.0;
-            mAlpha_m = 0.0;
-            mBeta = 1.0 / 4.0;
-            mGamma = 0.5;
-
-            std::cout << "PURE Newmark Time Integration Scheme!!!!!!!!!!!!!!!!!!!!!" << " alpha_f= " << mAlpha_f << " alpha_m= " << mAlpha_m << " beta= " << mBeta << " gamma= " << mGamma << std::endl;
-        }
-        else if (option == 1)
-        {
-            mAlpha_f = mDissipationRadius / (1.0 + mDissipationRadius);
-            mAlpha_m = (2.0 * mDissipationRadius - 1.0) / (mDissipationRadius + 1.0);
-            mBeta = (1.0 + mAlpha_f - mAlpha_m) * (1.0 + mAlpha_f - mAlpha_m)/4.0;
-            mGamma = 0.5 + mAlpha_f - mAlpha_m;
-
-            std::cout << "using the Generalized-alpha Time Integration Scheme with radius= "<< mDissipationRadius << " alpha_f= " << mAlpha_f << " alpha_m= " << mAlpha_m << " beta= " << mBeta << " gamma= " << mGamma << std::endl;
-        }
-        else if (option == 2)
-        {
-            mAlpha_f = 0.0;
-            mAlpha_m = (2.0 * mDissipationRadius - 1.0) / (mDissipationRadius + 1.0);
-            mBeta = (1.0 - mAlpha_m) * (1.0 - mAlpha_m)/4.0;
-            mGamma = 0.5 - mAlpha_m;
-
-            std::cout << "using the Bossak-alpha Time Integration Scheme with radius= "<< mDissipationRadius << " alpha_m= " << mAlpha_m << " beta= " << mBeta << " gamma= " << mGamma << std::endl;
-        }
-        else if (option == 3)
-        {
-            mAlpha_f = mDissipationRadius / (1.0 + mDissipationRadius);
-            mAlpha_m = 0.0;
-            mBeta = (1.0 + mAlpha_f) * (1.0 + mAlpha_f)/4.0;
-            mGamma = 0.5 + mAlpha_f;
-
-            std::cout << "using the Hilber-alpha Time Integration Scheme with radius= "<< mDissipationRadius << " alpha_f= " << mAlpha_f << " beta= " << mBeta << " gamma= " << mGamma << std::endl;
-        }
-        else
-        {
-            KRATOS_THROW_ERROR(std::logic_error, "Invalid Time integration option", option)
-        }
-    }
 
     /** Destructor.*/
-    virtual ~ResidualBasedNewmarkScheme()
+    virtual ~ResidualBasedThetaScheme()
     {}
 
     /**@name Operators */
@@ -499,289 +422,193 @@ public:
                 it->InitializeNonLinearIteration(CurrentProcessInfo);
         }
 
+        const double Dt = CurrentProcessInfo[DELTA_TIME];
+
         //Update nodal values and nodal velocities at mAlpha_f
         for(ModelPart::NodeIterator i = r_model_part.NodesBegin() ; i != r_model_part.NodesEnd() ; i++)
         {
             if( i->HasDofFor(DISPLACEMENT_X) )
             {
-                i->GetSolutionStepValue(ACCELERATION_EINS_X)
-                = 1.0/(mBeta*CurrentProcessInfo[DELTA_TIME]
-                       *CurrentProcessInfo[DELTA_TIME])
-                  * (i->GetSolutionStepValue(DISPLACEMENT_EINS_X)
-                     -i->GetSolutionStepValue(DISPLACEMENT_NULL_X))
-                  -1.0/(mBeta*CurrentProcessInfo[DELTA_TIME])
-                  *i->GetSolutionStepValue(DISPLACEMENT_NULL_DT_X)
-                  -(1.0-2.0*mBeta)/(2.0*mBeta)*i->GetSolutionStepValue(ACCELERATION_NULL_X);
-
                 i->GetSolutionStepValue(DISPLACEMENT_EINS_DT_X)
-                = (i->GetSolutionStepValue(DISPLACEMENT_EINS_X)
-                   -i->GetSolutionStepValue(DISPLACEMENT_NULL_X))
-                  *mGamma/(mBeta*CurrentProcessInfo[DELTA_TIME])
-                  -(mGamma-mBeta)/mBeta*(i->GetSolutionStepValue(DISPLACEMENT_NULL_DT_X))
-                  -(mGamma-2.0*mBeta)/(2.0*mBeta)*CurrentProcessInfo[DELTA_TIME]
-                  *(i->GetSolutionStepValue(ACCELERATION_NULL_X));
+                = ( i->GetSolutionStepValue(DISPLACEMENT_EINS_X)
+                  - i->GetSolutionStepValue(DISPLACEMENT_NULL_X) ) / Dt;
+
+                i->GetSolutionStepValue(ACCELERATION_EINS_X)
+                = ( i->GetSolutionStepValue(DISPLACEMENT_EINS_DT_X)
+                  - i->GetSolutionStepValue(DISPLACEMENT_NULL_DT_X)) / Dt;
 
                 i->GetSolutionStepValue(ACCELERATION_X)
-                = mAlpha_m*i->GetSolutionStepValue(ACCELERATION_NULL_X)
-                  +(1.0-mAlpha_m)*i->GetSolutionStepValue(ACCELERATION_EINS_X);
+                = i->GetSolutionStepValue(ACCELERATION_EINS_X);
 
                 i->GetSolutionStepValue(DISPLACEMENT_DT_X)
-                = mAlpha_f*i->GetSolutionStepValue(DISPLACEMENT_NULL_DT_X)
-                  +(1.0-mAlpha_f)*i->GetSolutionStepValue(DISPLACEMENT_EINS_DT_X);
+                = i->GetSolutionStepValue(DISPLACEMENT_EINS_DT_X);
 
                 i->GetSolutionStepValue(DISPLACEMENT_X)
-                = mAlpha_f*i->GetSolutionStepValue(DISPLACEMENT_NULL_X)
-                  +(1.0-mAlpha_f)*i->GetSolutionStepValue(DISPLACEMENT_EINS_X);
-
+                = (1.0-mTheta)*i->GetSolutionStepValue(DISPLACEMENT_NULL_X)
+                  + mTheta*i->GetSolutionStepValue(DISPLACEMENT_EINS_X);
             }
             if( i->HasDofFor(DISPLACEMENT_Y) )
             {
-                i->GetSolutionStepValue(ACCELERATION_EINS_Y)
-                =1.0/(mBeta*CurrentProcessInfo[DELTA_TIME]*CurrentProcessInfo[DELTA_TIME])
-                 * (i->GetSolutionStepValue(DISPLACEMENT_EINS_Y)
-                    -i->GetSolutionStepValue(DISPLACEMENT_NULL_Y))
-                 -1.0/(mBeta*CurrentProcessInfo[DELTA_TIME])
-                 *i->GetSolutionStepValue(DISPLACEMENT_NULL_DT_Y)
-                 -(1.0-2.0*mBeta)/(2.0*mBeta)*
-                 i->GetSolutionStepValue(ACCELERATION_NULL_Y);
-
                 i->GetSolutionStepValue(DISPLACEMENT_EINS_DT_Y)
-                =(i->GetSolutionStepValue(DISPLACEMENT_EINS_Y)
-                  -i->GetSolutionStepValue(DISPLACEMENT_NULL_Y))
-                 *mGamma/(mBeta*CurrentProcessInfo[DELTA_TIME])
-                 -(mGamma-mBeta)/mBeta*(i->GetSolutionStepValue(DISPLACEMENT_NULL_DT_Y))
-                 -(mGamma-2.0*mBeta)/(2.0*mBeta)*CurrentProcessInfo[DELTA_TIME]
-                 *(i->GetSolutionStepValue(ACCELERATION_NULL_Y));
+                = ( i->GetSolutionStepValue(DISPLACEMENT_EINS_Y)
+                  - i->GetSolutionStepValue(DISPLACEMENT_NULL_Y) ) / Dt;
+
+                i->GetSolutionStepValue(ACCELERATION_EINS_Y)
+                = ( i->GetSolutionStepValue(DISPLACEMENT_EINS_DT_Y)
+                  - i->GetSolutionStepValue(DISPLACEMENT_NULL_DT_Y)) / Dt;
 
                 i->GetSolutionStepValue(ACCELERATION_Y)
-                =mAlpha_m*i->GetSolutionStepValue(ACCELERATION_NULL_Y)
-                 +(1.0-mAlpha_m)*i->GetSolutionStepValue(ACCELERATION_EINS_Y);
+                = i->GetSolutionStepValue(ACCELERATION_EINS_Y);
 
                 i->GetSolutionStepValue(DISPLACEMENT_DT_Y)
-                = mAlpha_f*i->GetSolutionStepValue(DISPLACEMENT_NULL_DT_Y)
-                  +(1.0-mAlpha_f)*i->GetSolutionStepValue(DISPLACEMENT_EINS_DT_Y);
+                = i->GetSolutionStepValue(DISPLACEMENT_EINS_DT_Y);
 
                 i->GetSolutionStepValue(DISPLACEMENT_Y)
-                = mAlpha_f*i->GetSolutionStepValue(DISPLACEMENT_NULL_Y)+(1.0-mAlpha_f)*
-                  i->GetSolutionStepValue(DISPLACEMENT_EINS_Y);
+                = (1.0-mTheta)*i->GetSolutionStepValue(DISPLACEMENT_NULL_Y)
+                  + mTheta*i->GetSolutionStepValue(DISPLACEMENT_EINS_Y);
             }
             if( i->HasDofFor(DISPLACEMENT_Z) )
             {
-                i->GetSolutionStepValue(ACCELERATION_EINS_Z)
-                = 1.0/(mBeta*CurrentProcessInfo[DELTA_TIME]*CurrentProcessInfo[DELTA_TIME])
-                  * (i->GetSolutionStepValue(DISPLACEMENT_EINS_Z)
-                     -i->GetSolutionStepValue(DISPLACEMENT_NULL_Z))
-                  -1.0/(mBeta*CurrentProcessInfo[DELTA_TIME])
-                  *i->GetSolutionStepValue(DISPLACEMENT_NULL_DT_Z)
-                  -(1.0-2.0*mBeta)/(2.0*mBeta)*i->GetSolutionStepValue(ACCELERATION_NULL_Z);
-
                 i->GetSolutionStepValue(DISPLACEMENT_EINS_DT_Z)
-                = (i->GetSolutionStepValue(DISPLACEMENT_EINS_Z)
-                   -i->GetSolutionStepValue(DISPLACEMENT_NULL_Z))
-                  *mGamma/(mBeta*CurrentProcessInfo[DELTA_TIME])-(mGamma-mBeta)/mBeta*
-                  (i->GetSolutionStepValue(DISPLACEMENT_NULL_DT_Z))
-                  -(mGamma-2.0*mBeta)/(2.0*mBeta)*CurrentProcessInfo[DELTA_TIME]
-                  *(i->GetSolutionStepValue(ACCELERATION_NULL_Z));
+                = ( i->GetSolutionStepValue(DISPLACEMENT_EINS_Z)
+                  - i->GetSolutionStepValue(DISPLACEMENT_NULL_Z) ) / Dt;
+
+                i->GetSolutionStepValue(ACCELERATION_EINS_Z)
+                = ( i->GetSolutionStepValue(DISPLACEMENT_EINS_DT_Z)
+                  - i->GetSolutionStepValue(DISPLACEMENT_NULL_DT_Z)) / Dt;
 
                 i->GetSolutionStepValue(ACCELERATION_Z)
-                = mAlpha_m*i->GetSolutionStepValue(ACCELERATION_NULL_Z)
-                  +(1.0-mAlpha_m)*i->GetSolutionStepValue(ACCELERATION_EINS_Z);
+                = i->GetSolutionStepValue(ACCELERATION_EINS_Z);
 
                 i->GetSolutionStepValue(DISPLACEMENT_DT_Z)
-                = mAlpha_f*i->GetSolutionStepValue(DISPLACEMENT_NULL_DT_Z)
-                  +(1.0-mAlpha_f)*i->GetSolutionStepValue(DISPLACEMENT_EINS_DT_Z);
+                = i->GetSolutionStepValue(DISPLACEMENT_EINS_DT_Z);
 
                 i->GetSolutionStepValue(DISPLACEMENT_Z)
-                = mAlpha_f*i->GetSolutionStepValue(DISPLACEMENT_NULL_Z)
-                  +(1.0-mAlpha_f)*i->GetSolutionStepValue(DISPLACEMENT_EINS_Z);
+                = (1.0-mTheta)*i->GetSolutionStepValue(DISPLACEMENT_NULL_Z)
+                  + mTheta*i->GetSolutionStepValue(DISPLACEMENT_EINS_Z);
             }
             if( i->HasDofFor(WATER_PRESSURE) )
             {
-                i->GetSolutionStepValue(WATER_PRESSURE_EINS_ACCELERATION)
-                = 1.0/(mBeta*CurrentProcessInfo[DELTA_TIME]*CurrentProcessInfo[DELTA_TIME])
-                  * (i->GetSolutionStepValue(WATER_PRESSURE_EINS)
-                     -i->GetSolutionStepValue(WATER_PRESSURE_NULL))
-                  -1.0/(mBeta*CurrentProcessInfo[DELTA_TIME])
-                  *i->GetSolutionStepValue(WATER_PRESSURE_NULL_DT)
-                  -(1.0-2.0*mBeta)/(2.0*mBeta)*i->GetSolutionStepValue(WATER_PRESSURE_NULL_ACCELERATION);
-
                 i->GetSolutionStepValue(WATER_PRESSURE_EINS_DT)
-                = (i->GetSolutionStepValue(WATER_PRESSURE_EINS)
-                   -i->GetSolutionStepValue(WATER_PRESSURE_NULL))
-                  *mGamma/(mBeta*CurrentProcessInfo[DELTA_TIME])
-                  -(mGamma-mBeta)/mBeta*(i->GetSolutionStepValue(WATER_PRESSURE_NULL_DT))
-                  -(mGamma-2.0*mBeta)/(2.0*mBeta)*CurrentProcessInfo[DELTA_TIME]
-                  *(i->GetSolutionStepValue(WATER_PRESSURE_NULL_ACCELERATION));
+                = ( i->GetSolutionStepValue(WATER_PRESSURE_EINS)
+                  - i->GetSolutionStepValue(WATER_PRESSURE_NULL) ) / Dt;
+
+                i->GetSolutionStepValue(WATER_PRESSURE_EINS_ACCELERATION)
+                = ( i->GetSolutionStepValue(WATER_PRESSURE_EINS_DT)
+                  - i->GetSolutionStepValue(WATER_PRESSURE_NULL_DT)) / Dt;
 
                 i->GetSolutionStepValue(WATER_PRESSURE_ACCELERATION)
-                = mAlpha_m*i->GetSolutionStepValue(WATER_PRESSURE_NULL_ACCELERATION)
-                  +(1.0-mAlpha_m)*i->GetSolutionStepValue(WATER_PRESSURE_EINS_ACCELERATION);
+                = i->GetSolutionStepValue(WATER_PRESSURE_EINS_ACCELERATION);
 
                 i->GetSolutionStepValue(WATER_PRESSURE_DT)
-                = mAlpha_f*i->GetSolutionStepValue(WATER_PRESSURE_NULL_DT)
-                  +(1.0-mAlpha_f)*i->GetSolutionStepValue(WATER_PRESSURE_EINS_DT);
+                = i->GetSolutionStepValue(WATER_PRESSURE_EINS_DT);
 
                 i->GetSolutionStepValue(WATER_PRESSURE)
-                = mAlpha_f*i->GetSolutionStepValue(WATER_PRESSURE_NULL)
-                  +(1.0-mAlpha_f)*i->GetSolutionStepValue(WATER_PRESSURE_EINS);
+                = (1.0-mTheta)*i->GetSolutionStepValue(WATER_PRESSURE_NULL)
+                  + mTheta*i->GetSolutionStepValue(WATER_PRESSURE_EINS);
             }
             if( i->HasDofFor(AIR_PRESSURE) )
             {
-                i->GetSolutionStepValue(AIR_PRESSURE_EINS_ACCELERATION)
-                = 1.0/(mBeta*CurrentProcessInfo[DELTA_TIME]*CurrentProcessInfo[DELTA_TIME])
-                  * (i->GetSolutionStepValue(AIR_PRESSURE_EINS)
-                     -i->GetSolutionStepValue(AIR_PRESSURE_NULL))
-                  -1.0/(mBeta*CurrentProcessInfo[DELTA_TIME])
-                  *i->GetSolutionStepValue(AIR_PRESSURE_NULL_DT)
-                  -(1.0-2.0*mBeta)/(2.0*mBeta)*i->GetSolutionStepValue(AIR_PRESSURE_NULL_ACCELERATION);
-
                 i->GetSolutionStepValue(AIR_PRESSURE_EINS_DT)
-                = (i->GetSolutionStepValue(AIR_PRESSURE_EINS)
-                   -i->GetSolutionStepValue(AIR_PRESSURE_NULL))
-                  *mGamma/(mBeta*CurrentProcessInfo[DELTA_TIME])
-                  -(mGamma-mBeta)/mBeta*
-                  (i->GetSolutionStepValue(AIR_PRESSURE_NULL_DT))
-                  -(mGamma-2.0*mBeta)/(2.0*mBeta)*CurrentProcessInfo[DELTA_TIME]
-                  *(i->GetSolutionStepValue(AIR_PRESSURE_NULL_ACCELERATION));
+                = ( i->GetSolutionStepValue(AIR_PRESSURE_EINS)
+                  - i->GetSolutionStepValue(AIR_PRESSURE_NULL) ) / Dt;
+
+                i->GetSolutionStepValue(AIR_PRESSURE_EINS_ACCELERATION)
+                = ( i->GetSolutionStepValue(AIR_PRESSURE_EINS_DT)
+                  - i->GetSolutionStepValue(AIR_PRESSURE_NULL_DT)) / Dt;
 
                 i->GetSolutionStepValue(AIR_PRESSURE_ACCELERATION)
-                = mAlpha_m*i->GetSolutionStepValue(AIR_PRESSURE_NULL_ACCELERATION)
-                  +(1.0-mAlpha_m)*i->GetSolutionStepValue(AIR_PRESSURE_EINS_ACCELERATION);
+                = i->GetSolutionStepValue(AIR_PRESSURE_EINS_ACCELERATION);
 
                 i->GetSolutionStepValue(AIR_PRESSURE_DT)
-                = mAlpha_f*i->GetSolutionStepValue(AIR_PRESSURE_NULL_DT)
-                  +(1.0-mAlpha_f)*i->GetSolutionStepValue(AIR_PRESSURE_EINS_DT);
+                = i->GetSolutionStepValue(AIR_PRESSURE_EINS_DT);
 
                 i->GetSolutionStepValue(AIR_PRESSURE)
-                = mAlpha_f*i->GetSolutionStepValue(AIR_PRESSURE_NULL)
-                  +(1.0-mAlpha_f)*i->GetSolutionStepValue(AIR_PRESSURE_EINS);
+                = (1.0-mTheta)*i->GetSolutionStepValue(AIR_PRESSURE_NULL)
+                  + mTheta*i->GetSolutionStepValue(AIR_PRESSURE_EINS);
             }
             #ifdef ENABLE_ROTATION
             if( i->HasDofFor(ROTATION_X) )
             {
-                i->GetSolutionStepValue(ANGULAR_ACCELERATION_EINS_X)
-                = 1.0/(mBeta*CurrentProcessInfo[DELTA_TIME]
-                       *CurrentProcessInfo[DELTA_TIME])
-                  * (i->GetSolutionStepValue(ROTATION_EINS_X)
-                     -i->GetSolutionStepValue(ROTATION_NULL_X))
-                  -1.0/(mBeta*CurrentProcessInfo[DELTA_TIME])
-                  *i->GetSolutionStepValue(ROTATION_NULL_DT_X)
-                  -(1.0-2.0*mBeta)/(2.0*mBeta)*i->GetSolutionStepValue(ANGULAR_ACCELERATION_NULL_X);
-
                 i->GetSolutionStepValue(ROTATION_EINS_DT_X)
-                = (i->GetSolutionStepValue(ROTATION_EINS_X)
-                   -i->GetSolutionStepValue(ROTATION_NULL_X))
-                  *mGamma/(mBeta*CurrentProcessInfo[DELTA_TIME])
-                  -(mGamma-mBeta)/mBeta*(i->GetSolutionStepValue(ROTATION_NULL_DT_X))
-                  -(mGamma-2.0*mBeta)/(2.0*mBeta)*CurrentProcessInfo[DELTA_TIME]
-                  *(i->GetSolutionStepValue(ANGULAR_ACCELERATION_NULL_X));
+                = ( i->GetSolutionStepValue(ROTATION_EINS_X)
+                  - i->GetSolutionStepValue(ROTATION_NULL_X) ) / Dt;
+
+                i->GetSolutionStepValue(ANGULAR_ACCELERATION_EINS_X)
+                = ( i->GetSolutionStepValue(ROTATION_EINS_DT_X)
+                  - i->GetSolutionStepValue(ROTATION_NULL_DT_X)) / Dt;
 
                 i->GetSolutionStepValue(ANGULAR_ACCELERATION_X)
-                = mAlpha_m*i->GetSolutionStepValue(ANGULAR_ACCELERATION_NULL_X)
-                  +(1.0-mAlpha_m)*i->GetSolutionStepValue(ANGULAR_ACCELERATION_EINS_X);
+                = i->GetSolutionStepValue(ANGULAR_ACCELERATION_EINS_X);
 
                 i->GetSolutionStepValue(ROTATION_DT_X)
-                = mAlpha_f*i->GetSolutionStepValue(ROTATION_NULL_DT_X)
-                  +(1.0-mAlpha_f)*i->GetSolutionStepValue(ROTATION_EINS_DT_X);
+                = i->GetSolutionStepValue(ROTATION_EINS_DT_X);
 
                 i->GetSolutionStepValue(ROTATION_X)
-                = mAlpha_f*i->GetSolutionStepValue(ROTATION_NULL_X)
-                  +(1.0-mAlpha_f)*i->GetSolutionStepValue(ROTATION_EINS_X);
-
+                = (1.0-mTheta)*i->GetSolutionStepValue(ROTATION_NULL_X)
+                  + mTheta*i->GetSolutionStepValue(ROTATION_EINS_X);
             }
             if( i->HasDofFor(ROTATION_Y) )
             {
-                i->GetSolutionStepValue(ANGULAR_ACCELERATION_EINS_Y)
-                =1.0/(mBeta*CurrentProcessInfo[DELTA_TIME]*CurrentProcessInfo[DELTA_TIME])
-                 * (i->GetSolutionStepValue(ROTATION_EINS_Y)
-                    -i->GetSolutionStepValue(ROTATION_NULL_Y))
-                 -1.0/(mBeta*CurrentProcessInfo[DELTA_TIME])
-                 *i->GetSolutionStepValue(ROTATION_NULL_DT_Y)
-                 -(1.0-2.0*mBeta)/(2.0*mBeta)*
-                 i->GetSolutionStepValue(ANGULAR_ACCELERATION_NULL_Y);
-
                 i->GetSolutionStepValue(ROTATION_EINS_DT_Y)
-                =(i->GetSolutionStepValue(ROTATION_EINS_Y)
-                  -i->GetSolutionStepValue(ROTATION_NULL_Y))
-                 *mGamma/(mBeta*CurrentProcessInfo[DELTA_TIME])
-                 -(mGamma-mBeta)/mBeta*(i->GetSolutionStepValue(ROTATION_NULL_DT_Y))
-                 -(mGamma-2.0*mBeta)/(2.0*mBeta)*CurrentProcessInfo[DELTA_TIME]
-                 *(i->GetSolutionStepValue(ANGULAR_ACCELERATION_NULL_Y));
+                = ( i->GetSolutionStepValue(ROTATION_EINS_Y)
+                  - i->GetSolutionStepValue(ROTATION_NULL_Y) ) / Dt;
+
+                i->GetSolutionStepValue(ANGULAR_ACCELERATION_EINS_Y)
+                = ( i->GetSolutionStepValue(ROTATION_EINS_DT_Y)
+                  - i->GetSolutionStepValue(ROTATION_NULL_DT_Y)) / Dt;
 
                 i->GetSolutionStepValue(ANGULAR_ACCELERATION_Y)
-                =mAlpha_m*i->GetSolutionStepValue(ANGULAR_ACCELERATION_NULL_Y)
-                 +(1.0-mAlpha_m)*i->GetSolutionStepValue(ANGULAR_ACCELERATION_EINS_Y);
+                = i->GetSolutionStepValue(ANGULAR_ACCELERATION_EINS_Y);
 
                 i->GetSolutionStepValue(ROTATION_DT_Y)
-                = mAlpha_f*i->GetSolutionStepValue(ROTATION_NULL_DT_Y)
-                  +(1.0-mAlpha_f)*i->GetSolutionStepValue(ROTATION_EINS_DT_Y);
+                = i->GetSolutionStepValue(ROTATION_EINS_DT_Y);
 
                 i->GetSolutionStepValue(ROTATION_Y)
-                = mAlpha_f*i->GetSolutionStepValue(ROTATION_NULL_Y)+(1.0-mAlpha_f)*
-                  i->GetSolutionStepValue(ROTATION_EINS_Y);
+                = (1.0-mTheta)*i->GetSolutionStepValue(ROTATION_NULL_Y)
+                  + mTheta*i->GetSolutionStepValue(ROTATION_EINS_Y);
             }
             if( i->HasDofFor(ROTATION_Z) )
             {
-                i->GetSolutionStepValue(ANGULAR_ACCELERATION_EINS_Z)
-                = 1.0/(mBeta*CurrentProcessInfo[DELTA_TIME]*CurrentProcessInfo[DELTA_TIME])
-                  * (i->GetSolutionStepValue(ROTATION_EINS_Z)
-                     -i->GetSolutionStepValue(ROTATION_NULL_Z))
-                  -1.0/(mBeta*CurrentProcessInfo[DELTA_TIME])
-                  *i->GetSolutionStepValue(ROTATION_NULL_DT_Z)
-                  -(1.0-2.0*mBeta)/(2.0*mBeta)*i->GetSolutionStepValue(ANGULAR_ACCELERATION_NULL_Z);
-
                 i->GetSolutionStepValue(ROTATION_EINS_DT_Z)
-                = (i->GetSolutionStepValue(ROTATION_EINS_Z)
-                   -i->GetSolutionStepValue(ROTATION_NULL_Z))
-                  *mGamma/(mBeta*CurrentProcessInfo[DELTA_TIME])-(mGamma-mBeta)/mBeta*
-                  (i->GetSolutionStepValue(ROTATION_NULL_DT_Z))
-                  -(mGamma-2.0*mBeta)/(2.0*mBeta)*CurrentProcessInfo[DELTA_TIME]
-                  *(i->GetSolutionStepValue(ANGULAR_ACCELERATION_NULL_Z));
+                = ( i->GetSolutionStepValue(ROTATION_EINS_Z)
+                  - i->GetSolutionStepValue(ROTATION_NULL_Z) ) / Dt;
+
+                i->GetSolutionStepValue(ANGULAR_ACCELERATION_EINS_Z)
+                = ( i->GetSolutionStepValue(ROTATION_EINS_DT_Z)
+                  - i->GetSolutionStepValue(ROTATION_NULL_DT_Z)) / Dt;
 
                 i->GetSolutionStepValue(ANGULAR_ACCELERATION_Z)
-                = mAlpha_m*i->GetSolutionStepValue(ANGULAR_ACCELERATION_NULL_Z)
-                  +(1.0-mAlpha_m)*i->GetSolutionStepValue(ANGULAR_ACCELERATION_EINS_Z);
+                = i->GetSolutionStepValue(ANGULAR_ACCELERATION_EINS_Z);
 
                 i->GetSolutionStepValue(ROTATION_DT_Z)
-                = mAlpha_f*i->GetSolutionStepValue(ROTATION_NULL_DT_Z)
-                  +(1.0-mAlpha_f)*i->GetSolutionStepValue(ROTATION_EINS_DT_Z);
+                = i->GetSolutionStepValue(ROTATION_EINS_DT_Z);
 
                 i->GetSolutionStepValue(ROTATION_Z)
-                = mAlpha_f*i->GetSolutionStepValue(ROTATION_NULL_Z)
-                  +(1.0-mAlpha_f)*i->GetSolutionStepValue(ROTATION_EINS_Z);
+                = (1.0-mTheta)*i->GetSolutionStepValue(ROTATION_NULL_Z)
+                  + mTheta*i->GetSolutionStepValue(ROTATION_EINS_Z);
             }
             #endif
             #ifdef ENABLE_LAMBDA
             if( i->HasDofFor(LAMBDA) )
             {
-                i->GetSolutionStepValue(LAMBDA_EINS_DT2)
-                = 1.0/(mBeta*CurrentProcessInfo[DELTA_TIME]
-                       *CurrentProcessInfo[DELTA_TIME])
-                  * (i->GetSolutionStepValue(LAMBDA_EINS)
-                     -i->GetSolutionStepValue(LAMBDA_NULL))
-                  -1.0/(mBeta*CurrentProcessInfo[DELTA_TIME])
-                  *i->GetSolutionStepValue(LAMBDA_NULL_DT)
-                  -(1.0-2.0*mBeta)/(2.0*mBeta)*i->GetSolutionStepValue(LAMBDA_NULL_DT2);
-
                 i->GetSolutionStepValue(LAMBDA_EINS_DT)
-                = (i->GetSolutionStepValue(LAMBDA_EINS)
-                   -i->GetSolutionStepValue(LAMBDA_NULL))
-                  *mGamma/(mBeta*CurrentProcessInfo[DELTA_TIME])
-                  -(mGamma-mBeta)/mBeta*(i->GetSolutionStepValue(LAMBDA_NULL_DT))
-                  -(mGamma-2.0*mBeta)/(2.0*mBeta)*CurrentProcessInfo[DELTA_TIME]
-                  *(i->GetSolutionStepValue(LAMBDA_NULL_DT2));
+                = ( i->GetSolutionStepValue(LAMBDA_EINS)
+                  - i->GetSolutionStepValue(LAMBDA_NULL) ) / Dt;
+
+                i->GetSolutionStepValue(LAMBDA_EINS_DT2)
+                = ( i->GetSolutionStepValue(LAMBDA_EINS_DT)
+                  - i->GetSolutionStepValue(LAMBDA_NULL_DT)) / Dt;
 
                 i->GetSolutionStepValue(LAMBDA_DT2)
-                = mAlpha_m*i->GetSolutionStepValue(LAMBDA_NULL_DT2)
-                  +(1.0-mAlpha_m)*i->GetSolutionStepValue(LAMBDA_EINS_DT2);
+                = i->GetSolutionStepValue(LAMBDA_EINS_DT2);
 
                 i->GetSolutionStepValue(LAMBDA_DT)
-                = mAlpha_f*i->GetSolutionStepValue(LAMBDA_NULL_DT)
-                  +(1.0-mAlpha_f)*i->GetSolutionStepValue(LAMBDA_EINS_DT);
+                = i->GetSolutionStepValue(LAMBDA_EINS_DT);
 
                 i->GetSolutionStepValue(LAMBDA)
-                = mAlpha_f*i->GetSolutionStepValue(LAMBDA_NULL)
-                  +(1.0-mAlpha_f)*i->GetSolutionStepValue(LAMBDA_EINS);
+                = (1.0-mTheta)*i->GetSolutionStepValue(LAMBDA_NULL)
+                  + mTheta*i->GetSolutionStepValue(LAMBDA_EINS);
             }
             #endif
         }
@@ -942,7 +769,7 @@ public:
     {
         ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
 
-        KRATOS_WATCH(CurrentProcessInfo[FIRST_TIME_STEP])
+        // KRATOS_WATCH(CurrentProcessInfo[FIRST_TIME_STEP])
 
         // we manually FinalizeSolutionStep for each entities because the parent function is multithreaded
         ElementsArrayType& pElements = r_model_part.Elements();
@@ -959,185 +786,155 @@ public:
                 (*it)->FinalizeSolutionStep(CurrentProcessInfo);
         }
 
-        if(CurrentProcessInfo[CALCULATE_INSITU_STRESS])
+        for(ModelPart::NodeIterator i = r_model_part.NodesBegin() ; i != r_model_part.NodesEnd() ; ++i)
         {
-            for(ModelPart::NodeIterator i = r_model_part.NodesBegin() ; i != r_model_part.NodesEnd() ; ++i)
+            if( i->HasDofFor(DISPLACEMENT_X))
             {
-                if( i->HasDofFor(DISPLACEMENT_X))
+                i->GetSolutionStepValue(DISPLACEMENT_OLD_X) = i->GetSolutionStepValue(DISPLACEMENT_X);
+
+                if(CurrentProcessInfo[FIRST_TIME_STEP])
                 {
-                    i->GetSolutionStepValue(DISPLACEMENT_OLD_X) = 0.0;
-                    i->GetSolutionStepValue(DISPLACEMENT_NULL_X) = 0.0;
-                    i->GetSolutionStepValue(DISPLACEMENT_NULL_DT_X) = 0.0;
-                    i->GetSolutionStepValue(ACCELERATION_NULL_X) = 0.0;
+                    i->GetSolutionStepValue(ACCELERATION_NULL_X) =i->GetSolutionStepValue(ACCELERATION_X);
+                    i->GetSolutionStepValue(DISPLACEMENT_NULL_DT_X) = i->GetSolutionStepValue(DISPLACEMENT_DT_X);
+                    i->GetSolutionStepValue(DISPLACEMENT_NULL_X) = i->GetSolutionStepValue(DISPLACEMENT_X);
                 }
-                if( i->HasDofFor(DISPLACEMENT_Y) )
+                else
                 {
-                    i->GetSolutionStepValue(DISPLACEMENT_OLD_Y) = 0.0;
-                    i->GetSolutionStepValue(DISPLACEMENT_NULL_Y) = 0.0;
-                    i->GetSolutionStepValue(DISPLACEMENT_NULL_DT_Y) = 0.0;
-                    i->GetSolutionStepValue(ACCELERATION_NULL_Y) = 0.0;
-                }
-                if( i->HasDofFor(DISPLACEMENT_Z) )
-                {
-                    i->GetSolutionStepValue(DISPLACEMENT_OLD_Z) = 0.0;
-                    i->GetSolutionStepValue(DISPLACEMENT_NULL_Z) = 0.0;
-                    i->GetSolutionStepValue(DISPLACEMENT_NULL_DT_Z) = 0.0;
-                    i->GetSolutionStepValue(ACCELERATION_NULL_Z) = 0.0;
+                    i->GetSolutionStepValue(DISPLACEMENT_NULL_X) = i->GetSolutionStepValue(DISPLACEMENT_EINS_X);
+                    i->GetSolutionStepValue(DISPLACEMENT_NULL_DT_X) = i->GetSolutionStepValue(DISPLACEMENT_EINS_DT_X);
+                    i->GetSolutionStepValue(ACCELERATION_NULL_X) = i->GetSolutionStepValue(ACCELERATION_EINS_X);
                 }
             }
-        }
-        else
-        {
-            for(ModelPart::NodeIterator i = r_model_part.NodesBegin() ; i != r_model_part.NodesEnd() ; ++i)
+            if( i->HasDofFor(DISPLACEMENT_Y) )
             {
-                if( i->HasDofFor(DISPLACEMENT_X))
-                {
-                    i->GetSolutionStepValue(DISPLACEMENT_OLD_X) = i->GetSolutionStepValue(DISPLACEMENT_X);
+                i->GetSolutionStepValue(DISPLACEMENT_OLD_Y) = i->GetSolutionStepValue(DISPLACEMENT_Y);
 
-                    if(CurrentProcessInfo[FIRST_TIME_STEP])
-                    {
-                        i->GetSolutionStepValue(ACCELERATION_NULL_X) =i->GetSolutionStepValue(ACCELERATION_X);
-                        i->GetSolutionStepValue(DISPLACEMENT_NULL_DT_X) = i->GetSolutionStepValue(DISPLACEMENT_DT_X);
-                        i->GetSolutionStepValue(DISPLACEMENT_NULL_X) = i->GetSolutionStepValue(DISPLACEMENT_X);
-                    }
-                    else
-                    {
-                        i->GetSolutionStepValue(DISPLACEMENT_NULL_X) = i->GetSolutionStepValue(DISPLACEMENT_EINS_X);
-                        i->GetSolutionStepValue(DISPLACEMENT_NULL_DT_X) = i->GetSolutionStepValue(DISPLACEMENT_EINS_DT_X);
-                        i->GetSolutionStepValue(ACCELERATION_NULL_X) = i->GetSolutionStepValue(ACCELERATION_EINS_X);
-                    }
-                }
-                if( i->HasDofFor(DISPLACEMENT_Y) )
+                if(CurrentProcessInfo[FIRST_TIME_STEP])
                 {
-                    i->GetSolutionStepValue(DISPLACEMENT_OLD_Y) = i->GetSolutionStepValue(DISPLACEMENT_Y);
-
-                    if(CurrentProcessInfo[FIRST_TIME_STEP])
-                    {
-                        i->GetSolutionStepValue(ACCELERATION_NULL_Y) = i->GetSolutionStepValue(ACCELERATION_Y);
-                        i->GetSolutionStepValue(DISPLACEMENT_NULL_DT_Y) = i->GetSolutionStepValue(DISPLACEMENT_DT_Y);
-                        i->GetSolutionStepValue(DISPLACEMENT_NULL_Y) = i->GetSolutionStepValue(DISPLACEMENT_Y);
-                    }
-                    else
-                    {
-                        i->GetSolutionStepValue(DISPLACEMENT_NULL_Y) = i->GetSolutionStepValue(DISPLACEMENT_EINS_Y);
-                        i->GetSolutionStepValue(DISPLACEMENT_NULL_DT_Y) = i->GetSolutionStepValue(DISPLACEMENT_EINS_DT_Y);
-                        i->GetSolutionStepValue(ACCELERATION_NULL_Y) = i->GetSolutionStepValue(ACCELERATION_EINS_Y);
-                    }
+                    i->GetSolutionStepValue(ACCELERATION_NULL_Y) = i->GetSolutionStepValue(ACCELERATION_Y);
+                    i->GetSolutionStepValue(DISPLACEMENT_NULL_DT_Y) = i->GetSolutionStepValue(DISPLACEMENT_DT_Y);
+                    i->GetSolutionStepValue(DISPLACEMENT_NULL_Y) = i->GetSolutionStepValue(DISPLACEMENT_Y);
                 }
-                if( i->HasDofFor(DISPLACEMENT_Z) )
+                else
                 {
-                    i->GetSolutionStepValue(DISPLACEMENT_OLD_Z) = i->GetSolutionStepValue(DISPLACEMENT_Z);
-
-                    if(CurrentProcessInfo[FIRST_TIME_STEP])
-                    {
-                        i->GetSolutionStepValue(ACCELERATION_NULL_Z) = i->GetSolutionStepValue(ACCELERATION_Z);
-                        i->GetSolutionStepValue(DISPLACEMENT_NULL_DT_Z) = i->GetSolutionStepValue(DISPLACEMENT_DT_Z);
-                        i->GetSolutionStepValue(DISPLACEMENT_NULL_Z) = i->GetSolutionStepValue(DISPLACEMENT_Z);
-                    }
-                    else
-                    {
-                        i->GetSolutionStepValue(DISPLACEMENT_NULL_Z) = i->GetSolutionStepValue(DISPLACEMENT_EINS_Z);
-                        i->GetSolutionStepValue(DISPLACEMENT_NULL_DT_Z) = i->GetSolutionStepValue(DISPLACEMENT_EINS_DT_Z);
-                        i->GetSolutionStepValue(ACCELERATION_NULL_Z) = i->GetSolutionStepValue(ACCELERATION_EINS_Z);
-                    }
+                    i->GetSolutionStepValue(DISPLACEMENT_NULL_Y) = i->GetSolutionStepValue(DISPLACEMENT_EINS_Y);
+                    i->GetSolutionStepValue(DISPLACEMENT_NULL_DT_Y) = i->GetSolutionStepValue(DISPLACEMENT_EINS_DT_Y);
+                    i->GetSolutionStepValue(ACCELERATION_NULL_Y) = i->GetSolutionStepValue(ACCELERATION_EINS_Y);
                 }
-                if( i->HasDofFor(WATER_PRESSURE))
-                {
-                    if(CurrentProcessInfo[FIRST_TIME_STEP])
-                    {
-                        i->GetSolutionStepValue(WATER_PRESSURE_NULL_ACCELERATION) = i->GetSolutionStepValue(WATER_PRESSURE_ACCELERATION);
-                        i->GetSolutionStepValue(WATER_PRESSURE_NULL_DT) = i->GetSolutionStepValue(WATER_PRESSURE_DT);
-                        i->GetSolutionStepValue(WATER_PRESSURE_NULL) = i->GetSolutionStepValue(WATER_PRESSURE);
-                    }
-                    else
-                    {
-                        i->GetSolutionStepValue(WATER_PRESSURE_NULL_DT) = i->GetSolutionStepValue(WATER_PRESSURE_EINS_DT);
-                        i->GetSolutionStepValue(WATER_PRESSURE_NULL) = i->GetSolutionStepValue(WATER_PRESSURE_EINS);
-                        i->GetSolutionStepValue(WATER_PRESSURE_NULL_ACCELERATION) = i->GetSolutionStepValue(WATER_PRESSURE_EINS_ACCELERATION);
-                    }
-                }
-                if( i->HasDofFor(AIR_PRESSURE) )
-                {
-                    if(CurrentProcessInfo[FIRST_TIME_STEP])
-                    {
-                        i->GetSolutionStepValue(AIR_PRESSURE_NULL_ACCELERATION) = i->GetSolutionStepValue(AIR_PRESSURE_ACCELERATION);
-                        i->GetSolutionStepValue(AIR_PRESSURE_NULL_DT) = i->GetSolutionStepValue(AIR_PRESSURE_DT);
-                        i->GetSolutionStepValue(AIR_PRESSURE_NULL) = i->GetSolutionStepValue(AIR_PRESSURE);
-                    }
-                    else
-                    {
-                        i->GetSolutionStepValue(AIR_PRESSURE_NULL_DT) = i->GetSolutionStepValue(AIR_PRESSURE_EINS_DT);
-                        i->GetSolutionStepValue(AIR_PRESSURE_NULL) = i->GetSolutionStepValue(AIR_PRESSURE_EINS);
-                        i->GetSolutionStepValue(AIR_PRESSURE_NULL_ACCELERATION) = i->GetSolutionStepValue(AIR_PRESSURE_EINS_ACCELERATION);
-                    }
-                }
-                #ifdef ENABLE_ROTATION
-                if( i->HasDofFor(ROTATION_X))
-                {
-                    if(CurrentProcessInfo[FIRST_TIME_STEP])
-                    {
-                        i->GetSolutionStepValue(ANGULAR_ACCELERATION_NULL_X) = i->GetSolutionStepValue(ANGULAR_ACCELERATION_X);
-                        i->GetSolutionStepValue(ROTATION_NULL_DT_X) = i->GetSolutionStepValue(ROTATION_DT_X);
-                        i->GetSolutionStepValue(ROTATION_NULL_X) = i->GetSolutionStepValue(ROTATION_X);
-                    }
-                    else
-                    {
-                        i->GetSolutionStepValue(ROTATION_NULL_X) = i->GetSolutionStepValue(ROTATION_EINS_X);
-                        i->GetSolutionStepValue(ROTATION_NULL_DT_X) = i->GetSolutionStepValue(ROTATION_EINS_DT_X);
-                        i->GetSolutionStepValue(ANGULAR_ACCELERATION_NULL_X) = i->GetSolutionStepValue(ANGULAR_ACCELERATION_EINS_X);
-                    }
-                }
-                if( i->HasDofFor(ROTATION_Y) )
-                {
-                    if(CurrentProcessInfo[FIRST_TIME_STEP])
-                    {
-                        i->GetSolutionStepValue(ANGULAR_ACCELERATION_NULL_Y) = i->GetSolutionStepValue(ANGULAR_ACCELERATION_Y);
-                        i->GetSolutionStepValue(ROTATION_NULL_DT_Y) = i->GetSolutionStepValue(ROTATION_DT_Y);
-                        i->GetSolutionStepValue(ROTATION_NULL_Y) = i->GetSolutionStepValue(ROTATION_Y);
-                    }
-                    else
-                    {
-                        i->GetSolutionStepValue(ROTATION_NULL_Y) = i->GetSolutionStepValue(ROTATION_EINS_Y);
-                        i->GetSolutionStepValue(ROTATION_NULL_DT_Y) = i->GetSolutionStepValue(ROTATION_EINS_DT_Y);
-                        i->GetSolutionStepValue(ANGULAR_ACCELERATION_NULL_Y) = i->GetSolutionStepValue(ANGULAR_ACCELERATION_EINS_Y);
-                    }
-                }
-                if( i->HasDofFor(ROTATION_Z) )
-                {
-                    if(CurrentProcessInfo[FIRST_TIME_STEP])
-                    {
-                        i->GetSolutionStepValue(ANGULAR_ACCELERATION_NULL_Z) = i->GetSolutionStepValue(ANGULAR_ACCELERATION_Z);
-                        i->GetSolutionStepValue(ROTATION_NULL_DT_Z) = i->GetSolutionStepValue(ROTATION_DT_Z);
-                        i->GetSolutionStepValue(ROTATION_NULL_Z) = i->GetSolutionStepValue(ROTATION_Z);
-                    }
-                    else
-                    {
-                        i->GetSolutionStepValue(ROTATION_NULL_Z) = i->GetSolutionStepValue(ROTATION_EINS_Z);
-                        i->GetSolutionStepValue(ROTATION_NULL_DT_Z) = i->GetSolutionStepValue(ROTATION_EINS_DT_Z);
-                        i->GetSolutionStepValue(ANGULAR_ACCELERATION_NULL_Z) = i->GetSolutionStepValue(ANGULAR_ACCELERATION_EINS_Z);
-                    }
-                }
-                #endif
-                #ifdef ENABLE_LAMBDA
-                if( i->HasDofFor(LAMBDA))
-                {
-                    i->GetSolutionStepValue(LAMBDA_OLD) = i->GetSolutionStepValue(LAMBDA);
-
-                    if(CurrentProcessInfo[FIRST_TIME_STEP])
-                    {
-                        i->GetSolutionStepValue(LAMBDA_NULL_DT2) = i->GetSolutionStepValue(LAMBDA_DT2);
-                        i->GetSolutionStepValue(LAMBDA_NULL_DT) = i->GetSolutionStepValue(LAMBDA_DT);
-                        i->GetSolutionStepValue(LAMBDA_NULL) = i->GetSolutionStepValue(LAMBDA);
-                    }
-                    else
-                    {
-                        i->GetSolutionStepValue(LAMBDA_NULL) = i->GetSolutionStepValue(LAMBDA_EINS);
-                        i->GetSolutionStepValue(LAMBDA_NULL_DT) = i->GetSolutionStepValue(LAMBDA_EINS_DT);
-                        i->GetSolutionStepValue(LAMBDA_NULL_DT2) =i->GetSolutionStepValue(LAMBDA_EINS_DT2);
-                    }
-                }
-                #endif
             }
+            if( i->HasDofFor(DISPLACEMENT_Z) )
+            {
+                i->GetSolutionStepValue(DISPLACEMENT_OLD_Z) = i->GetSolutionStepValue(DISPLACEMENT_Z);
+
+                if(CurrentProcessInfo[FIRST_TIME_STEP])
+                {
+                    i->GetSolutionStepValue(ACCELERATION_NULL_Z) = i->GetSolutionStepValue(ACCELERATION_Z);
+                    i->GetSolutionStepValue(DISPLACEMENT_NULL_DT_Z) = i->GetSolutionStepValue(DISPLACEMENT_DT_Z);
+                    i->GetSolutionStepValue(DISPLACEMENT_NULL_Z) = i->GetSolutionStepValue(DISPLACEMENT_Z);
+                }
+                else
+                {
+                    i->GetSolutionStepValue(DISPLACEMENT_NULL_Z) = i->GetSolutionStepValue(DISPLACEMENT_EINS_Z);
+                    i->GetSolutionStepValue(DISPLACEMENT_NULL_DT_Z) = i->GetSolutionStepValue(DISPLACEMENT_EINS_DT_Z);
+                    i->GetSolutionStepValue(ACCELERATION_NULL_Z) = i->GetSolutionStepValue(ACCELERATION_EINS_Z);
+                }
+            }
+            if( i->HasDofFor(WATER_PRESSURE))
+            {
+                if(CurrentProcessInfo[FIRST_TIME_STEP])
+                {
+                    i->GetSolutionStepValue(WATER_PRESSURE_NULL_ACCELERATION) = i->GetSolutionStepValue(WATER_PRESSURE_ACCELERATION);
+                    i->GetSolutionStepValue(WATER_PRESSURE_NULL_DT) = i->GetSolutionStepValue(WATER_PRESSURE_DT);
+                    i->GetSolutionStepValue(WATER_PRESSURE_NULL) = i->GetSolutionStepValue(WATER_PRESSURE);
+                }
+                else
+                {
+                    i->GetSolutionStepValue(WATER_PRESSURE_NULL_DT) = i->GetSolutionStepValue(WATER_PRESSURE_EINS_DT);
+                    i->GetSolutionStepValue(WATER_PRESSURE_NULL) = i->GetSolutionStepValue(WATER_PRESSURE_EINS);
+                    i->GetSolutionStepValue(WATER_PRESSURE_NULL_ACCELERATION) = i->GetSolutionStepValue(WATER_PRESSURE_EINS_ACCELERATION);
+                }
+            }
+            if( i->HasDofFor(AIR_PRESSURE) )
+            {
+                if(CurrentProcessInfo[FIRST_TIME_STEP])
+                {
+                    i->GetSolutionStepValue(AIR_PRESSURE_NULL_ACCELERATION) = i->GetSolutionStepValue(AIR_PRESSURE_ACCELERATION);
+                    i->GetSolutionStepValue(AIR_PRESSURE_NULL_DT) = i->GetSolutionStepValue(AIR_PRESSURE_DT);
+                    i->GetSolutionStepValue(AIR_PRESSURE_NULL) = i->GetSolutionStepValue(AIR_PRESSURE);
+                }
+                else
+                {
+                    i->GetSolutionStepValue(AIR_PRESSURE_NULL_DT) = i->GetSolutionStepValue(AIR_PRESSURE_EINS_DT);
+                    i->GetSolutionStepValue(AIR_PRESSURE_NULL) = i->GetSolutionStepValue(AIR_PRESSURE_EINS);
+                    i->GetSolutionStepValue(AIR_PRESSURE_NULL_ACCELERATION) = i->GetSolutionStepValue(AIR_PRESSURE_EINS_ACCELERATION);
+                }
+            }
+            #ifdef ENABLE_ROTATION
+            if( i->HasDofFor(ROTATION_X))
+            {
+                if(CurrentProcessInfo[FIRST_TIME_STEP])
+                {
+                    i->GetSolutionStepValue(ANGULAR_ACCELERATION_NULL_X) = i->GetSolutionStepValue(ANGULAR_ACCELERATION_X);
+                    i->GetSolutionStepValue(ROTATION_NULL_DT_X) = i->GetSolutionStepValue(ROTATION_DT_X);
+                    i->GetSolutionStepValue(ROTATION_NULL_X) = i->GetSolutionStepValue(ROTATION_X);
+                }
+                else
+                {
+                    i->GetSolutionStepValue(ROTATION_NULL_X) = i->GetSolutionStepValue(ROTATION_EINS_X);
+                    i->GetSolutionStepValue(ROTATION_NULL_DT_X) = i->GetSolutionStepValue(ROTATION_EINS_DT_X);
+                    i->GetSolutionStepValue(ANGULAR_ACCELERATION_NULL_X) = i->GetSolutionStepValue(ANGULAR_ACCELERATION_EINS_X);
+                }
+            }
+            if( i->HasDofFor(ROTATION_Y) )
+            {
+                if(CurrentProcessInfo[FIRST_TIME_STEP])
+                {
+                    i->GetSolutionStepValue(ANGULAR_ACCELERATION_NULL_Y) = i->GetSolutionStepValue(ANGULAR_ACCELERATION_Y);
+                    i->GetSolutionStepValue(ROTATION_NULL_DT_Y) = i->GetSolutionStepValue(ROTATION_DT_Y);
+                    i->GetSolutionStepValue(ROTATION_NULL_Y) = i->GetSolutionStepValue(ROTATION_Y);
+                }
+                else
+                {
+                    i->GetSolutionStepValue(ROTATION_NULL_Y) = i->GetSolutionStepValue(ROTATION_EINS_Y);
+                    i->GetSolutionStepValue(ROTATION_NULL_DT_Y) = i->GetSolutionStepValue(ROTATION_EINS_DT_Y);
+                    i->GetSolutionStepValue(ANGULAR_ACCELERATION_NULL_Y) = i->GetSolutionStepValue(ANGULAR_ACCELERATION_EINS_Y);
+                }
+            }
+            if( i->HasDofFor(ROTATION_Z) )
+            {
+                if(CurrentProcessInfo[FIRST_TIME_STEP])
+                {
+                    i->GetSolutionStepValue(ANGULAR_ACCELERATION_NULL_Z) = i->GetSolutionStepValue(ANGULAR_ACCELERATION_Z);
+                    i->GetSolutionStepValue(ROTATION_NULL_DT_Z) = i->GetSolutionStepValue(ROTATION_DT_Z);
+                    i->GetSolutionStepValue(ROTATION_NULL_Z) = i->GetSolutionStepValue(ROTATION_Z);
+                }
+                else
+                {
+                    i->GetSolutionStepValue(ROTATION_NULL_Z) = i->GetSolutionStepValue(ROTATION_EINS_Z);
+                    i->GetSolutionStepValue(ROTATION_NULL_DT_Z) = i->GetSolutionStepValue(ROTATION_EINS_DT_Z);
+                    i->GetSolutionStepValue(ANGULAR_ACCELERATION_NULL_Z) = i->GetSolutionStepValue(ANGULAR_ACCELERATION_EINS_Z);
+                }
+            }
+            #endif
+            #ifdef ENABLE_LAMBDA
+            if( i->HasDofFor(LAMBDA))
+            {
+                i->GetSolutionStepValue(LAMBDA_OLD) = i->GetSolutionStepValue(LAMBDA);
+
+                if(CurrentProcessInfo[FIRST_TIME_STEP])
+                {
+                    i->GetSolutionStepValue(LAMBDA_NULL_DT2) = i->GetSolutionStepValue(LAMBDA_DT2);
+                    i->GetSolutionStepValue(LAMBDA_NULL_DT) = i->GetSolutionStepValue(LAMBDA_DT);
+                    i->GetSolutionStepValue(LAMBDA_NULL) = i->GetSolutionStepValue(LAMBDA);
+                }
+                else
+                {
+                    i->GetSolutionStepValue(LAMBDA_NULL) = i->GetSolutionStepValue(LAMBDA_EINS);
+                    i->GetSolutionStepValue(LAMBDA_NULL_DT) = i->GetSolutionStepValue(LAMBDA_EINS_DT);
+                    i->GetSolutionStepValue(LAMBDA_NULL_DT2) =i->GetSolutionStepValue(LAMBDA_EINS_DT2);
+                }
+            }
+            #endif
         }
     }
     //***************************************************************************
@@ -1325,11 +1122,11 @@ protected:
         double aux;
 
         // adding stiffness contribution to the dynamic stiffness
-        aux = (1-mAlpha_f);
+        aux = mTheta;
         LHS_Contribution *= aux;
 
         // adding damping contribution to the dynamic stiffness
-        aux = (1-mAlpha_f)*mGamma/(mBeta*Dt);
+        aux = 1.0/Dt;
         noalias(LHS_Contribution) += aux * DampingMatrix;
     }
 
@@ -1343,15 +1140,15 @@ protected:
         double aux;
 
         // adding stiffness contribution to the dynamic stiffness
-        aux = (1-mAlpha_f);
+        aux = mTheta;
         LHS_Contribution *= aux;
 
         // adding damping contribution to the dynamic stiffness
-        aux = (1-mAlpha_f)*mGamma/(mBeta*Dt);
+        aux = 1.0/Dt;
         noalias(LHS_Contribution) += aux * DampingMatrix;
 
         // adding mass contribution to the dynamic stiffness
-        aux = (1-mAlpha_m)*1/(mBeta*pow(Dt, 2));
+        aux = 1.0/pow(Dt, 2);
         noalias(LHS_Contribution) += aux * MassMatrix;
     }
 
@@ -1380,10 +1177,7 @@ private:
     /**@name Member Variables */
     /*@{ */
 
-    double mAlpha_f;
-    double mAlpha_m;
-    double mBeta;
-    double mGamma;
+    double mTheta;
 
     /*@} */
     /**@name Private Operators*/
@@ -1406,6 +1200,6 @@ private:
 #undef ENABLE_ROTATION
 #undef ENABLE_LAMBDA
 
-#endif /* KRATOS_RESIDUALBASED_NEWMARK_SCHEME  defined */
+#endif /* KRATOS_RESIDUALBASED_THETA_SCHEME  defined */
 
 
