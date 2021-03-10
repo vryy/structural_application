@@ -518,7 +518,7 @@ void FaceForce3D::CalculateAll( MatrixType& rLeftHandSideMatrix,
  * or that no common error is found.
  * @param rCurrentProcessInfo
  */
-int FaceForce3D::Check( const ProcessInfo& rCurrentProcessInfo )
+int FaceForce3D::Check( const ProcessInfo& rCurrentProcessInfo ) const
 {
     return 0;
 }
