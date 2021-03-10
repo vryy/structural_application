@@ -91,6 +91,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
     #include "custom_elements/unsaturated_soils_element_2phase_small_strain.h"
     #include "custom_elements/unsaturated_soils_element_2phase_small_strain_staggered.h"
     #include "custom_elements/unsaturated_soils_element_3phase_small_strain.h"
+    #include "custom_elements/unsaturated_soils_element_3phase_small_strain_liakopolous.h"
     // #include "custom_elements/upc_test_element.h"
     #include "custom_elements/shell_isotropic.h"
     #include "custom_elements/shell_anisotropic.h"
@@ -341,6 +342,8 @@ private:
     const UnsaturatedSoilsElement_3phase_SmallStrain mUnsaturatedSoilsElement3PhaseSmallStrain3D15N;
     const UnsaturatedSoilsElement_3phase_SmallStrain mUnsaturatedSoilsElement3PhaseSmallStrain3D20N;
     const UnsaturatedSoilsElement_3phase_SmallStrain mUnsaturatedSoilsElement3PhaseSmallStrain3D27N;
+    const UnsaturatedSoilsElement_3phase_SmallStrain_Liakopolous mUnsaturatedSoilsElement3PhaseSmallStrainLiakopolous3D20N;
+    const UnsaturatedSoilsElement_3phase_SmallStrain_Liakopolous mUnsaturatedSoilsElement3PhaseSmallStrainLiakopolous3D27N;
     const Ebst mEbst3D3N;
     const EbstVel mEbstVel3D3N;
     const EASElementQ4E4 mEASElementQ4E4;

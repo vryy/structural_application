@@ -25,6 +25,7 @@ set( KRATOS_STRUCTURAL_APPLICATION_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/unsaturated_soils_element_2phase_small_strain_staggered.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/unsaturated_soils_element_2phase_small_strain_scale_water_pressure.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/unsaturated_soils_element_3phase_small_strain.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/unsaturated_soils_element_3phase_small_strain_liakopolous.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/crisfield_truss_element.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/truss_element.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/ebst.cpp
