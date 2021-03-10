@@ -196,9 +196,15 @@ public:
     * Get the mass matrix of the element.
     * @param rMassMatrix mass matrix
     * @param rCurrentProcessInfo process info
-    * TODO: assign the mass matrix
     */
     void CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo) final;
+
+    /**
+    * Get the damping matrix of the element.
+    * @param rDampingMatrix mass matrix
+    * @param rCurrentProcessInfo process info
+    */
+    void CalculateDampingMatrix(MatrixType& rDampingMatrix, const ProcessInfo& rCurrentProcessInfo) final;
 
     /**
     * Get the displacement vector of the element
@@ -330,12 +336,15 @@ private:
     * @param rCurrentProcessInfo process info
     * @param CalculateStiffnessMatrixFlag flag for elemental stiffness matrix
     * @param CalculateResidualVectorFlag flag for elemental residual vector
+    * index=0: calculate the stiffness and residual forces of the current step
+    * index=1: calculate the stiffness and residual forces of the previous step
     */
     void CalculateAll(  MatrixType& rLeftHandSideMatrix,
                         VectorType& rRightHandSideVector,
                         const ProcessInfo& rCurrentProcessInfo,
                         bool CalculateStiffnessMatrixFlag,
-                        bool CalculateResidualVectorFlag);
+                        bool CalculateResidualVectorFlag,
+                        const int& index);
 
     /**
     * Auxiliary function.
@@ -415,8 +424,10 @@ private:
 
     /**
      * Calculate the vector U, i.e. elemental deformation vector
+     * index=0: calculate U in the current step
+     * index=1: calculate U in the previous step
      */
-    void CalculateU(Vector& U) const;
+    void CalculateU(Vector& U, const int& index) const;
 
     /**
      * Calculate the length in current configuration

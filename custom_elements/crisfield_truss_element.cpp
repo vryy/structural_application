@@ -133,7 +133,7 @@ void CrisfieldTrussElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix
     bool CalculateStiffnessMatrixFlag = true;
     bool CalculateResidualVectorFlag = true;
 
-    CalculateAll(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo, CalculateStiffnessMatrixFlag, CalculateResidualVectorFlag);
+    CalculateAll(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo, CalculateStiffnessMatrixFlag, CalculateResidualVectorFlag, 0);
 }
 
 /**
@@ -151,7 +151,7 @@ void CrisfieldTrussElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatri
     bool CalculateResidualVectorFlag = false;
     VectorType temp = Vector();
 
-    CalculateAll(rLeftHandSideMatrix, temp, rCurrentProcessInfo, CalculateStiffnessMatrixFlag, CalculateResidualVectorFlag);
+    CalculateAll(rLeftHandSideMatrix, temp, rCurrentProcessInfo, CalculateStiffnessMatrixFlag, CalculateResidualVectorFlag, 0);
 }
 
 /**
@@ -169,7 +169,7 @@ void CrisfieldTrussElement::CalculateRightHandSide(VectorType& rRightHandSideVec
     bool CalculateResidualVectorFlag = true;
     MatrixType temp = Matrix();
 
-    CalculateAll(temp, rRightHandSideVector, rCurrentProcessInfo, CalculateStiffnessMatrixFlag, CalculateResidualVectorFlag);
+    CalculateAll(temp, rRightHandSideVector, rCurrentProcessInfo, CalculateStiffnessMatrixFlag, CalculateResidualVectorFlag, 0);
 }
 
 /**
@@ -221,7 +221,6 @@ void CrisfieldTrussElement::GetDofList(DofsVectorType& ElementalDofList, const P
 * Get the mass matrix of the element.
 * @param rMassMatrix mass matrix
 * @param rCurrentProcessInfo process info
-* TODO: assign the mass matrix
 */
 void CrisfieldTrussElement::CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo)
 {
@@ -252,6 +251,28 @@ void CrisfieldTrussElement::CalculateMassMatrix(MatrixType& rMassMatrix, const P
 }
 
 /**
+* Get the damping matrix of the element.
+* @param rDampMatrix mass matrix
+* @param rCurrentProcessInfo process info
+*/
+void CrisfieldTrussElement::CalculateDampingMatrix(MatrixType& rDampMatrix, const ProcessInfo& rCurrentProcessInfo)
+{
+    double alpha = GetProperties()[RAYLEIGH_DAMPING_ALPHA];
+    double beta = GetProperties()[RAYLEIGH_DAMPING_BETA];
+
+    this->CalculateMassMatrix(rDampMatrix, rCurrentProcessInfo);
+
+    rDampMatrix *= alpha;
+
+    // compute the stiffness of the current step, to avoid linearization of the stiffness
+    Matrix K;
+    Vector dummy;
+    this->CalculateAll(K, dummy, rCurrentProcessInfo, true, false, 1);
+
+    noalias(rDampMatrix) += beta*K;
+}
+
+/**
 * Get the displacement vector of the element
 * @param values displacement vector
 * @param Step solution step
@@ -268,10 +289,10 @@ void CrisfieldTrussElement::GetValuesVector(Vector& values, int Step) const
     for ( unsigned int i=0; i<number_of_nodes; i++)
     {
         int index = i*dimension;
-        values[index] = GetGeometry()[i].GetSolutionStepValue(DISPLACEMENT_X,Step);
-        values[index + 1] = GetGeometry()[i].GetSolutionStepValue(DISPLACEMENT_Y,Step);
+        values[index] = GetGeometry()[i].GetSolutionStepValue(DISPLACEMENT_X, Step);
+        values[index + 1] = GetGeometry()[i].GetSolutionStepValue(DISPLACEMENT_Y, Step);
         if(dimension == 3)
-            values[index + 2] = GetGeometry()[i].GetSolutionStepValue(DISPLACEMENT_Z,Step);
+            values[index + 2] = GetGeometry()[i].GetSolutionStepValue(DISPLACEMENT_Z, Step);
     }
     //KRATOS_WATCH( values );
 }
@@ -293,10 +314,10 @@ void CrisfieldTrussElement::GetFirstDerivativesVector(Vector& values, int Step) 
     for (unsigned int i=0; i<number_of_nodes; i++)
     {
         int index = i*dimension;
-        values[index] = GetGeometry()[i].GetSolutionStepValue(VELOCITY_X,Step);
-        values[index + 1] = GetGeometry()[i].GetSolutionStepValue(VELOCITY_Y,Step);
+        values[index] = GetGeometry()[i].GetSolutionStepValue(VELOCITY_X, Step);
+        values[index + 1] = GetGeometry()[i].GetSolutionStepValue(VELOCITY_Y, Step);
         if(dimension == 3)
-            values[index + 2] = GetGeometry()[i].GetSolutionStepValue(VELOCITY_Z,Step);
+            values[index + 2] = GetGeometry()[i].GetSolutionStepValue(VELOCITY_Z, Step);
     }
 }
 
@@ -317,10 +338,10 @@ void CrisfieldTrussElement::GetSecondDerivativesVector(Vector& values, int Step)
     for (unsigned int i=0; i<number_of_nodes; i++)
     {
         int index = i*dimension;
-        values[index] = GetGeometry()[i].GetSolutionStepValue(ACCELERATION_X,Step);
-        values[index + 1] = GetGeometry()[i].GetSolutionStepValue(ACCELERATION_Y,Step);
+        values[index] = GetGeometry()[i].GetSolutionStepValue(ACCELERATION_X, Step);
+        values[index + 1] = GetGeometry()[i].GetSolutionStepValue(ACCELERATION_Y, Step);
         if(dimension == 3)
-            values[index + 2] = GetGeometry()[i].GetSolutionStepValue(ACCELERATION_Z,Step);
+            values[index + 2] = GetGeometry()[i].GetSolutionStepValue(ACCELERATION_Z, Step);
     }
 }
 
@@ -354,7 +375,8 @@ void CrisfieldTrussElement::CalculateAll(MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
         const ProcessInfo& rCurrentProcessInfo,
         bool CalculateStiffnessMatrixFlag,
-        bool CalculateResidualVectorFlag)
+        bool CalculateResidualVectorFlag,
+        const int& index)
 {
     KRATOS_TRY
 
@@ -384,14 +406,14 @@ void CrisfieldTrussElement::CalculateAll(MatrixType& rLeftHandSideMatrix,
 
     CalculateA(A);
     CalculateX(X);
-    CalculateU(U);
+    CalculateU(U, index);
 
     //calculation of GREEN-LAGRANGE strain
     double Length = CalculateLength();
     double Area = GetProperties()[CROSS_AREA];
     double weight_strain = 1.0 / pow(Length, 2);
     double Strain = CalculateStrain(A, X, U, weight_strain);
-//      KRATOS_WATCH( Strain );
+    // KRATOS_WATCH( Strain )
 
     //Calculation of 2nd-Piola-Kirchhoff stress
 
@@ -403,7 +425,7 @@ void CrisfieldTrussElement::CalculateAll(MatrixType& rLeftHandSideMatrix,
         const Vector& prestress = this->GetValue(PRESTRESS);
         Stress += prestress[0];
     }
-//      KRATOS_WATCH( Stress );
+    // KRATOS_WATCH( Stress )
 
     //calculation of the residual force vector if required
     if (CalculateResidualVectorFlag == true)
@@ -449,7 +471,7 @@ void CrisfieldTrussElement::CalculateAndAdd_ExtForce(VectorType& rRightHandSideV
     for (unsigned int i=0; i<number_of_nodes; i++)
     {
         int index = dimension*i;
-        for ( int j=0; j<dimension; j++)
+        for ( int j = 0; j < dimension; ++j )
         {
             rRightHandSideVector[index+j] += GetProperties()[BODY_FORCE][j];
         }
@@ -472,7 +494,7 @@ void CrisfieldTrussElement::CalculateAndMinus_IntForce(VectorType& rRightHandSid
     KRATOS_TRY
 
     unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-    for (int i=0; i<dimension; i++)
+    for ( int i = 0; i < dimension; ++i )
     {
         rRightHandSideVector[i] -= weight*( X[i]+U[i]-X[dimension+i]-U[dimension+i] );
         rRightHandSideVector[dimension+i] -= rRightHandSideVector[i];
@@ -533,7 +555,7 @@ double CrisfieldTrussElement::CalculateStrain(const Matrix& A, const Vector& X, 
     Vector V = ZeroVector(X.size());
     noalias(V) = prod(A,U);
     double strain = 0;
-    for(unsigned int i=0; i<X.size(); i++ )
+    for ( unsigned int i = 0; i < X.size(); ++i )
     {
         strain += (X[i]+0.5*U[i])*V[i];
     }
@@ -585,7 +607,7 @@ void CrisfieldTrussElement::CalculateX(Vector& X) const
 /**
  * Calculate the vector U, i.e. elemental deformation vector
  */
-void CrisfieldTrussElement::CalculateU(Vector& U) const
+void CrisfieldTrussElement::CalculateU(Vector& U, const int& solution_index) const
 {
     unsigned int dimension = GetGeometry().WorkingSpaceDimension();
     unsigned int number_of_nodes = GetGeometry().size();
@@ -593,10 +615,10 @@ void CrisfieldTrussElement::CalculateU(Vector& U) const
     for ( unsigned int i = 0; i < number_of_nodes; ++i)
     {
         int index = i*dimension;
-        U[index] = GetGeometry()[i].GetSolutionStepValue(DISPLACEMENT_X);
-        U[index+1] = GetGeometry()[i].GetSolutionStepValue(DISPLACEMENT_Y);
+        U[index] = GetGeometry()[i].GetSolutionStepValue(DISPLACEMENT_X, solution_index);
+        U[index+1] = GetGeometry()[i].GetSolutionStepValue(DISPLACEMENT_Y, solution_index);
         if(dimension == 3)
-            U[index+2] = GetGeometry()[i].GetSolutionStepValue(DISPLACEMENT_Z);
+            U[index+2] = GetGeometry()[i].GetSolutionStepValue(DISPLACEMENT_Z, solution_index);
     }
 }
 

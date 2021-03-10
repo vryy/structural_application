@@ -164,38 +164,38 @@ namespace Kratos
                                       bool CalculateStiffnessMatrixFlag,
                                       bool CalculateResidualVectorFlag)
     {
+        KRATOS_TRY
 
-	KRATOS_TRY
+        // double penalty = GetProperties()[INITIAL_PENALTY];
 
-//	double penalty = 1.0e6;
-	Vector uTipSoil = ZeroVector(3);
-	for( unsigned int node = 0; node < mpTipSoilElement->GetGeometry().size(); node++ )
-	{
-		uTipSoil+=mpTipSoilElement->GetGeometry().ShapeFunctionValue(node,mTipSoilLocalPoint)*mpTipSoilElement->GetGeometry()[node].GetSolutionStepValue(DISPLACEMENT);
-	}
-	//KRATOS_WATCH(uTipSoil);
-//	KRATOS_WATCH(mTipSoilLocalPoint);
-	Vector uTip = ZeroVector(3);
-	for( unsigned int node = 0; node < mpTipElement->GetGeometry().size(); node++ )
-	{
-		uTip+=mpTipElement->GetGeometry().ShapeFunctionValue(node,mTipLocalPoint)*mpTipElement->GetGeometry()[node].GetSolutionStepValue(DISPLACEMENT);
-	}
-//	KRATOS_WATCH(uTip);
-//	KRATOS_WATCH(mTipSoilLocalPoint);
+        Vector uTipSoil = ZeroVector(3);
+        for( unsigned int node = 0; node < mpTipSoilElement->GetGeometry().size(); node++ )
+        {
+            uTipSoil+=mpTipSoilElement->GetGeometry().ShapeFunctionValue(node,mTipSoilLocalPoint)*mpTipSoilElement->GetGeometry()[node].GetSolutionStepValue(DISPLACEMENT);
+        }
+        //KRATOS_WATCH(uTipSoil);
+    //  KRATOS_WATCH(mTipSoilLocalPoint);
+        Vector uTip = ZeroVector(3);
+        for( unsigned int node = 0; node < mpTipElement->GetGeometry().size(); node++ )
+        {
+            uTip+=mpTipElement->GetGeometry().ShapeFunctionValue(node,mTipLocalPoint)*mpTipElement->GetGeometry()[node].GetSolutionStepValue(DISPLACEMENT);
+        }
+    //  KRATOS_WATCH(uTip);
+    //  KRATOS_WATCH(mTipSoilLocalPoint);
 
-	Vector relDisp = uTipSoil-uTip;
-	KRATOS_WATCH( relDisp );
+        Vector relDisp = uTipSoil-uTip;
+        KRATOS_WATCH( relDisp );
         unsigned int tip_soilNN = mpTipSoilElement->GetGeometry().size();
         unsigned int tipNN = mpTipElement->GetGeometry().size();
         unsigned int dimension = 3;
         unsigned int MatSize = (tip_soilNN+tipNN)*dimension+3;
-		KRATOS_WATCH(MatSize);
+        KRATOS_WATCH(MatSize);
         //resizing as needed the RHS
         if (CalculateResidualVectorFlag == true) //calculation of the matrix is required
         {
-                if(rRightHandSideVector.size() != MatSize)
-                    rRightHandSideVector.resize(MatSize);
-                noalias(rRightHandSideVector) = ZeroVector(MatSize); //resetting RHS    */
+            if(rRightHandSideVector.size() != MatSize)
+                rRightHandSideVector.resize(MatSize);
+            noalias(rRightHandSideVector) = ZeroVector(MatSize); //resetting RHS    */
         }
         if (CalculateStiffnessMatrixFlag == true) //calculation of the matrix is required
         {
@@ -203,35 +203,32 @@ namespace Kratos
                 rLeftHandSideMatrix.resize(MatSize,MatSize);
             noalias(rLeftHandSideMatrix) = ZeroMatrix(MatSize,MatSize);
         }
-        else return;
 
-	//subtracting relDisp*penalty from soil nodes' reaction vector
-	for( unsigned int node=0; node < tip_soilNN; node++ )
-	{
-		rRightHandSideVector[3*node]   -= relDisp[0];
-		rRightHandSideVector[3*node+1] -= relDisp[1];
-		rRightHandSideVector[3*node+2] -= relDisp[2];
-	}
-	//adding relDisp*penalty to pile's reaction vector
-	for( unsigned int node=0; node < tipNN; node++ )
-	{
+        if (!CalculateResidualVectorFlag && !CalculateStiffnessMatrixFlag)
+            return;
 
-		rRightHandSideVector[3*tip_soilNN+3*node]   += relDisp[0];
-		rRightHandSideVector[3*tip_soilNN+3*node+1] += relDisp[1];
-		rRightHandSideVector[3*tip_soilNN+3*node+2] += relDisp[2];
+        //subtracting relDisp*penalty from soil nodes' reaction vector
+        for( unsigned int node=0; node < tip_soilNN; node++ )
+        {
+            rRightHandSideVector[3*node]   -= relDisp[0];
+            rRightHandSideVector[3*node+1] -= relDisp[1];
+            rRightHandSideVector[3*node+2] -= relDisp[2];
+        }
+        //adding relDisp*penalty to pile's reaction vector
+        for( unsigned int node=0; node < tipNN; node++ )
+        {
+            rRightHandSideVector[3*tip_soilNN+3*node]   += relDisp[0];
+            rRightHandSideVector[3*tip_soilNN+3*node+1] += relDisp[1];
+            rRightHandSideVector[3*tip_soilNN+3*node+2] += relDisp[2];
 
-	}
-	//KRATOS_WATCH(rRightHandSideVector)
-
+        }
+        //KRATOS_WATCH(rRightHandSideVector)
 
 
 // std::cout<<"#################### THIS IS IN CALCULATE ALL ####################"<<std::endl;
 
         Vector tip_soil_local_shape = ZeroVector(tip_soilNN);
-    	Vector side_local_shape = ZeroVector(tipNN);
-
-
-
+        Vector side_local_shape = ZeroVector(tipNN);
 
         for( IndexType PointNumber = 0; PointNumber < mpTipElement->GetGeometry().size(); PointNumber++ )
         {
@@ -258,11 +255,8 @@ namespace Kratos
             }
         }
 //        KRATOS_WATCH(rLeftHandSideMatrix);
-   		KRATOS_CATCH("")
-	}
-
-
-
+        KRATOS_CATCH("")
+    }
 
 
 //************************************************************************************
@@ -272,35 +266,39 @@ namespace Kratos
 * All conditions are assumed to be defined in 3D space with 3 DOFs per node.
 * All Equation IDs are given Master first, Slave second
 */
-	void TipCondition::EquationIdVector( EquationIdVectorType& rResult,
+    void TipCondition::EquationIdVector( EquationIdVectorType& rResult,
                                           const ProcessInfo& CurrentProcessInfo) const
-	{
+    {
         //determining size of DOF list
         //dimension of space
-		unsigned int tip_soilNN = mpTipSoilElement->GetGeometry().size();
-	        unsigned int tipNN = mpTipElement->GetGeometry().size();
-		unsigned int ndofs = 3*(tip_soilNN+tipNN)+3;
-	        unsigned int index;
-		rResult.resize(ndofs,false);
- 	        for( unsigned int node=0; node<tip_soilNN; node++ )
- 	        {
-			index = node*3;
-			rResult[index]   = mpTipSoilElement->GetGeometry()[node].GetDof(DISPLACEMENT_X).EquationId();
-			rResult[index+1] = mpTipSoilElement->GetGeometry()[node].GetDof(DISPLACEMENT_Y).EquationId();
-			rResult[index+2] = mpTipSoilElement->GetGeometry()[node].GetDof(DISPLACEMENT_Z).EquationId();
- 	        }
- 	        for( unsigned int node=0; node<tipNN; node++ )
- 	        {
-			index = tip_soilNN*3+node*3;
-			rResult[index]   = mpTipElement->GetGeometry()[node].GetDof(DISPLACEMENT_X).EquationId();
-			rResult[index+1] = mpTipElement->GetGeometry()[node].GetDof(DISPLACEMENT_Y).EquationId();
-			rResult[index+2] = mpTipElement->GetGeometry()[node].GetDof(DISPLACEMENT_Z).EquationId();
- 	        }
-	        index = tip_soilNN*3+tipNN*3;
-		rResult[index] = mpTipElement->GetGeometry()[0].GetDof(LAGRANGE_DISPLACEMENT_X).EquationId();
-		rResult[index+1] = mpTipElement->GetGeometry()[0].GetDof(LAGRANGE_DISPLACEMENT_Y).EquationId();
-		rResult[index+2] = mpTipElement->GetGeometry()[0].GetDof(LAGRANGE_DISPLACEMENT_Z).EquationId();
-  	  }
+        unsigned int tip_soilNN = mpTipSoilElement->GetGeometry().size();
+        unsigned int tipNN = mpTipElement->GetGeometry().size();
+        unsigned int ndofs = 3*(tip_soilNN+tipNN)+3;
+        unsigned int index;
+
+        rResult.resize(ndofs,false);
+
+        for( unsigned int node=0; node<tip_soilNN; node++ )
+        {
+            index = node*3;
+            rResult[index]   = mpTipSoilElement->GetGeometry()[node].GetDof(DISPLACEMENT_X).EquationId();
+            rResult[index+1] = mpTipSoilElement->GetGeometry()[node].GetDof(DISPLACEMENT_Y).EquationId();
+            rResult[index+2] = mpTipSoilElement->GetGeometry()[node].GetDof(DISPLACEMENT_Z).EquationId();
+        }
+        for( unsigned int node=0; node<tipNN; node++ )
+        {
+            index = tip_soilNN*3+node*3;
+            rResult[index]   = mpTipElement->GetGeometry()[node].GetDof(DISPLACEMENT_X).EquationId();
+            rResult[index+1] = mpTipElement->GetGeometry()[node].GetDof(DISPLACEMENT_Y).EquationId();
+            rResult[index+2] = mpTipElement->GetGeometry()[node].GetDof(DISPLACEMENT_Z).EquationId();
+        }
+
+        index = tip_soilNN*3+tipNN*3;
+        rResult[index] = mpTipElement->GetGeometry()[0].GetDof(LAGRANGE_DISPLACEMENT_X).EquationId();
+        rResult[index+1] = mpTipElement->GetGeometry()[0].GetDof(LAGRANGE_DISPLACEMENT_Y).EquationId();
+        rResult[index+2] = mpTipElement->GetGeometry()[0].GetDof(LAGRANGE_DISPLACEMENT_Z).EquationId();
+    }
+
     //************************************************************************************
     //************************************************************************************
     /**
@@ -317,10 +315,10 @@ namespace Kratos
         unsigned int tip_soilNN = mpTipSoilElement->GetGeometry().size();
         unsigned int tipNN = mpTipElement->GetGeometry().size();
         unsigned int index;
-	unsigned int ndofs = 3*(tip_soilNN+tipNN)+3;
-//	KRATOS_WATCH(ndofs);
+    unsigned int ndofs = 3*(tip_soilNN+tipNN)+3;
+//  KRATOS_WATCH(ndofs);
         ConditionalDofList.resize(ndofs);
-	for( unsigned int node=0; node<tip_soilNN; node++ )
+    for( unsigned int node=0; node<tip_soilNN; node++ )
         {
             index = node*3;
             ConditionalDofList[index]   = mpTipSoilElement->GetGeometry()[node].pGetDof(DISPLACEMENT_X);
@@ -334,10 +332,10 @@ namespace Kratos
             ConditionalDofList[index+1] = mpTipElement->GetGeometry()[node].pGetDof(DISPLACEMENT_Y);
             ConditionalDofList[index+2] = mpTipElement->GetGeometry()[node].pGetDof(DISPLACEMENT_Z);
         }
-	index = tip_soilNN*3+tipNN*3;
-	ConditionalDofList[index] = mpTipElement->GetGeometry()[0].pGetDof(LAGRANGE_DISPLACEMENT_X);
-	ConditionalDofList[index+1] = mpTipElement->GetGeometry()[0].pGetDof(LAGRANGE_DISPLACEMENT_Y);
-	ConditionalDofList[index+2] = mpTipElement->GetGeometry()[0].pGetDof(LAGRANGE_DISPLACEMENT_Z);
-	//KRATOS_WATCH(ConditionalDofList[0]);
+    index = tip_soilNN*3+tipNN*3;
+    ConditionalDofList[index] = mpTipElement->GetGeometry()[0].pGetDof(LAGRANGE_DISPLACEMENT_X);
+    ConditionalDofList[index+1] = mpTipElement->GetGeometry()[0].pGetDof(LAGRANGE_DISPLACEMENT_Y);
+    ConditionalDofList[index+2] = mpTipElement->GetGeometry()[0].pGetDof(LAGRANGE_DISPLACEMENT_Z);
+    //KRATOS_WATCH(ConditionalDofList[0]);
     }
 } // Namespace Kratos

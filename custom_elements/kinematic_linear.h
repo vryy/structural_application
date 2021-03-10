@@ -215,14 +215,24 @@ public:
     ///@{
 
     /// Turn back information as a string.
-//      virtual String Info() const;
+    std::string Info() const override
+    {
+        return "KinematicLinear";
+    }
 
     /// Print information about this object.
-//      virtual void PrintInfo(std::ostream& rOStream) const;
+    void PrintInfo(std::ostream& rOStream) const override
+    {
+        rOStream << Info() << " #" << Id();
+    }
 
     /// Print object's data.
-//      virtual void PrintData(std::ostream& rOStream) const;
-
+    void PrintData(std::ostream& rOStream) const override
+    {
+        Element::PrintData(rOStream);
+        rOStream << "mConstitutiveLawVector::size = " << mConstitutiveLawVector.size() << std::endl;
+        rOStream << "IntegrationMethod: " << mThisIntegrationMethod;
+    }
 
     ///@}
     ///@name Friends
