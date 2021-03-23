@@ -110,27 +110,28 @@ namespace Kratos
              * Operations.
              */
 
-            void Initialize(const ProcessInfo& rCurrentProcessInfo);
+            void Initialize(const ProcessInfo& rCurrentProcessInfo) final;
 
-            void InitializeSolutionStep(const ProcessInfo& CurrentProcessInfo);
+            void InitializeSolutionStep(const ProcessInfo& CurrentProcessInfo) final;
 
             /**
              * Calculates the local system contributions for this contact element
              */
             void CalculateLocalSystem( MatrixType& rLeftHandSideMatrix,
                                        VectorType& rRightHandSideVector,
-                                       const ProcessInfo& rCurrentProcessInfo );
+                                       const ProcessInfo& rCurrentProcessInfo ) final;
 
             void CalculateRightHandSide( VectorType& rRightHandSideVector,
-                                         const ProcessInfo& rCurrentProcessInfo );
+                                         const ProcessInfo& rCurrentProcessInfo ) final;
 
-            void DampMatrix( MatrixType& rDampMatrix, const ProcessInfo& rCurrentProcessInfo );
+            void CalculateDampingMatrix( MatrixType& rDampMatrix,
+                                         const ProcessInfo& rCurrentProcessInfo ) final;
 
             void EquationIdVector( EquationIdVectorType& rResult,
-                                   const ProcessInfo& rCurrentProcessInfo ) const;
+                                   const ProcessInfo& rCurrentProcessInfo ) const final;
 
             void GetDofList( DofsVectorType& ConditionalDofList,
-                             const ProcessInfo& CurrentProcessInfo ) const;
+                             const ProcessInfo& CurrentProcessInfo ) const final;
 
             /**
              * Turn back information as a string.
@@ -141,12 +142,12 @@ namespace Kratos
             /**
              * Print information about this object.
              */
-            virtual void PrintInfo( std::ostream& rOStream ) const;
+            void PrintInfo( std::ostream& rOStream ) const final;
 
             /**
              * Print object's data.
              */
-            virtual void PrintData( std::ostream& rOStream ) const;
+            void PrintData( std::ostream& rOStream ) const final;
 
         protected:
 
@@ -155,13 +156,13 @@ namespace Kratos
 
             friend class Serializer;
 
-            virtual void save( Serializer& rSerializer ) const
+            void save( Serializer& rSerializer ) const final
             {
                 rSerializer.save( "name", "Pile_Kinematic_Linear" );
                 KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, Condition )
             }
 
-            virtual void load( Serializer& rSerializer )
+            void load( Serializer& rSerializer ) final
             {
                 KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Condition )
             }
@@ -205,8 +206,6 @@ namespace Kratos
             Vector NormalVector( Element::Pointer rElement, const GeometryType::CoordinatesArrayType& LocalPoint );
 
             PointType& GetGlobalCoordinates( Element::Pointer rElement, PointType& rResult, const PointType& LocalCoordinates );
-
-            Matrix CalculateTangentVectors( const Element::Pointer rElement, const Matrix& DN );
 
             Matrix TangentialVectors( Element::Pointer rElement,
                                       const GeometryType::CoordinatesArrayType& LocalPoint );

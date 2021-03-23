@@ -1,9 +1,9 @@
 
 /* *********************************************************
 *
-*   Last Modified by:    $Author: nelson $
-*   Date:                $Date: 2009-01-21 09:56:09 $
-*   Revision:            $Revision: 1.2 $
+*   Last Modified by:    $Author: nelson, hbui $
+*   Date:                $Date: 14/3/2021 $
+*   Revision:            $Revision: 1.3 $
 *
 * ***********************************************************/
 
@@ -131,12 +131,10 @@ void BeamElement::CalculateAll(MatrixType& rLeftHandSideMatrix,
         return;
     }
 
-
     if (CalculateStiffnessMatrixFlag == true)
     {
         CalculateLHS(rLeftHandSideMatrix);
     }
-
 
     if (CalculateResidualVectorFlag == true)
     {
@@ -187,8 +185,6 @@ void BeamElement::EquationIdVector(EquationIdVectorType& rResult,
     if(rResult.size() != 12)
         rResult.resize(12,false);
 
-
-
     rResult[0]	= GetGeometry()[0].GetDof(DISPLACEMENT_X).EquationId();
     rResult[1]	= GetGeometry()[0].GetDof(DISPLACEMENT_Y).EquationId();
     rResult[2]	= GetGeometry()[0].GetDof(DISPLACEMENT_Z).EquationId();
@@ -201,7 +197,6 @@ void BeamElement::EquationIdVector(EquationIdVectorType& rResult,
     rResult[9]	= GetGeometry()[1].GetDof(ROTATION_X).EquationId();
     rResult[10] = GetGeometry()[1].GetDof(ROTATION_Y).EquationId();
     rResult[11] = GetGeometry()[1].GetDof(ROTATION_Z).EquationId();
-
 }
 
 
@@ -225,7 +220,6 @@ void BeamElement::GetDofList(DofsVectorType& ElementalDofList,const ProcessInfo&
     ElementalDofList.push_back(GetGeometry()[1].pGetDof(ROTATION_X));
     ElementalDofList.push_back(GetGeometry()[1].pGetDof(ROTATION_Y));
     ElementalDofList.push_back(GetGeometry()[1].pGetDof(ROTATION_Z));
-
 }
 
 //************************************************************************************
@@ -248,8 +242,6 @@ void BeamElement::GetValuesVector(Vector& values, int Step)
     values(9)	= GetGeometry()[1].GetSolutionStepValue(ROTATION_X,Step);
     values(10)	= GetGeometry()[1].GetSolutionStepValue(ROTATION_Y,Step);
     values(11)	= GetGeometry()[1].GetSolutionStepValue(ROTATION_Z,Step);
-
-
 }
 
 //************************************************************************************
@@ -257,7 +249,6 @@ void BeamElement::GetValuesVector(Vector& values, int Step)
 
 void BeamElement::CalculateLHS(Matrix& rLeftHandSideMatrix)
 {
-
     Matrix LocalMatrix;
     Matrix Rotation;
     Matrix aux_matrix;
@@ -267,11 +258,35 @@ void BeamElement::CalculateLHS(Matrix& rLeftHandSideMatrix)
     aux_matrix.resize(12,12, false);
     rLeftHandSideMatrix.resize(12,12,false);
 
-
     CalculateLocalMatrix(LocalMatrix);
     CalculateTransformationMatrix(Rotation);
     noalias(aux_matrix) = prod(Rotation, LocalMatrix);
     noalias(rLeftHandSideMatrix)= prod(aux_matrix,Matrix(trans(Rotation)));
+
+    /// adding the contribution from rotational stiffness if needed
+    if (GetProperties().Has(ROTATIONAL_STIFFNESS))
+    {
+        const double Kr = GetProperties()[ROTATIONAL_STIFFNESS];
+
+        array_1d<double, 3> axialVector;
+        axialVector[0] = GetGeometry()[1].X0() - GetGeometry()[0].X0();
+        axialVector[1] = GetGeometry()[1].Y0() - GetGeometry()[0].Y0();
+        axialVector[2] = GetGeometry()[1].Z0() - GetGeometry()[0].Z0();
+        double length = norm_2(axialVector);
+        double aux = 0.25*Kr*length;
+
+        for (int i = 0; i < 3; ++i)
+        {
+            for (int j = 0; j < 3; ++j)
+            {
+                rLeftHandSideMatrix(i+3, j+3) += aux*axialVector[i]*axialVector[j];
+                rLeftHandSideMatrix(i+3, j+6) += aux*axialVector[i]*axialVector[j];
+                rLeftHandSideMatrix(i+6, j+3) += aux*axialVector[i]*axialVector[j];
+                rLeftHandSideMatrix(i+6, j+6) += aux*axialVector[i]*axialVector[j];
+            }
+        }
+    }
+
     return;
 }
 
@@ -279,9 +294,7 @@ void BeamElement::CalculateLHS(Matrix& rLeftHandSideMatrix)
 //************************************************************************************
 //************************************************************************************
 void BeamElement::CalculateRHS(Vector& rRightHandSideVector)
-
 {
-
     Matrix Rotation;
     Matrix GlobalMatrix;
     Vector LocalBody;
@@ -294,7 +307,6 @@ void BeamElement::CalculateRHS(Vector& rRightHandSideVector)
 
     CalculateTransformationMatrix(Rotation);
     CalculateBodyForce(Rotation, LocalBody, rRightHandSideVector);
-
 
     CurrentDisplacement(0)		=   GetGeometry()[0].GetSolutionStepValue(DISPLACEMENT_X) - mInitialDisp(0, 0);
     CurrentDisplacement(1)		=   GetGeometry()[0].GetSolutionStepValue(DISPLACEMENT_Y) - mInitialDisp(0, 1);
@@ -310,11 +322,46 @@ void BeamElement::CalculateRHS(Vector& rRightHandSideVector)
     CurrentDisplacement(11)	    =   GetGeometry()[1].GetSolutionStepValue(ROTATION_Z) - mInitialRot(1, 2);
 
     CalculateLHS(GlobalMatrix);
+    // KRATOS_WATCH(GlobalMatrix)
+    // KRATOS_WATCH(CurrentDisplacement)
+    // KRATOS_WATCH(GetGeometry()[0].GetSolutionStepValue(DISPLACEMENT))
+    KRATOS_WATCH(GetGeometry()[0].GetSolutionStepValue(ROTATION))
+    // KRATOS_WATCH(GetGeometry()[1].GetSolutionStepValue(DISPLACEMENT))
+    KRATOS_WATCH(GetGeometry()[1].GetSolutionStepValue(ROTATION))
+    // KRATOS_WATCH(mInitialDisp)
+    // KRATOS_WATCH(mInitialRot)
     noalias(rRightHandSideVector) -= prod(GlobalMatrix, CurrentDisplacement);
+
+    /// adding the contribution from rotational stiffness if needed
+    if (GetProperties().Has(ROTATIONAL_STIFFNESS))
+    {
+        const double Kr = GetProperties()[ROTATIONAL_STIFFNESS];
+        KRATOS_WATCH(Kr)
+
+        array_1d<double, 3> relativeRotation;
+        relativeRotation[0] = 0.5*(CurrentDisplacement(9) + CurrentDisplacement(3));
+        relativeRotation[1] = 0.5*(CurrentDisplacement(10) + CurrentDisplacement(4));
+        relativeRotation[2] = 0.5*(CurrentDisplacement(11) + CurrentDisplacement(5));
+
+        array_1d<double, 3> axialVector;
+        axialVector[0] = GetGeometry()[1].X0() - GetGeometry()[0].X0();
+        axialVector[1] = GetGeometry()[1].Y0() - GetGeometry()[0].Y0();
+        axialVector[2] = GetGeometry()[1].Z0() - GetGeometry()[0].Z0();
+
+        double rotationalTorque = Kr * inner_prod(relativeRotation, axialVector);
+        double length = norm_2(axialVector);
+        double aux = rotationalTorque*length*0.5;
+
+        rRightHandSideVector(3) -= aux*axialVector[0];
+        rRightHandSideVector(4) -= aux*axialVector[1];
+        rRightHandSideVector(5) -= aux*axialVector[2];
+        rRightHandSideVector(9) -= aux*axialVector[0];
+        rRightHandSideVector(10) -= aux*axialVector[1];
+        rRightHandSideVector(11) -= aux*axialVector[2];
+    }
+
     return;
 }
-
-
 
 
 //************************************************************************************
@@ -798,6 +845,52 @@ void BeamElement::CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo
     }
 
     KRATOS_CATCH("")
+}
+
+//************************************************************************************
+//************************************************************************************
+
+void BeamElement::CalculateDampingMatrix( MatrixType& rDampMatrix, const ProcessInfo& rCurrentProcessInfo )
+{
+    KRATOS_TRY
+
+    unsigned int number_of_nodes = GetGeometry().size();
+    unsigned int dim = GetGeometry().WorkingSpaceDimension();
+
+    //resizing as needed the LHS
+    unsigned int mat_size = number_of_nodes * dim;
+
+    if ( rDampMatrix.size1() != mat_size )
+        rDampMatrix.resize( mat_size, mat_size, false );
+
+    noalias( rDampMatrix ) = ZeroMatrix( mat_size, mat_size );
+
+    Matrix StiffnessMatrix = ZeroMatrix( mat_size, mat_size );
+
+    Vector RHS_Vector = ZeroVector( mat_size );
+
+    //rayleigh damping
+    CalculateAll( StiffnessMatrix, RHS_Vector, rCurrentProcessInfo, true, false );
+
+    double alpha = 0.001, beta = 0.001;
+
+    if(GetProperties().Has(RAYLEIGH_DAMPING_ALPHA))
+    {
+        alpha = GetProperties()[RAYLEIGH_DAMPING_ALPHA];
+    }
+
+    if(GetProperties().Has(RAYLEIGH_DAMPING_BETA))
+    {
+        beta = GetProperties()[RAYLEIGH_DAMPING_BETA];
+    }
+
+    CalculateMassMatrix( rDampMatrix, rCurrentProcessInfo );
+
+    noalias( rDampMatrix ) = alpha * rDampMatrix + beta * StiffnessMatrix;
+
+    KRATOS_WATCH(rDampMatrix)
+
+    KRATOS_CATCH( "" )
 }
 
 //************************************************************************************

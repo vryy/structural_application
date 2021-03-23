@@ -136,6 +136,13 @@ void PointForce3D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorT
     KRATOS_CATCH("")
 }
 
+//************************************************************************************
+//************************************************************************************
+
+void PointForce3D::CalculateDampingMatrix( MatrixType& rDampMatrix, const ProcessInfo& rCurrentProcessInfo )
+{
+    rDampMatrix.resize(0, 0, false);
+}
 
 //************************************************************************************
 //************************************************************************************

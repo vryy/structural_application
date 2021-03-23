@@ -59,6 +59,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_utilities/sd_math_utils.h"
 #include "structural_application_variables.h"
 
+#define DEBUG_PILE
+
 namespace Kratos
 {
 
@@ -408,7 +410,9 @@ void Pile_Kinematic_Linear::CalculateAll( MatrixType& rLeftHandSideMatrix,
 
     double influence_area = mpPileElement->GetGeometry().IntegrationPoints()[mPileIntegrationPointIndex].Weight()
                             * DetJPile * circumference_pile*0.5;
+    #ifdef DEBUG_PILE
     KRATOS_WATCH( influence_area );
+    #endif
 
     //********************************
     //Calculating normals and tangents
@@ -434,7 +438,9 @@ void Pile_Kinematic_Linear::CalculateAll( MatrixType& rLeftHandSideMatrix,
         TPileN( 1, 1 ) += 0;
         TPileN( 1, 2 ) += 0;
     }
+    #ifdef DEBUG_PILE
     KRATOS_WATCH(TPileN)
+    #endif
 
     //calculating normal vetors vectors
     Vector vCurentPile( 3 );
@@ -450,7 +456,10 @@ void Pile_Kinematic_Linear::CalculateAll( MatrixType& rLeftHandSideMatrix,
         vCurentPile[2] += ( mpPileElement->GetGeometry()[n].Z() ) * PileShapeFunctionValues[n];
 
     }
+    #ifdef DEBUG_PILE
     KRATOS_WATCH(vCurentPile)
+    #endif
+
     //calculating initial position of target point on pile
 
     Vector vOrigintPile = ZeroVector( 3 );
@@ -464,7 +473,9 @@ void Pile_Kinematic_Linear::CalculateAll( MatrixType& rLeftHandSideMatrix,
         vOrigintPile[2] += ( mpPileElement->GetGeometry()[n].Z()-mpPileElement->GetGeometry()[n].GetSolutionStepValue( DISPLACEMENT_Z,0 ))
                            *  PileShapeFunctionValues[n];
     }
+    #ifdef DEBUG_PILE
     KRATOS_WATCH(vOrigintPile)
+    #endif
 
     //calculating projection of curret point on nomal plane
     Vector vOriginPileProj( 3 );
@@ -477,7 +488,9 @@ void Pile_Kinematic_Linear::CalculateAll( MatrixType& rLeftHandSideMatrix,
         vOriginPileProj( 1 ) += ( vOrigintPile( 1 ) - TPileN( 0, 1 ) * T0 );
         vOriginPileProj( 2 ) += ( vOrigintPile( 2 ) - TPileN( 0, 2 ) * T0 );
     }
+    #ifdef DEBUG_PILE
     KRATOS_WATCH(vOriginPileProj)
+    #endif
 
     //calculating normal vector
     vPile = vCurentPile - vOriginPileProj;
@@ -488,12 +501,18 @@ void Pile_Kinematic_Linear::CalculateAll( MatrixType& rLeftHandSideMatrix,
 
     double norm_vPile;
     norm_vPile = sqrt( vPile( 0 ) * vPile( 0 ) + vPile( 1 ) * vPile( 1 ) + vPile(2 ) * vPile( 2 ) );
+    #ifdef DEBUG_PILE
     KRATOS_WATCH( vPile );
     KRATOS_WATCH (norm_vPile);
-    Vector relDisp( 3 );
+    #endif
 
+    Vector relDisp( 3 );
     noalias( relDisp ) = ( mPileGlobalPoint - mSoilGlobalPoint );
     double NormrelDisp = MathUtils<double>::Norm3( relDisp );
+    #ifdef DEBUG_PILE
+    KRATOS_WATCH(relDisp)
+    KRATOS_WATCH(NormrelDisp)
+    #endif
 
     SD_MathUtils<double>::Normalize( vPile );
 
@@ -533,9 +552,11 @@ void Pile_Kinematic_Linear::CalculateAll( MatrixType& rLeftHandSideMatrix,
     double normalStress = abs( penalty * Gap );
    // double normalStress = penalty * Gap;
 
+    #ifdef DEBUG_PILE
     KRATOS_WATCH( normalStress );
     KRATOS_WATCH( penalty );
     KRATOS_WATCH( Gap );
+    #endif
 
     //tangential vector on Pile surface
     Matrix T( 2, 3 );
@@ -1085,9 +1106,8 @@ void Pile_Kinematic_Linear::CalculateAll( MatrixType& rLeftHandSideMatrix,
  * with regard to the current Pile and Soil partners.
  * All Conditions are assumed to be defined in 3D space and havin 3 DOFs per node
  */
-void Pile_Kinematic_Linear::DampMatrix( MatrixType& rDampMatrix, const ProcessInfo& rCurrentProcessInfo )
+void Pile_Kinematic_Linear::CalculateDampingMatrix( MatrixType& rDampMatrix, const ProcessInfo& rCurrentProcessInfo )
 {
-
     KRATOS_TRY
     double penalty =1.0e+10;
     double penalty_T =1.0e+10;
@@ -2375,21 +2395,19 @@ PointType& Pile_Kinematic_Linear::GetGlobalCoordinates( Element::Pointer rElemen
     return rResult;
 }
 
-Matrix Pile_Kinematic_Linear::CalculateTangentVectors( const Kratos::Element::Pointer rElement, const Kratos::Matrix& DN )
-{
-    Matrix result;
-    return result;
-}
-
 /// Print information about this object.
 void Pile_Kinematic_Linear::PrintInfo( std::ostream& rOStream ) const
 {
-    rOStream << "Condition #" << Id();
+    rOStream << "Pile_Kinematic_Linear #" << Id();
 }
 
 /// Print object's data.
 void Pile_Kinematic_Linear::PrintData( std::ostream& rOStream ) const
 {
-    rOStream << "Pile Condition" << std::endl;
 }
+
 }
+
+#ifdef DEBUG_PILE
+#undef DEBUG_PILE
+#endif

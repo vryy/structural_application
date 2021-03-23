@@ -107,6 +107,8 @@ public:
 
     void CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo);
 
+    void CalculateDampingMatrix(MatrixType& rDampMatrix, const ProcessInfo& rCurrentProcessInfo);
+
     void CalculateRHS(Vector& rRightHandSideVector);
 
     void CalculateLHS(Matrix& rLeftHandSideMatrix);
