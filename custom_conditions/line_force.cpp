@@ -216,7 +216,7 @@ void LineForce::CalculateRightHandSide( VectorType& rRightHandSideVector,
                     Ncontainer( PointNumber, prim ) * Load( i ) * IntegrationWeight * dL;
     }
 
-    KRATOS_WATCH(rRightHandSideVector)
+    // KRATOS_WATCH(rRightHandSideVector)
 
     KRATOS_CATCH( "" )
 }
