@@ -931,14 +931,9 @@ namespace Kratos
 
         noalias( rDampMatrix ) = ZeroMatrix( mat_size, mat_size );
 
-        Matrix StiffnessMatrix = ZeroMatrix( mat_size, mat_size );
-
-        Vector RHS_Vector = ZeroVector( mat_size );
-
         //rayleigh damping
-        CalculateAll( StiffnessMatrix, RHS_Vector, rCurrentProcessInfo, true, false );
 
-        double alpha = 0.001, beta = 0.001;
+        double alpha = 0.0, beta = 0.0;
 
         if(GetProperties().Has(RAYLEIGH_DAMPING_ALPHA))
         {
@@ -950,9 +945,23 @@ namespace Kratos
             beta = GetProperties()[RAYLEIGH_DAMPING_BETA];
         }
 
-        CalculateMassMatrix( rDampMatrix, rCurrentProcessInfo );
+        if (alpha > 0.0)
+        {
+            CalculateMassMatrix( rDampMatrix, rCurrentProcessInfo );
 
-        noalias( rDampMatrix ) = alpha * rDampMatrix + beta * StiffnessMatrix;
+            rDampMatrix *= alpha;
+        }
+
+        if (beta > 0.0)
+        {
+            Matrix StiffnessMatrix = ZeroMatrix( mat_size, mat_size );
+
+            Vector RHS_Vector = ZeroVector( mat_size );
+
+            CalculateAll( StiffnessMatrix, RHS_Vector, rCurrentProcessInfo, true, false );
+
+            noalias( rDampMatrix ) += beta * StiffnessMatrix;
+        }
 
         KRATOS_CATCH( "" )
     }
