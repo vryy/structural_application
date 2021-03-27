@@ -805,8 +805,19 @@ public:
                                         Variable<Kratos::Vector>& rThisVariable, std::size_t ncomponents = 6)
     {
         std::cout << __LINE__ << " : At TransferVariablesToGaussPoints(" << rSource.Name() << "," << rTarget.Name() << ", Variable<Vector> " << rThisVariable.Name() << std::endl;
-        ElementsArrayType& SourceMeshElementsArray= rSource.Elements();
-        ElementsArrayType& TargetMeshElementsArray= rTarget.Elements();
+
+        ElementsArrayType& SourceMeshElementsArray = rSource.Elements();
+        ElementsArrayType& TargetMeshElementsArray = rTarget.Elements();
+
+        TransferVariablesToGaussPoints(SourceMeshElementsArray, TargetMeshElementsArray, rTarget.GetProcessInfo(), rThisVariable, ncomponents);
+    }
+
+    void TransferVariablesToGaussPoints(ElementsArrayType& SourceMeshElementsArray,
+                                        ElementsArrayType& TargetMeshElementsArray,
+                                        const ProcessInfo& CurrentProcessInfo,
+                                        Variable<Kratos::Vector>& rThisVariable, std::size_t ncomponents = 6)
+    {
+        std::cout << __LINE__ << " : At TransferVariablesToGaussPoints, Variable<Vector> " << rThisVariable.Name() << std::endl;
 
         int number_of_threads = 1;
         vector<unsigned int> element_partition;
@@ -832,10 +843,11 @@ public:
                 if( ((*it)->GetValue(IS_INACTIVE) == true) && !(*it)->Is(ACTIVE) )
                     continue;
 
-//                KRATOS_WATCH((*it)->Id())
+                // KRATOS_WATCH((*it)->Id())
+                // KRATOS_WATCH(typeid((*it)->GetGeometry()).name())
                 const IntegrationPointsArrayType& integration_points
                     = (*it)->GetGeometry().IntegrationPoints((*it)->GetIntegrationMethod());
-
+                // KRATOS_WATCH(integration_points.size())
                 std::vector<Vector> ValuesOnIntPoint(integration_points.size());
                 for(unsigned int point = 0; point< integration_points.size(); ++point)
                 {
@@ -851,13 +863,16 @@ public:
                     if(FindPartnerElement<1>(targetGlobalPoint, SourceMeshElementsArray,
                                           sourceElement,sourceLocalPoint))
                     {
-//                        KRATOS_WATCH(sourceElement->Id())
+                        // KRATOS_WATCH(sourceElement->Id())
+                        // KRATOS_WATCH(typeid(*sourceElement).name())
+                        // KRATOS_WATCH(sourceElement->Is(ACTIVE))
+                        // KRATOS_WATCH(sourceLocalPoint)
                         noalias(ValuesOnIntPoint[point])=
-                            ValueVectorInOldMesh(*sourceElement, sourceLocalPoint, rThisVariable );
+                            ValueVectorInOldMesh(*sourceElement, sourceLocalPoint, rThisVariable, ncomponents );
+                        // KRATOS_WATCH(ValuesOnIntPoint[point])
                     }
                 }
-                (*it)->SetValuesOnIntegrationPoints( rThisVariable, ValuesOnIntPoint,
-                                                    rTarget.GetProcessInfo());
+                (*it)->SetValuesOnIntegrationPoints( rThisVariable, ValuesOnIntPoint, CurrentProcessInfo);
 
                 ++show_progress;
             }
@@ -912,8 +927,9 @@ public:
             {
 //                        KRATOS_WATCH(sourceElement->Id())
                 noalias(ValuesOnIntPoint[point])=
-                    ValueVectorInOldMesh(*sourceElement, sourceLocalPoint, rThisVariable );
-                if (point==0) KRATOS_WATCH(ValuesOnIntPoint[point])
+                    // MappedValue(*sourceElement, sourceLocalPoint, rThisVariable );
+                    ValueVectorInOldMesh(*sourceElement, sourceLocalPoint, rThisVariable, ncomponents );
+                // if (point==0) KRATOS_WATCH(ValuesOnIntPoint[point])
             }
             else
                 noalias(ValuesOnIntPoint[point]) = ZeroVector(ncomponents);
@@ -981,7 +997,7 @@ public:
 
             ValuesOnIntPoint[point].resize(ncomponents, false);
             noalias(ValuesOnIntPoint[point])=
-                ValueVectorInOldMesh(sourceElement, sourceLocalPoint, rThisVariable );
+                ValueVectorInOldMesh(sourceElement, sourceLocalPoint, rThisVariable, ncomponents );
 
 /*            if (point==0) KRATOS_WATCH(ValuesOnIntPoint[point])*/
         }
@@ -1007,34 +1023,135 @@ public:
         ElementsArrayType& SourceMeshElementsArray= rSource.Elements();
         ElementsArrayType& TargetMeshElementsArray= rTarget.Elements();
 
-        for( ElementsArrayType::ptr_iterator it = TargetMeshElementsArray.ptr_begin();
-                it != TargetMeshElementsArray.ptr_end();
-                ++it )
+        int number_of_threads = 1;
+        vector<unsigned int> element_partition;
+#ifdef _OPENMP
+        number_of_threads = omp_get_max_threads();
+        double start_transfer = omp_get_wtime();
+#endif
+        CreatePartition(number_of_threads, TargetMeshElementsArray.size(), element_partition);
+        KRATOS_WATCH( number_of_threads );
+        KRATOS_WATCH( element_partition );
+        boost::progress_display show_progress( TargetMeshElementsArray.size() );
+#ifdef _OPENMP
+        #pragma omp parallel for
+#endif
+        for(int k = 0; k < number_of_threads; ++k)
         {
-            const IntegrationPointsArrayType& integration_points
-            = (*it)->GetGeometry().IntegrationPoints((*it)->GetIntegrationMethod());
-
-            std::vector<double> ValuesOnIntPoint(integration_points.size());
-
-            for(unsigned int point=0; point< integration_points.size(); point++)
+            ElementsArrayType::ptr_iterator it_begin =
+                TargetMeshElementsArray.ptr_begin() + element_partition[k];
+            ElementsArrayType::ptr_iterator it_end =
+                TargetMeshElementsArray.ptr_begin() + element_partition[k+1];
+            for (ElementsArrayType::ptr_iterator it = it_begin; it != it_end; ++it)
             {
-                PointType sourceLocalPoint;
-                PointType targetLocalPoint;
-                noalias(targetLocalPoint)= integration_points[point];
-                PointType targetGlobalPoint;
-                (*it)->GetGeometry().GlobalCoordinates(targetGlobalPoint,targetLocalPoint);
-                Element::Pointer sourceElement;
-                //Calculate Value of rVariable(firstvalue, secondvalue) in OldMesh
-                if(FindPartnerElement<1>(targetGlobalPoint, SourceMeshElementsArray,
-                                      sourceElement,sourceLocalPoint))
+                if( ((*it)->GetValue(IS_INACTIVE) == true) && !(*it)->Is(ACTIVE) )
+                    continue;
+
+                const IntegrationPointsArrayType& integration_points
+                = (*it)->GetGeometry().IntegrationPoints((*it)->GetIntegrationMethod());
+
+                std::vector<double> ValuesOnIntPoint(integration_points.size());
+
+                for(unsigned int point=0; point< integration_points.size(); point++)
                 {
-                    ValuesOnIntPoint[point]=
-                        MappedValue(*sourceElement, sourceLocalPoint, rThisVariable );
+                    PointType sourceLocalPoint;
+                    PointType targetLocalPoint;
+                    noalias(targetLocalPoint)= integration_points[point];
+                    PointType targetGlobalPoint;
+                    (*it)->GetGeometry().GlobalCoordinates(targetGlobalPoint,targetLocalPoint);
+                    Element::Pointer sourceElement;
+                    //Calculate Value of rVariable(firstvalue, secondvalue) in OldMesh
+                    if(FindPartnerElement<1>(targetGlobalPoint, SourceMeshElementsArray,
+                                          sourceElement,sourceLocalPoint))
+                    {
+                        ValuesOnIntPoint[point]=
+                            MappedValue(*sourceElement, sourceLocalPoint, rThisVariable );
+                    }
                 }
+                (*it)->SetValuesOnIntegrationPoints( rThisVariable, ValuesOnIntPoint,
+                                                    rTarget.GetProcessInfo());
+
+                ++show_progress;
             }
-            (*it)->SetValuesOnIntegrationPoints( rThisVariable, ValuesOnIntPoint,
-                                                rTarget.GetProcessInfo());
         }
+#ifdef _OPENMP
+        double stop_transfer = omp_get_wtime();
+        std::cout << "time: " << stop_transfer - start_transfer << std::endl;
+#endif
+    }
+
+    /**
+     * Transfer of rThisVariable stored on nodes in source mesh to integration point of target
+     * mesh via approximation by shape functions
+     * @param rSource
+     * @param rTarget
+     * @param rThisVariable double-Variable which should be transferred
+     * @see TransferVariablesToGaussPoints(ModelPart& source_model_part, ModelPart&
+    source_model_part, Variable<Kratos::Matrix>& rThisVariable)
+     * @see TransferVariablesToGaussPoints(ModelPart& source_model_part, ModelPart&
+    source_model_part, Variable<Kratos::Vector>& rThisVariable)
+     */
+    void TransferVariablesToGaussPoints(ModelPart& rSource, ModelPart& rTarget,
+                                        Variable<array_1d<double, 3> >& rThisVariable)
+    {
+        ElementsArrayType& SourceMeshElementsArray= rSource.Elements();
+        ElementsArrayType& TargetMeshElementsArray= rTarget.Elements();
+
+        int number_of_threads = 1;
+        vector<unsigned int> element_partition;
+#ifdef _OPENMP
+        number_of_threads = omp_get_max_threads();
+        double start_transfer = omp_get_wtime();
+#endif
+        CreatePartition(number_of_threads, TargetMeshElementsArray.size(), element_partition);
+        KRATOS_WATCH( number_of_threads );
+        KRATOS_WATCH( element_partition );
+        boost::progress_display show_progress( TargetMeshElementsArray.size() );
+#ifdef _OPENMP
+        #pragma omp parallel for
+#endif
+        for(int k = 0; k < number_of_threads; ++k)
+        {
+            ElementsArrayType::ptr_iterator it_begin =
+                TargetMeshElementsArray.ptr_begin() + element_partition[k];
+            ElementsArrayType::ptr_iterator it_end =
+                TargetMeshElementsArray.ptr_begin() + element_partition[k+1];
+            for (ElementsArrayType::ptr_iterator it = it_begin; it != it_end; ++it)
+            {
+                if( ((*it)->GetValue(IS_INACTIVE) == true) && !(*it)->Is(ACTIVE) )
+                    continue;
+
+                const IntegrationPointsArrayType& integration_points
+                = (*it)->GetGeometry().IntegrationPoints((*it)->GetIntegrationMethod());
+
+                std::vector<array_1d<double, 3> > ValuesOnIntPoint(integration_points.size());
+
+                for(unsigned int point=0; point< integration_points.size(); point++)
+                {
+                    PointType sourceLocalPoint;
+                    PointType targetLocalPoint;
+                    noalias(targetLocalPoint)= integration_points[point];
+                    PointType targetGlobalPoint;
+                    (*it)->GetGeometry().GlobalCoordinates(targetGlobalPoint,targetLocalPoint);
+                    Element::Pointer sourceElement;
+                    //Calculate Value of rVariable(firstvalue, secondvalue) in OldMesh
+                    if(FindPartnerElement<1>(targetGlobalPoint, SourceMeshElementsArray,
+                                          sourceElement,sourceLocalPoint))
+                    {
+                        noalias(ValuesOnIntPoint[point]) =
+                            MappedValue(*sourceElement, sourceLocalPoint, rThisVariable );
+                    }
+                }
+                (*it)->SetValuesOnIntegrationPoints( rThisVariable, ValuesOnIntPoint,
+                                                    rTarget.GetProcessInfo());
+
+                ++show_progress;
+            }
+        }
+#ifdef _OPENMP
+        double stop_transfer = omp_get_wtime();
+        std::cout << "time: " << stop_transfer - start_transfer << std::endl;
+#endif
     }
 
     void ComputeExtrapolatedNodalValues(std::vector<double>& rValues, Element& rSource,
@@ -1078,6 +1195,16 @@ public:
         Vector g = b;
         boost::numeric::ublas::lu_factorize(Mcopy, pm);
         boost::numeric::ublas::lu_substitute(Mcopy, pm, g);
+
+        if (std::isnan(norm_2(b)))
+        {
+            std::cout << "ValuesOnIntPoint:" << std::endl;
+            for (std::size_t i = 0; i < ValuesOnIntPoint.size(); ++i)
+                std::cout << " " << ValuesOnIntPoint[i] << std::endl;
+            KRATOS_WATCH(b)
+            KRATOS_WATCH(M)
+            KRATOS_THROW_ERROR(std::logic_error, "Error computing extrapolated nodal values at element", rSource.Id())
+        }
 
         if (rValues.size() != num_of_nodes)
             rValues.resize(num_of_nodes);
@@ -1178,6 +1305,20 @@ public:
         for (std::size_t i = 0; i < 3; ++i)
             boost::numeric::ublas::lu_substitute(Mcopy, pm, b[i]);
 
+        for (std::size_t i = 0; i < 3; ++i)
+        {
+            if (std::isnan(norm_2(b[i])))
+            {
+                std::cout << "ValuesOnIntPoint:" << std::endl;
+                for (std::size_t i = 0; i < ValuesOnIntPoint.size(); ++i)
+                    std::cout << " " << ValuesOnIntPoint[i] << std::endl;
+                for (std::size_t j = 0; j < 3; ++j)
+                    KRATOS_WATCH(b[j])
+                KRATOS_WATCH(M)
+                KRATOS_THROW_ERROR(std::logic_error, "Error computing extrapolated nodal values at element", rSource.Id())
+            }
+        }
+
         if (rValues.size() != num_of_nodes)
             rValues.resize(num_of_nodes);
 
@@ -1258,9 +1399,6 @@ public:
 
         std::vector<Vector> ValuesOnIntPoint(integration_points.size());
         rSource.CalculateOnIntegrationPoints(rThisVariable, ValuesOnIntPoint, CurrentProcessInfo);
-        // std::cout << "ValuesOnIntPoint:" << std::endl;
-        // for (std::size_t i = 0; i < ValuesOnIntPoint.size(); ++i)
-        //     std::cout << " " << ValuesOnIntPoint[i] << std::endl;
 
         double DetJ;
         for(std::size_t point = 0; point< integration_points.size(); ++point)
@@ -1280,9 +1418,6 @@ public:
             }
         }
 
-        // for (std::size_t i = 0; i < ncomponents; ++i)
-        //     KRATOS_WATCH(b[i])
-
         boost::numeric::ublas::permutation_matrix<> pm(M.size1());
         Matrix Mcopy = M;
         boost::numeric::ublas::lu_factorize(Mcopy, pm);
@@ -1291,6 +1426,20 @@ public:
 
         if (rValues.size() != num_of_nodes)
             rValues.resize(num_of_nodes);
+
+        for (std::size_t i = 0; i < ncomponents; ++i)
+        {
+            if (std::isnan(norm_2(b[i])))
+            {
+                std::cout << "ValuesOnIntPoint:" << std::endl;
+                for (std::size_t i = 0; i < ValuesOnIntPoint.size(); ++i)
+                    std::cout << " " << ValuesOnIntPoint[i] << std::endl;
+                for (std::size_t j = 0; j < ncomponents; ++j)
+                    KRATOS_WATCH(b[j])
+                KRATOS_WATCH(M)
+                KRATOS_THROW_ERROR(std::logic_error, "Error computing extrapolated nodal values at element", rSource.Id())
+            }
+        }
 
         for (std::size_t i = 0; i < num_of_nodes; ++i)
         {
@@ -1785,6 +1934,8 @@ public:
             }
         }
         KRATOS_WATCH(active_nodes.size())
+        if (active_nodes.size() == 0)
+            return;
 
         // assign each node an id. That id is the row of this node in the global L2 projection matrix
         std::size_t cnt = 0;
@@ -2226,6 +2377,8 @@ public:
             }
         }
         KRATOS_WATCH(active_nodes.size())
+        if (active_nodes.size() == 0)
+            return;
 
         // assign each node an id. That id is the row of this node in the global L2 projection matrix
         std::size_t cnt = 0;
@@ -2436,6 +2589,8 @@ public:
             }
         }
         KRATOS_WATCH(active_nodes.size())
+        if (active_nodes.size() == 0)
+            return;
 
         // assign each node an id. That id is the row of this node in the global L2 projection matrix
         std::size_t cnt = 0;
@@ -3093,20 +3248,48 @@ public:
     const Variable<double>& rThisVariable)
                  */
     Vector ValueVectorInOldMesh(Element& oldElement, PointType&  localPoint,
-                                const Variable<Kratos::Vector>& rThisVariable )
+                                const Variable<Kratos::Vector>& rThisVariable, const std::size_t& ncomponents )
     {
-        Vector newValue(6);
-        noalias(newValue) = ZeroVector(6);
-        Vector temp(6);
+        Vector newValue(ncomponents);
+        noalias(newValue) = ZeroVector(ncomponents);
+        Vector temp(ncomponents);
 
         Vector shape_functions_values;
         shape_functions_values = oldElement.GetGeometry().ShapeFunctionsValues(shape_functions_values, localPoint);
 
         for(unsigned int i=0; i<oldElement.GetGeometry().size(); i++)
         {
-            noalias(temp)= oldElement.GetGeometry()[i].GetSolutionStepValue(rThisVariable);
-            for(unsigned int k=0; k<6; k++)
+            noalias(temp) = oldElement.GetGeometry()[i].GetSolutionStepValue(rThisVariable);
+            for(unsigned int k = 0; k < ncomponents; ++k)
                 newValue(k) += shape_functions_values[i] * temp(k);
+        }
+        return newValue;
+    }
+
+    /**
+     * Auxiliary function.
+     * This one calculates the target value of given Vector-Variable at firtsvalue
+     * by shape-function-based
+     * interpolation of the nodal values from given source element to the given
+     * target point that is assumed to lie within the source element
+     * @return value of given variable in new point
+     * @param sourceElement corresponding element in source mesh
+     * @param targetPoint given target point to map the variable to
+     * @param rThisVariable given variable to be transferred
+     * @param firstvalue index
+     * @see ValueVectorInOldMesh(Element& oldElement, PointType&  localPoint,
+    const Variable<Kratos::Vector>& rThisVariable, unsigned int firstvalue)
+     */
+    double ValueVectorInOldMesh(Element& oldElement, PointType&  localPoint,
+                                const Variable<Kratos::Vector>& rThisVariable, unsigned int firstvalue )
+    {
+        double newValue = 0.0;
+        Vector shape_functions_values;
+        shape_functions_values = oldElement.GetGeometry().ShapeFunctionsValues(shape_functions_values, localPoint);
+
+        for(unsigned int i = 0; i < oldElement.GetGeometry().size(); ++i)
+        {
+            newValue += shape_functions_values[i] * oldElement.GetGeometry()[i].GetSolutionStepValue(rThisVariable)(firstvalue);
         }
         return newValue;
     }
@@ -3346,33 +3529,6 @@ public:
         for(unsigned int i = 0; i < oldElement.GetGeometry().size(); ++i)
         {
             newValue += shape_functions_values[i] * oldElement.GetGeometry()[i].GetSolutionStepValue(rThisVariable)(firstvalue,secondvalue);
-        }
-        return newValue;
-    }
-    /**
-     * Auxiliary function.
-     * This one calculates the target value of given Vector-Variable at firtsvalue
-     * by shape-function-based
-     * interpolation of the nodal values from given source element to the given
-     * target point that is assumed to lie within the source element
-     * @return value of given variable in new point
-     * @param sourceElement corresponding element in source mesh
-     * @param targetPoint given target point to map the variable to
-     * @param rThisVariable given variable to be transferred
-     * @param firstvalue index
-     * @see ValueVectorInOldMesh(Element& oldElement, PointType&  localPoint,
-    const Variable<Kratos::Vector>& rThisVariable, unsigned int firstvalue)
-     */
-    double ValueVectorInOldMesh(Element& oldElement, PointType&  localPoint,
-                                const Variable<Kratos::Vector>& rThisVariable, unsigned int firstvalue )
-    {
-        double newValue = 0.0;
-        Vector shape_functions_values;
-        shape_functions_values = oldElement.GetGeometry().ShapeFunctionsValues(shape_functions_values, localPoint);
-
-        for(unsigned int i = 0; i < oldElement.GetGeometry().size(); ++i)
-        {
-            newValue += shape_functions_values[i] * oldElement.GetGeometry()[i].GetSolutionStepValue(rThisVariable)(firstvalue);
         }
         return newValue;
     }

@@ -396,6 +396,12 @@ void DoubleTransferVariablesToGaussPointsLocal(VariableTransferUtility& dummy,
     dummy.TransferVariablesToGaussPoints(source_element, target_element, rThisVariable, CurrentProcessInfo);
 }
 
+void Array1DTransferVariablesToGaussPoints(VariableTransferUtility& dummy,
+        ModelPart& source_model_part, ModelPart& target_model_part, Variable<array_1d<double, 3> >& rThisVariable)
+{
+    dummy.TransferVariablesToGaussPoints(source_model_part, target_model_part, rThisVariable);
+}
+
 void Array1DTransferVariablesToGaussPointsLocal(VariableTransferUtility& dummy,
         Element& source_element, Element& target_element, Variable<array_1d<double, 3> >& rThisVariable,
         const ProcessInfo& CurrentProcessInfo)
@@ -407,6 +413,26 @@ void VectorTransferVariablesToGaussPoints(VariableTransferUtility& dummy,
         ModelPart& source_model_part, ModelPart& target_model_part, Variable<Vector>& rThisVariable)
 {
     dummy.TransferVariablesToGaussPoints(source_model_part, target_model_part, rThisVariable);
+}
+
+void VectorTransferVariablesToGaussPointsFromElementsToElements(VariableTransferUtility& dummy,
+        ModelPart::ElementsContainerType& source_elements, ModelPart::ElementsContainerType& target_elements,
+        const ProcessInfo& CurrentProcessInfo, Variable<Vector>& rThisVariable)
+{
+    dummy.TransferVariablesToGaussPoints(source_elements, target_elements, CurrentProcessInfo, rThisVariable);
+}
+
+void VectorTransferVariablesToGaussPointsComponents(VariableTransferUtility& dummy,
+        ModelPart& source_model_part, ModelPart& target_model_part, Variable<Vector>& rThisVariable, const std::size_t& ncomponents)
+{
+    dummy.TransferVariablesToGaussPoints(source_model_part, target_model_part, rThisVariable, ncomponents);
+}
+
+void VectorTransferVariablesToGaussPointsFromElementsToElementsComponents(VariableTransferUtility& dummy,
+        ModelPart::ElementsContainerType& source_elements, ModelPart::ElementsContainerType& target_elements,
+        const ProcessInfo& CurrentProcessInfo, Variable<Vector>& rThisVariable, const std::size_t& ncomponents)
+{
+    dummy.TransferVariablesToGaussPoints(source_elements, target_elements, CurrentProcessInfo, rThisVariable, ncomponents);
 }
 
 void VectorTransferVariablesToGaussPointsLocal(VariableTransferUtility& dummy,
@@ -641,8 +667,12 @@ void  AddCustomUtilitiesToPython()
     .def("ComputeExtrapolatedNodalValues", &VectorComputeExtrapolatedNodalValues)
     .def("TransferVariablesToGaussPoints", &DoubleTransferVariablesToGaussPoints)
     .def("TransferVariablesToGaussPoints", &DoubleTransferVariablesToGaussPointsLocal)
+    .def("TransferVariablesToGaussPoints", &Array1DTransferVariablesToGaussPoints)
     .def("TransferVariablesToGaussPoints", &Array1DTransferVariablesToGaussPointsLocal)
     .def("TransferVariablesToGaussPoints", &VectorTransferVariablesToGaussPoints)
+    .def("TransferVariablesToGaussPoints", &VectorTransferVariablesToGaussPointsFromElementsToElements)
+    .def("TransferVariablesToGaussPoints", &VectorTransferVariablesToGaussPointsFromElementsToElementsComponents)
+    .def("TransferVariablesToGaussPoints", &VectorTransferVariablesToGaussPointsComponents)
     .def("TransferVariablesToGaussPoints", &VectorTransferVariablesToGaussPointsLocal)
     .def("TransferVariablesToGaussPoints", &VectorTransferVariablesToGaussPointsElementComponents)
     .def("TransferVariablesToGaussPoints", &DoubleTransferVariablesToGaussPointsFromNodalValues)
