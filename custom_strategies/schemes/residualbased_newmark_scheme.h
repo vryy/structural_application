@@ -537,8 +537,9 @@ public:
             if( i->HasDofFor(DISPLACEMENT_Y) )
             {
                 i->GetSolutionStepValue(ACCELERATION_EINS_Y)
-                =1.0/(mBeta*CurrentProcessInfo[DELTA_TIME]*CurrentProcessInfo[DELTA_TIME])
-                 * (i->GetSolutionStepValue(DISPLACEMENT_EINS_Y)
+                = 1.0/(mBeta*CurrentProcessInfo[DELTA_TIME]
+                       *CurrentProcessInfo[DELTA_TIME])
+                  * (i->GetSolutionStepValue(DISPLACEMENT_EINS_Y)
                     -i->GetSolutionStepValue(DISPLACEMENT_NULL_Y))
                  -1.0/(mBeta*CurrentProcessInfo[DELTA_TIME])
                  *i->GetSolutionStepValue(DISPLACEMENT_NULL_DT_Y)
@@ -568,7 +569,8 @@ public:
             if( i->HasDofFor(DISPLACEMENT_Z) )
             {
                 i->GetSolutionStepValue(ACCELERATION_EINS_Z)
-                = 1.0/(mBeta*CurrentProcessInfo[DELTA_TIME]*CurrentProcessInfo[DELTA_TIME])
+                = 1.0/(mBeta*CurrentProcessInfo[DELTA_TIME]
+                       *CurrentProcessInfo[DELTA_TIME])
                   * (i->GetSolutionStepValue(DISPLACEMENT_EINS_Z)
                      -i->GetSolutionStepValue(DISPLACEMENT_NULL_Z))
                   -1.0/(mBeta*CurrentProcessInfo[DELTA_TIME])
@@ -1166,6 +1168,8 @@ public:
 
             if (norm_frobenius(DampingMatrix) > 0.0) // filter out the element that did not calculate damping and then set it to a zero matrix
                 AssembleTimeSpaceLHS_QuasiStatic(LHS_Contribution, DampingMatrix, CurrentProcessInfo);
+            else
+                AssembleTimeSpaceLHS_QuasiStatic(LHS_Contribution, CurrentProcessInfo);
         }
         else
         {
@@ -1249,6 +1253,8 @@ public:
 
         if (norm_frobenius(DampingMatrix) > 0.0) // filter out the condition that did not calculate damping and then set it to a zero matrix
             AssembleTimeSpaceLHS_QuasiStatic(LHS_Contribution, DampingMatrix, CurrentProcessInfo);
+        else
+            AssembleTimeSpaceLHS_QuasiStatic(LHS_Contribution, CurrentProcessInfo);
 
         KRATOS_CATCH("")
     }
@@ -1331,6 +1337,18 @@ protected:
         // adding damping contribution to the dynamic stiffness
         aux = (1-mAlpha_f)*mGamma/(mBeta*Dt);
         noalias(LHS_Contribution) += aux * DampingMatrix;
+    }
+
+    void AssembleTimeSpaceLHS_QuasiStatic(
+        LocalSystemMatrixType& LHS_Contribution,
+        const ProcessInfo& CurrentProcessInfo)
+    {
+        const double Dt = CurrentProcessInfo[DELTA_TIME];
+        double aux;
+
+        // adding stiffness contribution to the dynamic stiffness
+        aux = (1-mAlpha_f);
+        LHS_Contribution *= aux;
     }
 
     void AssembleTimeSpaceLHS_Dynamics(
