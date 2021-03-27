@@ -212,6 +212,10 @@ class SolverAdvanced(structural_solver_static.StaticStructuralSolver):
             self.model_part.ProcessInfo.SetValue( QUASI_STATIC_ANALYSIS, True )
             print("using theta quasi-static scheme, theta=" + str(self.dissipation_radius))
             self.time_scheme = ResidualBasedThetaScheme(self.dissipation_radius)
+        elif( self.analysis_parameters['analysis_type'] == 4 ):
+            self.model_part.ProcessInfo.SetValue( QUASI_STATIC_ANALYSIS, False )
+            print("using theta quasi-static scheme, theta=" + str(self.dissipation_radius))
+            self.time_scheme = ResidualBasedThetaScheme(self.dissipation_radius)
         else:
             print("analysis type is not defined! Define in analysis_parameters['analysis_type']:")
             print("   'using static scheme': static analysis")

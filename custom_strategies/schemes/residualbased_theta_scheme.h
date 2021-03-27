@@ -670,7 +670,6 @@ public:
 
     /**
      * initializes time step solution
-     * only for reasons if the time step solution is restarted
      * @param r_model_part
      * @param A LHS matrix
      * @param Dx incremental update of primary variables
@@ -754,8 +753,6 @@ public:
 
     /**
      * finalizes time step solution
-     * by setting u_n= u_n+1^k etc.
-     * u_{n+1-alpha}= u_n*alpha+U_n+1^k+1*(1-alpha)
      * @param r_model_part
      * @param A LHS matrix
      * @param Dx incremental update of primary variables
@@ -805,6 +802,7 @@ public:
                     i->GetSolutionStepValue(ACCELERATION_NULL_X) = i->GetSolutionStepValue(ACCELERATION_EINS_X);
                 }
             }
+
             if( i->HasDofFor(DISPLACEMENT_Y) )
             {
                 i->GetSolutionStepValue(DISPLACEMENT_OLD_Y) = i->GetSolutionStepValue(DISPLACEMENT_Y);
@@ -822,6 +820,7 @@ public:
                     i->GetSolutionStepValue(ACCELERATION_NULL_Y) = i->GetSolutionStepValue(ACCELERATION_EINS_Y);
                 }
             }
+
             if( i->HasDofFor(DISPLACEMENT_Z) )
             {
                 i->GetSolutionStepValue(DISPLACEMENT_OLD_Z) = i->GetSolutionStepValue(DISPLACEMENT_Z);
@@ -839,6 +838,7 @@ public:
                     i->GetSolutionStepValue(ACCELERATION_NULL_Z) = i->GetSolutionStepValue(ACCELERATION_EINS_Z);
                 }
             }
+
             if( i->HasDofFor(WATER_PRESSURE))
             {
                 if(CurrentProcessInfo[FIRST_TIME_STEP])
@@ -854,6 +854,7 @@ public:
                     i->GetSolutionStepValue(WATER_PRESSURE_NULL_ACCELERATION) = i->GetSolutionStepValue(WATER_PRESSURE_EINS_ACCELERATION);
                 }
             }
+
             if( i->HasDofFor(AIR_PRESSURE) )
             {
                 if(CurrentProcessInfo[FIRST_TIME_STEP])
@@ -869,6 +870,7 @@ public:
                     i->GetSolutionStepValue(AIR_PRESSURE_NULL_ACCELERATION) = i->GetSolutionStepValue(AIR_PRESSURE_EINS_ACCELERATION);
                 }
             }
+
             #ifdef ENABLE_ROTATION
             if( i->HasDofFor(ROTATION_X))
             {
@@ -885,6 +887,7 @@ public:
                     i->GetSolutionStepValue(ANGULAR_ACCELERATION_NULL_X) = i->GetSolutionStepValue(ANGULAR_ACCELERATION_EINS_X);
                 }
             }
+
             if( i->HasDofFor(ROTATION_Y) )
             {
                 if(CurrentProcessInfo[FIRST_TIME_STEP])
@@ -900,6 +903,7 @@ public:
                     i->GetSolutionStepValue(ANGULAR_ACCELERATION_NULL_Y) = i->GetSolutionStepValue(ANGULAR_ACCELERATION_EINS_Y);
                 }
             }
+
             if( i->HasDofFor(ROTATION_Z) )
             {
                 if(CurrentProcessInfo[FIRST_TIME_STEP])
@@ -916,6 +920,7 @@ public:
                 }
             }
             #endif
+
             #ifdef ENABLE_LAMBDA
             if( i->HasDofFor(LAMBDA))
             {
@@ -939,8 +944,6 @@ public:
     }
     //***************************************************************************
     //***************************************************************************
-
-    /** this function is designed to be called in the builder and solver to introduce*/
 
     void CalculateSystemContributions(
         Element::Pointer rCurrentElement,
@@ -1023,9 +1026,7 @@ public:
     }
 
 
-    /** functions totally analogous to the precedent but applied to
-          the "condition" objects
-    *       At the current status of implementation it does nothing
+    /**
     */
     void Condition_CalculateSystemContributions(
         Condition::Pointer rCurrentCondition,
@@ -1051,9 +1052,8 @@ public:
     }
 
 
-    /**       At the current status of implementation it does nothing
+    /**
      */
-
     void Condition_Calculate_RHS_Contribution(
         Condition::Pointer rCurrentCondition,
         LocalSystemVectorType& RHS_Contribution,
