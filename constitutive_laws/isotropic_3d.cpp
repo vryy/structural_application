@@ -191,7 +191,7 @@ Vector& Isotropic3D::GetValue( const Variable<Vector>& rThisVariable, Vector& rV
     {
         const unsigned int size = mCurrentStress.size();
         rValue.resize(size, false );
-        rValue  = mCurrentStress;
+        noalias(rValue)  = mCurrentStress;
         return rValue;
     }
 
@@ -401,7 +401,6 @@ void Isotropic3D::CalculateElasticMatrix( Matrix& C, const double E, const doubl
     C( 5, 3 ) = 0.0;
     C( 5, 4 ) = 0.0;
     C( 5, 5 ) = c4;
-
 }
 
 /**

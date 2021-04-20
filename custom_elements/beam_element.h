@@ -34,12 +34,13 @@ class BeamElement : public Element
 
     typedef GeometryData::IntegrationMethod IntegrationMethod;
 
-
 private:
     ///@name Static Member Variables
 
     Matrix mInitialDisp;
-    Matrix mInitialRot;
+    Matrix mInitialRot; // mInitialRot and mInitialDisp are used to account for the stress-free reactivation
+    Vector mPreForces; // mPreForces is used to prescribe the PRESTRESS for beam element
+    Vector mCurrentForces;
 
     double mArea;                            // Area de la seccion tranversal de la viga.
     double mInertia_x;                       // Momento de Inercia alredor del eje Ix local.
@@ -54,7 +55,7 @@ private:
 
     void CalculateTransformationMatrix(Matrix& Rotation);
 
-    void CalculateBodyForce(Matrix& Rotation,  Vector& LocalBody, Vector& GlobalBody);
+    void CalculateBodyForce(const Matrix& Rotation, Vector& LocalBody, Vector& GlobalBody);
 
     void CalculateLocalNodalStress(Vector& Stress);
 
@@ -64,10 +65,7 @@ private:
 
     void CalculateDistributedBodyForce(const int Direction, Vector& Load);
 
-
 public:
-
-
 
     KRATOS_CLASS_POINTER_DEFINITION(BeamElement);
 
@@ -82,32 +80,31 @@ public:
     /// Destructor.
     virtual ~BeamElement();
 
+    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const final;
 
-    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const;
+    Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const final;
 
-    Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const;
+    void Initialize(const ProcessInfo& rCurrentProcessInfo) final;
 
-    void Initialize(const ProcessInfo& rCurrentProcessInfo);
+    void ResetConstitutiveLaw() final;
 
-    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo);
+    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) final;
 
-    void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo);
+    void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo) final;
 
-    void CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo);
+    void CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) final;
 
-    void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const;
+    void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const final;
 
-    void GetDofList(DofsVectorType& ElementalDofList, const ProcessInfo& CurrentProcessInfo) const;
+    void GetDofList(DofsVectorType& ElementalDofList, const ProcessInfo& CurrentProcessInfo) const final;
 
-    void InitializeSolutionStep(const ProcessInfo& CurrentProcessInfo);
+    void InitializeSolutionStep(const ProcessInfo& CurrentProcessInfo) final;
 
-    void FinalizeSolutionStep(const ProcessInfo& CurrentProcessInfo);
+    void FinalizeSolutionStep(const ProcessInfo& CurrentProcessInfo) final;
 
-    void GetValuesVector(Vector& values, int Step);
+    void CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo) final;
 
-    void CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo);
-
-    void CalculateDampingMatrix(MatrixType& rDampMatrix, const ProcessInfo& rCurrentProcessInfo);
+    void CalculateDampingMatrix(MatrixType& rDampMatrix, const ProcessInfo& rCurrentProcessInfo) final;
 
     void CalculateRHS(Vector& rRightHandSideVector);
 
@@ -118,14 +115,27 @@ public:
                       bool CalculateStiffnessMatrixFlag,
                       bool CalculateResidualVectorFlag);
 
-    void  GetFirstDerivativesVector(Vector& values, int Step);
-    void  GetSecondDerivativesVector(Vector& values, int Step);
+    void GetValuesVector(Vector& values, int Step) const final;
+    void GetFirstDerivativesVector(Vector& values, int Step) const final;
+    void GetSecondDerivativesVector(Vector& values, int Step) const final;
 
-    void CalculateOnIntegrationPoints( const Variable<array_1d<double,3> >& rVariable,
-                                       std::vector< array_1d<double,3> >& Output,
-                                       const ProcessInfo& rCurrentProcessInfo);
+    void SetValuesOnIntegrationPoints(const Variable<Vector>& rVariable,
+                                      const std::vector<Vector>& rValues,
+                                      const ProcessInfo& rCurrentProcessInfo ) final;
 
-    IntegrationMethod GetIntegrationMethod() const;
+    void CalculateOnIntegrationPoints(const Variable<double>& rVariable,
+                                      std::vector<double>& rValues,
+                                      const ProcessInfo& rCurrentProcessInfo) final;
+
+    void CalculateOnIntegrationPoints(const Variable<array_1d<double,3> >& rVariable,
+                                      std::vector< array_1d<double,3> >& Output,
+                                      const ProcessInfo& rCurrentProcessInfo) final;
+
+    void CalculateOnIntegrationPoints(const Variable<Vector>& rVariable,
+                                      std::vector<Vector>& Output,
+                                      const ProcessInfo& rCurrentProcessInfo) final;
+
+    IntegrationMethod GetIntegrationMethod() const final;
 
     //************************************************************************************
     //************************************************************************************
@@ -136,13 +146,38 @@ public:
      * or that no common error is found.
      * @param rCurrentProcessInfo
      */
-    int Check(const ProcessInfo& rCurrentProcessInfo) const;
+    int Check(const ProcessInfo& rCurrentProcessInfo) const final;
+
+    /**
+     * Turn back information as a string.
+     */
+    std::string Info() const final
+    {
+        std::stringstream buffer;
+        buffer << "BeamElement #" << Id();
+        return buffer.str();
+    }
+
+    /**
+     * Print information about this object.
+     */
+    void PrintInfo(std::ostream& rOStream) const final
+    {
+        rOStream << "BeamElement #" << Id();
+    }
+
+    /**
+     * Print object's data.
+     */
+    void PrintData(std::ostream& rOStream) const final
+    {
+        Element::PrintData(rOStream);
+    }
 
     ///@}
     ///@name Serialization
     ///@{
     friend class Serializer;
-
 
     // A private default constructor necessary for serialization
     BeamElement() {};
@@ -157,9 +192,6 @@ public:
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element );
     }
-
-
-
 
 }; // Class BeamElement
 
