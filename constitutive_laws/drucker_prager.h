@@ -94,7 +94,7 @@ public:
      * Clone function
      * @return a pointer to a new instance of this constitutive law
      */
-    virtual BaseType::Pointer Clone() const
+    virtual BaseType::Pointer Clone() const final
     {
         BaseType::Pointer p_clone( new DruckerPrager() );
         return p_clone;
@@ -353,6 +353,14 @@ public:
             const Vector& ShapeFunctionsValues,
             const ProcessInfo& CurrentProcessInfo );
 
+
+    /**
+    * Computes the material response in terms of Cauchy stresses and constitutive tensor
+    * @see Parameters
+    */
+    void CalculateMaterialResponseCauchy (Parameters& rValues) final;
+
+    /// DEPRECATED function
     /**
      * Computes the material response in terms of stresses and algorithmic tangent
      * @param StrainVector the current strains (total strains, input)

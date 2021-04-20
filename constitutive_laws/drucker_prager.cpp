@@ -424,6 +424,29 @@ void DruckerPrager::FinalizeSolutionStep(
 
 }
 
+void DruckerPrager::CalculateMaterialResponseCauchy(Parameters& rValues)
+{
+
+    const Vector& StrainVector = rValues.GetStrainVector();
+    Vector& StressVector = rValues.GetStressVector();
+    Matrix& AlgorithmicTangent = rValues.GetConstitutiveMatrix();
+
+    bool isYielded = false;
+    bool isApex = false;
+    double dGamma = 0.0;
+
+    if(StressVector.size() != 6)
+        StressVector.resize(6, false);
+    CalculateStress( StrainVector, StressVector, isYielded, isApex, dGamma );
+
+
+    if(AlgorithmicTangent.size1() != 6 || AlgorithmicTangent.size2() != 6)
+        AlgorithmicTangent.resize(6, 6, false);
+    CalculateConstitutiveMatrix( StrainVector, AlgorithmicTangent, isYielded, isApex, dGamma );
+
+
+}
+
 void DruckerPrager::CalculateMaterialResponse( const Vector& StrainVector,
         const Matrix& DeformationGradient, Vector& StressVector,
         Matrix& AlgorithmicTangent, const ProcessInfo& CurrentProcessInfo,
@@ -431,14 +454,14 @@ void DruckerPrager::CalculateMaterialResponse( const Vector& StrainVector,
         const Vector& ShapeFunctionsValues, bool CalculateStresses,
         int CalculateTangent, bool SaveInternalVariables )
 {
-    bool isYielded = false;
-    bool isApex = false;
-    double dGamma = 0.0;
-    if ( CalculateStresses )
-        CalculateStress( StrainVector, StressVector, isYielded, isApex, dGamma );
 
-    if ( CalculateTangent != 0 )
-        CalculateConstitutiveMatrix( StrainVector, AlgorithmicTangent, isYielded, isApex, dGamma );
+    ConstitutiveLaw::Parameters const_params;
+    Vector ThisStrainVector = StrainVector;
+    const_params.SetStrainVector(ThisStrainVector);
+    const_params.SetStressVector(StressVector);
+    const_params.SetConstitutiveMatrix(AlgorithmicTangent);
+
+    this->CalculateMaterialResponseCauchy(const_params);
 }
 
 /**
