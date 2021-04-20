@@ -93,10 +93,26 @@ void BeamElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
         }
     }
 
+    mPreForces.resize(12, false);
+    noalias(mPreForces) = ZeroVector(12);
+
+    mCurrentForces.resize(12, false);
+    noalias(mCurrentForces) = ZeroVector(12);
+
     CalculateSectionProperties();
 
     KRATOS_CATCH("")
 }
+
+void BeamElement::ResetConstitutiveLaw()
+{
+    KRATOS_TRY
+
+    noalias(mCurrentForces) = mPreForces;
+
+    KRATOS_CATCH( "" )
+}
+
 
 //************************************************************************************
 //************************************************************************************
@@ -199,7 +215,6 @@ void BeamElement::EquationIdVector(EquationIdVectorType& rResult,
     rResult[11] = GetGeometry()[1].GetDof(ROTATION_Z).EquationId();
 }
 
-
 //************************************************************************************
 //************************************************************************************
 
@@ -225,43 +240,23 @@ void BeamElement::GetDofList(DofsVectorType& ElementalDofList,const ProcessInfo&
 //************************************************************************************
 //************************************************************************************
 
-void BeamElement::GetValuesVector(Vector& values, int Step)
-{
-    if(values.size() != 12)
-        values.resize(12,false);
-
-    values(0)	= GetGeometry()[0].GetSolutionStepValue(DISPLACEMENT_X,Step);
-    values(1)	= GetGeometry()[0].GetSolutionStepValue(DISPLACEMENT_Y,Step);
-    values(2)	= GetGeometry()[0].GetSolutionStepValue(DISPLACEMENT_Z,Step);
-    values(3)	= GetGeometry()[0].GetSolutionStepValue(ROTATION_X,Step);
-    values(4)	= GetGeometry()[0].GetSolutionStepValue(ROTATION_Y,Step);
-    values(5)	= GetGeometry()[0].GetSolutionStepValue(ROTATION_Z,Step);
-    values(6)	= GetGeometry()[1].GetSolutionStepValue(DISPLACEMENT_X,Step);
-    values(7)	= GetGeometry()[1].GetSolutionStepValue(DISPLACEMENT_Y,Step);
-    values(8)	= GetGeometry()[1].GetSolutionStepValue(DISPLACEMENT_Z,Step);
-    values(9)	= GetGeometry()[1].GetSolutionStepValue(ROTATION_X,Step);
-    values(10)	= GetGeometry()[1].GetSolutionStepValue(ROTATION_Y,Step);
-    values(11)	= GetGeometry()[1].GetSolutionStepValue(ROTATION_Z,Step);
-}
-
-//************************************************************************************
-//************************************************************************************
-
 void BeamElement::CalculateLHS(Matrix& rLeftHandSideMatrix)
 {
     Matrix LocalMatrix;
     Matrix Rotation;
     Matrix aux_matrix;
 
-    LocalMatrix.resize(12,12, false);
-    Rotation.resize(12,12, false);
-    aux_matrix.resize(12,12, false);
-    rLeftHandSideMatrix.resize(12,12,false);
+    LocalMatrix.resize(12, 12, false);
+    Rotation.resize(12, 12, false);
+    aux_matrix.resize(12, 12, false);
+
+    if (rLeftHandSideMatrix.size1() != 12 || rLeftHandSideMatrix.size2() != 12)
+        rLeftHandSideMatrix.resize(12, 12, false);
 
     CalculateLocalMatrix(LocalMatrix);
     CalculateTransformationMatrix(Rotation);
     noalias(aux_matrix) = prod(Rotation, LocalMatrix);
-    noalias(rLeftHandSideMatrix)= prod(aux_matrix,Matrix(trans(Rotation)));
+    noalias(rLeftHandSideMatrix)= prod(aux_matrix, Matrix(trans(Rotation)));
 
     /// adding the contribution from rotational stiffness if needed
     if (GetProperties().Has(ROTATIONAL_STIFFNESS))
@@ -302,8 +297,11 @@ void BeamElement::CalculateRHS(Vector& rRightHandSideVector)
     array_1d<double, 12 > CurrentDisplacement;
 
     Rotation.resize(12,12, false);
-    rRightHandSideVector = ZeroVector(12);
     LocalBody = ZeroVector(12);
+
+    if (rRightHandSideVector.size() != 12)
+        rRightHandSideVector.resize(12, false);
+    noalias(rRightHandSideVector) = ZeroVector(12);
 
     CalculateTransformationMatrix(Rotation);
     CalculateBodyForce(Rotation, LocalBody, rRightHandSideVector);
@@ -322,43 +320,17 @@ void BeamElement::CalculateRHS(Vector& rRightHandSideVector)
     CurrentDisplacement(11)	    =   GetGeometry()[1].GetSolutionStepValue(ROTATION_Z) - mInitialRot(1, 2);
 
     CalculateLHS(GlobalMatrix);
+    noalias(mCurrentForces) = prod(GlobalMatrix, CurrentDisplacement);
     // KRATOS_WATCH(GlobalMatrix)
     // KRATOS_WATCH(CurrentDisplacement)
     // KRATOS_WATCH(GetGeometry()[0].GetSolutionStepValue(DISPLACEMENT))
-    KRATOS_WATCH(GetGeometry()[0].GetSolutionStepValue(ROTATION))
+    // KRATOS_WATCH(GetGeometry()[0].GetSolutionStepValue(ROTATION))
     // KRATOS_WATCH(GetGeometry()[1].GetSolutionStepValue(DISPLACEMENT))
-    KRATOS_WATCH(GetGeometry()[1].GetSolutionStepValue(ROTATION))
+    // KRATOS_WATCH(GetGeometry()[1].GetSolutionStepValue(ROTATION))
     // KRATOS_WATCH(mInitialDisp)
     // KRATOS_WATCH(mInitialRot)
-    noalias(rRightHandSideVector) -= prod(GlobalMatrix, CurrentDisplacement);
-
-    /// adding the contribution from rotational stiffness if needed
-    if (GetProperties().Has(ROTATIONAL_STIFFNESS))
-    {
-        const double Kr = GetProperties()[ROTATIONAL_STIFFNESS];
-        KRATOS_WATCH(Kr)
-
-        array_1d<double, 3> relativeRotation;
-        relativeRotation[0] = 0.5*(CurrentDisplacement(9) + CurrentDisplacement(3));
-        relativeRotation[1] = 0.5*(CurrentDisplacement(10) + CurrentDisplacement(4));
-        relativeRotation[2] = 0.5*(CurrentDisplacement(11) + CurrentDisplacement(5));
-
-        array_1d<double, 3> axialVector;
-        axialVector[0] = GetGeometry()[1].X0() - GetGeometry()[0].X0();
-        axialVector[1] = GetGeometry()[1].Y0() - GetGeometry()[0].Y0();
-        axialVector[2] = GetGeometry()[1].Z0() - GetGeometry()[0].Z0();
-
-        double rotationalTorque = Kr * inner_prod(relativeRotation, axialVector);
-        double length = norm_2(axialVector);
-        double aux = rotationalTorque*length*0.5;
-
-        rRightHandSideVector(3) -= aux*axialVector[0];
-        rRightHandSideVector(4) -= aux*axialVector[1];
-        rRightHandSideVector(5) -= aux*axialVector[2];
-        rRightHandSideVector(9) -= aux*axialVector[0];
-        rRightHandSideVector(10) -= aux*axialVector[1];
-        rRightHandSideVector(11) -= aux*axialVector[2];
-    }
+    noalias(rRightHandSideVector) -= mCurrentForces;
+    noalias(rRightHandSideVector) += mPreForces;
 
     return;
 }
@@ -369,12 +341,10 @@ void BeamElement::CalculateRHS(Vector& rRightHandSideVector)
 
 void BeamElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo)
 {
-
     bool CalculateStiffnessMatrixFlag = true;
     bool CalculateResidualVectorFlag  = false;
     Vector temp = Vector();
     CalculateAll(rLeftHandSideMatrix, temp, rCurrentProcessInfo, CalculateStiffnessMatrixFlag, CalculateResidualVectorFlag);
-
 }
 
 
@@ -528,10 +498,8 @@ void BeamElement::CalculateLocalMatrix(Matrix& LocalMatrix)
     KRATOS_CATCH("")
 }
 
-
 //*****************************************************************************
 //*****************************************************************************
-
 void BeamElement::CalculateTransformationMatrix(Matrix& Rotation)
 {
     KRATOS_TRY
@@ -612,10 +580,9 @@ void BeamElement::CalculateTransformationMatrix(Matrix& Rotation)
     KRATOS_CATCH("")
 }
 
-
 //************************************************************************************
 //************************************************************************************
-void BeamElement::CalculateBodyForce(Matrix& Rotation, Vector& LocalBody, Vector& GlobalBody)
+void BeamElement::CalculateBodyForce(const Matrix& Rotation, Vector& LocalBody, Vector& GlobalBody)
 {
     KRATOS_TRY
     //Creacion de los vectores de cargas externas.
@@ -629,9 +596,9 @@ void BeamElement::CalculateBodyForce(Matrix& Rotation, Vector& LocalBody, Vector
     double  cose;
 
     array_1d<double, 3> Weight;
-    Weight[0]        =  GetProperties()[BODY_FORCE](0);
-    Weight[1]        =  GetProperties()[BODY_FORCE](1);
-    Weight[2]        =  GetProperties()[BODY_FORCE](2);
+    Weight[0]        =  GetProperties()[GRAVITY](0) * GetProperties()[DENSITY] + GetProperties()[BODY_FORCE](0);
+    Weight[1]        =  GetProperties()[GRAVITY](1) * GetProperties()[DENSITY] + GetProperties()[BODY_FORCE](1);
+    Weight[2]        =  GetProperties()[GRAVITY](2) * GetProperties()[DENSITY] + GetProperties()[BODY_FORCE](2);
 
 
     array_1d<double, 12 > Cargas_X = ZeroVector(12);
@@ -812,7 +779,6 @@ void BeamElement::CalculateBodyForce(Matrix& Rotation, Vector& LocalBody, Vector
 
 //************************************************************************************
 //************************************************************************************
-
 void BeamElement::CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
@@ -840,7 +806,6 @@ void BeamElement::CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo
             rMassMatrix(index,index) = temp;
             if (index==3 || index==4 || index==5)
                 rMassMatrix(index,index) = 0.00;
-
         }
     }
 
@@ -849,7 +814,6 @@ void BeamElement::CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo
 
 //************************************************************************************
 //************************************************************************************
-
 void BeamElement::CalculateDampingMatrix( MatrixType& rDampMatrix, const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
@@ -872,7 +836,7 @@ void BeamElement::CalculateDampingMatrix( MatrixType& rDampMatrix, const Process
     //rayleigh damping
     CalculateAll( StiffnessMatrix, RHS_Vector, rCurrentProcessInfo, true, false );
 
-    double alpha = 0.001, beta = 0.001;
+    double alpha = 0.0, beta = 0.0;
 
     if(GetProperties().Has(RAYLEIGH_DAMPING_ALPHA))
     {
@@ -888,60 +852,99 @@ void BeamElement::CalculateDampingMatrix( MatrixType& rDampMatrix, const Process
 
     noalias( rDampMatrix ) = alpha * rDampMatrix + beta * StiffnessMatrix;
 
-    KRATOS_WATCH(rDampMatrix)
+    // KRATOS_WATCH(rDampMatrix)
 
     KRATOS_CATCH( "" )
 }
 
 //************************************************************************************
 //************************************************************************************
-void BeamElement::GetFirstDerivativesVector(Vector& values, int Step)
+void BeamElement::GetValuesVector(Vector& values, int Step) const
 {
-    KRATOS_TRY
+    if(values.size() != GetGeometry().size()*6)
+        values.resize(GetGeometry().size()*6, false);
 
-    const unsigned int number_of_nodes = GetGeometry().size();
-    const unsigned int dim = GetGeometry().WorkingSpaceDimension();
-    unsigned int MatSize = 2*number_of_nodes*dim;
-    if(values.size() != MatSize)   values.resize(MatSize,false);
-    for (unsigned int i=0; i<number_of_nodes; i++)
+    for (std::size_t i = 0; i < GetGeometry().size(); ++i)
     {
-        unsigned int index =  i*number_of_nodes*dim;
-
-        values[index] = GetGeometry()[i].GetSolutionStepValue(VELOCITY_X,Step);
-        values[index + 1] = GetGeometry()[i].GetSolutionStepValue(VELOCITY_Y,Step);
-        values[index + 2] = GetGeometry()[i].GetSolutionStepValue(VELOCITY_Z,Step);
-        values[index + 3] = 0.00; // GetGeometry()[i].GetSolutionStepValue(ANGULAR_VELOCITY_X,Step);
-        values[index + 4] = 0.00; // GetGeometry()[i].GetSolutionStepValue(ANGULAR_VELOCITY_Y,Step);
-        values[index + 5] = 0.00; // GetGeometry()[i].GetSolutionStepValue(ANGULAR_VELOCITY_Z,Step);
+        values(6*i)   = GetGeometry()[i].GetSolutionStepValue(DISPLACEMENT_X, Step);
+        values(6*i+1) = GetGeometry()[i].GetSolutionStepValue(DISPLACEMENT_Y, Step);
+        values(6*i+2) = GetGeometry()[i].GetSolutionStepValue(DISPLACEMENT_Z, Step);
+        values(6*i+3) = GetGeometry()[i].GetSolutionStepValue(ROTATION_X, Step);
+        values(6*i+4) = GetGeometry()[i].GetSolutionStepValue(ROTATION_Y, Step);
+        values(6*i+5) = GetGeometry()[i].GetSolutionStepValue(ROTATION_Z, Step);
     }
-
-    KRATOS_CATCH("")
 }
 
 //************************************************************************************
 //************************************************************************************
-void BeamElement::GetSecondDerivativesVector(Vector& values, int Step)
+void BeamElement::GetFirstDerivativesVector(Vector& values, int Step) const
 {
-    KRATOS_TRY
+    if(values.size() != GetGeometry().size()*6)
+        values.resize(GetGeometry().size()*6, false);
 
-    const unsigned int number_of_nodes = GetGeometry().size();
-    const unsigned int dim = GetGeometry().WorkingSpaceDimension();
-    unsigned int MatSize = 2*number_of_nodes*dim;
-    if(values.size() != MatSize) values.resize(MatSize,false);
-    for (unsigned int i=0; i<number_of_nodes; i++)
+    for (std::size_t i = 0; i < GetGeometry().size(); ++i)
     {
-        unsigned int index = i*number_of_nodes*dim;
-        //KRATOS_WATCH(index)
-        values[index]     = GetGeometry()[i].GetSolutionStepValue(ACCELERATION_X,Step);
-        values[index + 1] = GetGeometry()[i].GetSolutionStepValue(ACCELERATION_Y,Step);
-        values[index + 2] = GetGeometry()[i].GetSolutionStepValue(ACCELERATION_Z,Step);
-        values[index + 3] = 0.00; // GetGeometry()[i].GetSolutionStepValue(ANGULAR_ACCELERATION_X,Step);
-        values[index + 4] = 0.00; // GetGeometry()[i].GetSolutionStepValue(ANGULAR_ACCELERATION_Y,Step);
-        values[index + 5] = 0.00; // GetGeometry()[i].GetSolutionStepValue(ANGULAR_ACCELERATION_Z,Step);
-
+        values(6*i)   = GetGeometry()[i].GetSolutionStepValue(DISPLACEMENT_DT_X, Step);
+        values(6*i+1) = GetGeometry()[i].GetSolutionStepValue(DISPLACEMENT_DT_Y, Step);
+        values(6*i+2) = GetGeometry()[i].GetSolutionStepValue(DISPLACEMENT_DT_Z, Step);
+        values(6*i+3) = GetGeometry()[i].GetSolutionStepValue(ROTATION_DT_X, Step);
+        values(6*i+4) = GetGeometry()[i].GetSolutionStepValue(ROTATION_DT_Y, Step);
+        values(6*i+5) = GetGeometry()[i].GetSolutionStepValue(ROTATION_DT_Z, Step);
     }
+}
 
-    KRATOS_CATCH("")
+//************************************************************************************
+//************************************************************************************
+void BeamElement::GetSecondDerivativesVector(Vector& values, int Step) const
+{
+    if(values.size() != GetGeometry().size()*6)
+        values.resize(GetGeometry().size()*6, false);
+
+    for (std::size_t i = 0; i < GetGeometry().size(); ++i)
+    {
+        values(6*i)   = GetGeometry()[i].GetSolutionStepValue(ACCELERATION_X, Step);
+        values(6*i+1) = GetGeometry()[i].GetSolutionStepValue(ACCELERATION_Y, Step);
+        values(6*i+2) = GetGeometry()[i].GetSolutionStepValue(ACCELERATION_Z, Step);
+        values(6*i+3) = GetGeometry()[i].GetSolutionStepValue(ANGULAR_ACCELERATION_X, Step);
+        values(6*i+4) = GetGeometry()[i].GetSolutionStepValue(ANGULAR_ACCELERATION_Y, Step);
+        values(6*i+5) = GetGeometry()[i].GetSolutionStepValue(ANGULAR_ACCELERATION_Z, Step);
+    }
+}
+
+//************************************************************************************
+//************************************************************************************
+void BeamElement::SetValuesOnIntegrationPoints( const Variable<Vector>& rVariable,
+        const std::vector<Vector>& Output,
+        const ProcessInfo& rCurrentProcessInfo)
+{
+    if (rVariable == PRESTRESS || rVariable == INSITU_STRESS)
+    {
+        // KRATOS_WATCH(Id())
+        // KRATOS_WATCH(Output.size())
+        // if (Output.size() > 0)
+        //     KRATOS_WATCH(Output[0])
+        // KRATOS_WATCH(mPreForces)
+        noalias(mPreForces) = Output[0];
+        // std::cout << Id() << ": Preforces is set to " << mPreForces << std::endl;
+    }
+}
+
+//************************************************************************************
+//************************************************************************************
+void BeamElement::CalculateOnIntegrationPoints( const Variable<double>& rVariable,
+        std::vector<double>& Output,
+        const ProcessInfo& rCurrentProcessInfo)
+{
+    const GeometryType::IntegrationPointsArrayType& integration_points =
+                    GetGeometry().IntegrationPoints( GetIntegrationMethod() );
+
+    if(Output.size() != integration_points.size())
+        Output.resize(integration_points.size());
+
+    for (std::size_t i = 0; i < integration_points.size(); ++i)
+    {
+        Output[i] = 0.0;
+    }
 }
 
 //************************************************************************************
@@ -950,9 +953,6 @@ void BeamElement::CalculateOnIntegrationPoints( const Variable<array_1d<double,3
         std::vector< array_1d<double,3> >& Output,
         const ProcessInfo& rCurrentProcessInfo)
 {
-    if(Output.size() != 3)
-        Output.resize(3);
-
     Vector Stress;
     Vector Load1;
     Vector Load2;
@@ -1028,8 +1028,7 @@ void BeamElement::CalculateOnIntegrationPoints( const Variable<array_1d<double,3
         }
         /*******end of new *********/
     }
-
-    if(rVariable==FORCE)
+    else if(rVariable==FORCE)
     {
         /***** old *********/
         // Output[0][0] = factor * CalculateInternalAxil(Stress[0], Load2[0], mlength/4.00);
@@ -1055,6 +1054,57 @@ void BeamElement::CalculateOnIntegrationPoints( const Variable<array_1d<double,3
             Output[point][2] = 0.00;
         }
         /*******end of new *********/
+    }
+    else
+    {
+        for(std::size_t point = 0; point < integration_points.size(); ++point)
+        {
+            noalias(Output[point]) = ZeroVector(3);
+        }
+    }
+}
+
+//************************************************************************************
+//************************************************************************************
+void BeamElement::CalculateOnIntegrationPoints( const Variable<Vector>& rVariable,
+        std::vector<Vector>& Output,
+        const ProcessInfo& rCurrentProcessInfo)
+{
+    if (rVariable == STRESSES)
+    {
+        if (Output.size() != 1)
+            Output.resize(1);
+
+        // Matrix GlobalMatrix;
+        // CalculateLHS(GlobalMatrix);
+
+        // Vector CurrentDisplacement(12);
+        // CurrentDisplacement(0)      =   GetGeometry()[0].GetSolutionStepValue(DISPLACEMENT_X) - mInitialDisp(0, 0);
+        // CurrentDisplacement(1)      =   GetGeometry()[0].GetSolutionStepValue(DISPLACEMENT_Y) - mInitialDisp(0, 1);
+        // CurrentDisplacement(2)      =   GetGeometry()[0].GetSolutionStepValue(DISPLACEMENT_Z) - mInitialDisp(0, 2);
+        // CurrentDisplacement(3)      =   GetGeometry()[0].GetSolutionStepValue(ROTATION_X) - mInitialRot(0, 0);
+        // CurrentDisplacement(4)      =   GetGeometry()[0].GetSolutionStepValue(ROTATION_Y) - mInitialRot(0, 1);
+        // CurrentDisplacement(5)      =   GetGeometry()[0].GetSolutionStepValue(ROTATION_Z) - mInitialRot(0, 2);
+        // CurrentDisplacement(6)      =   GetGeometry()[1].GetSolutionStepValue(DISPLACEMENT_X) - mInitialDisp(1, 0);
+        // CurrentDisplacement(7)      =   GetGeometry()[1].GetSolutionStepValue(DISPLACEMENT_Y) - mInitialDisp(1, 1);
+        // CurrentDisplacement(8)      =   GetGeometry()[1].GetSolutionStepValue(DISPLACEMENT_Z) - mInitialDisp(1, 2);
+        // CurrentDisplacement(9)      =   GetGeometry()[1].GetSolutionStepValue(ROTATION_X) - mInitialRot(1, 0);
+        // CurrentDisplacement(10)     =   GetGeometry()[1].GetSolutionStepValue(ROTATION_Y) - mInitialRot(1, 1);
+        // CurrentDisplacement(11)     =   GetGeometry()[1].GetSolutionStepValue(ROTATION_Z) - mInitialRot(1, 2);
+
+        // Output[0].resize(12, false);
+        // noalias(Output[0]) = prod(GlobalMatrix, CurrentDisplacement);
+
+        Output[0].resize(12, false);
+        noalias(Output[0]) = mCurrentForces;
+    }
+    else if (rVariable == INSITU_STRESS || rVariable == PRESTRESS )
+    {
+        if (Output.size() != 1)
+            Output.resize(1);
+
+        Output[0].resize(12, false);
+        noalias(Output[0]) = mPreForces;
     }
 }
 
@@ -1117,9 +1167,9 @@ void BeamElement::CalculateDistributedBodyForce(const int Direction, Vector& Loa
 {
     array_1d<double, 3> Weight;
     Load.resize(2, false);
-    Weight[0]        =  GetProperties()[BODY_FORCE](0);
-    Weight[1]        =  GetProperties()[BODY_FORCE](1);
-    Weight[2]        =  GetProperties()[BODY_FORCE](2);
+    Weight[0]        =  GetProperties()[GRAVITY](0) * GetProperties()[DENSITY] + GetProperties()[BODY_FORCE](0);
+    Weight[1]        =  GetProperties()[GRAVITY](1) * GetProperties()[DENSITY] + GetProperties()[BODY_FORCE](1);
+    Weight[2]        =  GetProperties()[GRAVITY](2) * GetProperties()[DENSITY] + GetProperties()[BODY_FORCE](2);
 
     double alpha  =  0.00;
     double signo  =  1.00;
@@ -1260,6 +1310,8 @@ int  BeamElement::Check(const ProcessInfo& rCurrentProcessInfo) const
         KRATOS_THROW_ERROR(std::invalid_argument,"ACCELERATION has Key zero! (check if the application is correctly registered","");
     if(DENSITY.Key() == 0)
         KRATOS_THROW_ERROR(std::invalid_argument,"DENSITY has Key zero! (check if the application is correctly registered","");
+    if(GRAVITY.Key() == 0)
+        KRATOS_THROW_ERROR(std::invalid_argument,"GRAVITY has Key zero! (check if the application is correctly registered","");
     if(BODY_FORCE.Key() == 0)
         KRATOS_THROW_ERROR(std::invalid_argument,"BODY_FORCE has Key zero! (check if the application is correctly registered","");
     if(CROSS_AREA.Key() == 0)
