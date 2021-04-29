@@ -94,9 +94,9 @@ public:
      * Clone function
      * @return a pointer to a new instance of this constitutive law
      */
-    virtual BaseType::Pointer Clone() const final
+    ConstitutiveLaw::Pointer Clone() const final
     {
-        BaseType::Pointer p_clone( new DruckerPrager() );
+        ConstitutiveLaw::Pointer p_clone( new DruckerPrager() );
         return p_clone;
     }
 
@@ -166,7 +166,7 @@ public:
      * @param rValue a reference to the returned value
      * @param rValue output: the value of the specified variable
      */
-    virtual int& GetValue( const Variable<int>& rThisVariable, int& rValue );
+    int& GetValue( const Variable<int>& rThisVariable, int& rValue );
 
     /**
      * returns the value of a specified variable
@@ -174,7 +174,7 @@ public:
      * @param rValue a reference to the returned value
      * @param rValue output: the value of the specified variable
      */
-    virtual double& GetValue( const Variable<double>& rThisVariable, double& rValue );
+    double& GetValue( const Variable<double>& rThisVariable, double& rValue );
 
     /**
      * returns the value of a specified variable
@@ -182,14 +182,14 @@ public:
      * @param rValue a reference to the returned value
      * @return the value of the specified variable
      */
-    virtual Vector& GetValue( const Variable<Vector>& rThisVariable, Vector& rValue );
+    Vector& GetValue( const Variable<Vector>& rThisVariable, Vector& rValue );
 
     /**
      * returns the value of a specified variable
      * @param rThisVariable the variable to be returned
      * @return the value of the specified variable
      */
-    virtual Matrix& GetValue( const Variable<Matrix>& rThisVariable, Matrix& rValue );
+    Matrix& GetValue( const Variable<Matrix>& rThisVariable, Matrix& rValue );
 
     /**
      * returns the value of a specified variable
@@ -197,7 +197,7 @@ public:
      * @param rValue a reference to the returned value
      * @return the value of the specified variable
      */
-    virtual array_1d<double, 3 > & GetValue( const Variable<array_1d<double, 3 > >& rVariable,
+    array_1d<double, 3 > & GetValue( const Variable<array_1d<double, 3 > >& rVariable,
             array_1d<double, 3 > & rValue );
 
     /**
@@ -206,7 +206,7 @@ public:
      * @param rValue a reference to the returned value
      * @return the value of the specified variable
      */
-    virtual array_1d<double, 6 > & GetValue( const Variable<array_1d<double, 6 > >& rVariable,
+    array_1d<double, 6 > & GetValue( const Variable<array_1d<double, 6 > >& rVariable,
             array_1d<double, 6 > & rValue );
 
     /**
@@ -215,7 +215,7 @@ public:
      * @param Value new value of the specified variable
      * @param rCurrentProcessInfo the process info
      */
-    virtual void SetValue( const Variable<int>& rVariable,
+    void SetValue( const Variable<int>& rVariable,
                            const int& Value,
                            const ProcessInfo& rCurrentProcessInfo );
 
@@ -225,7 +225,7 @@ public:
      * @param Value new value of the specified variable
      * @param rCurrentProcessInfo the process info
      */
-    virtual void SetValue( const Variable<double>& rVariable,
+    void SetValue( const Variable<double>& rVariable,
                            const double& Value,
                            const ProcessInfo& rCurrentProcessInfo );
 
@@ -235,7 +235,7 @@ public:
      * @param Value new value of the specified variable
      * @param rCurrentProcessInfo the process info
      */
-    virtual void SetValue( const Variable<Vector >& rVariable,
+    void SetValue( const Variable<Vector >& rVariable,
                            const Vector& Value, const ProcessInfo& rCurrentProcessInfo );
 
     /**
@@ -244,7 +244,7 @@ public:
      * @param Value new value of the specified variable
      * @param rCurrentProcessInfo the process info
      */
-    virtual void SetValue( const Variable<Matrix >& rVariable,
+    void SetValue( const Variable<Matrix >& rVariable,
                            const Matrix& Value, const ProcessInfo& rCurrentProcessInfo );
 
     /**
@@ -253,7 +253,7 @@ public:
      * @param Value new value of the specified variable
      * @param rCurrentProcessInfo the process info
      */
-    virtual void SetValue( const Variable<array_1d<double, 3 > >& rVariable,
+    void SetValue( const Variable<array_1d<double, 3 > >& rVariable,
                            const array_1d<double, 3 > & Value,
                            const ProcessInfo& rCurrentProcessInfo );
 
@@ -263,7 +263,7 @@ public:
      * @param Value new value of the specified variable
      * @param rCurrentProcessInfo the process info
      */
-    virtual void SetValue( const Variable<array_1d<double, 6 > >& rVariable,
+    void SetValue( const Variable<array_1d<double, 6 > >& rVariable,
                            const array_1d<double, 6 > & Value,
                            const ProcessInfo& rCurrentProcessInfo );
 
@@ -313,7 +313,7 @@ public:
      * @param geom the geometry of the current element
      * @param ShapeFunctionsValues the shape functions values in the current integration point
      */
-    virtual void InitializeMaterial( const Properties& props,
+    void InitializeMaterial( const Properties& props,
                                      const GeometryType& geom,
                                      const Vector& ShapeFunctionsValues );
 
@@ -325,7 +325,7 @@ public:
      * @param ShapeFunctionsValues the shape functions values in the current integration point
      * @param the current ProcessInfo instance
      */
-    virtual void InitializeSolutionStep( const Properties& props,
+    void InitializeSolutionStep( const Properties& props,
                                          const GeometryType& geom, //this is just to give the array of nodes
                                          const Vector& ShapeFunctionsValues,
                                          const ProcessInfo& CurrentProcessInfo );
@@ -338,17 +338,17 @@ public:
      * @param ShapeFunctionsValues the shape functions values in the current integration point
      * @param the current ProcessInfo instance
      */
-    virtual void FinalizeSolutionStep( const Properties& props,
+    void FinalizeSolutionStep( const Properties& props,
                                        const GeometryType& geom,
                                        const Vector& ShapeFunctionsValues,
                                        const ProcessInfo& CurrentProcessInfo );
 
-    virtual void InitializeNonLinearIteration( const Properties& props,
+    void InitializeNonLinearIteration( const Properties& props,
             const GeometryType& geom,
             const Vector& ShapeFunctionsValues,
             const ProcessInfo& CurrentProcessInfo );
 
-    virtual void FinalizeNonLinearIteration( const Properties& props,
+    void FinalizeNonLinearIteration( const Properties& props,
             const GeometryType& geom, //this is just to give the array of nodes
             const Vector& ShapeFunctionsValues,
             const ProcessInfo& CurrentProcessInfo );
@@ -376,7 +376,7 @@ public:
      * NOTE: the CalculateTangent flag is defined as int to allow for distinctive variants of the tangent
      * @param SaveInternalVariables flag whether or not to store internal (history) variables
      */
-    virtual void CalculateMaterialResponse( const Vector& StrainVector,
+    void CalculateMaterialResponse( const Vector& StrainVector,
                                             const Matrix& DeformationGradient,
                                             Vector& StressVector,
                                             Matrix& AlgorithmicTangent,
@@ -404,7 +404,7 @@ public:
      * NOTE: the CalculateTangent flag is defined as int to allow for distinctive variants of the tangent
      * @param SaveInternalVariables flag whether or not to store internal (history) variables
      */
-    virtual void CalculateVolumetricResponse( const double VolumetricStrain,
+    void CalculateVolumetricResponse( const double VolumetricStrain,
             const Matrix& DeformationGradient,
             double& VolumetricStress,
             double& AlgorithmicBulk,
@@ -429,7 +429,7 @@ public:
      * @param props the material's Properties object
      * TODO: add proper definition for algorithmic tangent
      */
-    virtual void CalculateDeviatoricResponse( const Vector& StrainVector,
+    void CalculateDeviatoricResponse( const Vector& StrainVector,
             const Matrix& DeformationGradient,
             Vector& StressVector,
             Matrix& AlgorithmicTangent,
@@ -452,11 +452,11 @@ public:
      * @param ShapeFunctionsValues the shape functions values in the current integration point
      * @param the current ProcessInfo instance
      */
-    virtual void ResetMaterial( const Properties& props,
+    void ResetMaterial( const Properties& props,
                                 const GeometryType& geom,
                                 const Vector& ShapeFunctionsValues );
 
-    virtual void CalculateCauchyStresses( Vector& Cauchy_StressVector,
+    void CalculateCauchyStresses( Vector& Cauchy_StressVector,
                                           const Matrix& F,
                                           const Vector& PK2_StressVector,
                                           const Vector& GreenLagrangeStrainVector )
