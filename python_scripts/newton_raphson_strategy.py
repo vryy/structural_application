@@ -5,21 +5,6 @@ from KratosMultiphysics.StructuralApplication import *
 CheckForPreviousImport()
 import os,time
 
-## Parameters contain:
-# perform_contact_analysis_flag
-# penalty value for normal contact
-# maximum number of uzawa iterations
-# friction coefficient
-# penalty value for frictional contact
-# contact_double_check_flag
-# contact_ramp_penalties_flag
-# maximum penalty value for normal contact
-# ramp criterion for normal contact
-# ramp factor for normal contact
-# maximum penalty value for frictional contact
-# ramp criterion for frictional contact
-# ramp factor for frictional contact
-
 class SolvingStrategyPython:
     #######################################################################
     def __init__( self, model_part, time_scheme, linear_solver, convergence_criteria, CalculateReactionsFlag, ReformDofSetAtEachStep, MoveMeshFlag, Parameters, space_utils, builder_and_solver ):
@@ -32,16 +17,15 @@ class SolvingStrategyPython:
         self.ReformDofSetAtEachStep = ReformDofSetAtEachStep
         self.MoveMeshFlag = MoveMeshFlag
         self.Parameters = Parameters
-        self.PerformContactAnalysis = self.Parameters['perform_contact_analysis_flag']
         self.PrintSparsity = self.Parameters['print_sparsity_info_flag']
         self.space_utils = space_utils
-        #contact utility
-        self.cu = ContactUtility( 3 )
+
         #default values for some variables
         self.max_iter = 30
         self.echo_level = 1
         self.builder_and_solver = builder_and_solver
         self.dof_util = DofUtility()
+        self.output_util = OutputUtility()
         self.calculate_reaction_process = None
 
         #local matrices and vectors
@@ -62,8 +46,8 @@ class SolvingStrategyPython:
         self.InitializeWasPerformed = False
         self.StiffnessMatrixIsBuilt = False
         #provide settings to the builder and solver
-        (self.builder_and_solver).SetCalculateReactionsFlag(self.CalculateReactionsFlag);
-        (self.builder_and_solver).SetReshapeMatrixFlag(self.ReformDofSetAtEachStep);
+        (self.builder_and_solver).SetCalculateReactionsFlag(self.CalculateReactionsFlag)
+        (self.builder_and_solver).SetReshapeMatrixFlag(self.ReformDofSetAtEachStep)
 
         self.solveCounter = 0; #hbui added this variable
 
@@ -75,14 +59,11 @@ class SolvingStrategyPython:
 
         self.attached_processes = []
 
-        self.coupling_scheme = None
-        self.coupling_converged = False
-
-        if 'update_lambda' not in self.Parameters:
-            self.Parameters['update_lambda'] = True
-
         if 'stop_Newton_Raphson_if_not_converge' in self.Parameters:
             self.Parameters['stop_Newton_Raphson_if_not_converged'] = self.Parameters['stop_Newton_Raphson_if_not_converge']
+
+        if 'list_plastic_points' not in self.Parameters:
+            self.Parameters['list_plastic_points'] = False
 
     #######################################################################
     def Initialize(self):
@@ -95,106 +76,57 @@ class SolvingStrategyPython:
         for proc in self.attached_processes:
             proc.ExecuteInitialize()
         self.InitializeWasPerformed = True
-        print("SolvingStrategyPython.Initialize is called")
-
-        for prop in self.model_part.Properties:
-            prop.SetValue(FRICTION_COEFFICIENT, self.Parameters['friction'])
+        print("newton_raphson_strategy.Initialize is called")
 
     #######################################################################
-    def SolveLagrange( self ):
+    def SolveOneStep(self):
         #print self.model_part
-        ## - storing original condition size before adding virtual conditions.
-        ## - performing contact search
-        ## - creating virtual link conditions for the assembling
-        if( self.PerformContactAnalysis == False ):
-            self.PerformNewtonRaphsonIteration()
-            #finalize the solution step
-            self.FinalizeSolutionStep(self.CalculateReactionsFlag)
-            #clear if needed - deallocates memory
-            if(self.ReformDofSetAtEachStep == True):
-                self.Clear();
-            return
-        print "setting up contact conditions"
-        last_real_node = len(self.model_part.Nodes)
-        originalPosition = self.cu.SetUpContactConditionsLagrangeTying(self.model_part )
-        self.PerformNewtonRaphsonIteration()
-        self.cu.CleanLagrangeTying( self.model_part, originalPosition, last_real_node )
-        (self.builder_and_solver).SetReshapeMatrixFlag(self.ReformDofSetAtEachStep)
-        #finalize the solution step
-        self.FinalizeSolutionStep(self.CalculateReactionsFlag)
-        #clear if needed - deallocates memory
-        if(self.ReformDofSetAtEachStep == True):
-            self.Clear();
-
-    #######################################################################
-    def Solve(self):
-        #print self.model_part
-        ## - storing original condition size before adding virtual conditions.
-        ## - performing contact search
-        ## - creating virtual link conditions for the assembling
         self.solveCounter = self.solveCounter + 1
-        if( self.PerformContactAnalysis == False ):
-            self.PerformNewtonRaphsonIteration()
-            #finalize the solution step
-            self.FinalizeSolutionStep(self.CalculateReactionsFlag)
-            #clear if needed - deallocates memory
-            if(self.ReformDofSetAtEachStep == True):
-                self.Clear();
-            return
-        print "setting up contact conditions"
-        originalPosition =  self.cu.SetUpContactConditions(self.model_part, self.Parameters['penalty'], self.Parameters['frictionpenalty'], self.Parameters['contact_double_check_flag'] )
-        uzawaConverged = False
-        ##  First step: reform DOF set and check if uzawa iteration is necessary
-        self.PerformNewtonRaphsonIteration()
-        if self.Parameters['update_lambda']:
-            self.cu.Update( self.model_part, originalPosition, self.Parameters['friction'], self.Parameters['contact_ramp_penalties_flag'], self.Parameters['rampcriterion'], self.Parameters['fricrampcriterion'], self.Parameters['rampfactor'], self.Parameters['fricrampfactor'], self.Parameters['maxpenalty'], self.Parameters['fricmaxpenalty']  )
-        if( self.cu.IsConverged( self.model_part, 0,  originalPosition, self.Parameters['friction'] ) == True ):
-            uzawaConverged = True
-            (self.builder_and_solver).SetReshapeMatrixFlag(self.ReformDofSetAtEachStep)
-            self.cu.Clean( self.model_part, originalPosition );
-            #finalize the solution step
-            self.FinalizeSolutionStep(self.CalculateReactionsFlag)
-            #clear if needed - deallocates memory
-            if(self.ReformDofSetAtEachStep == True):
-                self.Clear()
-            return
-        ## beginning of UZAWA loop
-        (self.builder_and_solver).SetReshapeMatrixFlag(False)
-        #props = self.model_part.Properties[1]
-        for uzawaStep in range(1, self.Parameters['maxuzawa'] ):
-            print "I am inside the uzawa loop, iteration no. " + str(uzawaStep)
-            ## solving the standard newton-raphson iteration
-            self.PerformNewtonRaphsonIteration()
-            ## updating the lagrange multipliers
-            if self.Parameters['update_lambda']:
-                self.cu.Update( self.model_part, originalPosition, self.Parameters['friction'], self.Parameters['contact_ramp_penalties_flag'], self.Parameters['rampcriterion'], self.Parameters['fricrampcriterion'], self.Parameters['rampfactor'], self.Parameters['fricrampfactor'], self.Parameters['maxpenalty'], self.Parameters['fricmaxpenalty']  )
-            ## checking convergence
-            if( self.cu.IsConverged( self.model_part, uzawaStep, originalPosition, self.Parameters['friction'] ) == True ):
-                uzawaConverged = True
-                break
-        if(self.Parameters['maxuzawa'] == 1):
-            print "Congratulations. Newton-Raphson loop has converged."
-        else:
-            if( uzawaConverged == False ):
-                if('stop_Uzawa_if_not_converge' in self.Parameters):
-                    if(self.Parameters['stop_Uzawa_if_not_converge'] == True):
-                        sys.exit("Stop. Uzawa algorithm failed to converge at time step " + str(self.model_part.ProcessInfo[TIME]) + ", uzawaStep = " + str(uzawaStep) + ", maxuzawa = " + str(self.Parameters['maxuzawa']))
-                    else:
-                        print('Uzawa algorithm failed to converge. However, the iteration will still be proceeded' + ", uzawaStep = " + str(uzawa) + ", maxuzawa = " + str(self.Parameters['maxuzawa']))
-                else:
-                    print("Stop. Uzawa algorithm failed to converge at time step " + str(self.model_part.ProcessInfo[TIME]) + ", uzawaStep = " + str(uzawaStep) + ", maxuzawa = " + str(self.Parameters['maxuzawa']))
-                    print("However, I still want to proceed")
-            else:
-                print 'Congratulations. Uzawa loop has converged.'
-        ### end of UZAWA loop
-        ### cleaning up the conditions
-        self.cu.Clean( self.model_part, originalPosition )
-        (self.builder_and_solver).SetReshapeMatrixFlag(self.ReformDofSetAtEachStep)
+        #solve the nonlinear equilibrium
+        self.PerformOneIteration()
         #finalize the solution step
         self.FinalizeSolutionStep(self.CalculateReactionsFlag)
         #clear if needed - deallocates memory
         if(self.ReformDofSetAtEachStep == True):
             self.Clear()
+
+    #######################################################################
+    def Solve(self):
+        #print self.model_part
+        self.solveCounter = self.solveCounter + 1
+        #solve the nonlinear equilibrium
+        self.PerformNewtonRaphsonIteration()
+        #finalize the solution step
+        self.FinalizeSolutionStep(self.CalculateReactionsFlag)
+        #clear if needed - deallocates memory
+        if(self.ReformDofSetAtEachStep == True):
+            self.Clear()
+
+    #######################################################################
+    def PerformOneIteration( self ):
+        print("time = " + str(self.model_part.ProcessInfo[TIME]))
+        #perform the operations to be performed ONCE and ensure they will not be repeated
+        # elemental function "Initialize" is called here
+        if(self.InitializeWasPerformed == False):
+            self.Initialize()
+        #perform initializations for the current step
+        #this operation implies:
+        #identifying the set of DOFs that will be solved during this step
+        #organizing the DOFs so to identify the dirichlet conditions
+        #resizing the matrix preallocating the "structure"
+        if (self.SolutionStepIsInitialized == False):
+            self.InitializeSolutionStep()
+            self.SolutionStepIsInitialized = True
+        #perform prediction
+        self.Predict()
+
+        #execute single iteration
+        calculate_norm = False
+        self.iterationCounter = 0 #hbui added this variable
+        self.iterationCounter = self.iterationCounter + 1
+        normDx = self.ExecuteIteration(self.echo_level,self.MoveMeshFlag,calculate_norm)
+        print("normDx: " + str(normDx))
+        print("newton_raphson_strategy.PerformOneIteration completed at time = " + str(self.model_part.ProcessInfo[TIME]))
 
     #######################################################################
     def PerformNewtonRaphsonIteration( self ):
@@ -219,28 +151,12 @@ class SolvingStrategyPython:
         self.iterationCounter = 0 #hbui added this variable
         self.iterationCounter = self.iterationCounter + 1
         normDx = self.ExecuteIteration(self.echo_level,self.MoveMeshFlag,calculate_norm)
-        print("normDx: " + str(normDx))
-
-        original_penalty = 0.0
-        if( self.PerformContactAnalysis == True ):
-            for cond in self.model_part.Conditions:
-                if( cond.GetValue( IS_CONTACT_SLAVE ) ):
-                    original_penalty = cond.GetValue( PENALTY )[0]
-                    break
+        print("normDx at iteration 0: " + str(normDx))
 
         #non linear loop
         converged = False
         it = 0
         while(it < self.max_iter and converged == False):
-            #increase penalty...
-            if( self.PerformContactAnalysis == True ):
-                for cond in self.model_part.Conditions:
-                    if( cond.GetValue( IS_CONTACT_SLAVE ) ):
-                        penalty = cond.GetValue( PENALTY )
-                        for i in range(0,len(penalty)):
-                            penalty[i] = 1.0*penalty[i]
-                        cond.SetValue( PENALTY, penalty )
-            #end of increase penalty
             #verify convergence
             converged = self.convergence_criteria.PreCriteria(self.model_part,self.builder_and_solver.GetDofSet(),self.A,self.Dx,self.b)
 
@@ -250,14 +166,10 @@ class SolvingStrategyPython:
             # - nodal coordinates are updated if required
             self.iterationCounter = self.iterationCounter + 1
             normDx = self.ExecuteIteration(self.echo_level,self.MoveMeshFlag,calculate_norm)
-            print("normDx: " + str(normDx))
+            print("normDx at iteration " + str(it+1) + ": " + str(normDx))
 
             #verify convergence
             converged = self.convergence_criteria.PostCriteria(self.model_part,self.builder_and_solver.GetDofSet(),self.A,self.Dx,self.b)
-
-            if self.coupling_scheme != None:
-                print("coupling_converged: " + str(self.coupling_converged))
-                converged = converged and self.coupling_converged
 
             #update iteration count
             it = it + 1
@@ -271,14 +183,7 @@ class SolvingStrategyPython:
                     print('However, the iteration will still be proceeded' + ", it = " + str(it) + ", max_iter = " + str(self.max_iter))
             else:
                 sys.exit("Sorry, my boss does not allow me to continue. The time step did not converge at time step " + str(self.model_part.ProcessInfo[TIME]) + ", it = " + str(it) + ", max_iter = " + str(self.max_iter))
-        print("PerformNewtonRaphsonIteration converged after " + str(it) + " steps")
-        if( self.PerformContactAnalysis == True ):
-            for cond in self.model_part.Conditions:
-                if( cond.GetValue( IS_CONTACT_SLAVE ) ):
-                    penalty = cond.GetValue( PENALTY )
-                    for i in range(0,len(penalty)):
-                        penalty[i] = original_penalty
-                    cond.SetValue( PENALTY, penalty )
+        print("newton_raphson_strategy.PerformNewtonRaphsonIteration converged after " + str(it) + " steps")
 
     #######################################################################
     def Predict(self):
@@ -322,23 +227,7 @@ class SolvingStrategyPython:
         self.space_utils.SetToZeroVector(self.b)
 
         self.time_scheme.InitializeNonLinIteration(self.model_part,self.A,self.Dx,self.b)
-        print("ExecuteIteration:InitializeNonLinIteration is called")
-
-        if self.coupling_scheme != None:
-
-            # print("solved displacement:")
-            # for node in self.model_part.Nodes:
-            #     print(str(node.Id) + ": " + str(node.GetSolutionStepValue(DISPLACEMENT)))
-
-            # if not self.coupling_converged:
-            #     self.coupling_converged = self.coupling_scheme.SolveModel(self.model_part.ProcessInfo[TIME])
-            if (not self.coupling_converged) and self.coupling_scheme.IsCouplingOnGoing():
-                self.coupling_converged = self.coupling_scheme.SolveModel(self.model_part.ProcessInfo[TIME])
-            # if self.coupling_scheme.IsCouplingOnGoing():
-            #     self.coupling_converged = self.coupling_scheme.SolveModel(self.model_part.ProcessInfo[TIME])
-
-            self.time_scheme.UpdateForces(self.model_part)
-            print("ExecuteIteration: forces is updated")
+        print("newton_raphson_strategy.ExecuteIteration:InitializeNonLinIteration is called")
 
         #build and solve the problem
         if(self.Parameters['decouple_build_and_solve'] == False):
@@ -355,13 +244,16 @@ class SolvingStrategyPython:
                 self.linear_solver.ProvideAdditionalData(self.A,self.Dx,self.b,self.builder_and_solver.GetDofSet(),self.model_part)
             self.linear_solver.Solve(self.A,self.Dx,self.b)
 
-        # # print("At solve, A = " + str(self.A))
+        # print("At solve, A = " + str(self.A))
         # print("At solve, rhs = " + str(self.b))
         # print("At solve, dx = " + str(self.Dx))
 
         #calculate reaction process
         if not(self.calculate_reaction_process == None):
             self.calculate_reaction_process.Execute()
+
+        if(self.Parameters['list_plastic_points'] == True):
+            self.output_util.ListPlasticPoints(self.model_part)
 
 #        diagAstr = ""
 #        for i in range(0, self.A.Size1()):
@@ -370,15 +262,14 @@ class SolvingStrategyPython:
 
         #full output if needed
         if( self.PrintSparsity ):
-            #hbui edited
-            #self.PlotSparsityScheme( self.A )
+            self.PlotSparsityScheme( self.A )
 #            wr = UblasMatrixIO()
 #            wr.WriteHB(self.A, self.b, "matrix" + str(self.solveCounter) + "." + str(self.iterationCounter) + ".hb.dat")
 #            self.space_utils.WriteMatrixMarketMatrix("matrix" + str(self.solveCounter) + "." + str(self.iterationCounter) + ".mm",self.A,False)
-            petsc_utils.DumpUblasCompressedMatrixVector("tempAb", self.A, self.b, False)
+            #petsc_utils.DumpUblasCompressedMatrixVector("tempAb", self.A, self.b, False)
 
         if(echo_level >= 3):
-            print "SystemMatrix = ", self.A
+            print("SystemMatrix = " + str(self.A))
         #printA = []
         #printdx = []
         #printb = []
@@ -398,11 +289,11 @@ class SolvingStrategyPython:
          #       else:
          #           row.append(self.A[(i,j)])
          #   printA.append(row)
-            print "solution obtained = ", self.Dx
+            print("solution obtained = " + str(self.Dx))
             #formatted_printdx = [ '%.6f' % elem for elem in printdx ]
             #print formatted_printdx
             #formatted_printb = [ '%.4f' % elem for elem in printb ]
-            print "RHS = ", self.b
+            print("RHS = " + str(self.b))
         #print formatted_printb
         #print "Matrix: "
         #for i in range(0,len(self.Dx)):
@@ -412,7 +303,7 @@ class SolvingStrategyPython:
 
         #perform update
         self.time_scheme.Update(self.model_part,self.builder_and_solver.GetDofSet(),self.A,self.Dx,self.b)
-        print("ExecuteIteration:Update is called")
+        print("newton_raphson_strategy.ExecuteIteration:Update is called")
 
         #move the mesh as needed
         if(MoveMeshFlag == True):
@@ -440,23 +331,7 @@ class SolvingStrategyPython:
                 node.SetSolutionStepValue(PRESCRIBED_DELTA_DISPLACEMENT_Z, 0.0) # set the prescribed displacement to zero to avoid update in the second step
 
         self.time_scheme.FinalizeNonLinIteration(self.model_part,self.A,self.Dx,self.b)
-        print("ExecuteIteration:FinalizeNonLinIteration is called")
-
-        # if self.coupling_scheme != None:
-
-        #     # print("solved displacement:")
-        #     # for node in self.model_part.Nodes:
-        #     #     print(str(node.Id) + ": " + str(node.GetSolutionStepValue(DISPLACEMENT)))
-
-        #     # if not self.coupling_converged:
-        #     #     self.coupling_converged = self.coupling_scheme.SolveModel(self.model_part.ProcessInfo[TIME])
-        #     if (not self.coupling_converged) and self.coupling_scheme.IsCouplingOnGoing():
-        #         self.coupling_converged = self.coupling_scheme.SolveModel(self.model_part.ProcessInfo[TIME])
-        #     # if self.coupling_scheme.IsCouplingOnGoing():
-        #     #     self.coupling_converged = self.coupling_scheme.SolveModel(self.model_part.ProcessInfo[TIME])
-
-        #     # self.time_scheme.UpdateForces(self.model_part)
-        #     # print("ExecuteIteration: forces is updated")
+        print("newton_raphson_strategy.ExecuteIteration:FinalizeNonLinIteration is called")
 
         #calculate the norm of the "correction" Dx
         if(CalculateNormDxFlag == True):
@@ -471,17 +346,17 @@ class SolvingStrategyPython:
         if(CalculateReactionsFlag == True):
             self.builder_and_solver.CalculateReactions(self.time_scheme,self.model_part,self.A,self.Dx,self.b)
 
-        #Finalisation of the solution step,
+        #Finalisation of the solution step
         self.time_scheme.FinalizeSolutionStep(self.model_part,self.A,self.Dx,self.b)
         self.builder_and_solver.FinalizeSolutionStep(self.model_part,self.A,self.Dx,self.b)
         self.time_scheme.Clean()
+        self.linear_solver.Clear()
         #reset flags for the next step
         self.SolutionStepIsInitialized = False
 
         for proc in self.attached_processes:
             proc.ExecuteFinalizeSolutionStep()
-
-        self.coupling_converged = False
+        print("newton_raphson_strategy.FinalizeSolutionStep is called")
 
     #######################################################################
     def Clear(self):

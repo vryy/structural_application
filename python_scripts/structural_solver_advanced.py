@@ -65,6 +65,7 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(LAGRANGE_DISPLACEMENT)
     model_part.AddNodalSolutionStepVariable(LAGRANGE_AIR_PRESSURE)
     model_part.AddNodalSolutionStepVariable(LAGRANGE_WATER_PRESSURE)
+    model_part.AddNodalSolutionStepVariable(REACTION_LAGRANGE_WATER_PRESSURE)
     model_part.AddNodalSolutionStepVariable(LAGRANGE_MULTIPLIER_CONSTRAINT)
     #model_part.AddNodalSolutionStepVariable(INTERNAL_VARIABLES)
     model_part.AddNodalSolutionStepVariable(MOMENTUM)
@@ -108,8 +109,8 @@ def AddDofsForNode(node):
     node.AddDof(ROTATION_X)
     node.AddDof(ROTATION_Y)
     node.AddDof(ROTATION_Z)
-    #node.AddDof(LAGRANGE_AIR_PRESSURE)
-    node.AddDof(LAGRANGE_WATER_PRESSURE)
+    # node.AddDof(LAGRANGE_AIR_PRESSURE, REACTION_LAGRANGE_AIR_PRESSURE)
+    # node.AddDof(LAGRANGE_WATER_PRESSURE, REACTION_LAGRANGE_WATER_PRESSURE) # do not add here, add in the include file instead
 
 def AddDofsForNodes(nodes):
     for node in nodes:
@@ -214,7 +215,7 @@ class SolverAdvanced(structural_solver_static.StaticStructuralSolver):
             self.time_scheme = ResidualBasedThetaScheme(self.dissipation_radius)
         elif( self.analysis_parameters['analysis_type'] == 4 ):
             self.model_part.ProcessInfo.SetValue( QUASI_STATIC_ANALYSIS, False )
-            print("using theta quasi-static scheme, theta=" + str(self.dissipation_radius))
+            print("using theta dynamics scheme, theta=" + str(self.dissipation_radius))
             self.time_scheme = ResidualBasedThetaScheme(self.dissipation_radius)
         else:
             print("analysis type is not defined! Define in analysis_parameters['analysis_type']:")
@@ -259,8 +260,23 @@ class SolverAdvanced(structural_solver_static.StaticStructuralSolver):
         self.MoveMeshFlag = True
         self.space_utils = UblasSparseSpace()
         self.model_part.ProcessInfo[RESET_CONFIGURATION] = 0
-        import uzawa_contact_strategy
-        self.solver = uzawa_contact_strategy.SolvingStrategyPython( self.model_part, self.time_scheme, self.structure_linear_solver, self.conv_criteria, self.CalculateReactionFlag, self.ReformDofSetAtEachStep, self.MoveMeshFlag, self.analysis_parameters, self.space_utils, builder_and_solver )
+
+        if self.analysis_parameters['perform_contact_analysis_flag'] == True:
+            import uzawa_contact_strategy
+            self.solver = uzawa_contact_strategy.SolvingStrategyPython( self.model_part, self.time_scheme, self.structure_linear_solver, self.conv_criteria, self.CalculateReactionFlag, self.ReformDofSetAtEachStep, self.MoveMeshFlag, self.analysis_parameters, self.space_utils, builder_and_solver )
+        else:
+            if 'solution_strategy' in self.analysis_parameters:
+                if self.analysis_parameters['solution_strategy'] == "implicit_Newton_Raphson":
+                    import newton_raphson_strategy
+                    self.solver = newton_raphson_strategy.SolvingStrategyPython( self.model_part, self.time_scheme, self.structure_linear_solver, self.conv_criteria, self.CalculateReactionFlag, self.ReformDofSetAtEachStep, self.MoveMeshFlag, self.analysis_parameters, self.space_utils, builder_and_solver )
+                elif self.analysis_parameters['solution_strategy'] == "initial_stiffness":
+                    import initial_stiffness_strategy
+                    self.solver = initial_stiffness_strategy.SolvingStrategyPython( self.model_part, self.time_scheme, self.structure_linear_solver, self.conv_criteria, self.CalculateReactionFlag, self.ReformDofSetAtEachStep, self.MoveMeshFlag, self.analysis_parameters, self.space_utils, builder_and_solver )
+                else:
+                    raise Exception("Unknown solution_strategy " + str(self.analysis_parameters['solution_strategy']))
+            else:
+                import newton_raphson_strategy
+                self.solver = newton_raphson_strategy.SolvingStrategyPython( self.model_part, self.time_scheme, self.structure_linear_solver, self.conv_criteria, self.CalculateReactionFlag, self.ReformDofSetAtEachStep, self.MoveMeshFlag, self.analysis_parameters, self.space_utils, builder_and_solver )
 
     #######################################################################
     def InitializeSolver(self):
@@ -273,3 +289,8 @@ class SolverAdvanced(structural_solver_static.StaticStructuralSolver):
     #######################################################################
     def SolveLagrangeLocal(self):
         (self.solver).SolveLagrangeLocal()
+
+    #######################################################################
+    def SolveOneStep(self):
+        (self.solver).SolveOneStep()
+
