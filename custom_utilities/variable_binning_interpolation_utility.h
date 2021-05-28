@@ -50,8 +50,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 *
 * ***********************************************************/
 
-#if !defined(KRATOS_VARIABLE_ADVANCED_TRANSFER_UTILITY_INCLUDED )
-#define  KRATOS_VARIABLE_ADVANCED_TRANSFER_UTILITY_INCLUDED
+#if !defined(KRATOS_VARIABLE_BINNING_INTERPOLATION_UTILITY_INCLUDED )
+#define  KRATOS_VARIABLE_BINNING_INTERPOLATION_UTILITY_INCLUDED
 
 //System includes
 #ifdef _OPENMP
@@ -65,73 +65,65 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "includes/variables.h"
-#include "includes/element.h"
-#include "geometries/geometry.h"
-#include "spaces/ublas_space.h"
-#include "structural_application_variables.h"
+#include "custom_utilities/variable_interpolation_utility.h"
 
 namespace Kratos
 {
 
 /**
- * Utility to transfer the variables using L2-projection.
- * In this utility, a set of elements, e.g. a sub-set of elements in the model_part, have to be given. The variables can then be transferred to the nodes of the elements.
- * Subsequently the nodal variables can be transferred to other mesh by using interpolation.
+ * Utility to transfer the variables by interpolation.
+ * It uses spatial binning to quickly search for corresponding element
  */
-class VariableAdvancedTransferUtility
+class VariableBinningInterpolationUtility : public VariableInterpolationUtility
 {
 public:
-    typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
-    typedef UblasSpace<double, Matrix, Vector> DenseSpaceType;
-    typedef LinearSolver<SparseSpaceType, DenseSpaceType> LinearSolverType;
-    typedef Element::GeometryType GeometryType;
-    typedef GeometryType::PointType NodeType;
-    typedef GeometryType::IntegrationPointsArrayType IntegrationPointsArrayType;
-    typedef NodeType::PointType PointType;
-    typedef ModelPart::NodesContainerType NodesContainerType;
-    typedef ModelPart::ElementsContainerType ElementsContainerType;
+
+    typedef VariableInterpolationUtility BaseType;
+    typedef BaseType::GeometryType GeometryType;
+    typedef BaseType::IntegrationPointsArrayType IntegrationPointsArrayType;
+    typedef BaseType::PointType PointType;
+    typedef BaseType::NodesContainerType NodesContainerType;
+    typedef BaseType::ElementsContainerType ElementsContainerType;
 
     /**
      * Constructor.
      */
-    VariableAdvancedTransferUtility(ModelPart::ElementsContainerType& pElements,
+    VariableBinningInterpolationUtility(ElementsContainerType& pElements,
             const double& Dx, const double& Dy, const double& Dz)
-    : mpElements(pElements), mEchoLevel(-1), mDx(Dx), mDy(Dy), mDz(Dz)
+    : BaseType(pElements), mDx(Dx), mDy(Dy), mDz(Dz)
     {
-        this->InitializeBinning(mpElements);
-        std::cout << "VariableAdvancedTransferUtility created" << std::endl;
+        this->Initialize(pElements);
+        std::cout << "VariableBinningInterpolationUtility created" << std::endl;
     }
 
     /**
      * Destructor.
      */
-    virtual ~VariableAdvancedTransferUtility()
+    virtual ~VariableBinningInterpolationUtility()
     {
     }
 
     /**
-     * Access
+     * Operations
      */
 
-    void SetEchoLevel(const int& Level)
-    {
-        mEchoLevel = Level;
-    }
-
-    const int& GetEchoLevel() const
-    {
-        return mEchoLevel;
-    }
+protected:
 
     /// Initialize the elements binning
-    void InitializeBinning(ElementsContainerType& pElements)
+    void Initialize( ElementsContainerType& pElements ) final
     {
+        std::cout << "Initialize the spatial binning" << std::endl;
+
+#ifdef _OPENMP
+        double start_init = omp_get_wtime();
+#endif
+
+        boost::progress_display show_progress( pElements.size() );
+        std::vector<double> vmin(3);
+        std::vector<double> vmax(3);
         for ( ElementsContainerType::ptr_iterator it = pElements.ptr_begin(); it != pElements.ptr_end(); ++it )
         {
-            std::pair<std::vector<double>, std::vector<double> > box = FindBoundingBox((*it)->GetGeometry());
-
-            const std::vector<double>& vmin = box.first;
-            const std::vector<double>& vmax = box.second;
+            this->FindBoundingBox(vmin, vmax, (*it)->GetGeometry());
 
             if (GetEchoLevel() > 4)
             {
@@ -165,57 +157,23 @@ public:
                     }
                 }
             }
+
+            ++show_progress;
         }
+
         KRATOS_WATCH(mBinElements.size())
+
+#ifdef _OPENMP
+        double stop_init = omp_get_wtime();
+        std::cout << "Initialize binning completed, time = " << (stop_init-start_init) << "s" << std::endl;
+#endif
     }
-
-    /// Transfer the variable at node from source mesh to target mesh
-    /// Using a simple scheme, where the node in target mesh is located in source mesh, and then the value is determined
-    template<class TVariableType>
-    void TransferVariablesFromNodeToNode(NodesContainerType& rTargetNodes, TVariableType& rThisVariable)
-    {
-        for(NodesContainerType::iterator it = rTargetNodes.begin(); it != rTargetNodes.end(); ++it)
-        {
-            //Calculate Value of rVariable(firstvalue, secondvalue) in OldMesh
-            Point<3> sourceLocalPoint;
-            Element::Pointer sourceElement;
-
-            bool found = this->SearchPartnerWithBin( *it, mpElements, sourceElement, sourceLocalPoint );
-
-            if (found)
-            {
-                Vector shape_functions_values;
-                shape_functions_values = sourceElement->GetGeometry().ShapeFunctionsValues(shape_functions_values, sourceLocalPoint);
-
-                it->GetSolutionStepValue(rThisVariable) =
-                    shape_functions_values[0] * sourceElement->GetGeometry()[0].GetSolutionStepValue(rThisVariable);
-
-                for(unsigned int i = 1; i < sourceElement->GetGeometry().size(); ++i)
-                {
-                    it->GetSolutionStepValue(rThisVariable) +=
-                        shape_functions_values[i] * sourceElement->GetGeometry()[i].GetSolutionStepValue(rThisVariable);
-                }
-            }
-            else
-            {
-                std::cout<<"###### NO PARTNER FOUND IN OLD MESH : TransferVariablesBetweenMeshes(..." << rThisVariable.Name() << "...)#####"<<std::endl;
-                continue;
-            }
-        }
-    }
-
-protected:
 
     //**********AUXILIARY FUNCTION**************************************************************
     //******************************************************************************************
-    /// Find an element in pMasterElements contains rSourcePoint and assign it to pTargetElement.
-    /// The rLocalTargetPoint is the local point in pTargetElement of rSourcePoint
-    /// REMARK: we should disable the move mesh flag if we want to search in the reference configuration
-    bool SearchPartnerWithBin( const PointType& rSourcePoint, ModelPart::ElementsContainerType& pMasterElements,
-            Element::Pointer& pTargetElement, PointType& rLocalTargetPoint ) const
-    {
-        ModelPart::ElementsContainerType pMasterElementsCandidates;
 
+    void FindPotentialPartners( const PointType& rSourcePoint, ElementsContainerType& pMasterElements ) const final
+    {
         // get the containing elements from the bin
         int ix = (int) floor(rSourcePoint.X() / mDx);
         int iy = (int) floor(rSourcePoint.Y() / mDy);
@@ -231,22 +189,11 @@ protected:
         {
             for(std::set<std::size_t>::const_iterator it = it_bin_elements->second.begin(); it != it_bin_elements->second.end(); ++it )
             {
-                std::size_t elem_id = *it;
-                Element::GeometryType& r_geom = pMasterElements[elem_id].GetGeometry();
-
-                bool is_inside = r_geom.IsInside( rSourcePoint, rLocalTargetPoint );
-                if( is_inside )
-                {
-                    pTargetElement = pMasterElements(elem_id);
-                    return true;
-                }
+                auto it_elem = BaseType::mpElements.find(*it);
+                if (it_elem != BaseType::mpElements.end())
+                    pMasterElements.push_back(*(it_elem.base()));
             }
         }
-
-        if (GetEchoLevel() > 4)
-            std::cout << " !!!! WARNING: NO ELEMENT FOUND TO CONTAIN " << rSourcePoint << " !!!! " << std::endl;
-
-        return false;
     }
 
 private:
@@ -276,11 +223,11 @@ private:
             int x, y, z;
     };
 
-    std::pair<std::vector<double>, std::vector<double> > FindBoundingBox(GeometryType& rGeometry) const
-    {
-        std::vector<double> vmin(3);
-        std::vector<double> vmax(3);
+    double mDx, mDy, mDz;
+    std::map<SpatialKey, std::set<std::size_t> > mBinElements;
 
+    void FindBoundingBox(std::vector<double>& vmin, std::vector<double>& vmax, GeometryType& rGeometry) const
+    {
         vmin[0] = rGeometry[0].X(); vmin[1] = rGeometry[0].Y(); vmin[2] = rGeometry[0].Z();
         vmax[0] = rGeometry[0].X(); vmax[1] = rGeometry[0].Y(); vmax[2] = rGeometry[0].Z();
         for (std::size_t i = 1; i < rGeometry.size(); ++i)
@@ -292,17 +239,10 @@ private:
             if (rGeometry[i].Z() < vmin[2]) vmin[2] = rGeometry[i].Z();
             if (rGeometry[i].Z() > vmax[2]) vmax[2] = rGeometry[i].Z();
         }
-
-        return std::make_pair(vmin, vmax);
     }
 
-    ElementsContainerType mpElements;
-    int mEchoLevel;
-    double mDx, mDy, mDz;
-    std::map<SpatialKey, std::set<std::size_t> > mBinElements;
-
-};//Class VariableAdvancedTransferUtility
+};//Class VariableBinningInterpolationUtility
 
 }//namespace Kratos.
 
-#endif /* KRATOS_VARIABLE_ADVANCED_TRANSFER_UTILITY_INCLUDED  defined */
+#endif /* KRATOS_VARIABLE_BINNING_INTERPOLATION_UTILITY_INCLUDED  defined */

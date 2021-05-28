@@ -68,7 +68,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/element.h"
 #include "geometries/geometry.h"
 #include "spaces/ublas_space.h"
-#include "structural_application_variables.h"
+#include "utilities/openmp_utils.h"
+#include "custom_utilities/variable_utility.h"
 
 namespace Kratos
 {
@@ -76,25 +77,31 @@ namespace Kratos
 /**
  * Utility to project the variables from Gauss points to nodes using L2-projection.
  */
-class VariableProjectionUtility
+// The transfer of Gaussian aariables to nodal Variablias is via L_2-Minimization
+// see Jiao + Heath "Common-refinement-based data tranfer ..."
+// International Journal for numerical methods in engineering 61 (2004) 2402--2427
+// for general description of L_2-Minimization
+class VariableProjectionUtility : public VariableUtility
 {
 public:
+
+    typedef VariableUtility BaseType;
     typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
     typedef UblasSpace<double, Matrix, Vector> DenseSpaceType;
     typedef LinearSolver<SparseSpaceType, DenseSpaceType> LinearSolverType;
     typedef Element::GeometryType GeometryType;
-    typedef GeometryType::PointType NodeType;
     typedef GeometryType::IntegrationPointsArrayType IntegrationPointsArrayType;
-    typedef NodeType::PointType PointType;
-    typedef ModelPart::NodesContainerType NodesContainerType;
-    typedef ModelPart::ElementsContainerType ElementsContainerType;
+    typedef GeometryType::JacobiansType JacobiansType;
+    typedef BaseType::NodesContainerType NodesContainerType;
+    typedef BaseType::ElementsContainerType ElementsContainerType;
 
     /**
      * Constructor.
      */
-    VariableProjectionUtility(LinearSolverType::Pointer pLinearSolver)
-    : mpLinearSolver(pLinearSolver), mEchoLevel(-1)
+    VariableProjectionUtility(ElementsContainerType& pElements, LinearSolverType::Pointer pLinearSolver)
+    : BaseType(pElements), mpLinearSolver(pLinearSolver)
     {
+        this->Initialize(pElements);
         std::cout << "VariableProjectionUtility created" << std::endl;
     }
 
@@ -105,40 +112,25 @@ public:
     {}
 
     /**
-     * Access
+     * Operations
      */
-
-    void SetEchoLevel(const int& Level)
-    {
-        mEchoLevel = Level;
-    }
-
-    const int& GetEchoLevel() const
-    {
-        return mEchoLevel;
-    }
-
-    /// Initialize the projection matrix
-    void BeginProjection(ElementsContainerType& pElements)
-    {
-        NodesContainerType pActiveNodes;
-        std::map<std::size_t, std::size_t> NodeRowId;        
-        this->ExtractActiveNodes(pElements, pActiveNodes, NodeRowId);
-        this->ConstructLHSMatrix(mProjectionMatrix, pElements, NodeRowId);
-    }
 
     /**
      * Transfer the double variable from Gauss point to nodes
-     * Here a different element set is allowed to compute the right hand side. This element set shall have the same connectivities as the element set used in InitializeProjection.
+     * Here a different element set is allowed to compute the right hand side. This element set shall have the same connectivities as the element set used in Initialize.
      */
-    void TransferVariablesToNodes(Variable<double>& rThisVariable,
-            ElementsContainerType& pElements, const ProcessInfo& rProcessInfo)
+    void TransferVariablesToNodes( const Variable<double>& rThisVariable, const ProcessInfo& rProcessInfo )
     {
         NodesContainerType pActiveNodes;
-        std::map<std::size_t, std::size_t> NodeRowId;        
-        this->ExtractActiveNodes(pElements, pActiveNodes, NodeRowId);
+        std::map<std::size_t, std::size_t> NodeRowId;
+        this->ExtractActiveNodes(BaseType::mpElements, pActiveNodes, NodeRowId);
+        KRATOS_WATCH(pActiveNodes.size())
 
-        //SetUpEquationSystem
+        if (pActiveNodes.size() == 0)
+        {
+            std::cout << "Number of active nodes is null. There is nothing to transfer" << std::endl;
+        }
+
         SparseSpaceType::VectorType g(pActiveNodes.size());
         SparseSpaceType::VectorType b(pActiveNodes.size());
 
@@ -158,21 +150,16 @@ public:
         noalias(g) = ZeroVector(M_size);
         noalias(b) = ZeroVector(M_size);
 
-        //Transfer of GaussianVariables to Nodal Variablias via L_2-Minimization
-        // see Jiao + Heath "Common-refinement-based data tranfer ..."
-        // International Journal for numerical methods in engineering 61 (2004) 2402--2427
-        // for general description of L_2-Minimization
-
-        vector<unsigned int> element_partition;
-        CreatePartition(number_of_threads, pElements.size(), element_partition);
+        std::vector<unsigned int> element_partition;
+        OpenMPUtils::CreatePartition(number_of_threads, BaseType::mpElements.size(), element_partition);
 
 #ifdef _OPENMP
             #pragma omp parallel for
 #endif
         for (int k = 0; k < number_of_threads; ++k)
         {
-            ElementsContainerType::ptr_iterator it_begin = pElements.ptr_begin() + element_partition[k];
-            ElementsContainerType::ptr_iterator it_end = pElements.ptr_begin() + element_partition[k+1];
+            ElementsContainerType::ptr_iterator it_begin = BaseType::mpElements.ptr_begin() + element_partition[k];
+            ElementsContainerType::ptr_iterator it_end = BaseType::mpElements.ptr_begin() + element_partition[k+1];
 
             for ( ElementsContainerType::ptr_iterator it = it_begin; it != it_end; ++it )
             {
@@ -182,7 +169,7 @@ public:
                 const IntegrationPointsArrayType& integration_points
                     = (*it)->GetGeometry().IntegrationPoints( (*it)->GetIntegrationMethod());
 
-                GeometryType::JacobiansType J(integration_points.size());
+                JacobiansType J(integration_points.size());
                 J = (*it)->GetGeometry().Jacobian(J, (*it)->GetIntegrationMethod());
 
                 std::vector<double> ValuesOnIntPoint(integration_points.size());
@@ -226,14 +213,21 @@ public:
         std::cout << "TransferVariablesToNodes for " << rThisVariable.Name() << " completed" << std::endl;
     }
 
-    void EndProjection()
-    {
-        mProjectionMatrix.resize(0, 0, false);
-    }
-
 protected:
 
+    /// Initialize the projection matrix
+    void Initialize( ElementsContainerType& pElements ) final
+    {
+        NodesContainerType pActiveNodes;
+        std::map<std::size_t, std::size_t> NodeRowId;
+        this->ExtractActiveNodes(pElements, pActiveNodes, NodeRowId);
+        this->ConstructLHSMatrix(mProjectionMatrix, pElements, NodeRowId);
+    }
+
+private:
+
     LinearSolverType::Pointer mpLinearSolver;
+    SparseSpaceType::MatrixType mProjectionMatrix;
 
     //**********AUXILIARY FUNCTION**************************************************************
     //******************************************************************************************
@@ -242,7 +236,7 @@ protected:
         NodesContainerType& pActiveNodes, std::map<std::size_t, std::size_t>& NodeRowId) const
     {
         // extract the active nodes
-        for(ModelPart::ElementsContainerType::ptr_iterator it = pElements.ptr_begin();
+        for(ElementsContainerType::ptr_iterator it = pElements.ptr_begin();
                 it != pElements.ptr_end(); ++it)
         {
             if( (*it)->GetValue(IS_INACTIVE) == false || (*it)->Is(ACTIVE) )
@@ -280,8 +274,8 @@ protected:
 #ifdef _OPENMP
         number_of_threads = omp_get_max_threads();
 #endif
-        vector<unsigned int> element_partition;
-        CreatePartition(number_of_threads, pElements.size(), element_partition);
+        std::vector<unsigned int> element_partition;
+        OpenMPUtils::CreatePartition(number_of_threads, pElements.size(), element_partition);
 //        boost::progress_display show_progress( pElements.size() );
 
         // create the structure for M a priori
@@ -300,21 +294,21 @@ protected:
 #endif
         for(int k = 0; k < number_of_threads; ++k)
         {
-            ModelPart::ElementsContainerType::ptr_iterator it_begin = pElements.ptr_begin() + element_partition[k];
-            ModelPart::ElementsContainerType::ptr_iterator it_end = pElements.ptr_begin() + element_partition[k+1];
+            ElementsContainerType::ptr_iterator it_begin = pElements.ptr_begin() + element_partition[k];
+            ElementsContainerType::ptr_iterator it_end = pElements.ptr_begin() + element_partition[k+1];
             std::map<std::size_t, std::size_t>::const_iterator it_id;
 
-            for( ModelPart::ElementsContainerType::ptr_iterator it = it_begin; it != it_end; ++it )
+            for( ElementsContainerType::ptr_iterator it = it_begin; it != it_end; ++it )
             {
                 if( (*it)->GetValue(IS_INACTIVE) == true && !(*it)->Is(ACTIVE) )
                     continue;
 
                 unsigned int dim = (*it)->GetGeometry().WorkingSpaceDimension();
 
-                const GeometryType::IntegrationPointsArrayType& integration_points
+                const IntegrationPointsArrayType& integration_points
                     = (*it)->GetGeometry().IntegrationPoints((*it)->GetIntegrationMethod());
 
-                GeometryType::JacobiansType J(integration_points.size());
+                JacobiansType J(integration_points.size());
                 J = (*it)->GetGeometry().Jacobian(J, (*it)->GetIntegrationMethod());
 
                 const Matrix& Ncontainer = (*it)->GetGeometry().ShapeFunctionsValues((*it)->GetIntegrationMethod());
@@ -359,7 +353,7 @@ protected:
 
         Element::EquationIdVectorType ids;
         std::map<std::size_t, std::size_t>::const_iterator it;
-        for(ModelPart::ElementsContainerType::iterator i_element = pElements.begin();
+        for(ElementsContainerType::iterator i_element = pElements.begin();
                 i_element != pElements.end() ; ++i_element)
         {
             if( !(i_element)->GetValue( IS_INACTIVE ) || (i_element)->Is(ACTIVE) )
@@ -413,8 +407,8 @@ protected:
         }
 #else
         int number_of_threads = omp_get_max_threads();
-        vector<unsigned int> matrix_partition;
-        CreatePartition(number_of_threads, indices.size(), matrix_partition);
+        std::vector<unsigned int> matrix_partition;
+        OpenMPUtils::CreatePartition(number_of_threads, indices.size(), matrix_partition);
         for( int k=0; k<number_of_threads; ++k )
         {
             #pragma omp parallel
@@ -453,23 +447,6 @@ protected:
         }
 
     }
-
-    //**********AUXILIARY FUNCTION**************************************************************
-    //******************************************************************************************
-    inline void CreatePartition(unsigned int number_of_threads,const int number_of_rows, vector<unsigned int>& partitions) const
-    {
-        partitions.resize(number_of_threads+1);
-        int partition_size = number_of_rows / number_of_threads;
-        partitions[0] = 0;
-        partitions[number_of_threads] = number_of_rows;
-        for(unsigned int i = 1; i<number_of_threads; i++)
-            partitions[i] = partitions[i-1] + partition_size ;
-    }
-
-private:
-
-    SparseSpaceType::MatrixType mProjectionMatrix;
-    int mEchoLevel;
 
 };//Class VariableProjectionUtility
 

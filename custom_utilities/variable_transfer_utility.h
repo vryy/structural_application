@@ -66,10 +66,11 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "includes/variables.h"
-#include "containers/array_1d.h"
 #include "includes/element.h"
+#include "containers/array_1d.h"
 #include "integration/integration_point.h"
 #include "geometries/geometry.h"
+#include "spatial_containers/bounding_volume_tree.h"
 #include "linear_solvers/skyline_lu_factorization_solver.h"
 #include "spaces/ublas_space.h"
 #include "geometries/hexahedra_3d_8.h"
@@ -377,8 +378,16 @@ public:
         for( ModelPart::ElementIterator it = rSource.ElementsBegin();
                 it != rSource.ElementsEnd(); ++it )
         {
-            it->CalculateOnIntegrationPoints(PRESTRESS, PreStresses, rSource.GetProcessInfo());
-            rTarget.Elements()[it->Id()].SetValuesOnIntegrationPoints(PRESTRESS, PreStresses, rTarget.GetProcessInfo());
+            auto it_elem = rTarget.Elements().find(it->Id());
+            if (it_elem != rTarget.Elements().end())
+            {
+                it->CalculateOnIntegrationPoints(PRESTRESS, PreStresses, rSource.GetProcessInfo());
+                it_elem->SetValuesOnIntegrationPoints(PRESTRESS, PreStresses, rTarget.GetProcessInfo());
+            }
+            else
+            {
+                std::cout << "WARNING!!! Target element " << it->Id() << " is not found in the target model_part " << rTarget.Name() << std::endl;
+            }
         }
         std::cout << __FUNCTION__ << " from " << rSource.Name() << " to " << rTarget.Name() << " completed" << std::endl;
     }
@@ -601,7 +610,7 @@ public:
      * @param model_part model_part on which the transfer should be done
      * @param rThisVariable Matrix-Variable which should be transferred
      * @see TransferVariablesToGaussPoints(ModelPart& model_part,
-    Variable<Kratos::Vector>& rThisVariable)
+    Variable<Vector>& rThisVariable)
      * @see TransferVariablesToGaussPoints(ModelPart& model_part,
     Variable<double>& rThisVariable)
                  */
@@ -654,7 +663,7 @@ public:
     Variable<double>& rThisVariable)
                  */
     void TransferVariablesToGaussPoints(ModelPart& model_part,
-                                        Variable<Kratos::Vector>& rThisVariable)
+                                        Variable<Vector>& rThisVariable)
     {
         ElementsArrayType& ElementsArray= model_part.Elements();
 
@@ -704,7 +713,7 @@ public:
      * @see TransferVariablesToGaussPoints(ModelPart& model_part,
     Variable<Kratos::Matrix>& rThisVariable)
      * @see TransferVariablesToGaussPoints(ModelPart& model_part,
-    Variable<Kratos::Vector>& rThisVariable)
+    Variable<Vector>& rThisVariable)
                  */
     void TransferVariablesToGaussPoints(ModelPart& model_part,
                                         Variable<double>& rThisVariable)
@@ -748,7 +757,7 @@ public:
      * @param rTarget
      * @param rThisVariable Matrix-Variable which should be transferred
      * @see TransferVariablesToGaussPoints(ModelPart& source_model_part,
-     *      ModelPart& source_model_part, Variable<Kratos::Vector>& rThisVariable)
+     *      ModelPart& source_model_part, Variable<Vector>& rThisVariable)
      * @see TransferVariablesToGaussPoints(ModelPart& source_model_part,
      *      ModelPart& source_model_part, Variable<double>& rThisVariable)
      */
@@ -802,7 +811,7 @@ public:
     source_model_part, Variable<double>& rThisVariable)
      */
     void TransferVariablesToGaussPoints(ModelPart& rSource, ModelPart& rTarget,
-                                        Variable<Kratos::Vector>& rThisVariable, std::size_t ncomponents = 6)
+                                        Variable<Vector>& rThisVariable, std::size_t ncomponents = 6)
     {
         std::cout << __LINE__ << " : At TransferVariablesToGaussPoints(" << rSource.Name() << "," << rTarget.Name() << ", Variable<Vector> " << rThisVariable.Name() << std::endl;
 
@@ -815,7 +824,7 @@ public:
     void TransferVariablesToGaussPoints(ElementsArrayType& SourceMeshElementsArray,
                                         ElementsArrayType& TargetMeshElementsArray,
                                         const ProcessInfo& CurrentProcessInfo,
-                                        Variable<Kratos::Vector>& rThisVariable, std::size_t ncomponents = 6)
+                                        Variable<Vector>& rThisVariable, std::size_t ncomponents = 6)
     {
         std::cout << __LINE__ << " : At TransferVariablesToGaussPoints, Variable<Vector> " << rThisVariable.Name() << std::endl;
 
@@ -897,7 +906,7 @@ public:
     source_model_part, Variable<double>& rThisVariable)
      */
     void TransferVariablesToGaussPoints(ModelPart& rSource, Element::Pointer pTargetElement,
-                                        Variable<Kratos::Vector>& rThisVariable, std::size_t ncomponents = 6)
+                                        Variable<Vector>& rThisVariable, std::size_t ncomponents = 6)
     {
         std::cout << __LINE__ << ": At " << __FUNCTION__ << " for element " << pTargetElement->Id() << std::endl;
         ElementsArrayType& SourceMeshElementsArray= rSource.Elements();
@@ -974,7 +983,7 @@ public:
     source_model_part, Variable<double>& rThisVariable)
      */
     void TransferVariablesToGaussPointsIdentically(ModelPart& rSource, Element::Pointer pTargetElement,
-                                        Variable<Kratos::Vector>& rThisVariable, std::size_t ncomponents = 6)
+                                        Variable<Vector>& rThisVariable, std::size_t ncomponents = 6)
     {
 /*        std::cout << "At " << __FUNCTION__ << " for element " << pTargetElement->Id() << std::endl;*/
         ElementsArrayType& SourceMeshElementsArray= rSource.Elements();
@@ -1015,7 +1024,7 @@ public:
      * @see TransferVariablesToGaussPoints(ModelPart& source_model_part, ModelPart&
     source_model_part, Variable<Kratos::Matrix>& rThisVariable)
      * @see TransferVariablesToGaussPoints(ModelPart& source_model_part, ModelPart&
-    source_model_part, Variable<Kratos::Vector>& rThisVariable)
+    source_model_part, Variable<Vector>& rThisVariable)
      */
     void TransferVariablesToGaussPoints(ModelPart& rSource, ModelPart& rTarget,
                                         Variable<double>& rThisVariable)
@@ -1089,14 +1098,31 @@ public:
      * @see TransferVariablesToGaussPoints(ModelPart& source_model_part, ModelPart&
     source_model_part, Variable<Kratos::Matrix>& rThisVariable)
      * @see TransferVariablesToGaussPoints(ModelPart& source_model_part, ModelPart&
-    source_model_part, Variable<Kratos::Vector>& rThisVariable)
+    source_model_part, Variable<Vector>& rThisVariable)
      */
     void TransferVariablesToGaussPoints(ModelPart& rSource, ModelPart& rTarget,
                                         Variable<array_1d<double, 3> >& rThisVariable)
     {
-        ElementsArrayType& SourceMeshElementsArray= rSource.Elements();
-        ElementsArrayType& TargetMeshElementsArray= rTarget.Elements();
+        ElementsArrayType& SourceMeshElementsArray = rSource.Elements();
+        ElementsArrayType& TargetMeshElementsArray = rTarget.Elements();
 
+        TransferVariablesToGaussPoints(SourceMeshElementsArray, TargetMeshElementsArray, rThisVariable, rTarget.GetProcessInfo());
+    }
+
+    /**
+     * Transfer of rThisVariable stored on nodes in source mesh to integration point of target
+     * mesh via approximation by shape functions
+     * @param rSource
+     * @param rTarget
+     * @param rThisVariable double-Variable which should be transferred
+     * @see TransferVariablesToGaussPoints(ModelPart& source_model_part, ModelPart&
+    source_model_part, Variable<Kratos::Matrix>& rThisVariable)
+     * @see TransferVariablesToGaussPoints(ModelPart& source_model_part, ModelPart&
+    source_model_part, Variable<Vector>& rThisVariable)
+     */
+    void TransferVariablesToGaussPoints(ElementsArrayType& SourceMeshElementsArray, ElementsArrayType& TargetMeshElementsArray,
+                                        Variable<array_1d<double, 3> >& rThisVariable, const ProcessInfo& CurrentProcessInfo)
+    {
         int number_of_threads = 1;
         vector<unsigned int> element_partition;
 #ifdef _OPENMP
@@ -1143,7 +1169,7 @@ public:
                     }
                 }
                 (*it)->SetValuesOnIntegrationPoints( rThisVariable, ValuesOnIntPoint,
-                                                    rTarget.GetProcessInfo());
+                                                     CurrentProcessInfo );
 
                 ++show_progress;
             }
@@ -1507,7 +1533,7 @@ public:
      * f(x)= /sum{shape_func_i*rThisVariable_i}
      * @param model_part model_part on which the transfer should be done
      * @param rThisVariable Matrix-Variable which should be transferred
-     * @see TransferVariablesToNodes(ModelPart& model_part, Variable<Kratos::Vector>& rThisVariable)
+     * @see TransferVariablesToNodes(ModelPart& model_part, Variable<Vector>& rThisVariable)
      * @see TransferVariablesToNodes(ModelPart& model_part, Variable<double>& rThisVariable)
      * @ref Jiao&Heath: "Common-refinement-based data transfer...", Int.
      * Journal for numer. meth. in eng. 61 (2004) 2402--2427
@@ -1632,7 +1658,7 @@ public:
      * stored on integration points!
      */
     // serial version
-//    void TransferVariablesToNodes(ModelPart& model_part, Variable<Kratos::Vector>& rThisVariable)
+//    void TransferVariablesToNodes(ModelPart& model_part, Variable<Vector>& rThisVariable)
 //    {
 //        ElementsArrayType& ElementsArray= model_part.Elements();
 
@@ -1735,7 +1761,7 @@ public:
 //    }
 
         // omp version
-    void TransferVariablesToNodes(ModelPart& model_part, Variable<Kratos::Vector>& rThisVariable)
+    void TransferVariablesToNodes(ModelPart& model_part, Variable<Vector>& rThisVariable)
     {
         ElementsArrayType& ElementsArray= model_part.Elements();
 
@@ -1902,23 +1928,23 @@ public:
         std::cout << "TransferVariablesToNodes for " << rThisVariable.Name() << " completed" << std::endl;
     }
 
-    void TransferVariablesToNodes(ModelPart& model_part, Variable<Kratos::Vector>& rThisVariable, const std::size_t& ncomponents)
+    void TransferVariablesToNodes(ModelPart& model_part, Variable<Vector>& rThisVariable, const std::size_t& ncomponents)
     {
         TransferVectorVariablesToNodes<ElementsArrayType>(model_part, model_part.Elements(), rThisVariable, ncomponents);
     }
 
-    void TransferVariablesToNodes(ModelPart& model_part, ElementsArrayType& rElements, Variable<Kratos::Vector>& rThisVariable, const std::size_t& ncomponents)
+    void TransferVariablesToNodes(ModelPart& model_part, ElementsArrayType& rElements, Variable<Vector>& rThisVariable, const std::size_t& ncomponents)
     {
         TransferVectorVariablesToNodes<ElementsArrayType>(model_part, rElements, rThisVariable, ncomponents);
     }
 
-    void TransferVariablesToNodes(ModelPart& model_part, ConditionsArrayType& rConditions, Variable<Kratos::Vector>& rThisVariable, const std::size_t& ncomponents)
+    void TransferVariablesToNodes(ModelPart& model_part, ConditionsArrayType& rConditions, Variable<Vector>& rThisVariable, const std::size_t& ncomponents)
     {
         TransferVectorVariablesToNodes<ConditionsArrayType>(model_part, rConditions, rThisVariable, ncomponents);
     }
 
     template<typename TElementsArrayType>
-    void TransferVectorVariablesToNodes(ModelPart& model_part, TElementsArrayType& ElementsArray, Variable<Kratos::Vector>& rThisVariable, const std::size_t& ncomponents)
+    void TransferVectorVariablesToNodes(ModelPart& model_part, TElementsArrayType& ElementsArray, Variable<Vector>& rThisVariable, const std::size_t& ncomponents)
     {
         // count all the nodes at all the active elements
         std::set<std::size_t> active_nodes;
@@ -2110,7 +2136,7 @@ public:
      * @param model_part model_part on which the transfer should be done
      * @param rThisVariable Matrix-Variable which should be transferred
      * @see TransferVariablesToNodes(ModelPart& model_part, Variable<Kratos::Matrix>& rThisVariable)
-     * @see TransferVariablesToNodes(ModelPart& model_part, Variable<Kratos::Vector>& rThisVariable)
+     * @see TransferVariablesToNodes(ModelPart& model_part, Variable<Vector>& rThisVariable)
      * @ref Jiao&Heath: "Common-refinement-based data transfer...", Int.
      * Journal for numer. meth. in eng. 61 (2004) 2402--2427
      * WARNING: this may cause segmentation faults as the respective variables
@@ -2777,6 +2803,36 @@ public:
         std::cout << "TransferVariablesToNodes for " << rThisVariable.Name() << " completed" << std::endl;
     }
 
+    /// Transfer a variable to node by using interpolation
+    void TransferVariablesToNode(ElementsArrayType& SourceMeshElementsArray, const Variable<double>& rThisVariable, NodeType& rNode)
+    {
+        PointType sourceLocalPoint;
+        PointType targetGlobalPoint;
+        noalias(targetGlobalPoint) = rNode.GetInitialPosition();
+        Element::Pointer sourceElement;
+        double Value;
+        if (FindPartnerElement<1>(targetGlobalPoint, SourceMeshElementsArray, sourceElement, sourceLocalPoint))
+        {
+            Value = MappedValue(*sourceElement, sourceLocalPoint, rThisVariable );
+        }
+        rNode.GetSolutionStepValue( rThisVariable ) = Value;
+    }
+
+    /// Transfer a variable to node by using interpolation
+    void TransferVariablesToNode(ElementsArrayType& SourceMeshElementsArray, const Variable<array_1d<double, 3> >& rThisVariable, NodeType& rNode)
+    {
+        PointType sourceLocalPoint;
+        PointType targetGlobalPoint;
+        noalias(targetGlobalPoint) = rNode.GetInitialPosition();
+        Element::Pointer sourceElement;
+        array_1d<double, 3> Value;
+        if (FindPartnerElement<1>(targetGlobalPoint, SourceMeshElementsArray, sourceElement, sourceLocalPoint))
+        {
+            noalias(Value) = MappedValue(*sourceElement, sourceLocalPoint, rThisVariable );
+        }
+        rNode.GetSolutionStepValue( rThisVariable ) = Value;
+    }
+
     /**
      * Transfer of rThisVariable stored on nodes form source mesh to target mesh.
      * The transformation is done in a way that ensures a minimization
@@ -2786,7 +2842,7 @@ public:
      * @param rTarget target model_part
      * @param rThisVariable Matrix-Variable which should be transferred
      * @see TransferVariablesBetweenMeshes(ModelPart& rSource, ModelPart& rTarget,
-    Variable<Kratos::Vector>& rThisVariable)
+    Variable<Vector>& rThisVariable)
      * @see TransferVariablesBetweenMeshes(ModelPart& rSource, ModelPart& rTarget,
     Variable<double>& rThisVariable)
      * @ref Jiao&Heath: "Common-refinement-based data transfer...", Int.
@@ -2929,7 +2985,7 @@ public:
      * Journal for numer. meth. in eng. 61 (2004) 2402--2427
                  */
     void TransferVariablesBetweenMeshes(ModelPart& rSource, ModelPart& rTarget,
-                                        Variable<Kratos::Vector>& rThisVariable)
+                                        Variable<Vector>& rThisVariable)
     {
         ElementsArrayType& SourceMeshElementsArray= rSource.Elements();
 
@@ -3072,20 +3128,20 @@ public:
                         shape_functions_values[i] * sourceElement->GetGeometry()[i].GetSolutionStepValue(rThisVariable);
                 }
 
-                if (it->Id() == 4601)
-                {
-                    KRATOS_WATCH(it->Id())
-                    KRATOS_WATCH(sourceLocalPoint)
-                    KRATOS_WATCH(sourceElement->Id())
-                    KRATOS_WATCH(it->GetSolutionStepValue(rThisVariable))
-                    std::cout << "element nodal values:" << std::endl;
-                    for(unsigned int i = 1; i < sourceElement->GetGeometry().size(); ++i)
-                    {
-                        std::cout << " " << sourceElement->GetGeometry()[i].Id() << ": "
-                                  << sourceElement->GetGeometry()[i].GetSolutionStepValue(rThisVariable)
-                                  << std::endl;
-                    }
-                }
+                // if (it->Id() == 4601)
+                // {
+                //     KRATOS_WATCH(it->Id())
+                //     KRATOS_WATCH(sourceLocalPoint)
+                //     KRATOS_WATCH(sourceElement->Id())
+                //     KRATOS_WATCH(it->GetSolutionStepValue(rThisVariable))
+                //     std::cout << "element nodal values:" << std::endl;
+                //     for(unsigned int i = 1; i < sourceElement->GetGeometry().size(); ++i)
+                //     {
+                //         std::cout << " " << sourceElement->GetGeometry()[i].Id() << ": "
+                //                   << sourceElement->GetGeometry()[i].GetSolutionStepValue(rThisVariable)
+                //                   << std::endl;
+                //     }
+                // }
             }
             else
             {
@@ -3106,7 +3162,7 @@ public:
      * @see TransferVariablesBetweenMeshes(ModelPart& rSource, ModelPart& rTarget,
     Variable<Kratos::Matrix>& rThisVariable)
      * @see TransferVariablesBetweenMeshes(ModelPart& rSource, ModelPart& rTarget,
-    Variable<Kratos::Vector>& rThisVariable)
+    Variable<Vector>& rThisVariable)
      * @ref Jiao&Heath: "Common-refinement-based data transfer...", Int.
      * Journal for numer. meth. in eng. 61 (2004) 2402--2427
                  */
@@ -3207,7 +3263,7 @@ public:
      * @param localPoint given target point to map the variable to
      * @param rThisVariable given variable to be transferred
      * @see ValueVectorInOldMesh(Element& oldElement, PointType&  localPoint,
-    const Variable<Kratos::Vector>& rThisVariable )
+    const Variable<Vector>& rThisVariable )
      * @see MappedValue( Element& sourceElement, PointType& targetPoint,
     const Variable<double>& rThisVariable)
                  */
@@ -3248,7 +3304,7 @@ public:
     const Variable<double>& rThisVariable)
                  */
     Vector ValueVectorInOldMesh(Element& oldElement, PointType&  localPoint,
-                                const Variable<Kratos::Vector>& rThisVariable, const std::size_t& ncomponents )
+                                const Variable<Vector>& rThisVariable, const std::size_t& ncomponents )
     {
         Vector newValue(ncomponents);
         noalias(newValue) = ZeroVector(ncomponents);
@@ -3278,10 +3334,10 @@ public:
      * @param rThisVariable given variable to be transferred
      * @param firstvalue index
      * @see ValueVectorInOldMesh(Element& oldElement, PointType&  localPoint,
-    const Variable<Kratos::Vector>& rThisVariable, unsigned int firstvalue)
+    const Variable<Vector>& rThisVariable, unsigned int firstvalue)
      */
     double ValueVectorInOldMesh(Element& oldElement, PointType&  localPoint,
-                                const Variable<Kratos::Vector>& rThisVariable, unsigned int firstvalue )
+                                const Variable<Vector>& rThisVariable, unsigned int firstvalue )
     {
         double newValue = 0.0;
         Vector shape_functions_values;
@@ -3306,7 +3362,7 @@ public:
      * @see ValueMatrixInOldMesh(Element& oldElement, PointType&  localPoint,
     const Variable<Kratos::Matrix>& rThisVariable )
      * @see ValueVectorInOldMesh(Element& oldElement, PointType&  localPoint,
-    const Variable<Kratos::Vector>& rThisVariable )
+    const Variable<Vector>& rThisVariable )
                  */
     double MappedValuePressure( Element& sourceElement, PointType& targetPoint,
                                 const Variable<double>& rThisVariable)
@@ -3349,7 +3405,7 @@ public:
      * @see ValueMatrixInOldMesh(Element& oldElement, PointType&  localPoint,
     const Variable<Kratos::Matrix>& rThisVariable )
      * @see ValueVectorInOldMesh(Element& oldElement, PointType&  localPoint,
-    const Variable<Kratos::Vector>& rThisVariable )
+    const Variable<Vector>& rThisVariable )
                  */
     double MappedValue( Element& sourceElement, PointType& targetPoint,
                         const Variable<double>& rThisVariable)
@@ -3517,7 +3573,7 @@ public:
      * @param firstvalue row index
      * @param secondvalue column index
      * @see ValueVectorInOldMesh(Element& oldElement, PointType&  localPoint,
-    const Variable<Kratos::Vector>& rThisVariable, unsigned int firstvalue)
+    const Variable<Vector>& rThisVariable, unsigned int firstvalue)
                  */
     double ValueMatrixInOldMesh(Element& oldElement, PointType&  localPoint,
                                 const Variable<Kratos::Matrix>& rThisVariable, unsigned int firstvalue, unsigned int secondvalue )

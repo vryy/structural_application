@@ -68,8 +68,11 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_python/add_custom_utilities_to_python.h"
 #include "custom_utilities/deactivation_utility.h"
 #include "custom_utilities/variable_transfer_utility.h"
+#include "custom_utilities/variable_utility.h"
 #include "custom_utilities/variable_projection_utility.h"
-#include "custom_utilities/variable_advanced_transfer_utility.h"
+#include "custom_utilities/variable_interpolation_utility.h"
+#include "custom_utilities/variable_binning_interpolation_utility.h"
+#include "custom_utilities/variable_bvh_interpolation_utility.h"
 
 #ifdef _OPENMP
 #include "custom_utilities/parallel_variable_transfer_utility.h"
@@ -209,6 +212,12 @@ void DoubleTransferVariablesToNodes(VariableTransferUtility& dummy,
     dummy.TransferVariablesToNodes(model_part, rThisVariable);
 }
 
+void DoubleTransferVariablesToNodesForElements(VariableTransferUtility& dummy,
+        ModelPart& model_part, ModelPart::ElementsContainerType& rElements, Variable<double>& rThisVariable)
+{
+    dummy.TransferVariablesToNodes(model_part, rElements, rThisVariable);
+}
+
 void DoubleTransferVariablesToNodesForElementsAsList(VariableTransferUtility& dummy,
         ModelPart& model_part, boost::python::list& listElements, Variable<double>& rThisVariable)
 {
@@ -311,6 +320,18 @@ void VectorTransferVariablesToNodesComponentsForConditionsAsList(VariableTransfe
     dummy.TransferVariablesToNodes(model_part, rConditions, rThisVariable, ncomponents);
 }
 
+void DoubleTransferVariablesToNode(VariableTransferUtility& dummy,
+        ElementsContainerType& rElements, Variable<double>& rThisVariable, Element::GeometryType::PointType& rNode)
+{
+    dummy.TransferVariablesToNode(rElements, rThisVariable, rNode);
+}
+
+void Array1DTransferVariablesToNode(VariableTransferUtility& dummy,
+        ElementsContainerType& rElements, Variable<array_1d<double, 3> >& rThisVariable, Element::GeometryType::PointType& rNode)
+{
+    dummy.TransferVariablesToNode(rElements, rThisVariable, rNode);
+}
+
 boost::python::list DoubleComputeExtrapolatedNodalValues(VariableTransferUtility& dummy,
         Element& source_element, Variable<double>& rThisVariable,
         const ProcessInfo& CurrentProcessInfo)
@@ -394,6 +415,15 @@ void DoubleTransferVariablesToGaussPointsLocal(VariableTransferUtility& dummy,
         const ProcessInfo& CurrentProcessInfo)
 {
     dummy.TransferVariablesToGaussPoints(source_element, target_element, rThisVariable, CurrentProcessInfo);
+}
+
+void Array1DTransferVariablesToGaussPointsElements(VariableTransferUtility& dummy,
+        ModelPart::ElementsContainerType& source_elements,
+        ModelPart::ElementsContainerType& target_elements,
+        Variable<array_1d<double, 3> >& rThisVariable,
+        const ProcessInfo& CurrentProcessInfo)
+{
+    dummy.TransferVariablesToGaussPoints(source_elements, target_elements, rThisVariable, CurrentProcessInfo);
 }
 
 void Array1DTransferVariablesToGaussPoints(VariableTransferUtility& dummy,
@@ -650,6 +680,7 @@ void  AddCustomUtilitiesToPython()
     .def( "TransferSpecificVariableWithComponents", &VariableTransferUtility::TransferSpecificVariableWithComponents )
     .def( "InitializeModelPart", &VariableTransferUtility::InitializeModelPart )
     .def("TransferVariablesToNodes", &DoubleTransferVariablesToNodes)
+    .def("TransferVariablesToNodes", &DoubleTransferVariablesToNodesForElements)
     .def("TransferVariablesToNodesForElements", &DoubleTransferVariablesToNodesForElementsAsList)
     .def("TransferVariablesToNodes", &Array1DTransferVariablesToNodes)
     .def("TransferVariablesToNodes", &Array1DTransferVariablesToNodesForElements)
@@ -667,6 +698,7 @@ void  AddCustomUtilitiesToPython()
     .def("ComputeExtrapolatedNodalValues", &VectorComputeExtrapolatedNodalValues)
     .def("TransferVariablesToGaussPoints", &DoubleTransferVariablesToGaussPoints)
     .def("TransferVariablesToGaussPoints", &DoubleTransferVariablesToGaussPointsLocal)
+    .def("TransferVariablesToGaussPoints", &Array1DTransferVariablesToGaussPointsElements)
     .def("TransferVariablesToGaussPoints", &Array1DTransferVariablesToGaussPoints)
     .def("TransferVariablesToGaussPoints", &Array1DTransferVariablesToGaussPointsLocal)
     .def("TransferVariablesToGaussPoints", &VectorTransferVariablesToGaussPoints)
@@ -686,23 +718,59 @@ void  AddCustomUtilitiesToPython()
     .def("TransferVariablesFromNodeToNode", &VariableTransferUtility::TransferVariablesFromNodeToNode<Variable<double> >)
     .def("TransferVariablesBetweenMeshes", &DoubleTransferVariablesBetweenMeshes)
     .def("TransferVariablesBetweenMeshes", &VectorTransferVariablesBetweenMeshes)
+    .def("TransferVariablesToNode", &DoubleTransferVariablesToNode)
+    .def("TransferVariablesToNode", &Array1DTransferVariablesToNode)
     ;
 
-    class_<VariableProjectionUtility, boost::noncopyable >
-    ( "VariableProjectionUtility", init<VariableProjectionUtility::LinearSolverType::Pointer>() )
-    .def("SetEchoLevel", &VariableProjectionUtility::SetEchoLevel)
-    .def("BeginProjection", &VariableProjectionUtility::BeginProjection)
+    class_<VariableUtility, boost::noncopyable >
+    ( "VariableUtility", init<ModelPart::ElementsContainerType&>() )
+    .add_property("EchoLevel", &VariableProjectionUtility::GetEchoLevel, &VariableProjectionUtility::SetEchoLevel)
+    ;
+
+    class_<VariableProjectionUtility, bases<VariableUtility>, boost::noncopyable >
+    ( "VariableProjectionUtility", init<ModelPart::ElementsContainerType&, VariableProjectionUtility::LinearSolverType::Pointer>() )
     .def("TransferVariablesToNodes", &VariableProjectionUtility::TransferVariablesToNodes)
-    .def("EndProjection", &VariableProjectionUtility::EndProjection)
     ;
 
-    class_<VariableAdvancedTransferUtility, boost::noncopyable >
-    ( "VariableAdvancedTransferUtility", init<ModelPart::ElementsContainerType&, const double&, const double&, const double&>() )
-    .def("SetEchoLevel", &VariableAdvancedTransferUtility::SetEchoLevel)
-    .def("TransferVariablesFromNodeToNode", &VariableAdvancedTransferUtility::TransferVariablesFromNodeToNode<Variable<double> >)
-    .def("TransferVariablesFromNodeToNode", &VariableAdvancedTransferUtility::TransferVariablesFromNodeToNode<Variable<array_1d<double, 3> > >)
-    .def("TransferVariablesFromNodeToNode", &VariableAdvancedTransferUtility::TransferVariablesFromNodeToNode<Variable<Vector> >)
-    .def("TransferVariablesFromNodeToNode", &VariableAdvancedTransferUtility::TransferVariablesFromNodeToNode<Variable<Matrix> >)
+    void(VariableInterpolationUtility::*pointer_to_TransferVariablesToNodesDouble1)(ModelPart&, const Variable<double>&) = &VariableInterpolationUtility::TransferVariablesToNodes;
+    void(VariableInterpolationUtility::*pointer_to_TransferVariablesToNodesDouble2)(ModelPart::NodesContainerType&, const Variable<double>&) = &VariableInterpolationUtility::TransferVariablesToNodes;
+    void(VariableInterpolationUtility::*pointer_to_TransferVariablesToNodesArray1D1)(ModelPart&, const Variable<array_1d<double, 3> >&) = &VariableInterpolationUtility::TransferVariablesToNodes;
+    void(VariableInterpolationUtility::*pointer_to_TransferVariablesToNodesArray1D2)(ModelPart::NodesContainerType&, const Variable<array_1d<double, 3> >&) = &VariableInterpolationUtility::TransferVariablesToNodes;
+    void(VariableInterpolationUtility::*pointer_to_TransferVariablesToNodesVector1)(ModelPart&, const Variable<Vector>&, const std::size_t&) = &VariableInterpolationUtility::TransferVariablesToNodes;
+    void(VariableInterpolationUtility::*pointer_to_TransferVariablesToNodesVector2)(ModelPart::NodesContainerType&, const Variable<Vector>&, const std::size_t&) = &VariableInterpolationUtility::TransferVariablesToNodes;
+    void(VariableInterpolationUtility::*pointer_to_TransferVariablesToGaussPointsDouble1)(ModelPart&, const Variable<double>&) = &VariableInterpolationUtility::TransferVariablesToGaussPoints;
+    void(VariableInterpolationUtility::*pointer_to_TransferVariablesToGaussPointsDouble2)(ModelPart::ElementsContainerType&, const Variable<double>&, const ProcessInfo&) = &VariableInterpolationUtility::TransferVariablesToGaussPoints;
+    void(VariableInterpolationUtility::*pointer_to_TransferVariablesToGaussPointsArray1D1)(ModelPart&, const Variable<array_1d<double, 3> >&) = &VariableInterpolationUtility::TransferVariablesToGaussPoints;
+    void(VariableInterpolationUtility::*pointer_to_TransferVariablesToGaussPointsArray1D2)(ModelPart::ElementsContainerType&, const Variable<array_1d<double, 3> >&, const ProcessInfo&) = &VariableInterpolationUtility::TransferVariablesToGaussPoints;
+    void(VariableInterpolationUtility::*pointer_to_TransferVariablesToGaussPointsVector1)(ModelPart&, const Variable<Vector>&, std::size_t) = &VariableInterpolationUtility::TransferVariablesToGaussPoints;
+    void(VariableInterpolationUtility::*pointer_to_TransferVariablesToGaussPointsVector2)(ModelPart::ElementsContainerType&, const Variable<Vector>&, const ProcessInfo&, std::size_t) = &VariableInterpolationUtility::TransferVariablesToGaussPoints;
+    ModelPart::ElementsContainerType(VariableInterpolationUtility::*pointer_to_FindPotentialPartners)(const Element::GeometryType::PointType::PointType&) const = &VariableInterpolationUtility::FindPotentialPartners;
+    Element::Pointer(VariableInterpolationUtility::*pointer_to_SearchPartner)(const Element::GeometryType::PointType::PointType&, ModelPart::ElementsContainerType&) const = &VariableInterpolationUtility::SearchPartner;
+
+    class_<VariableInterpolationUtility, bases<VariableUtility>, boost::noncopyable >
+    ( "VariableInterpolationUtility", init<ModelPart::ElementsContainerType&>() )
+    .def("FindPotentialPartners", pointer_to_FindPotentialPartners)
+    .def("SearchPartner", pointer_to_SearchPartner)
+    .def("TransferVariablesToNodes", pointer_to_TransferVariablesToNodesDouble1)
+    .def("TransferVariablesToNodes", pointer_to_TransferVariablesToNodesDouble2)
+    .def("TransferVariablesToNodes", pointer_to_TransferVariablesToNodesArray1D1)
+    .def("TransferVariablesToNodes", pointer_to_TransferVariablesToNodesArray1D2)
+    .def("TransferVariablesToNodes", pointer_to_TransferVariablesToNodesVector1)
+    .def("TransferVariablesToNodes", pointer_to_TransferVariablesToNodesVector2)
+    .def("TransferVariablesToGaussPoints", pointer_to_TransferVariablesToGaussPointsDouble1)
+    .def("TransferVariablesToGaussPoints", pointer_to_TransferVariablesToGaussPointsDouble2)
+    .def("TransferVariablesToGaussPoints", pointer_to_TransferVariablesToGaussPointsArray1D1)
+    .def("TransferVariablesToGaussPoints", pointer_to_TransferVariablesToGaussPointsArray1D2)
+    .def("TransferVariablesToGaussPoints", pointer_to_TransferVariablesToGaussPointsVector1)
+    .def("TransferVariablesToGaussPoints", pointer_to_TransferVariablesToGaussPointsVector2)
+    ;
+
+    class_<VariableBinningInterpolationUtility, bases<VariableInterpolationUtility>, boost::noncopyable >
+    ( "VariableBinningInterpolationUtility", init<ModelPart::ElementsContainerType&, const double&, const double&, const double&>() )
+    ;
+
+    class_<VariableBVHInterpolationUtility, bases<VariableInterpolationUtility>, boost::noncopyable >
+    ( "VariableBVHInterpolationUtility", init<ModelPart::ElementsContainerType&, const int&>() )
     ;
 
 #ifdef _OPENMP
