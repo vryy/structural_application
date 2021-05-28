@@ -384,8 +384,10 @@ namespace Kratos
         //constitutive law
         ConstitutiveLaw::Parameters const_params;
         const_params.SetStrainVector(StrainVector);
-        const_params.SetStressVector(StressVector);
-        const_params.SetConstitutiveMatrix(TanC);
+        if (CalculateResidualVectorFlag)
+            const_params.SetStressVector(StressVector);
+        if (CalculateStiffnessMatrixFlag)
+            const_params.SetConstitutiveMatrix(TanC);
         const_params.SetProcessInfo(rCurrentProcessInfo);
         const_params.SetMaterialProperties(GetProperties());
         const_params.SetElementGeometry(GetGeometry());
@@ -518,7 +520,8 @@ namespace Kratos
             mConstitutiveLawVector[PointNumber]->CalculateMaterialResponse(const_params, stress_measure);
 
             #ifdef ENABLE_DEBUG_CONSTITUTIVE_LAW
-            std::cout << "StressVector: " << StressVector << std::endl;
+            if (CalculateResidualVectorFlag)
+                std::cout << "StressVector: " << StressVector << std::endl;
             #endif
 
             //calculating weights for integration on the reference configuration
@@ -587,6 +590,25 @@ namespace Kratos
         // }
 
         KRATOS_CATCH( "" )
+    }
+
+    /**
+     * THIS method is called from the scheme during the iteration loop, it calls the CalculateAll()
+     * method with CalculateStiffnessMatrixFlag = true and CalculateResidualVectorFlag = false
+     * @param rLeftHandSideMatrix (inner and outer) stiffness matrix, size (number_of_nodes*dim x number_of_nodes*dim)
+     * @param rCurrentProcessInfo
+     */
+    void KinematicLinear::CalculateLeftHandSide(
+        MatrixType& rLeftHandSideMatrix,
+        const ProcessInfo& rCurrentProcessInfo
+    )
+    {
+        //calculation flags
+        bool CalculateStiffnessMatrixFlag = true;
+        bool CalculateResidualVectorFlag = false;
+        VectorType temp = Vector();
+
+        CalculateAll( rLeftHandSideMatrix, temp, rCurrentProcessInfo, CalculateStiffnessMatrixFlag,  CalculateResidualVectorFlag );
     }
 
     /**
@@ -881,33 +903,74 @@ namespace Kratos
         if ( rMassMatrix.size1() != mat_size )
             rMassMatrix.resize( mat_size, mat_size, false );
 
-        rMassMatrix = ZeroMatrix( mat_size, mat_size );
+        noalias( rMassMatrix ) = ZeroMatrix( mat_size, mat_size );
 
-        double TotalMass = 0.0;
-        double TotalDomainInitialSize = this->GetValue(GEOMETRICAL_DOMAIN_SIZE);
+        double density = 0.0;
         if( GetValue(USE_DISTRIBUTED_PROPERTIES) )
-        {
-            TotalMass = TotalDomainInitialSize * GetValue(DENSITY);
-        }
+            density = GetValue(DENSITY);
         else
-            TotalMass = TotalDomainInitialSize * GetProperties()[DENSITY];
+            density = GetProperties()[DENSITY];
 
-        if ( dimension == 2 ) TotalMass *= GetProperties()[THICKNESS];
+        /// Lumped mass
 
-        Vector LumpFact;
+        // double TotalDomainInitialSize = this->GetValue(GEOMETRICAL_DOMAIN_SIZE);
+        // double TotalMass = density * TotalDomainInitialSize;
+        // if ( dimension == 2 ) TotalMass *= GetProperties()[THICKNESS];
 
-        LumpFact = GetGeometry().LumpingFactors( LumpFact );
+        // Vector LumpFact;
 
-        for ( unsigned int i = 0; i < NumberOfNodes; ++i )
+        // LumpFact = GetGeometry().LumpingFactors( LumpFact );
+
+        // for ( unsigned int i = 0; i < NumberOfNodes; ++i )
+        // {
+        //     double temp = LumpFact[i] * TotalMass;
+
+        //     for ( unsigned int j = 0; j < dimension; ++j )
+        //     {
+        //         unsigned int index = i * dimension + j;
+        //         rMassMatrix( index, index ) = temp;
+        //     }
+        // }
+
+        /// Consistent mass
+
+        //reading integration points and local gradients
+        const GeometryType::IntegrationPointsArrayType& integration_points =
+            GetGeometry().IntegrationPoints( mThisIntegrationMethod );
+        const Matrix& Ncontainer = GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod );
+
+        //initializing the Jacobian in the reference configuration
+        Matrix DeltaPosition(GetGeometry().size(), 3);
+        for ( unsigned int node = 0; node < GetGeometry().size(); ++node )
+            noalias( row( DeltaPosition, node ) ) = GetGeometry()[node].Coordinates() - GetGeometry()[node].GetInitialPosition();
+
+        GeometryType::JacobiansType J0;
+        J0 = GetGeometry().Jacobian( J0, mThisIntegrationMethod, DeltaPosition );
+        double DetJ0;
+
+        for (unsigned int PointNumber = 0; PointNumber < integration_points.size(); ++PointNumber)
         {
-            double temp = LumpFact[i] * TotalMass;
+            DetJ0 = MathUtils<double>::Det(J0[PointNumber]);
 
-            for ( unsigned int j = 0; j < dimension; ++j )
+            //calculating weights for integration on the reference configuration
+            double IntToReferenceWeight = density * integration_points[PointNumber].Weight();
+
+            //modify integration weight in case of 2D
+            if ( dimension == 2 ) IntToReferenceWeight *= GetProperties()[THICKNESS];
+
+            for ( unsigned int i = 0; i < NumberOfNodes; ++i )
             {
-                unsigned int index = i * dimension + j;
-                rMassMatrix( index, index ) = temp;
+                for ( unsigned int j = 0; j < NumberOfNodes; ++j )
+                {
+                    for ( unsigned int k = 0; k < dimension; ++k )
+                        rMassMatrix(dimension*i + k, dimension*j + k) += Ncontainer(PointNumber, i) * Ncontainer(PointNumber, j)
+                            * IntToReferenceWeight * DetJ0;
+                }
             }
         }
+
+        // KRATOS_WATCH(Id())
+        // KRATOS_WATCH(rMassMatrix)
 
         KRATOS_CATCH( "" )
     }
@@ -963,6 +1026,9 @@ namespace Kratos
             noalias( rDampMatrix ) += beta * StiffnessMatrix;
         }
 
+        // KRATOS_WATCH(Id())
+        // KRATOS_WATCH(rDampMatrix)
+
         KRATOS_CATCH( "" )
     }
 
@@ -974,14 +1040,14 @@ namespace Kratos
         const unsigned int dim = GetGeometry().WorkingSpaceDimension();
         unsigned int mat_size = number_of_nodes * dim;
 
-        if ( values.size() != mat_size )    values.resize( mat_size, false );
+        if ( values.size() != mat_size )
+            values.resize( mat_size, false );
 
         for ( unsigned int i = 0; i < number_of_nodes; ++i )
         {
             unsigned int index = i * dim;
             values[index] = GetGeometry()[i].GetSolutionStepValue( DISPLACEMENT_X, Step );
             values[index + 1] = GetGeometry()[i].GetSolutionStepValue( DISPLACEMENT_Y, Step );
-
             if ( dim == 3 )
                 values[index + 2] = GetGeometry()[i].GetSolutionStepValue( DISPLACEMENT_Z, Step );
         }
@@ -996,16 +1062,16 @@ namespace Kratos
         const unsigned int dim = GetGeometry().WorkingSpaceDimension();
         unsigned int mat_size = number_of_nodes * dim;
 
-        if ( values.size() != mat_size )   values.resize( mat_size, false );
+        if ( values.size() != mat_size )
+            values.resize( mat_size, false );
 
         for ( unsigned int i = 0; i < number_of_nodes; ++i )
         {
             unsigned int index = i * dim;
-            values[index] = GetGeometry()[i].GetSolutionStepValue( VELOCITY_X, Step );
-            values[index + 1] = GetGeometry()[i].GetSolutionStepValue( VELOCITY_Y, Step );
-
+            values[index] = GetGeometry()[i].GetSolutionStepValue( DISPLACEMENT_DT_X, Step );
+            values[index + 1] = GetGeometry()[i].GetSolutionStepValue( DISPLACEMENT_DT_Y, Step );
             if ( dim == 3 )
-                values[index + 2] = GetGeometry()[i].GetSolutionStepValue( VELOCITY_Z, Step );
+                values[index + 2] = GetGeometry()[i].GetSolutionStepValue( DISPLACEMENT_DT_Z, Step );
         }
     }
 
@@ -1017,14 +1083,14 @@ namespace Kratos
         const unsigned int dim = GetGeometry().WorkingSpaceDimension();
         unsigned int mat_size = number_of_nodes * dim;
 
-        if ( values.size() != mat_size ) values.resize( mat_size, false );
+        if ( values.size() != mat_size )
+            values.resize( mat_size, false );
 
         for ( unsigned int i = 0; i < number_of_nodes; ++i )
         {
             unsigned int index = i * dim;
             values[index] = GetGeometry()[i].GetSolutionStepValue( ACCELERATION_X, Step );
             values[index + 1] = GetGeometry()[i].GetSolutionStepValue( ACCELERATION_Y, Step );
-
             if ( dim == 3 )
                 values[index + 2] = GetGeometry()[i].GetSolutionStepValue( ACCELERATION_Z, Step );
         }
@@ -1897,7 +1963,9 @@ namespace Kratos
         if ( rValues.size() != mConstitutiveLawVector.size() )
         {
             std::stringstream ss;
-            ss << "Error at KinematicLinear element " << Id() << ", The size of rValues and mConstitutiveLawVector is incompatible";
+            ss << "Error at KinematicLinear element " << Id() << ", The size of rValues and mConstitutiveLawVector is incompatible" << std::endl;
+            ss << "rValues.size(): " << rValues.size() << std::endl;
+            ss << "mConstitutiveLawVector.size(): " << mConstitutiveLawVector.size() << std::endl;
             KRATOS_THROW_ERROR(std::logic_error, ss.str(), "")
         }
 
@@ -1918,7 +1986,9 @@ namespace Kratos
         if ( rValues.size() != mConstitutiveLawVector.size() )
         {
             std::stringstream ss;
-            ss << "Error at KinematicLinear element " << Id() << ", The size of rValues and mConstitutiveLawVector is incompatible";
+            ss << "Error at KinematicLinear element " << Id() << ", The size of rValues and mConstitutiveLawVector is incompatible" << std::endl;
+            ss << "rValues.size(): " << rValues.size() << std::endl;
+            ss << "mConstitutiveLawVector.size(): " << mConstitutiveLawVector.size() << std::endl;
             KRATOS_THROW_ERROR(std::logic_error, ss.str(), "")
         }
 
@@ -1943,6 +2013,15 @@ namespace Kratos
         }
         else
         {
+            if ( rValues.size() != mConstitutiveLawVector.size() )
+            {
+                std::stringstream ss;
+                ss << "Error at KinematicLinear element " << Id() << ", The size of rValues and mConstitutiveLawVector is incompatible" << std::endl;
+                ss << "rValues.size(): " << rValues.size() << std::endl;
+                ss << "mConstitutiveLawVector.size(): " << mConstitutiveLawVector.size() << std::endl;
+                KRATOS_THROW_ERROR(std::logic_error, ss.str(), "")
+            }
+
             for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); ++i )
             {
                 mConstitutiveLawVector[i]->SetValue( rVariable, rValues[i], rCurrentProcessInfo );
@@ -1958,6 +2037,15 @@ namespace Kratos
     void KinematicLinear::SetValuesOnIntegrationPoints( const Variable<int>& rVariable,
             const std::vector<int>& rValues, const ProcessInfo& rCurrentProcessInfo )
     {
+        if ( rValues.size() != mConstitutiveLawVector.size() )
+        {
+            std::stringstream ss;
+            ss << "Error at KinematicLinear element " << Id() << ", The size of rValues and mConstitutiveLawVector is incompatible" << std::endl;
+            ss << "rValues.size(): " << rValues.size() << std::endl;
+            ss << "mConstitutiveLawVector.size(): " << mConstitutiveLawVector.size() << std::endl;
+            KRATOS_THROW_ERROR(std::logic_error, ss.str(), "")
+        }
+
         for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); ++i )
         {
             mConstitutiveLawVector[i]->SetValue( rVariable, rValues[i], rCurrentProcessInfo );
