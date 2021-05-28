@@ -846,24 +846,68 @@ namespace Kratos
         if ( rMassMatrix.size1() != MatSize )
             rMassMatrix.resize( MatSize, MatSize, false );
 
-        rMassMatrix = ZeroMatrix( MatSize, MatSize );
+        noalias( rMassMatrix ) = ZeroMatrix( MatSize, MatSize );
 
-        double TotalMass = mTotalDomainInitialSize * GetProperties()[DENSITY];
+        double density;
+        if( GetValue(USE_DISTRIBUTED_PROPERTIES) )
+            density = GetValue(DENSITY);
+        else
+            density = GetProperties()[DENSITY];
 
-        if ( dimension == 2 ) TotalMass *= GetProperties()[THICKNESS];
+        /// Lumped mass
 
-        Vector LumpFact;
+        // double TotalMass = mTotalDomainInitialSize * density;
+        // if ( dimension == 2 ) TotalMass *= GetProperties()[THICKNESS];
 
-        LumpFact = GetGeometry().LumpingFactors( LumpFact );
+        // Vector LumpFact;
 
-        for ( unsigned int i = 0; i < NumberOfNodes; i++ )
+        // LumpFact = GetGeometry().LumpingFactors( LumpFact );
+
+        // for ( unsigned int i = 0; i < NumberOfNodes; i++ )
+        // {
+        //     double temp = LumpFact[i] * TotalMass;
+
+        //     for ( unsigned int j = 0; j < dimension; j++ )
+        //     {
+        //         unsigned int index = i * dimension + j;
+        //         rMassMatrix( index, index ) = temp;
+        //     }
+        // }
+
+        /// Consistent mass
+
+        //reading integration points and local gradients
+        const GeometryType::IntegrationPointsArrayType& integration_points =
+            GetGeometry().IntegrationPoints( mThisIntegrationMethod );
+        const Matrix& Ncontainer = GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod );
+
+        //initializing the Jacobian in the reference configuration
+        Matrix DeltaPosition(GetGeometry().size(), 3);
+        for ( unsigned int node = 0; node < GetGeometry().size(); ++node )
+            noalias( row( DeltaPosition, node ) ) = GetGeometry()[node].Coordinates() - GetGeometry()[node].GetInitialPosition();
+
+        GeometryType::JacobiansType J0;
+        J0 = GetGeometry().Jacobian( J0, mThisIntegrationMethod, DeltaPosition );
+        double DetJ0;
+
+        for (unsigned int PointNumber = 0; PointNumber < integration_points.size(); ++PointNumber)
         {
-            double temp = LumpFact[i] * TotalMass;
+            DetJ0 = MathUtils<double>::Det(J0[PointNumber]);
 
-            for ( unsigned int j = 0; j < dimension; j++ )
+            //calculating weights for integration on the reference configuration
+            double IntToReferenceWeight = density * integration_points[PointNumber].Weight();
+
+            //modify integration weight in case of 2D
+            if ( dimension == 2 ) IntToReferenceWeight *= GetProperties()[THICKNESS];
+
+            for ( unsigned int i = 0; i < NumberOfNodes; ++i )
             {
-                unsigned int index = i * dimension + j;
-                rMassMatrix( index, index ) = temp;
+                for ( unsigned int j = 0; j < NumberOfNodes; ++j )
+                {
+                    for ( unsigned int k = 0; k < dimension; ++k )
+                        rMassMatrix(dimension*i + k, dimension*j + k) += Ncontainer(PointNumber, i) * Ncontainer(PointNumber, j)
+                            * IntToReferenceWeight * DetJ0;
+                }
             }
         }
 
@@ -885,6 +929,7 @@ namespace Kratos
         if ( rDampingMatrix.size1() != MatSize )
             rDampingMatrix.resize( MatSize, MatSize, false );
 
+        // no damping
         noalias( rDampingMatrix ) = ZeroMatrix( MatSize, MatSize );
 
         KRATOS_CATCH( "" )
@@ -1260,11 +1305,11 @@ namespace Kratos
         for ( unsigned int i = 0; i < number_of_nodes; i++ )
         {
             unsigned int index = i * dim;
-            values[index] = GetGeometry()[i].GetSolutionStepValue( VELOCITY_X, Step );
-            values[index + 1] = GetGeometry()[i].GetSolutionStepValue( VELOCITY_Y, Step );
+            values[index] = GetGeometry()[i].GetSolutionStepValue( DISPLACEMENT_DT_X, Step );
+            values[index + 1] = GetGeometry()[i].GetSolutionStepValue( DISPLACEMENT_DT_Y, Step );
 
             if ( dim == 3 )
-                values[index + 2] = GetGeometry()[i].GetSolutionStepValue( VELOCITY_Z, Step );
+                values[index + 2] = GetGeometry()[i].GetSolutionStepValue( DISPLACEMENT_DT_Z, Step );
         }
     }
 

@@ -220,13 +220,21 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    //      virtual String Info() const;
+    std::string Info() const final
+    {
+        return "TotalLagrangian";
+    }
 
     /// Print information about this object.
-    //      virtual void PrintInfo(std::ostream& rOStream) const;
+    void PrintInfo(std::ostream& rOStream) const final
+    {
+        rOStream << Info() << " #" << Id();
+    }
 
     /// Print object's data.
-    //      virtual void PrintData(std::ostream& rOStream) const;
+    void PrintData(std::ostream& rOStream) const final
+    {}
+
     ///@}
     ///@name Friends
     ///@{
