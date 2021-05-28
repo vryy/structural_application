@@ -424,6 +424,19 @@ void DruckerPrager::FinalizeSolutionStep(
 
 }
 
+void DruckerPrager::CalculateMaterialResponseCauchy (Parameters& rValues)
+{
+    const Vector& StrainVector = rValues.GetStrainVector();
+    Vector& StressVector = rValues.GetStressVector();
+    Matrix& AlgorithmicTangent = rValues.GetConstitutiveMatrix();
+
+    bool isYielded = false;
+    bool isApex = false;
+    double dGamma = 0.0;
+    CalculateStress( StrainVector, StressVector, isYielded, isApex, dGamma );
+    CalculateConstitutiveMatrix( StrainVector, AlgorithmicTangent, isYielded, isApex, dGamma );
+}
+
 void DruckerPrager::CalculateMaterialResponse( const Vector& StrainVector,
         const Matrix& DeformationGradient, Vector& StressVector,
         Matrix& AlgorithmicTangent, const ProcessInfo& CurrentProcessInfo,

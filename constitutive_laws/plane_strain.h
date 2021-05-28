@@ -160,7 +160,7 @@ public:
      * matrix is to be generated for
      * @param rResult Matrix the result will be stored in
      */
-    void CalculateConstitutiveMatrix(const Vector& StrainVector, Matrix& rResult);
+    void CalculateConstitutiveMatrix(Matrix& rResult);
 
 
     /**

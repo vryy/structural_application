@@ -320,17 +320,33 @@ void Isotropic3D::FinalizeSolutionStep( const Properties& props,
 
 void Isotropic3D::CalculateMaterialResponseCauchy (Parameters& rValues)
 {
-    const Vector& StrainVector = rValues.GetStrainVector();
-    Vector& StressVector = rValues.GetStressVector();
-    Matrix& AlgorithmicTangent = rValues.GetConstitutiveMatrix();
+    if (rValues.IsSetConstitutiveMatrix())
+    {
+        Matrix& AlgorithmicTangent = rValues.GetConstitutiveMatrix();
+        if(AlgorithmicTangent.size1() != 6 || AlgorithmicTangent.size2() != 6)
+            AlgorithmicTangent.resize(6, 6, false);
+        CalculateElasticMatrix( AlgorithmicTangent, mE, mNU );
+    }
 
-    if(AlgorithmicTangent.size1() != 6 || AlgorithmicTangent.size2() != 6)
-        AlgorithmicTangent.resize(6, 6, false);
-    CalculateElasticMatrix( AlgorithmicTangent, mE, mNU );
+    if (rValues.IsSetStressVector())
+    {
+        const Vector& StrainVector = rValues.GetStrainVector();
+        Vector& StressVector = rValues.GetStressVector();
+        if(StressVector.size() != 6)
+            StressVector.resize(6, false);
 
-    if(StressVector.size() != 6)
-        StressVector.resize(6, false);
-    CalculateStress( StrainVector, AlgorithmicTangent, StressVector );
+        if (rValues.IsSetConstitutiveMatrix())
+        {
+            Matrix& AlgorithmicTangent = rValues.GetConstitutiveMatrix();
+            CalculateStress( StrainVector, AlgorithmicTangent, StressVector );
+        }
+        else
+        {
+            Matrix AlgorithmicTangent(6, 6);
+            CalculateElasticMatrix( AlgorithmicTangent, mE, mNU );
+            CalculateStress( StrainVector, AlgorithmicTangent, StressVector );
+        }
+    }
 }
 
 void Isotropic3D::CalculateMaterialResponse( const Vector& StrainVector,
@@ -365,41 +381,18 @@ void Isotropic3D::CalculateElasticMatrix( Matrix& C, const double E, const doubl
     double c3 = c1 * NU;
     double c4 = c1 * 0.5 * ( 1 - 2 * NU );
     //filling material matrix
+    noalias(C) = ZeroMatrix(6, 6);
     C( 0, 0 ) = c2;
     C( 0, 1 ) = c3;
     C( 0, 2 ) = c3;
-    C( 0, 3 ) = 0.0;
-    C( 0, 4 ) = 0.0;
-    C( 0, 5 ) = 0.0;
     C( 1, 0 ) = c3;
     C( 1, 1 ) = c2;
     C( 1, 2 ) = c3;
-    C( 1, 3 ) = 0.0;
-    C( 1, 4 ) = 0.0;
-    C( 1, 5 ) = 0.0;
     C( 2, 0 ) = c3;
     C( 2, 1 ) = c3;
     C( 2, 2 ) = c2;
-    C( 2, 3 ) = 0.0;
-    C( 2, 4 ) = 0.0;
-    C( 2, 5 ) = 0.0;
-    C( 3, 0 ) = 0.0;
-    C( 3, 1 ) = 0.0;
-    C( 3, 2 ) = 0.0;
     C( 3, 3 ) = c4;
-    C( 3, 4 ) = 0.0;
-    C( 3, 5 ) = 0.0;
-    C( 4, 0 ) = 0.0;
-    C( 4, 1 ) = 0.0;
-    C( 4, 2 ) = 0.0;
-    C( 4, 3 ) = 0.0;
     C( 4, 4 ) = c4;
-    C( 4, 5 ) = 0.0;
-    C( 5, 0 ) = 0.0;
-    C( 5, 1 ) = 0.0;
-    C( 5, 2 ) = 0.0;
-    C( 5, 3 ) = 0.0;
-    C( 5, 4 ) = 0.0;
     C( 5, 5 ) = c4;
 }
 

@@ -269,17 +269,23 @@ void PlaneStrain::Calculate( const Variable<Matrix>& rVariable, Matrix& rResult,
 
 void PlaneStrain::CalculateMaterialResponseCauchy (Parameters& rValues)
 {
-    const Vector& StrainVector = rValues.GetStrainVector();
-    Vector& StressVector = rValues.GetStressVector();
-    Matrix& AlgorithmicTangent = rValues.GetConstitutiveMatrix();
+    if (rValues.IsSetStressVector())
+    {
+        const Vector& StrainVector = rValues.GetStrainVector();
+        Vector& StressVector = rValues.GetStressVector();
 
-    if(StressVector.size() != 3)
-        StressVector.resize(3, false);
-    CalculateStress( StrainVector, StressVector );
+        if(StressVector.size() != 3)
+            StressVector.resize(3, false);
+        CalculateStress( StrainVector, StressVector );
+    }
 
-    if(AlgorithmicTangent.size1() != 3 || AlgorithmicTangent.size2() != 3)
-        AlgorithmicTangent.resize(3, 3, false);
-    CalculateConstitutiveMatrix( StrainVector, AlgorithmicTangent );
+    if (rValues.IsSetConstitutiveMatrix())
+    {
+        Matrix& AlgorithmicTangent = rValues.GetConstitutiveMatrix();
+        if(AlgorithmicTangent.size1() != 3 || AlgorithmicTangent.size2() != 3)
+            AlgorithmicTangent.resize(3, 3, false);
+        CalculateConstitutiveMatrix( AlgorithmicTangent );
+    }
 }
 
 void PlaneStrain::CalculateMaterialResponse( const Vector& StrainVector,
@@ -382,7 +388,7 @@ void PlaneStrain::CalculateStress( const Vector& StrainVector, Vector& StressVec
 /**
  * TO BE REVIEWED!!!
  */
-void PlaneStrain::CalculateConstitutiveMatrix( const Vector& StrainVector, Matrix& rResult )
+void PlaneStrain::CalculateConstitutiveMatrix( Matrix& rResult )
 {
     CalculateElasticMatrix( rResult, mE, mNU );
 }

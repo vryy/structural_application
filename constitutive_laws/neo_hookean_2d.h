@@ -150,6 +150,13 @@ namespace Kratos
                                const GeometryType& geom,
                                const ProcessInfo& CurrentProcessInfo );
 
+            /**
+             * Computes the material response in terms of Cauchy stresses and constitutive tensor
+             * @see Parameters
+             */
+            void CalculateMaterialResponseCauchy (Parameters& rValues) final;
+
+            /// DEPRECATED FUNCTION
             void CalculateMaterialResponse( const Vector& StrainVector,
                                             const Matrix& DeformationGradient,
                                             Vector& StressVector,

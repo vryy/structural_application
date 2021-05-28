@@ -249,6 +249,38 @@ void NeoHookean2D::FinalizeSolutionStep( const Properties& props,
 }
 
 //**********************************************************************
+void NeoHookean2D::CalculateMaterialResponseCauchy (Parameters& rValues)
+{
+    const Vector& StrainVector = rValues.GetStrainVector();
+    Vector& StressVector = rValues.GetStressVector();
+    Matrix& AlgorithmicTangent = rValues.GetConstitutiveMatrix();
+
+    Vector StrainVector3D(6), StressVector3D(6);
+    Matrix AlgorithmicTangent3D(6, 6);
+
+    noalias(StrainVector3D) = ZeroVector(6);
+    StrainVector3D(0) = StrainVector(0);
+    StrainVector3D(1) = StrainVector(1);
+    StrainVector3D(3) = StrainVector(2);
+
+    CalculateStress( StressVector3D, StrainVector3D );
+    CalculateTangentMatrix( AlgorithmicTangent3D, StrainVector3D );
+
+    StressVector(0) = StressVector3D(0);
+    StressVector(1) = StressVector3D(1);
+    StressVector(2) = StressVector3D(3);
+
+    std::vector<int> cmap = {0, 1, 3};
+    for (int i = 0; i < 3; ++i)
+    {
+        for (int j = 0; j < 3; ++j)
+        {
+            AlgorithmicTangent(i, j) = AlgorithmicTangent3D(cmap[i], cmap[j]);
+        }
+    }
+}
+
+//**********************************************************************
 void  NeoHookean2D::CalculateMaterialResponse( const Vector& StrainVector,
         const Matrix& DeformationGradient,
         Vector& StressVector,

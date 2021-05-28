@@ -354,6 +354,12 @@ public:
             const ProcessInfo& CurrentProcessInfo );
 
     /**
+     * Computes the material response in terms of Cauchy stresses and constitutive tensor
+     * @see Parameters
+     */
+    void CalculateMaterialResponseCauchy (Parameters& rValues) final;
+
+    /**
      * Computes the material response in terms of stresses and algorithmic tangent
      * @param StrainVector the current strains (total strains, input)
      * @param DeformationGradient the current deformation gradient (can be an empty matrix if a linear strain measure is used)
