@@ -61,14 +61,12 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/define.h"
 #include "includes/kratos_flags.h"
 #include "includes/model_part.h"
-#include "solving_strategies/schemes/scheme.h"
 #include "includes/variables.h"
-#include "containers/array_1d.h"
 #include "includes/element.h"
+#include "includes/legacy_structural_app_vars.h"
+#include "containers/array_1d.h"
+#include "solving_strategies/schemes/scheme.h"
 #include "structural_application_variables.h"
-
-// #define ENABLE_ROTATION
-#define ENABLE_LAMBDA
 
 namespace Kratos
 {
@@ -150,6 +148,11 @@ public:
         mBeta = 1.0 / 4.0;
         mGamma = 0.5;
 
+        // set all the integration flag to false. To incorporate the corresponding term, the flag shall be set by user.
+        mIntegrateRotation = false;
+        mIntegrateMultiplier = false;
+        mIntegrateLoad = false;
+
         std::cout << "PURE Newmark Time !!!!!!!!!!!!!!!!!!!!!" << " alpha_f= " << mAlpha_f << " alpha_m= " << mAlpha_m << " beta= " << mBeta << " gamma= " << mGamma << std::endl;
         //(...)_NULL DOF at the begin of time step, (...)_EINS DOF at the end of time step, (...)
         // DOF at the midpoint of time step, Please recognize that the name of the DOF is (...)
@@ -171,6 +174,11 @@ public:
         mBeta = (1.0 + mAlpha_f - mAlpha_m) * (1.0 + mAlpha_f - mAlpha_m)/4.0;
         mGamma = 0.5 + mAlpha_f - mAlpha_m;
 
+        // set all the integration flag to false. To incorporate the corresponding term, the flag shall be set by user.
+        mIntegrateRotation = false;
+        mIntegrateMultiplier = false;
+        mIntegrateLoad = false;
+
         std::cout << "using the Generalized alpha Time Integration Scheme with radius= "<< mDissipationRadius << " alpha_f= " << mAlpha_f << " alpha_m= " << mAlpha_m << " beta= " << mBeta << " gamma= " << mGamma << std::endl;
     }
 
@@ -184,6 +192,11 @@ public:
      */
     ResidualBasedNewmarkScheme(int option, double mDissipationRadius ) : BaseType()
     {
+        // set all the integration flag to false. To incorporate the corresponding term, the flag shall be set by user.
+        mIntegrateRotation = false;
+        mIntegrateMultiplier = false;
+        mIntegrateLoad = false;
+
         if (option == 0)
         {
             mAlpha_f = 0.0;
@@ -231,6 +244,28 @@ public:
     {}
 
     /**@name Operators */
+
+    /*@} */
+    /**@name Operations */
+    /*@{ */
+
+    /// Enable integration of rotation d.o.f
+    void SetIntegrateRotation(const bool& value)
+    {
+        mIntegrateRotation = value;
+    }
+
+    /// Enable integration of multiplier d.o.f
+    void SetIntegrateMultiplier(const bool& value)
+    {
+        mIntegrateMultiplier = value;
+    }
+
+    /// Enable time values of load
+    void SetIntegrateLoad(const bool& value)
+    {
+        mIntegrateLoad = value;
+    }
 
     /** Performing the update of the solution.*/
     /**
@@ -340,8 +375,6 @@ public:
         KRATOS_CATCH("")
     }
 
-    /**@name Operators */
-
     /** Performing the update of the solution.*/
     /**
      * incremental update within newton iteration. It updates the state variables at the end of the time step: u_{n+1}^{k+1}= u_{n+1}^{k}+ \Delta u
@@ -356,7 +389,7 @@ public:
         DofsArrayType& rDofSet,
         TSystemMatrixType& A,
         TSystemVectorType& Dx,
-        TSystemVectorType& b )
+        TSystemVectorType& b ) final
     {
         KRATOS_TRY
 
@@ -404,49 +437,56 @@ public:
                     += Dx[dof_iterator->EquationId()];
                 }
             }
-            #ifdef ENABLE_ROTATION
-            else if (dof_iterator->GetVariable() == ROTATION_X)
-            {
-                if (dof_iterator->IsFree())
-                {
-                    rNode.GetSolutionStepValue(ROTATION_EINS_X)
-                    += Dx[dof_iterator->EquationId()];
-                }
-            }
-            else if (dof_iterator->GetVariable() == ROTATION_Y)
-            {
-                if (dof_iterator->IsFree())
-                {
-                    rNode.GetSolutionStepValue(ROTATION_EINS_Y)
-                    += Dx[dof_iterator->EquationId()];
-                }
-            }
-            else if (dof_iterator->GetVariable() == ROTATION_Z)
-            {
-                if (dof_iterator->IsFree())
-                {
-                    rNode.GetSolutionStepValue(ROTATION_EINS_Z)
-                    += Dx[dof_iterator->EquationId()];
-                }
-            }
-            #endif
-            #ifdef ENABLE_LAMBDA
-            else if (dof_iterator->GetVariable() == LAMBDA)
-            {
-                if (dof_iterator->IsFree())
-                {
-                    rNode.GetSolutionStepValue(LAMBDA_EINS)
-                    += Dx[dof_iterator->EquationId()];
-                }
-            }
-            #endif
             else
             {
-                // update for non-dynamics variable, i.e. Lagrange multiplier
-                if (dof_iterator->IsFree())
+                if (mIntegrateRotation)
                 {
-                    dof_iterator->GetSolutionStepValue()
-                    += Dx[dof_iterator->EquationId()];
+                    if (dof_iterator->GetVariable() == ROTATION_X)
+                    {
+                        if (dof_iterator->IsFree())
+                        {
+                            rNode.GetSolutionStepValue(ROTATION_EINS_X)
+                            += Dx[dof_iterator->EquationId()];
+                        }
+                    }
+                    else if (dof_iterator->GetVariable() == ROTATION_Y)
+                    {
+                        if (dof_iterator->IsFree())
+                        {
+                            rNode.GetSolutionStepValue(ROTATION_EINS_Y)
+                            += Dx[dof_iterator->EquationId()];
+                        }
+                    }
+                    else if (dof_iterator->GetVariable() == ROTATION_Z)
+                    {
+                        if (dof_iterator->IsFree())
+                        {
+                            rNode.GetSolutionStepValue(ROTATION_EINS_Z)
+                            += Dx[dof_iterator->EquationId()];
+                        }
+                    }
+                }
+
+                if (mIntegrateMultiplier)
+                {
+                    if (dof_iterator->GetVariable() == LAMBDA)
+                    {
+                        if (dof_iterator->IsFree())
+                        {
+                            rNode.GetSolutionStepValue(LAMBDA_EINS)
+                            += Dx[dof_iterator->EquationId()];
+                        }
+                    }
+                }
+
+                if (!mIntegrateMultiplier && !mIntegrateRotation)
+                {
+                    // update for non-dynamics variable
+                    if (dof_iterator->IsFree())
+                    {
+                        dof_iterator->GetSolutionStepValue()
+                        += Dx[dof_iterator->EquationId()];
+                    }
                 }
             }
         }
@@ -465,11 +505,11 @@ public:
     void InitializeNonLinIteration(ModelPart& r_model_part,
                                    TSystemMatrixType& A,
                                    TSystemVectorType& Dx,
-                                   TSystemVectorType& b )
+                                   TSystemVectorType& b ) final
     {
         KRATOS_TRY
 
-        ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
+        const ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
 
         ElementsArrayType& pElements = r_model_part.Elements();
         bool element_is_active;
@@ -532,7 +572,6 @@ public:
                 i->GetSolutionStepValue(DISPLACEMENT_X)
                 = mAlpha_f*i->GetSolutionStepValue(DISPLACEMENT_NULL_X)
                   +(1.0-mAlpha_f)*i->GetSolutionStepValue(DISPLACEMENT_EINS_X);
-
             }
             if( i->HasDofFor(DISPLACEMENT_Y) )
             {
@@ -658,134 +697,155 @@ public:
                 = mAlpha_f*i->GetSolutionStepValue(AIR_PRESSURE_NULL)
                   +(1.0-mAlpha_f)*i->GetSolutionStepValue(AIR_PRESSURE_EINS);
             }
-            #ifdef ENABLE_ROTATION
-            if( i->HasDofFor(ROTATION_X) )
+
+            if (mIntegrateRotation)
             {
-                i->GetSolutionStepValue(ANGULAR_ACCELERATION_EINS_X)
-                = 1.0/(mBeta*CurrentProcessInfo[DELTA_TIME]
-                       *CurrentProcessInfo[DELTA_TIME])
-                  * (i->GetSolutionStepValue(ROTATION_EINS_X)
-                     -i->GetSolutionStepValue(ROTATION_NULL_X))
-                  -1.0/(mBeta*CurrentProcessInfo[DELTA_TIME])
-                  *i->GetSolutionStepValue(ROTATION_NULL_DT_X)
-                  -(1.0-2.0*mBeta)/(2.0*mBeta)*i->GetSolutionStepValue(ANGULAR_ACCELERATION_NULL_X);
+                if( i->HasDofFor(ROTATION_X) )
+                {
+                    i->GetSolutionStepValue(ANGULAR_ACCELERATION_EINS_X)
+                    = 1.0/(mBeta*CurrentProcessInfo[DELTA_TIME]
+                           *CurrentProcessInfo[DELTA_TIME])
+                      * (i->GetSolutionStepValue(ROTATION_EINS_X)
+                         -i->GetSolutionStepValue(ROTATION_NULL_X))
+                      -1.0/(mBeta*CurrentProcessInfo[DELTA_TIME])
+                      *i->GetSolutionStepValue(ROTATION_NULL_DT_X)
+                      -(1.0-2.0*mBeta)/(2.0*mBeta)*i->GetSolutionStepValue(ANGULAR_ACCELERATION_NULL_X);
 
-                i->GetSolutionStepValue(ROTATION_EINS_DT_X)
-                = (i->GetSolutionStepValue(ROTATION_EINS_X)
-                   -i->GetSolutionStepValue(ROTATION_NULL_X))
-                  *mGamma/(mBeta*CurrentProcessInfo[DELTA_TIME])
-                  -(mGamma-mBeta)/mBeta*(i->GetSolutionStepValue(ROTATION_NULL_DT_X))
-                  -(mGamma-2.0*mBeta)/(2.0*mBeta)*CurrentProcessInfo[DELTA_TIME]
-                  *(i->GetSolutionStepValue(ANGULAR_ACCELERATION_NULL_X));
+                    i->GetSolutionStepValue(ROTATION_EINS_DT_X)
+                    = (i->GetSolutionStepValue(ROTATION_EINS_X)
+                       -i->GetSolutionStepValue(ROTATION_NULL_X))
+                      *mGamma/(mBeta*CurrentProcessInfo[DELTA_TIME])
+                      -(mGamma-mBeta)/mBeta*(i->GetSolutionStepValue(ROTATION_NULL_DT_X))
+                      -(mGamma-2.0*mBeta)/(2.0*mBeta)*CurrentProcessInfo[DELTA_TIME]
+                      *(i->GetSolutionStepValue(ANGULAR_ACCELERATION_NULL_X));
 
-                i->GetSolutionStepValue(ANGULAR_ACCELERATION_X)
-                = mAlpha_m*i->GetSolutionStepValue(ANGULAR_ACCELERATION_NULL_X)
-                  +(1.0-mAlpha_m)*i->GetSolutionStepValue(ANGULAR_ACCELERATION_EINS_X);
+                    i->GetSolutionStepValue(ANGULAR_ACCELERATION_X)
+                    = mAlpha_m*i->GetSolutionStepValue(ANGULAR_ACCELERATION_NULL_X)
+                      +(1.0-mAlpha_m)*i->GetSolutionStepValue(ANGULAR_ACCELERATION_EINS_X);
 
-                i->GetSolutionStepValue(ROTATION_DT_X)
-                = mAlpha_f*i->GetSolutionStepValue(ROTATION_NULL_DT_X)
-                  +(1.0-mAlpha_f)*i->GetSolutionStepValue(ROTATION_EINS_DT_X);
+                    i->GetSolutionStepValue(ROTATION_DT_X)
+                    = mAlpha_f*i->GetSolutionStepValue(ROTATION_NULL_DT_X)
+                      +(1.0-mAlpha_f)*i->GetSolutionStepValue(ROTATION_EINS_DT_X);
 
-                i->GetSolutionStepValue(ROTATION_X)
-                = mAlpha_f*i->GetSolutionStepValue(ROTATION_NULL_X)
-                  +(1.0-mAlpha_f)*i->GetSolutionStepValue(ROTATION_EINS_X);
+                    i->GetSolutionStepValue(ROTATION_X)
+                    = mAlpha_f*i->GetSolutionStepValue(ROTATION_NULL_X)
+                      +(1.0-mAlpha_f)*i->GetSolutionStepValue(ROTATION_EINS_X);
 
+                }
+                if( i->HasDofFor(ROTATION_Y) )
+                {
+                    i->GetSolutionStepValue(ANGULAR_ACCELERATION_EINS_Y)
+                    =1.0/(mBeta*CurrentProcessInfo[DELTA_TIME]*CurrentProcessInfo[DELTA_TIME])
+                     * (i->GetSolutionStepValue(ROTATION_EINS_Y)
+                        -i->GetSolutionStepValue(ROTATION_NULL_Y))
+                     -1.0/(mBeta*CurrentProcessInfo[DELTA_TIME])
+                     *i->GetSolutionStepValue(ROTATION_NULL_DT_Y)
+                     -(1.0-2.0*mBeta)/(2.0*mBeta)*
+                     i->GetSolutionStepValue(ANGULAR_ACCELERATION_NULL_Y);
+
+                    i->GetSolutionStepValue(ROTATION_EINS_DT_Y)
+                    =(i->GetSolutionStepValue(ROTATION_EINS_Y)
+                      -i->GetSolutionStepValue(ROTATION_NULL_Y))
+                     *mGamma/(mBeta*CurrentProcessInfo[DELTA_TIME])
+                     -(mGamma-mBeta)/mBeta*(i->GetSolutionStepValue(ROTATION_NULL_DT_Y))
+                     -(mGamma-2.0*mBeta)/(2.0*mBeta)*CurrentProcessInfo[DELTA_TIME]
+                     *(i->GetSolutionStepValue(ANGULAR_ACCELERATION_NULL_Y));
+
+                    i->GetSolutionStepValue(ANGULAR_ACCELERATION_Y)
+                    =mAlpha_m*i->GetSolutionStepValue(ANGULAR_ACCELERATION_NULL_Y)
+                     +(1.0-mAlpha_m)*i->GetSolutionStepValue(ANGULAR_ACCELERATION_EINS_Y);
+
+                    i->GetSolutionStepValue(ROTATION_DT_Y)
+                    = mAlpha_f*i->GetSolutionStepValue(ROTATION_NULL_DT_Y)
+                      +(1.0-mAlpha_f)*i->GetSolutionStepValue(ROTATION_EINS_DT_Y);
+
+                    i->GetSolutionStepValue(ROTATION_Y)
+                    = mAlpha_f*i->GetSolutionStepValue(ROTATION_NULL_Y)+(1.0-mAlpha_f)*
+                      i->GetSolutionStepValue(ROTATION_EINS_Y);
+                }
+                if( i->HasDofFor(ROTATION_Z) )
+                {
+                    i->GetSolutionStepValue(ANGULAR_ACCELERATION_EINS_Z)
+                    = 1.0/(mBeta*CurrentProcessInfo[DELTA_TIME]*CurrentProcessInfo[DELTA_TIME])
+                      * (i->GetSolutionStepValue(ROTATION_EINS_Z)
+                         -i->GetSolutionStepValue(ROTATION_NULL_Z))
+                      -1.0/(mBeta*CurrentProcessInfo[DELTA_TIME])
+                      *i->GetSolutionStepValue(ROTATION_NULL_DT_Z)
+                      -(1.0-2.0*mBeta)/(2.0*mBeta)*i->GetSolutionStepValue(ANGULAR_ACCELERATION_NULL_Z);
+
+                    i->GetSolutionStepValue(ROTATION_EINS_DT_Z)
+                    = (i->GetSolutionStepValue(ROTATION_EINS_Z)
+                       -i->GetSolutionStepValue(ROTATION_NULL_Z))
+                      *mGamma/(mBeta*CurrentProcessInfo[DELTA_TIME])-(mGamma-mBeta)/mBeta*
+                      (i->GetSolutionStepValue(ROTATION_NULL_DT_Z))
+                      -(mGamma-2.0*mBeta)/(2.0*mBeta)*CurrentProcessInfo[DELTA_TIME]
+                      *(i->GetSolutionStepValue(ANGULAR_ACCELERATION_NULL_Z));
+
+                    i->GetSolutionStepValue(ANGULAR_ACCELERATION_Z)
+                    = mAlpha_m*i->GetSolutionStepValue(ANGULAR_ACCELERATION_NULL_Z)
+                      +(1.0-mAlpha_m)*i->GetSolutionStepValue(ANGULAR_ACCELERATION_EINS_Z);
+
+                    i->GetSolutionStepValue(ROTATION_DT_Z)
+                    = mAlpha_f*i->GetSolutionStepValue(ROTATION_NULL_DT_Z)
+                      +(1.0-mAlpha_f)*i->GetSolutionStepValue(ROTATION_EINS_DT_Z);
+
+                    i->GetSolutionStepValue(ROTATION_Z)
+                    = mAlpha_f*i->GetSolutionStepValue(ROTATION_NULL_Z)
+                      +(1.0-mAlpha_f)*i->GetSolutionStepValue(ROTATION_EINS_Z);
+                }
             }
-            if( i->HasDofFor(ROTATION_Y) )
+
+            if (mIntegrateMultiplier)
             {
-                i->GetSolutionStepValue(ANGULAR_ACCELERATION_EINS_Y)
-                =1.0/(mBeta*CurrentProcessInfo[DELTA_TIME]*CurrentProcessInfo[DELTA_TIME])
-                 * (i->GetSolutionStepValue(ROTATION_EINS_Y)
-                    -i->GetSolutionStepValue(ROTATION_NULL_Y))
-                 -1.0/(mBeta*CurrentProcessInfo[DELTA_TIME])
-                 *i->GetSolutionStepValue(ROTATION_NULL_DT_Y)
-                 -(1.0-2.0*mBeta)/(2.0*mBeta)*
-                 i->GetSolutionStepValue(ANGULAR_ACCELERATION_NULL_Y);
+                if( i->HasDofFor(LAMBDA) )
+                {
+                    i->GetSolutionStepValue(LAMBDA_EINS_DT2)
+                    = 1.0/(mBeta*CurrentProcessInfo[DELTA_TIME]
+                           *CurrentProcessInfo[DELTA_TIME])
+                      * (i->GetSolutionStepValue(LAMBDA_EINS)
+                         -i->GetSolutionStepValue(LAMBDA_NULL))
+                      -1.0/(mBeta*CurrentProcessInfo[DELTA_TIME])
+                      *i->GetSolutionStepValue(LAMBDA_NULL_DT)
+                      -(1.0-2.0*mBeta)/(2.0*mBeta)*i->GetSolutionStepValue(LAMBDA_NULL_DT2);
 
-                i->GetSolutionStepValue(ROTATION_EINS_DT_Y)
-                =(i->GetSolutionStepValue(ROTATION_EINS_Y)
-                  -i->GetSolutionStepValue(ROTATION_NULL_Y))
-                 *mGamma/(mBeta*CurrentProcessInfo[DELTA_TIME])
-                 -(mGamma-mBeta)/mBeta*(i->GetSolutionStepValue(ROTATION_NULL_DT_Y))
-                 -(mGamma-2.0*mBeta)/(2.0*mBeta)*CurrentProcessInfo[DELTA_TIME]
-                 *(i->GetSolutionStepValue(ANGULAR_ACCELERATION_NULL_Y));
+                    i->GetSolutionStepValue(LAMBDA_EINS_DT)
+                    = (i->GetSolutionStepValue(LAMBDA_EINS)
+                       -i->GetSolutionStepValue(LAMBDA_NULL))
+                      *mGamma/(mBeta*CurrentProcessInfo[DELTA_TIME])
+                      -(mGamma-mBeta)/mBeta*(i->GetSolutionStepValue(LAMBDA_NULL_DT))
+                      -(mGamma-2.0*mBeta)/(2.0*mBeta)*CurrentProcessInfo[DELTA_TIME]
+                      *(i->GetSolutionStepValue(LAMBDA_NULL_DT2));
 
-                i->GetSolutionStepValue(ANGULAR_ACCELERATION_Y)
-                =mAlpha_m*i->GetSolutionStepValue(ANGULAR_ACCELERATION_NULL_Y)
-                 +(1.0-mAlpha_m)*i->GetSolutionStepValue(ANGULAR_ACCELERATION_EINS_Y);
+                    i->GetSolutionStepValue(LAMBDA_DT2)
+                    = mAlpha_m*i->GetSolutionStepValue(LAMBDA_NULL_DT2)
+                      +(1.0-mAlpha_m)*i->GetSolutionStepValue(LAMBDA_EINS_DT2);
 
-                i->GetSolutionStepValue(ROTATION_DT_Y)
-                = mAlpha_f*i->GetSolutionStepValue(ROTATION_NULL_DT_Y)
-                  +(1.0-mAlpha_f)*i->GetSolutionStepValue(ROTATION_EINS_DT_Y);
+                    i->GetSolutionStepValue(LAMBDA_DT)
+                    = mAlpha_f*i->GetSolutionStepValue(LAMBDA_NULL_DT)
+                      +(1.0-mAlpha_f)*i->GetSolutionStepValue(LAMBDA_EINS_DT);
 
-                i->GetSolutionStepValue(ROTATION_Y)
-                = mAlpha_f*i->GetSolutionStepValue(ROTATION_NULL_Y)+(1.0-mAlpha_f)*
-                  i->GetSolutionStepValue(ROTATION_EINS_Y);
+                    i->GetSolutionStepValue(LAMBDA)
+                    = mAlpha_f*i->GetSolutionStepValue(LAMBDA_NULL)
+                      +(1.0-mAlpha_f)*i->GetSolutionStepValue(LAMBDA_EINS);
+                }
             }
-            if( i->HasDofFor(ROTATION_Z) )
+
+            if (mIntegrateLoad)
             {
-                i->GetSolutionStepValue(ANGULAR_ACCELERATION_EINS_Z)
-                = 1.0/(mBeta*CurrentProcessInfo[DELTA_TIME]*CurrentProcessInfo[DELTA_TIME])
-                  * (i->GetSolutionStepValue(ROTATION_EINS_Z)
-                     -i->GetSolutionStepValue(ROTATION_NULL_Z))
-                  -1.0/(mBeta*CurrentProcessInfo[DELTA_TIME])
-                  *i->GetSolutionStepValue(ROTATION_NULL_DT_Z)
-                  -(1.0-2.0*mBeta)/(2.0*mBeta)*i->GetSolutionStepValue(ANGULAR_ACCELERATION_NULL_Z);
+                if( i->SolutionStepsDataHas(FACE_LOAD) )
+                {
+                    noalias( i->GetSolutionStepValue(FACE_LOAD) )
+                    = mAlpha_f*i->GetSolutionStepValue(FACE_LOAD_NULL)
+                      +(1.0-mAlpha_f)*i->GetSolutionStepValue(FACE_LOAD_EINS);
+                }
 
-                i->GetSolutionStepValue(ROTATION_EINS_DT_Z)
-                = (i->GetSolutionStepValue(ROTATION_EINS_Z)
-                   -i->GetSolutionStepValue(ROTATION_NULL_Z))
-                  *mGamma/(mBeta*CurrentProcessInfo[DELTA_TIME])-(mGamma-mBeta)/mBeta*
-                  (i->GetSolutionStepValue(ROTATION_NULL_DT_Z))
-                  -(mGamma-2.0*mBeta)/(2.0*mBeta)*CurrentProcessInfo[DELTA_TIME]
-                  *(i->GetSolutionStepValue(ANGULAR_ACCELERATION_NULL_Z));
-
-                i->GetSolutionStepValue(ANGULAR_ACCELERATION_Z)
-                = mAlpha_m*i->GetSolutionStepValue(ANGULAR_ACCELERATION_NULL_Z)
-                  +(1.0-mAlpha_m)*i->GetSolutionStepValue(ANGULAR_ACCELERATION_EINS_Z);
-
-                i->GetSolutionStepValue(ROTATION_DT_Z)
-                = mAlpha_f*i->GetSolutionStepValue(ROTATION_NULL_DT_Z)
-                  +(1.0-mAlpha_f)*i->GetSolutionStepValue(ROTATION_EINS_DT_Z);
-
-                i->GetSolutionStepValue(ROTATION_Z)
-                = mAlpha_f*i->GetSolutionStepValue(ROTATION_NULL_Z)
-                  +(1.0-mAlpha_f)*i->GetSolutionStepValue(ROTATION_EINS_Z);
+                if( i->SolutionStepsDataHas(FORCE) )
+                {
+                    noalias( i->GetSolutionStepValue(FORCE) )
+                    = mAlpha_f*i->GetSolutionStepValue(FORCE_NULL)
+                      +(1.0-mAlpha_f)*i->GetSolutionStepValue(FORCE_EINS);
+                }
             }
-            #endif
-            #ifdef ENABLE_LAMBDA
-            if( i->HasDofFor(LAMBDA) )
-            {
-                i->GetSolutionStepValue(LAMBDA_EINS_DT2)
-                = 1.0/(mBeta*CurrentProcessInfo[DELTA_TIME]
-                       *CurrentProcessInfo[DELTA_TIME])
-                  * (i->GetSolutionStepValue(LAMBDA_EINS)
-                     -i->GetSolutionStepValue(LAMBDA_NULL))
-                  -1.0/(mBeta*CurrentProcessInfo[DELTA_TIME])
-                  *i->GetSolutionStepValue(LAMBDA_NULL_DT)
-                  -(1.0-2.0*mBeta)/(2.0*mBeta)*i->GetSolutionStepValue(LAMBDA_NULL_DT2);
-
-                i->GetSolutionStepValue(LAMBDA_EINS_DT)
-                = (i->GetSolutionStepValue(LAMBDA_EINS)
-                   -i->GetSolutionStepValue(LAMBDA_NULL))
-                  *mGamma/(mBeta*CurrentProcessInfo[DELTA_TIME])
-                  -(mGamma-mBeta)/mBeta*(i->GetSolutionStepValue(LAMBDA_NULL_DT))
-                  -(mGamma-2.0*mBeta)/(2.0*mBeta)*CurrentProcessInfo[DELTA_TIME]
-                  *(i->GetSolutionStepValue(LAMBDA_NULL_DT2));
-
-                i->GetSolutionStepValue(LAMBDA_DT2)
-                = mAlpha_m*i->GetSolutionStepValue(LAMBDA_NULL_DT2)
-                  +(1.0-mAlpha_m)*i->GetSolutionStepValue(LAMBDA_EINS_DT2);
-
-                i->GetSolutionStepValue(LAMBDA_DT)
-                = mAlpha_f*i->GetSolutionStepValue(LAMBDA_NULL_DT)
-                  +(1.0-mAlpha_f)*i->GetSolutionStepValue(LAMBDA_EINS_DT);
-
-                i->GetSolutionStepValue(LAMBDA)
-                = mAlpha_f*i->GetSolutionStepValue(LAMBDA_NULL)
-                  +(1.0-mAlpha_f)*i->GetSolutionStepValue(LAMBDA_EINS);
-            }
-            #endif
         }
 
         //For total Lagrangian
@@ -806,11 +866,11 @@ public:
         ModelPart& r_model_part,
         TSystemMatrixType& A,
         TSystemVectorType& Dx,
-        TSystemVectorType& b)
+        TSystemVectorType& b) final
     {
         KRATOS_TRY
 
-        ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
+        const ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
 
         ElementsArrayType& pElements = r_model_part.Elements();
         bool element_is_active;
@@ -855,11 +915,11 @@ public:
         ModelPart& r_model_part,
         TSystemMatrixType& A,
         TSystemVectorType& Dx,
-        TSystemVectorType& b)
+        TSystemVectorType& b) final
     {
         KRATOS_TRY
 
-        ProcessInfo CurrentProcessInfo= r_model_part.GetProcessInfo();
+        const ProcessInfo& CurrentProcessInfo= r_model_part.GetProcessInfo();
 
         BaseType::InitializeSolutionStep(r_model_part,A,Dx,b);
         //Update nodal values and nodal velocities at mAlpha_f
@@ -911,17 +971,64 @@ public:
                 i->GetSolutionStepValue(AIR_PRESSURE_EINS)=
                     i->GetSolutionStepValue(AIR_PRESSURE_NULL);
             }
-            #ifdef ENABLE_LAMBDA
-            if( i->HasDofFor(LAMBDA) &&  i->GetDof(LAMBDA).IsFree())
+
+            if (mIntegrateRotation)
             {
-                i->GetSolutionStepValue(LAMBDA_EINS_DT2)=
-                    i->GetSolutionStepValue(LAMBDA_NULL_DT2);
-                i->GetSolutionStepValue(LAMBDA_EINS_DT)=
-                    i->GetSolutionStepValue(LAMBDA_NULL_DT);
-                i->GetSolutionStepValue(LAMBDA_EINS )=
-                    i->GetSolutionStepValue(LAMBDA_NULL);
+                if( i->HasDofFor(ROTATION_X) &&  i->GetDof(ROTATION_X).IsFree())
+                {
+                    i->GetSolutionStepValue(ANGULAR_ACCELERATION_EINS_X)=
+                        i->GetSolutionStepValue(ANGULAR_ACCELERATION_NULL_X);
+                    i->GetSolutionStepValue(ROTATION_EINS_DT_X)=
+                        i->GetSolutionStepValue(ROTATION_NULL_DT_X);
+                    i->GetSolutionStepValue(ROTATION_EINS_X)=
+                        i->GetSolutionStepValue(ROTATION_NULL_X);
+                }
+                if( i->HasDofFor(ROTATION_Y) &&  i->GetDof(ROTATION_Y).IsFree())
+                {
+                    i->GetSolutionStepValue(ANGULAR_ACCELERATION_EINS_Y)=
+                        i->GetSolutionStepValue(ANGULAR_ACCELERATION_NULL_Y);
+                    i->GetSolutionStepValue(ROTATION_EINS_DT_Y)=
+                        i->GetSolutionStepValue(ROTATION_NULL_DT_Y);
+                    i->GetSolutionStepValue(ROTATION_EINS_Y)=
+                        i->GetSolutionStepValue(ROTATION_NULL_Y);
+                }
+                if( i->HasDofFor(ROTATION_Z) &&  i->GetDof(ROTATION_X).IsFree())
+                {
+                    i->GetSolutionStepValue(ANGULAR_ACCELERATION_EINS_Z)=
+                        i->GetSolutionStepValue(ANGULAR_ACCELERATION_NULL_Z);
+                    i->GetSolutionStepValue(ROTATION_EINS_DT_Z)=
+                        i->GetSolutionStepValue(ROTATION_NULL_DT_Z);
+                    i->GetSolutionStepValue(ROTATION_EINS_Z)=
+                        i->GetSolutionStepValue(ROTATION_NULL_Z);
+                }
             }
-            #endif
+
+            if (mIntegrateMultiplier)
+            {
+                if( i->HasDofFor(LAMBDA) &&  i->GetDof(LAMBDA).IsFree())
+                {
+                    i->GetSolutionStepValue(LAMBDA_EINS_DT2)=
+                        i->GetSolutionStepValue(LAMBDA_NULL_DT2);
+                    i->GetSolutionStepValue(LAMBDA_EINS_DT)=
+                        i->GetSolutionStepValue(LAMBDA_NULL_DT);
+                    i->GetSolutionStepValue(LAMBDA_EINS )=
+                        i->GetSolutionStepValue(LAMBDA_NULL);
+                }
+            }
+
+            // if (mIntegrateLoad)
+            // {
+            //     if( i->SolutionStepsDataHas(FACE_LOAD) )
+            //     {
+            //         noalias( i->GetSolutionStepValue(FACE_LOAD_EINS) )=
+            //             i->GetSolutionStepValue(FACE_LOAD_NULL);
+            //     }
+            //     if( i->SolutionStepsDataHas(FORCE) )
+            //     {
+            //         noalias( i->GetSolutionStepValue(FORCE_EINS) )=
+            //             i->GetSolutionStepValue(FORCE_NULL);
+            //     }
+            // }
         }
 
         KRATOS_CATCH("")
@@ -940,9 +1047,9 @@ public:
         ModelPart& r_model_part,
         TSystemMatrixType& A,
         TSystemVectorType& Dx,
-        TSystemVectorType& b)
+        TSystemVectorType& b) final
     {
-        ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
+        const ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
 
         KRATOS_WATCH(CurrentProcessInfo[FIRST_TIME_STEP])
 
@@ -1008,10 +1115,20 @@ public:
                         i->GetSolutionStepValue(DISPLACEMENT_NULL_DT_X) = i->GetSolutionStepValue(DISPLACEMENT_EINS_DT_X);
                         i->GetSolutionStepValue(ACCELERATION_NULL_X) = i->GetSolutionStepValue(ACCELERATION_EINS_X);
                     }
+
+                    // // here we update the current values at the end of time step
+                    // i->GetSolutionStepValue(DISPLACEMENT_X) = i->GetSolutionStepValue(DISPLACEMENT_EINS_X);
+                    // i->GetSolutionStepValue(DISPLACEMENT_DT_X) = i->GetSolutionStepValue(DISPLACEMENT_EINS_DT_X);
+                    // i->GetSolutionStepValue(ACCELERATION_X) = i->GetSolutionStepValue(ACCELERATION_EINS_X);
                 }
                 if( i->HasDofFor(DISPLACEMENT_Y) )
                 {
                     i->GetSolutionStepValue(DISPLACEMENT_OLD_Y) = i->GetSolutionStepValue(DISPLACEMENT_Y);
+
+                    // KRATOS_WATCH(CurrentProcessInfo[FIRST_TIME_STEP])
+                    // std::cout << "Node " << i->Id() << " DISPLACEMENT_NULL_Y: " << i->GetSolutionStepValue(DISPLACEMENT_NULL_Y) << std::endl;
+                    // std::cout << "Node " << i->Id() << " DISPLACEMENT_EINS_Y: " << i->GetSolutionStepValue(DISPLACEMENT_EINS_Y) << std::endl;
+                    // std::cout << "Node " << i->Id() << " DISPLACEMENT_Y: " << i->GetSolutionStepValue(DISPLACEMENT_Y) << std::endl;
 
                     if(CurrentProcessInfo[FIRST_TIME_STEP])
                     {
@@ -1025,6 +1142,11 @@ public:
                         i->GetSolutionStepValue(DISPLACEMENT_NULL_DT_Y) = i->GetSolutionStepValue(DISPLACEMENT_EINS_DT_Y);
                         i->GetSolutionStepValue(ACCELERATION_NULL_Y) = i->GetSolutionStepValue(ACCELERATION_EINS_Y);
                     }
+
+                    // // here we update the current values at the end of time step
+                    // i->GetSolutionStepValue(DISPLACEMENT_Y) = i->GetSolutionStepValue(DISPLACEMENT_EINS_Y);
+                    // i->GetSolutionStepValue(DISPLACEMENT_DT_Y) = i->GetSolutionStepValue(DISPLACEMENT_EINS_DT_Y);
+                    // i->GetSolutionStepValue(ACCELERATION_Y) = i->GetSolutionStepValue(ACCELERATION_EINS_Y);
                 }
                 if( i->HasDofFor(DISPLACEMENT_Z) )
                 {
@@ -1042,6 +1164,11 @@ public:
                         i->GetSolutionStepValue(DISPLACEMENT_NULL_DT_Z) = i->GetSolutionStepValue(DISPLACEMENT_EINS_DT_Z);
                         i->GetSolutionStepValue(ACCELERATION_NULL_Z) = i->GetSolutionStepValue(ACCELERATION_EINS_Z);
                     }
+
+                    // // here we update the current values at the end of time step
+                    // i->GetSolutionStepValue(DISPLACEMENT_Z) = i->GetSolutionStepValue(DISPLACEMENT_EINS_Z);
+                    // i->GetSolutionStepValue(DISPLACEMENT_DT_Z) = i->GetSolutionStepValue(DISPLACEMENT_EINS_DT_Z);
+                    // i->GetSolutionStepValue(ACCELERATION_Z) = i->GetSolutionStepValue(ACCELERATION_EINS_Z);
                 }
                 if( i->HasDofFor(WATER_PRESSURE))
                 {
@@ -1057,6 +1184,11 @@ public:
                         i->GetSolutionStepValue(WATER_PRESSURE_NULL) = i->GetSolutionStepValue(WATER_PRESSURE_EINS);
                         i->GetSolutionStepValue(WATER_PRESSURE_NULL_ACCELERATION) = i->GetSolutionStepValue(WATER_PRESSURE_EINS_ACCELERATION);
                     }
+
+                    // // here we update the current values at the end of time step
+                    // i->GetSolutionStepValue(WATER_PRESSURE) = i->GetSolutionStepValue(WATER_PRESSURE_EINS);
+                    // i->GetSolutionStepValue(WATER_PRESSURE_DT) = i->GetSolutionStepValue(WATER_PRESSURE_EINS_DT);
+                    // i->GetSolutionStepValue(WATER_PRESSURE_ACCELERATION) = i->GetSolutionStepValue(WATER_PRESSURE_EINS_ACCELERATION);
                 }
                 if( i->HasDofFor(AIR_PRESSURE) )
                 {
@@ -1072,99 +1204,160 @@ public:
                         i->GetSolutionStepValue(AIR_PRESSURE_NULL) = i->GetSolutionStepValue(AIR_PRESSURE_EINS);
                         i->GetSolutionStepValue(AIR_PRESSURE_NULL_ACCELERATION) = i->GetSolutionStepValue(AIR_PRESSURE_EINS_ACCELERATION);
                     }
-                }
-                #ifdef ENABLE_ROTATION
-                if( i->HasDofFor(ROTATION_X))
-                {
-                    if(CurrentProcessInfo[FIRST_TIME_STEP])
-                    {
-                        i->GetSolutionStepValue(ANGULAR_ACCELERATION_NULL_X) = i->GetSolutionStepValue(ANGULAR_ACCELERATION_X);
-                        i->GetSolutionStepValue(ROTATION_NULL_DT_X) = i->GetSolutionStepValue(ROTATION_DT_X);
-                        i->GetSolutionStepValue(ROTATION_NULL_X) = i->GetSolutionStepValue(ROTATION_X);
-                    }
-                    else
-                    {
-                        i->GetSolutionStepValue(ROTATION_NULL_X) = i->GetSolutionStepValue(ROTATION_EINS_X);
-                        i->GetSolutionStepValue(ROTATION_NULL_DT_X) = i->GetSolutionStepValue(ROTATION_EINS_DT_X);
-                        i->GetSolutionStepValue(ANGULAR_ACCELERATION_NULL_X) = i->GetSolutionStepValue(ANGULAR_ACCELERATION_EINS_X);
-                    }
-                }
-                if( i->HasDofFor(ROTATION_Y) )
-                {
-                    if(CurrentProcessInfo[FIRST_TIME_STEP])
-                    {
-                        i->GetSolutionStepValue(ANGULAR_ACCELERATION_NULL_Y) = i->GetSolutionStepValue(ANGULAR_ACCELERATION_Y);
-                        i->GetSolutionStepValue(ROTATION_NULL_DT_Y) = i->GetSolutionStepValue(ROTATION_DT_Y);
-                        i->GetSolutionStepValue(ROTATION_NULL_Y) = i->GetSolutionStepValue(ROTATION_Y);
-                    }
-                    else
-                    {
-                        i->GetSolutionStepValue(ROTATION_NULL_Y) = i->GetSolutionStepValue(ROTATION_EINS_Y);
-                        i->GetSolutionStepValue(ROTATION_NULL_DT_Y) = i->GetSolutionStepValue(ROTATION_EINS_DT_Y);
-                        i->GetSolutionStepValue(ANGULAR_ACCELERATION_NULL_Y) = i->GetSolutionStepValue(ANGULAR_ACCELERATION_EINS_Y);
-                    }
-                }
-                if( i->HasDofFor(ROTATION_Z) )
-                {
-                    if(CurrentProcessInfo[FIRST_TIME_STEP])
-                    {
-                        i->GetSolutionStepValue(ANGULAR_ACCELERATION_NULL_Z) = i->GetSolutionStepValue(ANGULAR_ACCELERATION_Z);
-                        i->GetSolutionStepValue(ROTATION_NULL_DT_Z) = i->GetSolutionStepValue(ROTATION_DT_Z);
-                        i->GetSolutionStepValue(ROTATION_NULL_Z) = i->GetSolutionStepValue(ROTATION_Z);
-                    }
-                    else
-                    {
-                        i->GetSolutionStepValue(ROTATION_NULL_Z) = i->GetSolutionStepValue(ROTATION_EINS_Z);
-                        i->GetSolutionStepValue(ROTATION_NULL_DT_Z) = i->GetSolutionStepValue(ROTATION_EINS_DT_Z);
-                        i->GetSolutionStepValue(ANGULAR_ACCELERATION_NULL_Z) = i->GetSolutionStepValue(ANGULAR_ACCELERATION_EINS_Z);
-                    }
-                }
-                #endif
-                #ifdef ENABLE_LAMBDA
-                if( i->HasDofFor(LAMBDA))
-                {
-                    i->GetSolutionStepValue(LAMBDA_OLD) = i->GetSolutionStepValue(LAMBDA);
 
-                    if(CurrentProcessInfo[FIRST_TIME_STEP])
+                    // // here we update the current values at the end of time step
+                    // i->GetSolutionStepValue(AIR_PRESSURE) = i->GetSolutionStepValue(AIR_PRESSURE_EINS);
+                    // i->GetSolutionStepValue(AIR_PRESSURE_DT) = i->GetSolutionStepValue(AIR_PRESSURE_EINS_DT);
+                    // i->GetSolutionStepValue(AIR_PRESSURE_ACCELERATION) = i->GetSolutionStepValue(AIR_PRESSURE_EINS_ACCELERATION);
+                }
+
+                if (mIntegrateRotation)
+                {
+                    if( i->HasDofFor(ROTATION_X) )
                     {
-                        i->GetSolutionStepValue(LAMBDA_NULL_DT2) = i->GetSolutionStepValue(LAMBDA_DT2);
-                        i->GetSolutionStepValue(LAMBDA_NULL_DT) = i->GetSolutionStepValue(LAMBDA_DT);
-                        i->GetSolutionStepValue(LAMBDA_NULL) = i->GetSolutionStepValue(LAMBDA);
+                        if(CurrentProcessInfo[FIRST_TIME_STEP])
+                        {
+                            i->GetSolutionStepValue(ANGULAR_ACCELERATION_NULL_X) = i->GetSolutionStepValue(ANGULAR_ACCELERATION_X);
+                            i->GetSolutionStepValue(ROTATION_NULL_DT_X) = i->GetSolutionStepValue(ROTATION_DT_X);
+                            i->GetSolutionStepValue(ROTATION_NULL_X) = i->GetSolutionStepValue(ROTATION_X);
+                        }
+                        else
+                        {
+                            i->GetSolutionStepValue(ROTATION_NULL_X) = i->GetSolutionStepValue(ROTATION_EINS_X);
+                            i->GetSolutionStepValue(ROTATION_NULL_DT_X) = i->GetSolutionStepValue(ROTATION_EINS_DT_X);
+                            i->GetSolutionStepValue(ANGULAR_ACCELERATION_NULL_X) = i->GetSolutionStepValue(ANGULAR_ACCELERATION_EINS_X);
+                        }
+
+                        // // here we update the current values at the end of time step
+                        // i->GetSolutionStepValue(ROTATION_X) = i->GetSolutionStepValue(ROTATION_EINS_X);
+                        // i->GetSolutionStepValue(ROTATION_DT_X) = i->GetSolutionStepValue(ROTATION_EINS_DT_X);
+                        // i->GetSolutionStepValue(ANGULAR_ACCELERATION_X) = i->GetSolutionStepValue(ANGULAR_ACCELERATION_EINS_X);
                     }
-                    else
+                    if( i->HasDofFor(ROTATION_Y) )
                     {
-                        i->GetSolutionStepValue(LAMBDA_NULL) = i->GetSolutionStepValue(LAMBDA_EINS);
-                        i->GetSolutionStepValue(LAMBDA_NULL_DT) = i->GetSolutionStepValue(LAMBDA_EINS_DT);
-                        i->GetSolutionStepValue(LAMBDA_NULL_DT2) =i->GetSolutionStepValue(LAMBDA_EINS_DT2);
+                        if(CurrentProcessInfo[FIRST_TIME_STEP])
+                        {
+                            i->GetSolutionStepValue(ANGULAR_ACCELERATION_NULL_Y) = i->GetSolutionStepValue(ANGULAR_ACCELERATION_Y);
+                            i->GetSolutionStepValue(ROTATION_NULL_DT_Y) = i->GetSolutionStepValue(ROTATION_DT_Y);
+                            i->GetSolutionStepValue(ROTATION_NULL_Y) = i->GetSolutionStepValue(ROTATION_Y);
+                        }
+                        else
+                        {
+                            i->GetSolutionStepValue(ROTATION_NULL_Y) = i->GetSolutionStepValue(ROTATION_EINS_Y);
+                            i->GetSolutionStepValue(ROTATION_NULL_DT_Y) = i->GetSolutionStepValue(ROTATION_EINS_DT_Y);
+                            i->GetSolutionStepValue(ANGULAR_ACCELERATION_NULL_Y) = i->GetSolutionStepValue(ANGULAR_ACCELERATION_EINS_Y);
+                        }
+
+                        // // here we update the current values at the end of time step
+                        // i->GetSolutionStepValue(ROTATION_Y) = i->GetSolutionStepValue(ROTATION_EINS_Y);
+                        // i->GetSolutionStepValue(ROTATION_DT_Y) = i->GetSolutionStepValue(ROTATION_EINS_DT_Y);
+                        // i->GetSolutionStepValue(ANGULAR_ACCELERATION_Y) = i->GetSolutionStepValue(ANGULAR_ACCELERATION_EINS_Y);
+                    }
+                    if( i->HasDofFor(ROTATION_Z) )
+                    {
+                        if(CurrentProcessInfo[FIRST_TIME_STEP])
+                        {
+                            i->GetSolutionStepValue(ANGULAR_ACCELERATION_NULL_Z) = i->GetSolutionStepValue(ANGULAR_ACCELERATION_Z);
+                            i->GetSolutionStepValue(ROTATION_NULL_DT_Z) = i->GetSolutionStepValue(ROTATION_DT_Z);
+                            i->GetSolutionStepValue(ROTATION_NULL_Z) = i->GetSolutionStepValue(ROTATION_Z);
+                        }
+                        else
+                        {
+                            i->GetSolutionStepValue(ROTATION_NULL_Z) = i->GetSolutionStepValue(ROTATION_EINS_Z);
+                            i->GetSolutionStepValue(ROTATION_NULL_DT_Z) = i->GetSolutionStepValue(ROTATION_EINS_DT_Z);
+                            i->GetSolutionStepValue(ANGULAR_ACCELERATION_NULL_Z) = i->GetSolutionStepValue(ANGULAR_ACCELERATION_EINS_Z);
+                        }
+
+                        // // here we update the current values at the end of time step
+                        // i->GetSolutionStepValue(ROTATION_Z) = i->GetSolutionStepValue(ROTATION_EINS_Z);
+                        // i->GetSolutionStepValue(ROTATION_DT_Z) = i->GetSolutionStepValue(ROTATION_EINS_DT_Z);
+                        // i->GetSolutionStepValue(ANGULAR_ACCELERATION_Z) = i->GetSolutionStepValue(ANGULAR_ACCELERATION_EINS_Z);
                     }
                 }
-                #endif
+
+                if (mIntegrateMultiplier)
+                {
+                    if( i->HasDofFor(LAMBDA) )
+                    {
+                        i->GetSolutionStepValue(LAMBDA_OLD) = i->GetSolutionStepValue(LAMBDA);
+
+                        if(CurrentProcessInfo[FIRST_TIME_STEP])
+                        {
+                            i->GetSolutionStepValue(LAMBDA_NULL_DT2) = i->GetSolutionStepValue(LAMBDA_DT2);
+                            i->GetSolutionStepValue(LAMBDA_NULL_DT) = i->GetSolutionStepValue(LAMBDA_DT);
+                            i->GetSolutionStepValue(LAMBDA_NULL) = i->GetSolutionStepValue(LAMBDA);
+                        }
+                        else
+                        {
+                            i->GetSolutionStepValue(LAMBDA_NULL) = i->GetSolutionStepValue(LAMBDA_EINS);
+                            i->GetSolutionStepValue(LAMBDA_NULL_DT) = i->GetSolutionStepValue(LAMBDA_EINS_DT);
+                            i->GetSolutionStepValue(LAMBDA_NULL_DT2) =i->GetSolutionStepValue(LAMBDA_EINS_DT2);
+                        }
+
+                        // // here we update the current values at the end of time step
+                        // i->GetSolutionStepValue(LAMBDA) = i->GetSolutionStepValue(LAMBDA_EINS);
+                        // i->GetSolutionStepValue(LAMBDA_DT) = i->GetSolutionStepValue(LAMBDA_EINS_DT);
+                        // i->GetSolutionStepValue(LAMBDA_DT2) = i->GetSolutionStepValue(LAMBDA_EINS_DT2);
+                    }
+                }
+
+                if (mIntegrateLoad)
+                {
+                    if( i->SolutionStepsDataHas(FACE_LOAD) )
+                    {
+                        // if(CurrentProcessInfo[FIRST_TIME_STEP])
+                        // {
+                        //     i->GetSolutionStepValue(FACE_LOAD_NULL_X) = i->GetSolutionStepValue(FACE_LOAD_X);
+                        //     i->GetSolutionStepValue(FACE_LOAD_NULL_Y) = i->GetSolutionStepValue(FACE_LOAD_Y);
+                        //     i->GetSolutionStepValue(FACE_LOAD_NULL_Z) = i->GetSolutionStepValue(FACE_LOAD_Z);
+                        // }
+                        // else
+                        // {
+                            i->GetSolutionStepValue(FACE_LOAD_NULL_X) = i->GetSolutionStepValue(FACE_LOAD_EINS_X);
+                            i->GetSolutionStepValue(FACE_LOAD_NULL_Y) = i->GetSolutionStepValue(FACE_LOAD_EINS_Y);
+                            i->GetSolutionStepValue(FACE_LOAD_NULL_Z) = i->GetSolutionStepValue(FACE_LOAD_EINS_Z);
+                        // }
+                    }
+                    if( i->SolutionStepsDataHas(FORCE) )
+                    {
+                        // if(CurrentProcessInfo[FIRST_TIME_STEP])
+                        // {
+                        //     i->GetSolutionStepValue(FORCE_NULL_X) = i->GetSolutionStepValue(FORCE_X);
+                        //     i->GetSolutionStepValue(FORCE_NULL_Y) = i->GetSolutionStepValue(FORCE_Y);
+                        //     i->GetSolutionStepValue(FORCE_NULL_Z) = i->GetSolutionStepValue(FORCE_Z);
+                        // }
+                        // else
+                        // {
+                            i->GetSolutionStepValue(FORCE_NULL_X) = i->GetSolutionStepValue(FORCE_EINS_X);
+                            i->GetSolutionStepValue(FORCE_NULL_Y) = i->GetSolutionStepValue(FORCE_EINS_Y);
+                            i->GetSolutionStepValue(FORCE_NULL_Z) = i->GetSolutionStepValue(FORCE_EINS_Z);
+                        // }
+                    }
+                }
             }
         }
     }
     //***************************************************************************
     //***************************************************************************
 
-    /** this function is designed to be called in the builder and solver to introduce*/
-
     void CalculateSystemContributions(
-        Element::Pointer rCurrentElement,
+        Element::Pointer pCurrentElement,
         LocalSystemMatrixType& LHS_Contribution,
         LocalSystemVectorType& RHS_Contribution,
         Element::EquationIdVectorType& EquationId,
-        ProcessInfo& CurrentProcessInfo)
+        ProcessInfo& CurrentProcessInfo) final
     {
         KRATOS_TRY
 
-        (rCurrentElement)->CalculateLocalSystem(LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
+        (pCurrentElement)->CalculateLocalSystem(LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
 
-        (rCurrentElement)->EquationIdVector(EquationId,CurrentProcessInfo);
+        (pCurrentElement)->EquationIdVector(EquationId,CurrentProcessInfo);
 
         if (CurrentProcessInfo[QUASI_STATIC_ANALYSIS])
         {
             Matrix DampingMatrix;
 
-            (rCurrentElement)->CalculateDampingMatrix(DampingMatrix, CurrentProcessInfo);
+            (pCurrentElement)->CalculateDampingMatrix(DampingMatrix, CurrentProcessInfo);
 
             if (norm_frobenius(DampingMatrix) > 0.0) // filter out the element that did not calculate damping and then set it to a zero matrix
                 AssembleTimeSpaceLHS_QuasiStatic(LHS_Contribution, DampingMatrix, CurrentProcessInfo);
@@ -1177,18 +1370,18 @@ public:
 
             Matrix MassMatrix;
 
-            (rCurrentElement)->CalculateDampingMatrix(DampingMatrix, CurrentProcessInfo);
+            (pCurrentElement)->CalculateDampingMatrix(DampingMatrix, CurrentProcessInfo);
 
-            (rCurrentElement)->CalculateMassMatrix(MassMatrix, CurrentProcessInfo);
+            (pCurrentElement)->CalculateMassMatrix(MassMatrix, CurrentProcessInfo);
 
-            // KRATOS_WATCH(rCurrentElement->Id())
+            // KRATOS_WATCH(pCurrentElement->Id())
             // KRATOS_WATCH(MassMatrix)
             // KRATOS_WATCH(DampingMatrix)
             // KRATOS_WATCH(LHS_Contribution)
 
             if ((norm_frobenius(DampingMatrix) == 0.0) && (norm_frobenius(MassMatrix) > 0.0))
             {
-                AddInertiaToRHS(rCurrentElement, RHS_Contribution, MassMatrix, CurrentProcessInfo);
+                AddInertiaToRHS(pCurrentElement, RHS_Contribution, MassMatrix, CurrentProcessInfo);
 
                 if ((DampingMatrix.size1() != MassMatrix.size1()) || (DampingMatrix.size2() != MassMatrix.size2()))
                     DampingMatrix.resize(MassMatrix.size1(), MassMatrix.size2(), false);
@@ -1198,16 +1391,123 @@ public:
             }
             else if ((norm_frobenius(DampingMatrix) > 0.0) && (norm_frobenius(MassMatrix) == 0.0))
             {
-                AddDampingToRHS(rCurrentElement, RHS_Contribution, DampingMatrix, CurrentProcessInfo);
+                AddDampingToRHS(pCurrentElement, RHS_Contribution, DampingMatrix, CurrentProcessInfo);
 
                 AssembleTimeSpaceLHS_QuasiStatic(LHS_Contribution, DampingMatrix, CurrentProcessInfo);
             }
             else if ((norm_frobenius(DampingMatrix) > 0.0) && (norm_frobenius(MassMatrix) > 0.0))
             {
-                AddInertiaToRHS(rCurrentElement, RHS_Contribution, MassMatrix, CurrentProcessInfo);
+                AddInertiaToRHS(pCurrentElement, RHS_Contribution, MassMatrix, CurrentProcessInfo);
 
-                AddDampingToRHS(rCurrentElement, RHS_Contribution, DampingMatrix, CurrentProcessInfo);
+                AddDampingToRHS(pCurrentElement, RHS_Contribution, DampingMatrix, CurrentProcessInfo);
 
+                AssembleTimeSpaceLHS_Dynamics(LHS_Contribution, DampingMatrix, MassMatrix, CurrentProcessInfo);
+            }
+        }
+
+        // if (pCurrentElement->Id() == 743)
+        // {
+        //     Vector u;
+        //     pCurrentElement->GetValuesVector(u, 0);
+        //     KRATOS_WATCH(u)
+        //     Vector RHS(u.size());
+        //     noalias(RHS) = prod( LHS_Contribution, u );
+        //     KRATOS_WATCH(RHS)
+        //     KRATOS_WATCH(RHS_Contribution)
+        // }
+
+        KRATOS_CATCH("")
+    }
+
+    void Calculate_RHS_Contribution(
+        Element::Pointer pCurrentElement,
+        LocalSystemVectorType& RHS_Contribution,
+        Element::EquationIdVectorType& EquationId,
+        ProcessInfo& CurrentProcessInfo) final
+    {
+        KRATOS_TRY
+
+        (pCurrentElement)->CalculateRightHandSide(RHS_Contribution, CurrentProcessInfo);
+
+        (pCurrentElement)->EquationIdVector(EquationId,CurrentProcessInfo);
+
+        if (!CurrentProcessInfo[QUASI_STATIC_ANALYSIS])
+        {
+            Matrix DampingMatrix;
+
+            Matrix MassMatrix;
+
+            (pCurrentElement)->CalculateDampingMatrix(DampingMatrix, CurrentProcessInfo);
+
+            (pCurrentElement)->CalculateMassMatrix(MassMatrix, CurrentProcessInfo);
+
+            if ((norm_frobenius(DampingMatrix) == 0.0) && (norm_frobenius(MassMatrix) > 0.0))
+            {
+                AddInertiaToRHS(pCurrentElement, RHS_Contribution, MassMatrix, CurrentProcessInfo);
+            }
+            else if ((norm_frobenius(DampingMatrix) > 0.0) && (norm_frobenius(MassMatrix) == 0.0))
+            {
+                AddDampingToRHS(pCurrentElement, RHS_Contribution, DampingMatrix, CurrentProcessInfo);
+            }
+            else if ((norm_frobenius(DampingMatrix) > 0.0) && (norm_frobenius(MassMatrix) > 0.0))
+            {
+                AddInertiaToRHS(pCurrentElement, RHS_Contribution, MassMatrix, CurrentProcessInfo);
+
+                AddDampingToRHS(pCurrentElement, RHS_Contribution, DampingMatrix, CurrentProcessInfo);
+            }
+        }
+
+        KRATOS_CATCH("")
+    }
+
+
+    void Calculate_LHS_Contribution(
+        Element::Pointer pCurrentElement,
+        LocalSystemMatrixType& LHS_Contribution,
+        Element::EquationIdVectorType& EquationId,
+        ProcessInfo& CurrentProcessInfo) final
+    {
+        KRATOS_TRY
+
+        (pCurrentElement)->CalculateLeftHandSide(LHS_Contribution, CurrentProcessInfo);
+
+        (pCurrentElement)->EquationIdVector(EquationId,CurrentProcessInfo);
+
+        if (CurrentProcessInfo[QUASI_STATIC_ANALYSIS])
+        {
+            Matrix DampingMatrix;
+
+            (pCurrentElement)->CalculateDampingMatrix(DampingMatrix, CurrentProcessInfo);
+
+            if (norm_frobenius(DampingMatrix) > 0.0) // filter out the element that did not calculate damping and then set it to a zero matrix
+                AssembleTimeSpaceLHS_QuasiStatic(LHS_Contribution, DampingMatrix, CurrentProcessInfo);
+            else
+                AssembleTimeSpaceLHS_QuasiStatic(LHS_Contribution, CurrentProcessInfo);
+        }
+        else
+        {
+            Matrix DampingMatrix;
+
+            Matrix MassMatrix;
+
+            (pCurrentElement)->CalculateDampingMatrix(DampingMatrix, CurrentProcessInfo);
+
+            (pCurrentElement)->CalculateMassMatrix(MassMatrix, CurrentProcessInfo);
+
+            if ((norm_frobenius(DampingMatrix) == 0.0) && (norm_frobenius(MassMatrix) > 0.0))
+            {
+                if ((DampingMatrix.size1() != MassMatrix.size1()) || (DampingMatrix.size2() != MassMatrix.size2()))
+                    DampingMatrix.resize(MassMatrix.size1(), MassMatrix.size2(), false);
+                noalias(DampingMatrix) = ZeroMatrix(MassMatrix.size1(), MassMatrix.size2());
+
+                AssembleTimeSpaceLHS_Dynamics(LHS_Contribution, DampingMatrix, MassMatrix, CurrentProcessInfo);
+            }
+            else if ((norm_frobenius(DampingMatrix) > 0.0) && (norm_frobenius(MassMatrix) == 0.0))
+            {
+                AssembleTimeSpaceLHS_QuasiStatic(LHS_Contribution, DampingMatrix, CurrentProcessInfo);
+            }
+            else if ((norm_frobenius(DampingMatrix) > 0.0) && (norm_frobenius(MassMatrix) > 0.0))
+            {
                 AssembleTimeSpaceLHS_Dynamics(LHS_Contribution, DampingMatrix, MassMatrix, CurrentProcessInfo);
             }
         }
@@ -1215,41 +1515,23 @@ public:
         KRATOS_CATCH("")
     }
 
-    void Calculate_RHS_Contribution(
-        Element::Pointer rCurrentElement,
-        LocalSystemVectorType& RHS_Contribution,
-        Element::EquationIdVectorType& EquationId,
-        ProcessInfo& CurrentProcessInfo)
-    {
-        KRATOS_TRY
 
-        (rCurrentElement)->CalculateRightHandSide(RHS_Contribution,CurrentProcessInfo);
-        (rCurrentElement)->EquationIdVector(EquationId,CurrentProcessInfo);
-
-        KRATOS_CATCH("")
-    }
-
-
-    /** functions totally analogous to the precedent but applied to
-          the "condition" objects
-    *       At the current status of implementation it does nothing
-    */
     void Condition_CalculateSystemContributions(
-        Condition::Pointer rCurrentCondition,
+        Condition::Pointer pCurrentCondition,
         LocalSystemMatrixType& LHS_Contribution,
         LocalSystemVectorType& RHS_Contribution,
         Element::EquationIdVectorType& EquationId,
-        ProcessInfo& CurrentProcessInfo)
+        ProcessInfo& CurrentProcessInfo) final
     {
         KRATOS_TRY
 
         Matrix DampingMatrix;
 
-        (rCurrentCondition)->CalculateLocalSystem(LHS_Contribution,RHS_Contribution,CurrentProcessInfo);
+        (pCurrentCondition)->CalculateLocalSystem(LHS_Contribution,RHS_Contribution,CurrentProcessInfo);
 
-        (rCurrentCondition)->EquationIdVector(EquationId, CurrentProcessInfo);
+        (pCurrentCondition)->EquationIdVector(EquationId, CurrentProcessInfo);
 
-        (rCurrentCondition)->CalculateDampingMatrix(DampingMatrix, CurrentProcessInfo);
+        (pCurrentCondition)->CalculateDampingMatrix(DampingMatrix, CurrentProcessInfo);
 
         if (norm_frobenius(DampingMatrix) > 0.0) // filter out the condition that did not calculate damping and then set it to a zero matrix
             AssembleTimeSpaceLHS_QuasiStatic(LHS_Contribution, DampingMatrix, CurrentProcessInfo);
@@ -1260,27 +1542,64 @@ public:
     }
 
 
-    /**       At the current status of implementation it does nothing
-     */
-
-    void Condition_Calculate_RHS_Contribution(
+    void Condition_Calculate_LHS_Contribution(
         Condition::Pointer rCurrentCondition,
-        LocalSystemVectorType& RHS_Contribution,
+        LocalSystemMatrixType& LHS_Contribution,
         Element::EquationIdVectorType& EquationId,
-        ProcessInfo& CurrentProcessInfo)
+        ProcessInfo& CurrentProcessInfo) final
     {
         KRATOS_TRY
 
-        (rCurrentCondition)->CalculateRightHandSide(RHS_Contribution,CurrentProcessInfo);
+        (rCurrentCondition)->CalculateLeftHandSide(LHS_Contribution,CurrentProcessInfo);
         (rCurrentCondition)->EquationIdVector(EquationId,CurrentProcessInfo);
 
         KRATOS_CATCH("")
     }
 
-    /*@} */
-    /**@name Operations */
-    /*@{ */
 
+    void Condition_Calculate_RHS_Contribution(
+        Condition::Pointer pCurrentCondition,
+        LocalSystemVectorType& RHS_Contribution,
+        Element::EquationIdVectorType& EquationId,
+        ProcessInfo& CurrentProcessInfo) final
+    {
+        KRATOS_TRY
+
+        (pCurrentCondition)->CalculateRightHandSide(RHS_Contribution,CurrentProcessInfo);
+        (pCurrentCondition)->EquationIdVector(EquationId,CurrentProcessInfo);
+
+        KRATOS_CATCH("")
+    }
+
+
+    void UpdateForces(ModelPart& r_model_part )
+    {
+        KRATOS_TRY
+
+        const ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
+
+        const double Dt = CurrentProcessInfo[DELTA_TIME];
+
+        //Update nodal values and nodal velocities at mAlpha_f
+        for(ModelPart::NodeIterator i = r_model_part.NodesBegin() ; i != r_model_part.NodesEnd() ; i++)
+        {
+            if( i->SolutionStepsDataHas(FACE_LOAD) )
+            {
+                noalias( i->GetSolutionStepValue(FACE_LOAD) )
+                = mAlpha_f*i->GetSolutionStepValue(FACE_LOAD_NULL)
+                  +(1.0-mAlpha_f)*i->GetSolutionStepValue(FACE_LOAD_EINS);
+            }
+
+            if( i->SolutionStepsDataHas(FORCE) )
+            {
+                noalias( i->GetSolutionStepValue(FORCE) )
+                = mAlpha_f*i->GetSolutionStepValue(FORCE_NULL)
+                  +(1.0-mAlpha_f)*i->GetSolutionStepValue(FORCE_EINS);
+            }
+        }
+
+        KRATOS_CATCH("")
+    }
 
     /*@} */
     /**@name Access */
@@ -1299,27 +1618,27 @@ public:
 protected:
 
     void AddInertiaToRHS(
-        Element::Pointer rCurrentElement,
+        Element::Pointer pCurrentElement,
         LocalSystemVectorType& RHS_Contribution,
         LocalSystemMatrixType& M,
         ProcessInfo& CurrentProcessInfo)
     {
         // adding inertia contribution
         Vector acceleration;
-        rCurrentElement->GetSecondDerivativesVector(acceleration, 0);
-        noalias(RHS_Contribution) -= prod(M, acceleration );
+        pCurrentElement->GetSecondDerivativesVector(acceleration, 0);
+        noalias(RHS_Contribution) -= prod(M, acceleration);
     }
 
     void AddDampingToRHS(
-        Element::Pointer rCurrentElement,
+        Element::Pointer pCurrentElement,
         LocalSystemVectorType& RHS_Contribution,
         LocalSystemMatrixType& D,
         ProcessInfo& CurrentProcessInfo)
     {
         // adding damping contribution
         Vector velocity;
-        rCurrentElement->GetFirstDerivativesVector(velocity, 0);
-        noalias(RHS_Contribution) -= prod(D, velocity );
+        pCurrentElement->GetFirstDerivativesVector(velocity, 0);
+        noalias(RHS_Contribution) -= prod(D, velocity);
     }
 
     void AssembleTimeSpaceLHS_QuasiStatic(
@@ -1369,7 +1688,7 @@ protected:
         noalias(LHS_Contribution) += aux * DampingMatrix;
 
         // adding mass contribution to the dynamic stiffness
-        aux = (1-mAlpha_m)*1/(mBeta*pow(Dt, 2));
+        aux = (1-mAlpha_m)/(mBeta*pow(Dt, 2));
         noalias(LHS_Contribution) += aux * MassMatrix;
     }
 
@@ -1403,6 +1722,10 @@ private:
     double mBeta;
     double mGamma;
 
+    bool mIntegrateRotation;
+    bool mIntegrateMultiplier;
+    bool mIntegrateLoad;
+
     /*@} */
     /**@name Private Operators*/
     /*@{ */
@@ -1421,9 +1744,4 @@ private:
 }; /* Class Scheme */
 }  /* namespace Kratos.*/
 
-#undef ENABLE_ROTATION
-#undef ENABLE_LAMBDA
-
 #endif /* KRATOS_RESIDUALBASED_NEWMARK_SCHEME  defined */
-
-

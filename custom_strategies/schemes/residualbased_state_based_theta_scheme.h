@@ -44,14 +44,14 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 /* *********************************************************
 *
 *   Last Modified by:    $Author: hbui $
-*   Date:                $Date: 10/3/2020 $
+*   Date:                $Date: 25/4/2021 $
 *   Revision:            $Revision: 1.0 $
 *
 * ***********************************************************/
 
 
-#if !defined(KRATOS_RESIDUALBASED_THETA_SCHEME )
-#define  KRATOS_RESIDUALBASED_THETA_SCHEME
+#if !defined(KRATOS_RESIDUALBASED_STATE_BASED_THETA_SCHEME )
+#define  KRATOS_RESIDUALBASED_STATE_BASED_THETA_SCHEME
 
 /* System includes */
 
@@ -84,17 +84,28 @@ namespace Kratos
 /**@name Kratos Classes */
 /*@{ */
 /** Implementation of theta time integration scheme
-Overview of the interpolation:
+This scheme makes use of the state-based concept:
+  ud = v
+  M*vd + r(u) = f
+The interpolation is done as:
     u = theta*u_(n+1) + (1-theta)*u_n
+    v = theta*v_(n+1) + (1-theta)*v_n
     ud = (u_(n+1) - u_n) / dt
-    udd = (u_(n+1) - u_n)/dt^2 - ud_n/dt
+    vd = (v_(n+1) - v_n) / dt
+This leads to:
+(u_(n+1) - u_n) / dt = theta*v_(n+1) + (1-theta)*v_n
+M*(v_(n+1) - v_n) / dt + r(theta*u_(n+1) + (1-theta)*u_n) = theta*f_(n+1) + (1-theta)*f_n
+The computation follows:
+v_(n+1) = (u_(n+1) - u_n) / (theta*dt) - (1-theta)/theta * v_n
+residual = theta*f_(n+1) + (1-theta)*f_n - r(theta*u_(n+1) + (1-theta)*u_n) - M*(v_(n+1) - v_n) / dt
+tangent = (M + theta*theta*dt*dt*K) / (theta*dt*dt)
  */
 template<class TSparseSpace,  class TDenseSpace >
-class ResidualBasedThetaScheme: public Scheme<TSparseSpace,TDenseSpace>
+class ResidualBasedStateBasedThetaScheme: public Scheme<TSparseSpace,TDenseSpace>
 {
 public:
     /**@name Type Definitions */
-    KRATOS_CLASS_POINTER_DEFINITION( ResidualBasedThetaScheme );
+    KRATOS_CLASS_POINTER_DEFINITION( ResidualBasedStateBasedThetaScheme );
 
     typedef Scheme<TSparseSpace,TDenseSpace> BaseType;
 
@@ -120,7 +131,7 @@ public:
      * Constructor for PURE Newmark scheme
      * @ref Stuart&Peplow: "The Dynamics of the Theta Method", SIAM, 1991
      */
-    ResidualBasedThetaScheme() : BaseType()
+    ResidualBasedStateBasedThetaScheme() : BaseType()
     {
         //For pure Theta Scheme
         mTheta = 0.5;
@@ -130,7 +141,7 @@ public:
         mIntegrateMultiplier = false;
         mIntegrateLoad = false;
 
-        std::cout << "PURE Theta Scheme !!!!!!!!!!!!!!!!!!!!!" << " theta = " << mTheta << std::endl;
+        std::cout << "PURE State-based Theta Scheme !!!!!!!!!!!!!!!!!!!!!" << " theta = " << mTheta << std::endl;
     }
 
     /**
@@ -141,7 +152,7 @@ public:
      * @ref Chung&Hulbert: "A time integration algorithm for structural dynamics with improved
      *  numerical dissipation: The generalized alpha method" Journal of applied mechanics, 60, 371-375
      */
-    ResidualBasedThetaScheme(double theta ) : BaseType()
+    ResidualBasedStateBasedThetaScheme(double theta ) : BaseType()
     {
         //For pure Theta Scheme
         mTheta = theta;
@@ -151,13 +162,13 @@ public:
         mIntegrateMultiplier = false;
         mIntegrateLoad = false;
 
-        std::cout << "Theta Scheme !!!!!!!!!!!!!!!!!!!!!" << " theta = " << mTheta << std::endl;
+        std::cout << "State-based Theta Scheme !!!!!!!!!!!!!!!!!!!!!" << " theta = " << mTheta << std::endl;
     }
 
     /**
 
     /** Destructor.*/
-    virtual ~ResidualBasedThetaScheme()
+    virtual ~ResidualBasedStateBasedThetaScheme()
     {}
 
     /*@} */
@@ -463,7 +474,8 @@ public:
             {
                 i->GetSolutionStepValue(DISPLACEMENT_EINS_DT_X)
                 = ( i->GetSolutionStepValue(DISPLACEMENT_EINS_X)
-                  - i->GetSolutionStepValue(DISPLACEMENT_NULL_X) ) / Dt;
+                    - i->GetSolutionStepValue(DISPLACEMENT_NULL_X) ) / (mTheta*Dt)
+                - (1.0 - mTheta) / mTheta * i->GetSolutionStepValue(DISPLACEMENT_NULL_DT_X);
 
                 i->GetSolutionStepValue(ACCELERATION_EINS_X)
                 = ( i->GetSolutionStepValue(DISPLACEMENT_EINS_DT_X)
@@ -473,7 +485,8 @@ public:
                 = i->GetSolutionStepValue(ACCELERATION_EINS_X);
 
                 i->GetSolutionStepValue(DISPLACEMENT_DT_X)
-                = i->GetSolutionStepValue(DISPLACEMENT_EINS_DT_X);
+                = (1.0-mTheta)*i->GetSolutionStepValue(DISPLACEMENT_NULL_DT_X)
+                  + mTheta*i->GetSolutionStepValue(DISPLACEMENT_EINS_DT_X);
 
                 i->GetSolutionStepValue(DISPLACEMENT_X)
                 = (1.0-mTheta)*i->GetSolutionStepValue(DISPLACEMENT_NULL_X)
@@ -483,7 +496,8 @@ public:
             {
                 i->GetSolutionStepValue(DISPLACEMENT_EINS_DT_Y)
                 = ( i->GetSolutionStepValue(DISPLACEMENT_EINS_Y)
-                  - i->GetSolutionStepValue(DISPLACEMENT_NULL_Y) ) / Dt;
+                  - i->GetSolutionStepValue(DISPLACEMENT_NULL_Y) ) / (mTheta*Dt)
+                - (1.0 - mTheta) / mTheta * i->GetSolutionStepValue(DISPLACEMENT_NULL_DT_Y);
 
                 i->GetSolutionStepValue(ACCELERATION_EINS_Y)
                 = ( i->GetSolutionStepValue(DISPLACEMENT_EINS_DT_Y)
@@ -493,7 +507,8 @@ public:
                 = i->GetSolutionStepValue(ACCELERATION_EINS_Y);
 
                 i->GetSolutionStepValue(DISPLACEMENT_DT_Y)
-                = i->GetSolutionStepValue(DISPLACEMENT_EINS_DT_Y);
+                = (1.0-mTheta)*i->GetSolutionStepValue(DISPLACEMENT_NULL_DT_Y)
+                  + mTheta*i->GetSolutionStepValue(DISPLACEMENT_EINS_DT_Y);
 
                 i->GetSolutionStepValue(DISPLACEMENT_Y)
                 = (1.0-mTheta)*i->GetSolutionStepValue(DISPLACEMENT_NULL_Y)
@@ -503,7 +518,8 @@ public:
             {
                 i->GetSolutionStepValue(DISPLACEMENT_EINS_DT_Z)
                 = ( i->GetSolutionStepValue(DISPLACEMENT_EINS_Z)
-                  - i->GetSolutionStepValue(DISPLACEMENT_NULL_Z) ) / Dt;
+                    - i->GetSolutionStepValue(DISPLACEMENT_NULL_Z) ) / (mTheta*Dt)
+                - (1.0 - mTheta) / mTheta * i->GetSolutionStepValue(DISPLACEMENT_NULL_DT_Z);
 
                 i->GetSolutionStepValue(ACCELERATION_EINS_Z)
                 = ( i->GetSolutionStepValue(DISPLACEMENT_EINS_DT_Z)
@@ -513,7 +529,8 @@ public:
                 = i->GetSolutionStepValue(ACCELERATION_EINS_Z);
 
                 i->GetSolutionStepValue(DISPLACEMENT_DT_Z)
-                = i->GetSolutionStepValue(DISPLACEMENT_EINS_DT_Z);
+                = (1.0-mTheta)*i->GetSolutionStepValue(DISPLACEMENT_NULL_DT_Z)
+                  + mTheta*i->GetSolutionStepValue(DISPLACEMENT_EINS_DT_Z);
 
                 i->GetSolutionStepValue(DISPLACEMENT_Z)
                 = (1.0-mTheta)*i->GetSolutionStepValue(DISPLACEMENT_NULL_Z)
@@ -523,7 +540,8 @@ public:
             {
                 i->GetSolutionStepValue(WATER_PRESSURE_EINS_DT)
                 = ( i->GetSolutionStepValue(WATER_PRESSURE_EINS)
-                  - i->GetSolutionStepValue(WATER_PRESSURE_NULL) ) / Dt;
+                  - i->GetSolutionStepValue(WATER_PRESSURE_NULL) ) / (mTheta*Dt)
+                - (1.0 - mTheta) / mTheta * i->GetSolutionStepValue(WATER_PRESSURE_NULL_DT);
 
                 i->GetSolutionStepValue(WATER_PRESSURE_EINS_ACCELERATION)
                 = ( i->GetSolutionStepValue(WATER_PRESSURE_EINS_DT)
@@ -533,7 +551,8 @@ public:
                 = i->GetSolutionStepValue(WATER_PRESSURE_EINS_ACCELERATION);
 
                 i->GetSolutionStepValue(WATER_PRESSURE_DT)
-                = i->GetSolutionStepValue(WATER_PRESSURE_EINS_DT);
+                = (1.0-mTheta)*i->GetSolutionStepValue(WATER_PRESSURE_NULL_DT)
+                  + mTheta*i->GetSolutionStepValue(WATER_PRESSURE_EINS_DT);
 
                 i->GetSolutionStepValue(WATER_PRESSURE)
                 = (1.0-mTheta)*i->GetSolutionStepValue(WATER_PRESSURE_NULL)
@@ -543,7 +562,8 @@ public:
             {
                 i->GetSolutionStepValue(AIR_PRESSURE_EINS_DT)
                 = ( i->GetSolutionStepValue(AIR_PRESSURE_EINS)
-                  - i->GetSolutionStepValue(AIR_PRESSURE_NULL) ) / Dt;
+                  - i->GetSolutionStepValue(AIR_PRESSURE_NULL) ) / (mTheta*Dt)
+                - (1.0 - mTheta) / mTheta * i->GetSolutionStepValue(AIR_PRESSURE_NULL_DT);
 
                 i->GetSolutionStepValue(AIR_PRESSURE_EINS_ACCELERATION)
                 = ( i->GetSolutionStepValue(AIR_PRESSURE_EINS_DT)
@@ -553,7 +573,8 @@ public:
                 = i->GetSolutionStepValue(AIR_PRESSURE_EINS_ACCELERATION);
 
                 i->GetSolutionStepValue(AIR_PRESSURE_DT)
-                = i->GetSolutionStepValue(AIR_PRESSURE_EINS_DT);
+                = (1.0-mTheta)*i->GetSolutionStepValue(AIR_PRESSURE_NULL_DT)
+                  + mTheta*i->GetSolutionStepValue(AIR_PRESSURE_EINS_DT);
 
                 i->GetSolutionStepValue(AIR_PRESSURE)
                 = (1.0-mTheta)*i->GetSolutionStepValue(AIR_PRESSURE_NULL)
@@ -566,7 +587,8 @@ public:
                 {
                     i->GetSolutionStepValue(ROTATION_EINS_DT_X)
                     = ( i->GetSolutionStepValue(ROTATION_EINS_X)
-                      - i->GetSolutionStepValue(ROTATION_NULL_X) ) / Dt;
+                      - i->GetSolutionStepValue(ROTATION_NULL_X) ) / (mTheta*Dt)
+                    - (1.0 - mTheta) / mTheta * i->GetSolutionStepValue(ROTATION_NULL_DT_X);
 
                     i->GetSolutionStepValue(ANGULAR_ACCELERATION_EINS_X)
                     = ( i->GetSolutionStepValue(ROTATION_EINS_DT_X)
@@ -576,7 +598,8 @@ public:
                     = i->GetSolutionStepValue(ANGULAR_ACCELERATION_EINS_X);
 
                     i->GetSolutionStepValue(ROTATION_DT_X)
-                    = i->GetSolutionStepValue(ROTATION_EINS_DT_X);
+                    = (1.0-mTheta)*i->GetSolutionStepValue(ROTATION_NULL_DT_X)
+                      + mTheta*i->GetSolutionStepValue(ROTATION_EINS_DT_X);
 
                     i->GetSolutionStepValue(ROTATION_X)
                     = (1.0-mTheta)*i->GetSolutionStepValue(ROTATION_NULL_X)
@@ -586,7 +609,8 @@ public:
                 {
                     i->GetSolutionStepValue(ROTATION_EINS_DT_Y)
                     = ( i->GetSolutionStepValue(ROTATION_EINS_Y)
-                      - i->GetSolutionStepValue(ROTATION_NULL_Y) ) / Dt;
+                      - i->GetSolutionStepValue(ROTATION_NULL_Y) ) / (mTheta*Dt)
+                    - (1.0 - mTheta) / mTheta * i->GetSolutionStepValue(ROTATION_NULL_DT_Y);
 
                     i->GetSolutionStepValue(ANGULAR_ACCELERATION_EINS_Y)
                     = ( i->GetSolutionStepValue(ROTATION_EINS_DT_Y)
@@ -596,7 +620,8 @@ public:
                     = i->GetSolutionStepValue(ANGULAR_ACCELERATION_EINS_Y);
 
                     i->GetSolutionStepValue(ROTATION_DT_Y)
-                    = i->GetSolutionStepValue(ROTATION_EINS_DT_Y);
+                    = (1.0-mTheta)*i->GetSolutionStepValue(ROTATION_NULL_DT_Y)
+                      + mTheta*i->GetSolutionStepValue(ROTATION_EINS_DT_Y);
 
                     i->GetSolutionStepValue(ROTATION_Y)
                     = (1.0-mTheta)*i->GetSolutionStepValue(ROTATION_NULL_Y)
@@ -606,7 +631,8 @@ public:
                 {
                     i->GetSolutionStepValue(ROTATION_EINS_DT_Z)
                     = ( i->GetSolutionStepValue(ROTATION_EINS_Z)
-                      - i->GetSolutionStepValue(ROTATION_NULL_Z) ) / Dt;
+                      - i->GetSolutionStepValue(ROTATION_NULL_Z) ) / (mTheta*Dt)
+                    - (1.0 - mTheta) / mTheta * i->GetSolutionStepValue(ROTATION_NULL_DT_Z);
 
                     i->GetSolutionStepValue(ANGULAR_ACCELERATION_EINS_Z)
                     = ( i->GetSolutionStepValue(ROTATION_EINS_DT_Z)
@@ -616,7 +642,8 @@ public:
                     = i->GetSolutionStepValue(ANGULAR_ACCELERATION_EINS_Z);
 
                     i->GetSolutionStepValue(ROTATION_DT_Z)
-                    = i->GetSolutionStepValue(ROTATION_EINS_DT_Z);
+                    = (1.0-mTheta)*i->GetSolutionStepValue(ROTATION_NULL_DT_Z)
+                      + mTheta*i->GetSolutionStepValue(ROTATION_EINS_DT_Z);
 
                     i->GetSolutionStepValue(ROTATION_Z)
                     = (1.0-mTheta)*i->GetSolutionStepValue(ROTATION_NULL_Z)
@@ -630,7 +657,8 @@ public:
                 {
                     i->GetSolutionStepValue(LAMBDA_EINS_DT)
                     = ( i->GetSolutionStepValue(LAMBDA_EINS)
-                      - i->GetSolutionStepValue(LAMBDA_NULL) ) / Dt;
+                      - i->GetSolutionStepValue(LAMBDA_NULL) ) / (mTheta*Dt)
+                    - (1.0 - mTheta) / mTheta * i->GetSolutionStepValue(LAMBDA_NULL_DT);
 
                     i->GetSolutionStepValue(LAMBDA_EINS_DT2)
                     = ( i->GetSolutionStepValue(LAMBDA_EINS_DT)
@@ -640,7 +668,8 @@ public:
                     = i->GetSolutionStepValue(LAMBDA_EINS_DT2);
 
                     i->GetSolutionStepValue(LAMBDA_DT)
-                    = i->GetSolutionStepValue(LAMBDA_EINS_DT);
+                    = (1.0-mTheta)*i->GetSolutionStepValue(LAMBDA_NULL_DT)
+                      + mTheta*i->GetSolutionStepValue(LAMBDA_EINS_DT);
 
                     i->GetSolutionStepValue(LAMBDA)
                     = (1.0-mTheta)*i->GetSolutionStepValue(LAMBDA_NULL)
@@ -1352,7 +1381,7 @@ protected:
         noalias(LHS_Contribution) += aux * DampingMatrix;
 
         // adding mass contribution to the dynamic stiffness
-        aux = 1.0/pow(Dt, 2);
+        aux = 1.0/(mTheta*pow(Dt, 2));
         noalias(LHS_Contribution) += aux * MassMatrix;
     }
 
@@ -1405,4 +1434,4 @@ private:
 }; /* Class Scheme */
 }  /* namespace Kratos.*/
 
-#endif /* KRATOS_RESIDUALBASED_THETA_SCHEME  defined */
+#endif /* KRATOS_RESIDUALBASED_STATE_BASED_THETA_SCHEME  defined */

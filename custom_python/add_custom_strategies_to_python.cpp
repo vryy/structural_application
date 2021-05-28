@@ -96,6 +96,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_strategies/schemes/residualbased_predictorcorrector_relaxation_scheme.h"
 #include "custom_strategies/schemes/residualbased_newmark_scheme.h"
 #include "custom_strategies/schemes/residualbased_theta_scheme.h"
+#include "custom_strategies/schemes/residualbased_state_based_theta_scheme.h"
 #include "custom_strategies/schemes/composit_scheme.h"
 #include "custom_strategies/schemes/volumetric_scheme.h"
 
@@ -144,6 +145,7 @@ void  AddCustomStrategiesToPython()
 
     typedef ResidualBasedNewmarkScheme< SparseSpaceType, LocalSpaceType > ResidualBasedNewmarkSchemeType;
     typedef ResidualBasedThetaScheme< SparseSpaceType, LocalSpaceType > ResidualBasedThetaSchemeType;
+    typedef ResidualBasedStateBasedThetaScheme< SparseSpaceType, LocalSpaceType > ResidualBasedStateBasedThetaSchemeType;
 
 //             typedef TestingScheme< SparseSpaceType, LocalSpaceType >
 //                     TestingSchemeType;
@@ -230,6 +232,10 @@ void  AddCustomStrategiesToPython()
             )
             .def(init<>())
             .def(init<int, double>())
+            .def("SetIntegrateRotation", &ResidualBasedNewmarkSchemeType::SetIntegrateRotation)
+            .def("SetIntegrateMultiplier", &ResidualBasedNewmarkSchemeType::SetIntegrateMultiplier)
+            .def("SetIntegrateLoad", &ResidualBasedNewmarkSchemeType::SetIntegrateLoad)
+            .def("UpdateForces", &ResidualBasedNewmarkSchemeType::UpdateForces)
             ;
 
     class_< ResidualBasedThetaSchemeType,
@@ -238,6 +244,22 @@ void  AddCustomStrategiesToPython()
                 "ResidualBasedThetaScheme", init< double >()
             )
             .def(init<>())
+            .def("SetIntegrateRotation", &ResidualBasedThetaSchemeType::SetIntegrateRotation)
+            .def("SetIntegrateMultiplier", &ResidualBasedThetaSchemeType::SetIntegrateMultiplier)
+            .def("SetIntegrateLoad", &ResidualBasedThetaSchemeType::SetIntegrateLoad)
+            .def("UpdateForces", &ResidualBasedThetaSchemeType::UpdateForces)
+            ;
+
+    class_< ResidualBasedStateBasedThetaSchemeType,
+            bases< BaseSchemeType >, boost::noncopyable >
+            (
+                "ResidualBasedStateBasedThetaScheme", init< double >()
+            )
+            .def(init<>())
+            .def("SetIntegrateRotation", &ResidualBasedStateBasedThetaSchemeType::SetIntegrateRotation)
+            .def("SetIntegrateMultiplier", &ResidualBasedStateBasedThetaSchemeType::SetIntegrateMultiplier)
+            .def("SetIntegrateLoad", &ResidualBasedStateBasedThetaSchemeType::SetIntegrateLoad)
+            .def("UpdateForces", &ResidualBasedStateBasedThetaSchemeType::UpdateForces)
             ;
 
 // 			class_< TestingSchemeType,
