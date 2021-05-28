@@ -146,6 +146,14 @@ void PointForce3D::CalculateDampingMatrix( MatrixType& rDampMatrix, const Proces
 
 //************************************************************************************
 //************************************************************************************
+
+void PointForce3D::CalculateMassMatrix( MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo )
+{
+    rMassMatrix.resize(0, 0, false);
+}
+
+//************************************************************************************
+//************************************************************************************
 void PointForce3D::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& CurrentProcessInfo) const
 {
     int number_of_nodes = GetGeometry().PointsNumber();

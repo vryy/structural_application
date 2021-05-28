@@ -156,6 +156,22 @@ void InclinedConstraint2D::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix
 
 //************************************************************************************
 //************************************************************************************
+
+void InclinedConstraint2D::CalculateDampingMatrix( MatrixType& rDampMatrix, const ProcessInfo& rCurrentProcessInfo )
+{
+    rDampMatrix.resize(0, 0, false);
+}
+
+//************************************************************************************
+//************************************************************************************
+
+void InclinedConstraint2D::CalculateMassMatrix( MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo )
+{
+    rMassMatrix.resize(0, 0, false);
+}
+
+//************************************************************************************
+//************************************************************************************
 /**
  * calculates the contact related contributions to the system
  * Does nothing as assembling is to be switched to linking objects

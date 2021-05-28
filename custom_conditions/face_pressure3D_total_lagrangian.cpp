@@ -572,7 +572,7 @@ void FacePressure3DTotalLagrangian::CalculateAll(
     KRATOS_CATCH( "" )
 }
 
-int FacePressure3DTotalLagrangian::Check( const ProcessInfo& rCurrentProcessInfo )
+int FacePressure3DTotalLagrangian::Check( const ProcessInfo& rCurrentProcessInfo ) const
 {
     return 0;
 }

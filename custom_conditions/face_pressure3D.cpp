@@ -552,7 +552,7 @@ void FacePressure3D::CalculateAll(
     KRATOS_CATCH( "" )
 }
 
-int FacePressure3D::Check( const ProcessInfo& rCurrentProcessInfo )
+int FacePressure3D::Check( const ProcessInfo& rCurrentProcessInfo ) const
 {
     return 0;
 }

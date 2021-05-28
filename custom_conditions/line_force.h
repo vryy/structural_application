@@ -99,37 +99,37 @@ public:
     Condition::Pointer Create(
         IndexType NewId,
         NodesArrayType const& ThisNodes,
-        PropertiesType::Pointer pProperties ) const;
+        PropertiesType::Pointer pProperties ) const final;
 
     Condition::Pointer Create(
         IndexType NewId,
         GeometryType::Pointer pGeom,
-        PropertiesType::Pointer pProperties ) const;
+        PropertiesType::Pointer pProperties ) const final;
 
     void EquationIdVector(
         EquationIdVectorType& rResult,
-        const ProcessInfo& rCurrentProcessInfo ) const;
+        const ProcessInfo& rCurrentProcessInfo ) const final;
 
     void GetDofList(
         DofsVectorType& ElementalDofList,
-        const ProcessInfo& rCurrentProcessInfo ) const;
+        const ProcessInfo& rCurrentProcessInfo ) const final;
 
     void CalculateRightHandSide(
         VectorType& rRightHandSideVector,
-        const ProcessInfo& rCurrentProcessInfo );
+        const ProcessInfo& rCurrentProcessInfo ) final;
 
     void CalculateLocalSystem(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        const ProcessInfo& rCurrentProcessInfo );
+        const ProcessInfo& rCurrentProcessInfo ) final;
 
     void CalculateMassMatrix(
         MatrixType& rMassMatrix,
-        const ProcessInfo& rCurrentProcessInfo );
+        const ProcessInfo& rCurrentProcessInfo ) final;
 
     void CalculateDampingMatrix(
         MatrixType& rDampingMatrix,
-        const ProcessInfo& rCurrentProcessInfo );
+        const ProcessInfo& rCurrentProcessInfo ) final;
 
 //    void GetValuesVector(
 //        Vector& values,
@@ -150,8 +150,12 @@ public:
      * or that no common error is found.
      * @param rCurrentProcessInfo
      */
-    virtual int Check( const ProcessInfo& rCurrentProcessInfo );
+    int Check( const ProcessInfo& rCurrentProcessInfo ) const final;
 
+    std::string Info() const final
+    {
+        return "LineForce";
+    }
 
 protected:
 

@@ -314,10 +314,10 @@ void CrisfieldTrussElement::GetFirstDerivativesVector(Vector& values, int Step) 
     for (unsigned int i=0; i<number_of_nodes; i++)
     {
         int index = i*dimension;
-        values[index] = GetGeometry()[i].GetSolutionStepValue(VELOCITY_X, Step);
-        values[index + 1] = GetGeometry()[i].GetSolutionStepValue(VELOCITY_Y, Step);
+        values[index] = GetGeometry()[i].GetSolutionStepValue(DISPLACEMENT_DT_X, Step);
+        values[index + 1] = GetGeometry()[i].GetSolutionStepValue(DISPLACEMENT_DT_Y, Step);
         if(dimension == 3)
-            values[index + 2] = GetGeometry()[i].GetSolutionStepValue(VELOCITY_Z, Step);
+            values[index + 2] = GetGeometry()[i].GetSolutionStepValue(DISPLACEMENT_DT_Z, Step);
     }
 }
 

@@ -251,7 +251,7 @@ void LinePressure::CalculateDampingMatrix( MatrixType& rDampingMatrix,
  * or that no common error is found.
  * @param rCurrentProcessInfo
  */
-int LinePressure::Check( const ProcessInfo& rCurrentProcessInfo )
+int LinePressure::Check( const ProcessInfo& rCurrentProcessInfo ) const
 {
     return 0;
 }

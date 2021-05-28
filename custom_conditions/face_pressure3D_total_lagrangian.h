@@ -151,8 +151,12 @@ public:
       * or that no common error is found.
       * @param rCurrentProcessInfo
       */
-    virtual int Check( const ProcessInfo& rCurrentProcessInfo );
+    int Check( const ProcessInfo& rCurrentProcessInfo ) const final;
 
+    std::string Info() const final
+    {
+        return "FacePressureTotalLagrangian";
+    }
 
 protected:
 

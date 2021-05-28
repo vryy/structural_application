@@ -79,13 +79,13 @@ CollinearConstraint2D::CollinearConstraint2D( IndexType NewId, GeometryType::Poi
 }
 
 CollinearConstraint2D::CollinearConstraint2D( IndexType NewId, Node<3>::Pointer const& node1, Node<3>::Pointer const& node2, Node<3>::Pointer const& node3,
-        PropertiesType::Pointer pProperties ) 
+        PropertiesType::Pointer pProperties )
     : Condition( NewId, GeometryType::Pointer( new Line2D3<Node<3> >( node1, node2, node3 ) ), pProperties )
 {
 }
 
 CollinearConstraint2D::CollinearConstraint2D( IndexType NewId, NodesArrayType const& ThisNodes,
-        PropertiesType::Pointer pProperties ) 
+        PropertiesType::Pointer pProperties )
     : Condition( NewId, GeometryType::Pointer( new Line2D3<Node<3> >( ThisNodes ) ), pProperties )
 {
 }

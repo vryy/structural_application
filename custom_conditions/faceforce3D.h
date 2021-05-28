@@ -159,7 +159,7 @@ public:
     /// Turn back information as a string.
     std::string Info() const override
     {
-        return "FaceForce3D";
+        return "FaceForce";
     }
 
     /// Print information about this object.

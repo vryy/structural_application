@@ -86,23 +86,23 @@ public:
     ///@{
 
     Condition::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,
-                                PropertiesType::Pointer pProperties) const;
+                                PropertiesType::Pointer pProperties) const final;
 
     Condition::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom,
-                                PropertiesType::Pointer pProperties) const;
+                                PropertiesType::Pointer pProperties) const final;
 
-    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType&
-                              rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo);
+    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector,
+                                const ProcessInfo& rCurrentProcessInfo) final;
 
-    void CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo&
-                                rCurrentProcessInfo);
+    void CalculateRightHandSide(VectorType& rRightHandSideVector,
+                                const ProcessInfo& rCurrentProcessInfo) final;
     //virtual void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo);
 
-    void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo&
-                          rCurrentProcessInfo) const;
+    void EquationIdVector(EquationIdVectorType& rResult,
+                                const ProcessInfo& rCurrentProcessInfo) const final;
 
-    void GetDofList(DofsVectorType& ConditionalDofList, const ProcessInfo&
-                    CurrentProcessInfo) const;
+    void GetDofList(DofsVectorType& ConditionalDofList,
+                                const ProcessInfo& CurrentProcessInfo) const final;
 
     ///@}
     ///@name Access
@@ -119,13 +119,21 @@ public:
     ///@{
 
     /// Turn back information as a string.
-//      virtual String Info() const;
+    std::string Info() const final
+    {
+        return "ElasticConstraint";
+    }
 
     /// Print information about this object.
-//      virtual void PrintInfo(std::ostream& rOStream) const;
+    void PrintInfo(std::ostream& rOStream) const final
+    {
+        rOStream << Info() << " #" << Id();
+    }
 
     /// Print object's data.
-//      virtual void PrintData(std::ostream& rOStream) const;
+    void PrintData(std::ostream& rOStream) const final
+    {
+    }
 
 
     ///@}

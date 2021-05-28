@@ -153,9 +153,7 @@ public:
      */
     std::string Info() const final
     {
-        std::stringstream buffer;
-        buffer << "BeamElement #" << Id();
-        return buffer.str();
+        return "BeamElement";
     }
 
     /**

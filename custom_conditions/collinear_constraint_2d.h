@@ -70,7 +70,14 @@ namespace Kratos
 {
 /**
  * Collinear constraint to align 3 points in 2D.
+ * This constraint ensures 3 collinear points will remains collinear.
  * Because the constraint is nonlinear, the Lagrange multiplier method is used. The Lagrange multiplier is stored at middle node.
+ * The line description:
+ *  (A)-----(C)-----(B)
+ * The constraint:
+ *  (yC-yA)/(xC-xA) = (yB-yA)/(xB-xA)  <=>  (xA*yB + xB*yC + xC*yA) - (xB*yA + xC*yB + xA*yC) = 0
+ * The weak form:
+ *  r = lambda*[(xA*yB + xB*yC + xC*yA) - (xB*yA + xC*yB + xA*yC)]
  */
 class CollinearConstraint2D : public Condition
 {
@@ -110,27 +117,32 @@ public:
      */
     Condition::Pointer Create( IndexType NewId,
                                NodesArrayType const& ThisNodes,
-                               PropertiesType::Pointer pProperties) const;
+                               PropertiesType::Pointer pProperties) const final;
 
     Condition::Pointer Create( IndexType NewId,
                                GeometryType::Pointer pGeom,
-                               PropertiesType::Pointer pProperties) const;
+                               PropertiesType::Pointer pProperties) const final;
 
     /**
      * Calculates the local system contributions for this contact element
      */
     void CalculateLocalSystem( MatrixType& rLeftHandSideMatrix,
                                VectorType& rRightHandSideVector,
-                               const ProcessInfo& rCurrentProcessInfo);
+                               const ProcessInfo& rCurrentProcessInfo) final;
 
     void CalculateRightHandSide( VectorType& rRightHandSideVector,
-                                 const ProcessInfo& rCurrentProcessInfo);
+                                 const ProcessInfo& rCurrentProcessInfo) final;
 
     void EquationIdVector( EquationIdVectorType& rResult,
-                           const ProcessInfo& rCurrentProcessInfo) const;
+                           const ProcessInfo& rCurrentProcessInfo) const final;
 
     void GetDofList( DofsVectorType& ConditionalDofList,
-                     const ProcessInfo& CurrentProcessInfo) const;
+                     const ProcessInfo& CurrentProcessInfo) const final;
+
+    std::string Info() const final
+    {
+        return "CollinearConstraint";
+    }
 
 private:
 
@@ -145,12 +157,12 @@ private:
     // A private default constructor necessary for serialization
     CollinearConstraint2D() {};
 
-    virtual void save(Serializer& rSerializer) const
+    void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Condition );
     }
 
-    virtual void load(Serializer& rSerializer)
+    void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Condition );
     }

@@ -108,29 +108,58 @@ public:
     /**
      * Operations.
      */
+
     Condition::Pointer Create( IndexType NewId,
                                NodesArrayType const& ThisNodes,
-                               PropertiesType::Pointer pProperties) const;
+                               PropertiesType::Pointer pProperties) const final;
 
     Condition::Pointer Create( IndexType NewId,
                                GeometryType::Pointer pGeom,
-                               PropertiesType::Pointer pProperties) const;
+                               PropertiesType::Pointer pProperties) const final;
 
     /**
      * Calculates the local system contributions for this contact element
      */
     void CalculateLocalSystem( MatrixType& rLeftHandSideMatrix,
                                VectorType& rRightHandSideVector,
-                               const ProcessInfo& rCurrentProcessInfo);
+                               const ProcessInfo& rCurrentProcessInfo) final;
 
     void CalculateRightHandSide( VectorType& rRightHandSideVector,
-                                 const ProcessInfo& rCurrentProcessInfo);
+                                 const ProcessInfo& rCurrentProcessInfo) final;
+
+    void CalculateDampingMatrix( MatrixType& rDampMatrix,
+                                 const ProcessInfo& rCurrentProcessInfo) final;
+
+    void CalculateMassMatrix( MatrixType& rMassMatrix,
+                              const ProcessInfo& rCurrentProcessInfo) final;
 
     void EquationIdVector( EquationIdVectorType& rResult,
-                           const ProcessInfo& rCurrentProcessInfo) const;
+                           const ProcessInfo& rCurrentProcessInfo) const final;
 
     void GetDofList( DofsVectorType& ConditionalDofList,
-                     const ProcessInfo& CurrentProcessInfo) const;
+                     const ProcessInfo& CurrentProcessInfo) const final;
+
+    ///@}
+    ///@name Input and output
+    ///@{
+
+    /// Turn back information as a string.
+    std::string Info() const final
+    {
+        return "InclinedConstraint";
+    }
+
+    /// Print information about this object.
+    void PrintInfo(std::ostream& rOStream) const final
+    {
+        rOStream << "InclinedConstraint2D #" << Id();
+    }
+
+    /// Print object's data.
+    void PrintData(std::ostream& rOStream) const final
+    {
+        Condition::PrintData(rOStream);
+    }
 
 private:
 
@@ -147,12 +176,12 @@ private:
     // A private default constructor necessary for serialization
     InclinedConstraint2D() {};
 
-    virtual void save(Serializer& rSerializer) const
+    void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Condition );
     }
 
-    virtual void load(Serializer& rSerializer)
+    void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Condition );
     }
