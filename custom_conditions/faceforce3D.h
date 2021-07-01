@@ -125,7 +125,7 @@ public:
 
     void CalculateMassMatrix(
         MatrixType& rMassMatrix,
-        const ProcessInfo& rCurrentProcessInfo );
+        const ProcessInfo& rCurrentProcessInfo ) final;
 
     void CalculateDampingMatrix(
         MatrixType& rDampingMatrix,

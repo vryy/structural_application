@@ -49,8 +49,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
  * ***********************************************************/
 
-#if !defined(KRATOS_DUMMY_CONSTITUTIVE_LAW_H_INCLUDED )
-#define  KRATOS_DUMMY_CONSTITUTIVE_LAW_H_INCLUDED
+#if !defined(KRATOS_STRUCTURAL_APPLICATION_DUMMY_CONSTITUTIVE_LAW_H_INCLUDED )
+#define  KRATOS_STRUCTURAL_APPLICATION_DUMMY_CONSTITUTIVE_LAW_H_INCLUDED
 
 // System includes
 
@@ -73,7 +73,12 @@ namespace Kratos
  * to linear elasticity.
  */
 
-class DummyConstitutiveLaw : public ConstitutiveLaw
+#ifdef SD_APP_FORWARD_COMPATIBILITY
+class KRATOS_API(STRUCTURAL_APPLICATION) DummyConstitutiveLaw
+#else
+class DummyConstitutiveLaw
+#endif
+: public ConstitutiveLaw
 {
 public:
     /**
@@ -262,4 +267,4 @@ private:
 
 
 } // namespace Kratos.
-#endif // KRATOS_DUMMY_CONSTITUTIVE_LAW_H_INCLUDED  defined 
+#endif // KRATOS_STRUCTURAL_APPLICATION_DUMMY_CONSTITUTIVE_LAW_H_INCLUDED  defined 

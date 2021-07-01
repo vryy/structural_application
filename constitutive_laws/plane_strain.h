@@ -49,8 +49,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 *
 * ***********************************************************/
 
-#if !defined(KRATOS_PLANE_STRAIN_H_INCLUDED )
-#define  KRATOS_PLANE_STRAIN_H_INCLUDED
+#if !defined(KRATOS_STRUCTURAL_APPLICATION_PLANE_STRAIN_H_INCLUDED )
+#define  KRATOS_STRUCTURAL_APPLICATION_PLANE_STRAIN_H_INCLUDED
 
 // System includes
 
@@ -71,7 +71,12 @@ namespace Kratos
  * As there are no further parameters the functionality is limited
  * to linear elasticity.
  */
-class PlaneStrain : public ConstitutiveLaw
+#ifdef SD_APP_FORWARD_COMPATIBILITY
+class KRATOS_API(STRUCTURAL_APPLICATION) PlaneStrain
+#else
+class PlaneStrain
+#endif
+: public ConstitutiveLaw
 {
 public:
     /**

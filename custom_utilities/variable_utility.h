@@ -71,6 +71,8 @@ class VariableUtility
 {
 public:
 
+    KRATOS_CLASS_POINTER_DEFINITION( VariableUtility );
+
     typedef ModelPart::NodesContainerType NodesContainerType;
     typedef ModelPart::ElementsContainerType ElementsContainerType;
 

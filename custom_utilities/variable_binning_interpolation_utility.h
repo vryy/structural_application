@@ -78,6 +78,8 @@ class VariableBinningInterpolationUtility : public VariableInterpolationUtility
 {
 public:
 
+    KRATOS_CLASS_POINTER_DEFINITION( VariableBinningInterpolationUtility );
+
     typedef VariableInterpolationUtility BaseType;
     typedef BaseType::GeometryType GeometryType;
     typedef BaseType::IntegrationPointsArrayType IntegrationPointsArrayType;

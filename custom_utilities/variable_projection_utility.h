@@ -85,6 +85,8 @@ class VariableProjectionUtility : public VariableUtility
 {
 public:
 
+    KRATOS_CLASS_POINTER_DEFINITION( VariableProjectionUtility );
+
     typedef VariableUtility BaseType;
     typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
     typedef UblasSpace<double, Matrix, Vector> DenseSpaceType;

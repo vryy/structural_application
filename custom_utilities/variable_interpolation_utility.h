@@ -78,6 +78,8 @@ class VariableInterpolationUtility : public VariableUtility
 {
 public:
 
+    KRATOS_CLASS_POINTER_DEFINITION(VariableInterpolationUtility);
+
     typedef VariableUtility BaseType;
     typedef Element::GeometryType GeometryType;
     typedef GeometryType::PointType NodeType;

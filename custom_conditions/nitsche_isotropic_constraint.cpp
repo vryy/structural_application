@@ -56,6 +56,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
 // Project includes
+#include "includes/legacy_structural_app_vars.h"
 #include "utilities/math_utils.h"
 #include "custom_conditions/nitsche_isotropic_constraint.h"
 #include "custom_utilities/sd_math_utils.h"

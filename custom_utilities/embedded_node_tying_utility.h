@@ -26,6 +26,7 @@ see license.txt
 #include "includes/element.h"
 #include "includes/model_part.h"
 #include "includes/variables.h"
+#include "includes/legacy_structural_app_vars.h"
 #include "utilities/math_utils.h"
 #include "geometries/point_3d.h"
 //#include "spatial_containers/bounding_volume_tree.h"
