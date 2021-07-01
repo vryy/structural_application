@@ -59,6 +59,9 @@ class SolvingStrategyPython:
 
         self.attached_processes = []
 
+        # turn off the calculate reaction flag
+        self.model_part.ProcessInfo[SET_CALCULATE_REACTION] = False
+
         if 'stop_Newton_Raphson_if_not_converge' in self.Parameters:
             self.Parameters['stop_Newton_Raphson_if_not_converged'] = self.Parameters['stop_Newton_Raphson_if_not_converge']
 
@@ -344,7 +347,9 @@ class SolvingStrategyPython:
     #######################################################################
     def FinalizeSolutionStep(self,CalculateReactionsFlag):
         if(CalculateReactionsFlag == True):
+            self.model_part.ProcessInfo[SET_CALCULATE_REACTION] = True
             self.builder_and_solver.CalculateReactions(self.time_scheme,self.model_part,self.A,self.Dx,self.b)
+            self.model_part.ProcessInfo[SET_CALCULATE_REACTION] = False
 
         #Finalisation of the solution step
         self.time_scheme.FinalizeSolutionStep(self.model_part,self.A,self.Dx,self.b)

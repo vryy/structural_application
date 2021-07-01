@@ -78,6 +78,9 @@ class SolvingStrategyPython:
         self.coupling_scheme = None
         self.coupling_converged = False
 
+        # turn off the calculate reaction flag
+        self.model_part.ProcessInfo[SET_CALCULATE_REACTION] = False
+
         if 'update_lambda' not in self.Parameters:
             self.Parameters['update_lambda'] = True
 
@@ -114,7 +117,7 @@ class SolvingStrategyPython:
             if(self.ReformDofSetAtEachStep == True):
                 self.Clear();
             return
-        print "setting up contact conditions"
+        print("setting up contact conditions")
         last_real_node = len(self.model_part.Nodes)
         originalPosition = self.cu.SetUpContactConditionsLagrangeTying(self.model_part )
         self.PerformNewtonRaphsonIteration()
@@ -141,7 +144,7 @@ class SolvingStrategyPython:
             if(self.ReformDofSetAtEachStep == True):
                 self.Clear();
             return
-        print "setting up contact conditions"
+        print("setting up contact conditions")
         originalPosition =  self.cu.SetUpContactConditions(self.model_part, self.Parameters['penalty'], self.Parameters['frictionpenalty'], self.Parameters['contact_double_check_flag'] )
         uzawaConverged = False
         ##  First step: reform DOF set and check if uzawa iteration is necessary
@@ -162,7 +165,7 @@ class SolvingStrategyPython:
         (self.builder_and_solver).SetReshapeMatrixFlag(False)
         #props = self.model_part.Properties[1]
         for uzawaStep in range(1, self.Parameters['maxuzawa'] ):
-            print "I am inside the uzawa loop, iteration no. " + str(uzawaStep)
+            print("I am inside the uzawa loop, iteration no. " + str(uzawaStep))
             ## solving the standard newton-raphson iteration
             self.PerformNewtonRaphsonIteration()
             ## updating the lagrange multipliers
@@ -173,7 +176,7 @@ class SolvingStrategyPython:
                 uzawaConverged = True
                 break
         if(self.Parameters['maxuzawa'] == 1):
-            print "Congratulations. Newton-Raphson loop has converged."
+            print("Congratulations. Newton-Raphson loop has converged.")
         else:
             if( uzawaConverged == False ):
                 if('stop_Uzawa_if_not_converge' in self.Parameters):
@@ -185,7 +188,7 @@ class SolvingStrategyPython:
                     print("Stop. Uzawa algorithm failed to converge at time step " + str(self.model_part.ProcessInfo[TIME]) + ", uzawaStep = " + str(uzawaStep) + ", maxuzawa = " + str(self.Parameters['maxuzawa']))
                     print("However, I still want to proceed")
             else:
-                print 'Congratulations. Uzawa loop has converged.'
+                print('Congratulations. Uzawa loop has converged.')
         ### end of UZAWA loop
         ### cleaning up the conditions
         self.cu.Clean( self.model_part, originalPosition )
@@ -378,7 +381,7 @@ class SolvingStrategyPython:
             petsc_utils.DumpUblasCompressedMatrixVector("tempAb", self.A, self.b, False)
 
         if(echo_level >= 3):
-            print "SystemMatrix = ", self.A
+            print("SystemMatrix = ", self.A)
         #printA = []
         #printdx = []
         #printb = []
@@ -398,11 +401,11 @@ class SolvingStrategyPython:
          #       else:
          #           row.append(self.A[(i,j)])
          #   printA.append(row)
-            print "solution obtained = ", self.Dx
+            print("solution obtained = ", self.Dx)
             #formatted_printdx = [ '%.6f' % elem for elem in printdx ]
             #print formatted_printdx
             #formatted_printb = [ '%.4f' % elem for elem in printb ]
-            print "RHS = ", self.b
+            print("RHS = ", self.b)
         #print formatted_printb
         #print "Matrix: "
         #for i in range(0,len(self.Dx)):
@@ -469,7 +472,9 @@ class SolvingStrategyPython:
     #######################################################################
     def FinalizeSolutionStep(self,CalculateReactionsFlag):
         if(CalculateReactionsFlag == True):
+            self.model_part.ProcessInfo[SET_CALCULATE_REACTION] = True
             self.builder_and_solver.CalculateReactions(self.time_scheme,self.model_part,self.A,self.Dx,self.b)
+            self.model_part.ProcessInfo[SET_CALCULATE_REACTION] = False
 
         #Finalisation of the solution step,
         self.time_scheme.FinalizeSolutionStep(self.model_part,self.A,self.Dx,self.b)

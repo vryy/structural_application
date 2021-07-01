@@ -33,6 +33,8 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(STRESSES)
     model_part.AddNodalSolutionStepVariable(STRAIN)
     model_part.AddNodalSolutionStepVariable(FACE_LOAD)
+    model_part.AddNodalSolutionStepVariable(FACE_LOAD_NULL)
+    model_part.AddNodalSolutionStepVariable(FACE_LOAD_EINS)
     model_part.AddNodalSolutionStepVariable(AIR_PRESSURE)
     model_part.AddNodalSolutionStepVariable(AIR_PRESSURE_NULL)
     model_part.AddNodalSolutionStepVariable(AIR_PRESSURE_EINS)
