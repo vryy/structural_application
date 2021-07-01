@@ -146,7 +146,7 @@ public:
     ///@name Operations
     ///@{
 
-    virtual void Execute()
+    void Execute() override
     {
         Element::MatrixType LHS_Contribution = Element::MatrixType(0, 0);
         Element::VectorType RHS_Contribution = Element::VectorType(0);
@@ -155,16 +155,16 @@ public:
         Element::DofsVectorType ElementalDofList;
         std::size_t i;
 
-        for(ElementsContainerType::ptr_iterator i_element = mr_model_part.Elements().ptr_begin();
-                i_element != mr_model_part.Elements().ptr_end(); ++i_element)
+        for(ElementsContainerType::iterator i_element = mr_model_part.Elements().begin();
+                i_element != mr_model_part.Elements().end(); ++i_element)
         {
-            if( (*i_element)->GetValue(IS_MARKED_FOR_REACTION) )
+            if( i_element->GetValue(IS_MARKED_FOR_REACTION) )
             {
                 // get the list of elemental dofs
-                (*i_element)->GetDofList(ElementalDofList, CurrentProcessInfo);
+                i_element->GetDofList(ElementalDofList, CurrentProcessInfo);
 
                 // get the elemental rhs
-                (*i_element)->CalculateRightHandSide(RHS_Contribution, CurrentProcessInfo);
+                i_element->CalculateRightHandSide(RHS_Contribution, CurrentProcessInfo);
 
                 i = 0;
                 for(typename Element::DofsVectorType::iterator i_dof = ElementalDofList.begin();
@@ -174,23 +174,25 @@ public:
                     // std::cout << "reaction dof " << (*i_dof)->GetReaction().Name() << " of node " << (*i_dof)->Id() << " is added with " << RHS_Contribution[i] << std::endl;
                 }
 
-                // std::cout << "element " << (*i_element)->Id() << " reaction is computed, RHS_Contribution = " << RHS_Contribution << std::endl;
+                // std::cout << "element " << i_element->Id() << " reaction is computed, RHS_Contribution = " << RHS_Contribution << std::endl;
 
+                #ifndef SD_APP_FORWARD_COMPATIBILITY
                 // clean local elemental memory
                 mr_scheme.CleanMemory(*i_element);
+                #endif
             }
         }
 
-        for(ConditionsContainerType::ptr_iterator i_condition = mr_model_part.Conditions().ptr_begin();
-                i_condition != mr_model_part.Conditions().ptr_end(); ++i_condition)
+        for(ConditionsContainerType::iterator i_condition = mr_model_part.Conditions().begin();
+                i_condition != mr_model_part.Conditions().end(); ++i_condition)
         {
-            if( (*i_condition)->GetValue(IS_MARKED_FOR_REACTION) )
+            if( i_condition->GetValue(IS_MARKED_FOR_REACTION) )
             {
                 // get the list of elemental dofs
-                (*i_condition)->GetDofList(ElementalDofList, CurrentProcessInfo);
+                i_condition->GetDofList(ElementalDofList, CurrentProcessInfo);
 
                 // get the elemental rhs
-                (*i_condition)->CalculateRightHandSide(RHS_Contribution, CurrentProcessInfo);
+                i_condition->CalculateRightHandSide(RHS_Contribution, CurrentProcessInfo);
 
                 i = 0;
                 for(typename Element::DofsVectorType::iterator i_dof = ElementalDofList.begin();
@@ -199,10 +201,12 @@ public:
                     (*i_dof)->GetSolutionStepReactionValue() -= RHS_Contribution[i];
                 }
 
-                // std::cout << "condition " << (*i_condition)->Id() << " reaction is computed, RHS_Contribution = " << RHS_Contribution << std::endl;
+                // std::cout << "condition " << i_condition->Id() << " reaction is computed, RHS_Contribution = " << RHS_Contribution << std::endl;
 
+                #ifndef SD_APP_FORWARD_COMPATIBILITY
                 // clean local elemental memory
                 mr_scheme.CleanMemory(*i_condition);
+                #endif
             }
         }
     }

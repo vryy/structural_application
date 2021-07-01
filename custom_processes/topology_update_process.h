@@ -45,8 +45,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
 
-#if !defined(KRATOS_TOPOLOGY_UPDATE_PROCESS_H_INCLUDED )
-#define  KRATOS_TOPOLOGY_UPDATE_PROCESS_H_INCLUDED
+#if !defined(KRATOS_STRUCTURAL_APPLICATION_TOPOLOGY_UPDATE_PROCESS_H_INCLUDED )
+#define  KRATOS_STRUCTURAL_APPLICATION_TOPOLOGY_UPDATE_PROCESS_H_INCLUDED
 
 
 
@@ -60,10 +60,11 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 // Project includes
 #include "includes/define.h"
-#include "processes/process.h"
 #include "includes/node.h"
 #include "includes/element.h"
 #include "includes/model_part.h"
+#include "processes/process.h"
+#include "utilities/openmp_utils.h"
 //#include "spatial_containers/bins_static.h"
 #include "spatial_containers/bins_dynamic.h"
 #include "structural_application_variables.h"
@@ -158,13 +159,13 @@ public:
         return mbinsize;
     }
 
-    virtual void Execute()
+    void Execute() override
     {
     }
 
     /// this function is designed for being called at the beginning of the computations
     /// right after reading the model and the groups
-    virtual void ExecuteInitialize()
+    void ExecuteInitialize() override
     {
         std::cout << "At TopologyUpdateProcess::" << __FUNCTION__ << std::endl;
         double start = OpenMPUtils::GetCurrentTime();
@@ -212,8 +213,14 @@ public:
 //                mrElements[(*it)->Id()].GetValue(NEIGHBOUR_ELEMENTS).reserve(num_results); // TODO do we need this?
                 for(std::size_t i = 0; i < num_results; ++i)
                 {
+                    #ifdef SD_APP_FORWARD_COMPATIBILITY
+                    Element::Pointer temp = mr_model_part.pGetElement(Results[i]->Id());
+                    GlobalPointersVector<Element>& r_neighour_elements = mrElements[(*it)->Id()].GetValue(NEIGHBOUR_ELEMENTS);
+                    r_neighour_elements.push_back(temp);
+                    #else
                     Element::WeakPointer temp = mr_model_part.pGetElement(Results[i]->Id());
                     AddUniqueWeakPointer(mrElements[(*it)->Id()].GetValue(NEIGHBOUR_ELEMENTS), temp);
+                    #endif
                 }
 
                 Vector weights(num_results);
@@ -346,10 +353,14 @@ public:
             for(ElementsContainerType::iterator i_element = mrElements.begin() ; i_element != mrElements.end(); ++i_element)
             {
                 double coeff = std::max(tol, i_element->GetValue(MATERIAL_DENSITY));
-		        double nom = 0.0, denom = 0.0;
-		        WeakPointerVector<Element>& rE = i_element->GetValue(NEIGHBOUR_ELEMENTS);
+                double nom = 0.0, denom = 0.0;
+                #ifdef SD_APP_FORWARD_COMPATIBILITY
+                GlobalPointersVector<Element>& rE = i_element->GetValue(NEIGHBOUR_ELEMENTS);
+                #else
+                WeakPointerVector<Element>& rE = i_element->GetValue(NEIGHBOUR_ELEMENTS);
+                #endif
                 const Vector& weights = i_element->GetValue(NEIGHBOUR_WEIGHTS);
-		        for(std::size_t i = 0; i < rE.size(); ++i)
+                for(std::size_t i = 0; i < rE.size(); ++i)
                 {
                     nom += weights[i] * rE[i].GetValue(MATERIAL_DENSITY) * rE[i].GetValue(ELEMENT_DC);
                     denom += weights[i];
@@ -369,7 +380,11 @@ public:
             for(ElementsContainerType::iterator i_element = mrElements.begin() ; i_element != mrElements.end(); ++i_element)
             {
                 double nom = 0.0, denom = 0.0;
+                #ifdef SD_APP_FORWARD_COMPATIBILITY
+                GlobalPointersVector<Element>& rE = i_element->GetValue(NEIGHBOUR_ELEMENTS);
+                #else
                 WeakPointerVector<Element>& rE = i_element->GetValue(NEIGHBOUR_ELEMENTS);
+                #endif
                 const Vector& weights = i_element->GetValue(NEIGHBOUR_WEIGHTS);
                 for(std::size_t i = 0; i < rE.size(); ++i)
                 {
@@ -430,10 +445,14 @@ public:
             {
                 for(ElementsContainerType::iterator i_element = mrElements.begin() ; i_element != mrElements.end(); ++i_element)
                 {
+                    #ifdef SD_APP_FORWARD_COMPATIBILITY
+                    GlobalPointersVector<Element>& rE = i_element->GetValue(NEIGHBOUR_ELEMENTS);
+                    #else
                     WeakPointerVector<Element>& rE = i_element->GetValue(NEIGHBOUR_ELEMENTS);
+                    #endif
                     const Vector& weights = i_element->GetValue(NEIGHBOUR_WEIGHTS);
                     double nom = 0.0, denom = 0.0;
-		            for(std::size_t i = 0; i < rE.size(); ++i)
+                    for(std::size_t i = 0; i < rE.size(); ++i)
                     {
                         nom += weights[i] * rE[i].GetValue(MATERIAL_DENSITY_NEW);
                         denom += weights[i];
@@ -506,7 +525,7 @@ public:
 
     /// this function is designed for being called at the end of the computations
     /// right after reading the model and the groups
-    virtual void ExecuteFinalize()
+    void ExecuteFinalize() override
     {
     }
 
@@ -514,7 +533,11 @@ public:
     {
         for(ElementsContainerType::iterator i_element = mrElements.begin(); i_element != mrElements.end(); ++i_element)
         {
+            #ifdef SD_APP_FORWARD_COMPATIBILITY
+            GlobalPointersVector<Element>& rE = i_element->GetValue(NEIGHBOUR_ELEMENTS);
+            #else
             WeakPointerVector<Element>& rE = i_element->GetValue(NEIGHBOUR_ELEMENTS);
+            #endif
             rE.erase(rE.begin(), rE.end());
         }
     }
@@ -613,6 +636,7 @@ protected:
 
     //******************************************************************************************
     //******************************************************************************************
+    #ifndef SD_APP_FORWARD_COMPATIBILITY
     template<class TDataType>
     void AddUniqueWeakPointer(WeakPointerVector<TDataType>& v, const typename TDataType::WeakPointer candidate)
     {
@@ -628,6 +652,7 @@ protected:
         }
 
     }
+    #endif
 
     double GetModulus(const Properties& props, double xe) const
     {
@@ -742,4 +767,4 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 #undef DEBUG_WITH_MPI
 
-#endif // KRATOS_TOPOLOGY_UPDATE_PROCESS_H_INCLUDED  defined
+#endif // KRATOS_STRUCTURAL_APPLICATION_TOPOLOGY_UPDATE_PROCESS_H_INCLUDED  defined

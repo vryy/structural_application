@@ -154,7 +154,7 @@ public:
 
     typedef typename BaseType::LocalSystemMatrixType LocalSystemMatrixType;
 
-	typedef typename BaseType::TSystemMatrixPointerType TSystemMatrixPointerType;
+    typedef typename BaseType::TSystemMatrixPointerType TSystemMatrixPointerType;
     typedef typename BaseType::TSystemVectorPointerType TSystemVectorPointerType;
 
     typedef typename BaseType::NodesArrayType NodesArrayType;
@@ -220,11 +220,11 @@ public:
         //mDofSet.clear();
 
         //double StartTime = GetTickCount();
-        for (typename ElementsArrayType::ptr_iterator it=pElements.ptr_begin();
-                it!=pElements.ptr_end(); ++it)
+        for (typename ElementsArrayType::iterator it=pElements.begin();
+                it!=pElements.end(); ++it)
         {
             // gets list of Dof involved on every element
-            pScheme->GetElementalDofList(*it,ElementalDofList,CurrentProcessInfo);
+            pScheme->GetDofList(*it,ElementalDofList,CurrentProcessInfo);
             for(typename Element::DofsVectorType::iterator i = ElementalDofList.begin() ;
                     i != ElementalDofList.end() ; ++i)
             {
@@ -235,11 +235,11 @@ public:
 
         //taking in account conditions
         ConditionsArrayType& pConditions = r_model_part.Conditions();
-        for (typename ConditionsArrayType::ptr_iterator it=pConditions.ptr_begin();
-                it!=pConditions.ptr_end(); ++it)
+        for (typename ConditionsArrayType::iterator it=pConditions.begin();
+                it!=pConditions.end(); ++it)
         {
             // gets list of Dof involved on every element
-            pScheme->GetConditionDofList(*it,ElementalDofList,CurrentProcessInfo);
+            pScheme->GetDofList(*it,ElementalDofList,CurrentProcessInfo);
             for(typename Element::DofsVectorType::iterator i = ElementalDofList.begin() ;
                     i != ElementalDofList.end() ; ++i)
             {
@@ -293,12 +293,12 @@ public:
     )
     {
         KRATOS_TRY
-		if(pK == NULL) //if the pointer is not initialized initialize it to an empty matrix
+        if(pK == NULL) //if the pointer is not initialized initialize it to an empty matrix
         {
             TSystemMatrixPointerType pNewA = TSystemMatrixPointerType(new TSystemMatrixType(0,0) );
             pK.swap(pNewA);
         }
-		if(pM == NULL) //if the pointer is not initialized initialize it to an empty matrix
+        if(pM == NULL) //if the pointer is not initialized initialize it to an empty matrix
         {
             TSystemMatrixPointerType pNewM = TSystemMatrixPointerType(new TSystemMatrixType(0,0) );
             pM.swap(pNewM);
@@ -427,7 +427,7 @@ public:
     {
         this->mDofSet = DofsArrayType();
         
-		if(this->mpReactionsVector != NULL)
+        if(this->mpReactionsVector != NULL)
         {
             TSparseSpace::Clear( (this->mpReactionsVector) );
         }
@@ -483,7 +483,7 @@ protected:
 
         std::size_t equation_size = A.size1();
         std::vector<std::vector<std::size_t> > indices(equation_size);
-        //				std::vector<std::vector<std::size_t> > dirichlet_indices(TSystemSpaceType::Size1(mDirichletMatrix));
+        //              std::vector<std::vector<std::size_t> > dirichlet_indices(TSystemSpaceType::Size1(mDirichletMatrix));
 
         Element::EquationIdVectorType ids(3,0);
         for(typename ElementsContainerType::iterator i_element = rElements.begin() ; i_element != rElements.end() ; i_element++)
@@ -514,7 +514,7 @@ protected:
                         if(ids[j] < equation_size)
                         {
                             AddUnique(row_indices,ids[j]);
-                            //	indices[ids[i]].push_back(ids[j]);
+                            //  indices[ids[i]].push_back(ids[j]);
                         }
                 }
         }
@@ -536,7 +536,7 @@ protected:
             for(std::vector<std::size_t>::iterator it= row_indices.begin(); it != row_indices.end() ; it++)
             {
                 A.push_back(i,*it,0.00);
-//					A()(i,*it) = 0.00;
+//                  A()(i,*it) = 0.00;
             }
             //row_indices = std::vector<std::size_t>();
             row_indices.clear();
@@ -656,17 +656,17 @@ private:
             //terms
             Element::EquationIdVectorType EquationId;
             ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
-            typename ElementsArrayType::ptr_iterator
-            it_begin=pElements.ptr_begin()+element_partition[k];
-            typename ElementsArrayType::ptr_iterator
-            it_end=pElements.ptr_begin()+element_partition[k+1];
+            typename ElementsArrayType::iterator
+            it_begin=pElements.begin()+element_partition[k];
+            typename ElementsArrayType::iterator
+            it_end=pElements.begin()+element_partition[k+1];
 
             // assemble all elements
-            for (typename ElementsArrayType::ptr_iterator it=it_begin; it!=it_end; ++it)
+            for (typename ElementsArrayType::iterator it=it_begin; it!=it_end; ++it)
             {
                 //calculate elemental contribution
-				pScheme->CalculateSystemContributions(*it, K_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
-                (*it)->CalculateMassMatrix( M_Contribution, CurrentProcessInfo );
+                pScheme->CalculateSystemContributions(*it, K_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
+                it->CalculateMassMatrix( M_Contribution, CurrentProcessInfo );
                 //(*it)->CalculateLocalSystem( K_Contribution,RHS_Contribution,CurrentProcessInfo );
 
                 #pragma omp critical
@@ -695,17 +695,17 @@ private:
 
             ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
 
-            typename ConditionsArrayType::ptr_iterator
-            it_begin=ConditionsArray.ptr_begin()+condition_partition[k];
-            typename ConditionsArrayType::ptr_iterator
-            it_end=ConditionsArray.ptr_begin()+condition_partition[k+1];
+            typename ConditionsArrayType::iterator
+            it_begin=ConditionsArray.begin()+condition_partition[k];
+            typename ConditionsArrayType::iterator
+            it_end=ConditionsArray.begin()+condition_partition[k+1];
 
             // assemble all conditions
-            for (typename ConditionsArrayType::ptr_iterator it=it_begin; it!=it_end; ++it)
+            for (typename ConditionsArrayType::iterator it=it_begin; it!=it_end; ++it)
             {
                 //calculate elemental contribution
-				pScheme->Condition_CalculateSystemContributions(*it, K_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
-                (*it)->CalculateMassMatrix( M_Contribution, CurrentProcessInfo );
+                pScheme->CalculateSystemContributions(*it, K_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
+                it->CalculateMassMatrix( M_Contribution, CurrentProcessInfo );
                 //(*it)->CalculateLocalSystem( K_Contribution,RHS_Contribution,CurrentProcessInfo );
 
                 #pragma omp critical
