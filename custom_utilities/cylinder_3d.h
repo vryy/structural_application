@@ -120,9 +120,9 @@ public:
        *@param result a Point in 3D result(s,t) on the cylinder
        *@return result
      */
-    Point<3>& GetPoint( Point<3>& result, double s , double t)
+    Point<3>& GetPoint( Point<3>& result, double s , double t) const
     {
-        result = cos( s/radius )*r1 + sin( s/radius )*r2 + (mM+t*r3);
+        noalias(result) = cos( s/radius )*r1 + sin( s/radius )*r2 + (mM+t*r3);
         return result;
     }
 
@@ -130,6 +130,11 @@ public:
      *
      */
     array_1d<double,3>& GetPoint1()
+    {
+        return mE1;
+    }
+
+    const array_1d<double,3>& GetPoint1() const
     {
         return mE1;
     }
@@ -142,6 +147,11 @@ public:
         return mE2;
     }
 
+    const array_1d<double,3>& GetPoint2() const
+    {
+        return mE2;
+    }
+
     /**
      *
      */
@@ -150,10 +160,20 @@ public:
         return mE3;
     }
 
+    const array_1d<double,3>& GetPoint3() const
+    {
+        return mE3;
+    }
+
     /**
      *
      */
-    array_1d<double, 3> GetR1()
+    array_1d<double, 3>& GetR1()
+    {
+        return r1;
+    }
+
+    const array_1d<double, 3>& GetR1() const
     {
         return r1;
     }
@@ -161,7 +181,12 @@ public:
     /**
      *
      */
-    array_1d<double, 3> GetR2()
+    array_1d<double, 3>& GetR2()
+    {
+        return r2;
+    }
+
+    const array_1d<double, 3>& GetR2() const
     {
         return r2;
     }
@@ -169,7 +194,12 @@ public:
     /**
      *
      */
-    array_1d<double, 3> GetR3()
+    array_1d<double, 3>& GetR3()
+    {
+        return r3;
+    }
+
+    const array_1d<double, 3>& GetR3() const
     {
         return r3;
     }
@@ -177,13 +207,13 @@ public:
     /**
      *
      */
-    array_1d<double,3>& GetDerivative_t( array_1d<double,3>& result )
+    array_1d<double,3>& GetDerivative_t( array_1d<double,3>& result ) const
     {
 //                 result = r2-r1;
         result = r3;
         return result;
     }
-    array_1d<double,3>& GetDerivative_s( array_1d<double,3>& result, double s )
+    array_1d<double,3>& GetDerivative_s( array_1d<double,3>& result, double s ) const
     {
 //                 result = r2-r1;
         result = (1.0/radius)*(-sin(s/radius)*r1+cos(s/radius)*r2);
@@ -194,21 +224,21 @@ public:
     /**
      *
      */
-    double GetLength()
+    double GetLength() const
     {
         return mLength;
     }
     /**
      *
      */
-    double GetRadius()
+    double GetRadius() const
     {
         return radius;
     }
     /**
      *
      */
-    bool IsOnCylinder(double t)
+    bool IsOnCylinder(double t) const
     {
         if(t>= 0.0 && t<= 1.0)
         {

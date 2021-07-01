@@ -218,18 +218,18 @@ public:
      * @param cylinder closed cylinder
      * @return intersection
      */
-    Point<3> Intersection(Point<3> k0, Point<3> k1, ClosedCylinder3D cylinder)
+    Point<3> Intersection(const Point<3>& k0, const Point<3>& k1, const ClosedCylinder3D& cylinder)
     {
         Point<3> b(0,0,0);
-        Point<3> m = cylinder.GetCenter();
-        Point<3> e1 = cylinder.GetR1();
-        Point<3> e2 = cylinder.GetR2();
-        Point<3> e3 = cylinder.GetR3();
+        Point<3> m = static_cast<Point<3> >(cylinder.GetCenter());
+        Point<3> e1 = static_cast<Point<3> >(cylinder.GetR1());
+        Point<3> e2 = static_cast<Point<3> >(cylinder.GetR2());
+        Point<3> e3 = static_cast<Point<3> >(cylinder.GetR3());
         Matrix A = ZeroMatrix(3,3);
         Matrix invA = ZeroMatrix(3,3);
         double detA = 0;
         Point<3> solution(0,0,0);
-        b = k0 - m - e3;
+        noalias(b) = k0 - m - e3;
         for (int i=0; i<3; ++i)
         {
             A(0,i) = e1(i);
@@ -239,7 +239,7 @@ public:
         MathUtils<double>::InvertMatrix3(A, invA, detA);
         if( fabs(detA) > 1.0e-6 ) solution = InvAb(invA, b);
 
-        return k0 + solution(2) * (k1 - k0);
+        return static_cast<Point<3> >(k0 + solution(2) * (k1 - k0));
     }
 
     /**
@@ -327,7 +327,7 @@ public:
      * @param model_part the current model part
      * @param cylinder closed cylinder to which the contact_slave nodes should be adapted
      */
-    void MoveCylinderWallNodes(ModelPart& model_part, ClosedCylinder3D& cylinder)
+    void MoveCylinderWallNodes(ModelPart& model_part, const ClosedCylinder3D& cylinder)
     {
         //calculation of the new position of all contact_slave-nodes
         //loop over surfaces
@@ -340,8 +340,8 @@ public:
                 for (unsigned int inode=0; inode < (*it)->GetGeometry().size(); ++inode)
                 {
                     Point<3> old_position = (*it)->GetGeometry()[inode].GetInitialPosition();
-                    Point<3> new_position = cylinder.ClosestPointOnWall(old_position);
-                    Point<3> distance = new_position - old_position;
+                    Point<3> new_position = static_cast<Point<3> >(cylinder.ClosestPointOnWall(old_position));
+                    Point<3> distance = static_cast<Point<3> >(new_position - old_position);
                     double dist = pow(distance[0],2.0)+pow(distance[1],2.0)+pow(distance[2],2.0);
                     if ( dist > 0.000001)
                     {
@@ -357,7 +357,6 @@ public:
                             (*it)->GetGeometry()[inode].FastGetSolutionStepValue( IS_VISITED ) = 3;
                             MoveInnerNodes(model_part, rneigh_el);
                         }
-
                     }
                 }
             }
@@ -369,27 +368,27 @@ public:
      * @param model_part the current model part
      * @param cylinder closed cylinder to which the nodes should be adapted
      */
-    void MoveCylinderCapNodes(ModelPart& model_part, ClosedCylinder3D& cylinder)
+    void MoveCylinderCapNodes(ModelPart& model_part, const ClosedCylinder3D& cylinder)
     {
         //calculation of the new position of all nodes at the front
         //loop over all nodes
         for (std::vector<int>::iterator it=cap_nodes.begin(); it != cap_nodes.end(); ++it)
         {
             Point<3> old_position = model_part.GetNode(*it).GetInitialPosition();
-            Point<3> new_position = cylinder.ClosestPointOnCap(old_position);
-            Point<3> distance = new_position - old_position;
+            Point<3> new_position = static_cast<Point<3> >(cylinder.ClosestPointOnCap(old_position));
+            Point<3> distance = static_cast<Point<3> >(new_position - old_position);
             double dist = pow(distance[0],2.0)+pow(distance[1],2.0)+pow(distance[2],2.0);
             if ( dist > 0.000001)
             {
                 //the new node position is different from the old one
-                Point<3> step = (new_position - old_position) / 10;
+                Point<3> step = static_cast<Point<3> >((new_position - old_position) / 10);
 
                 //neighbour elements of the node
                 WeakPointerVector<Element>& rneigh_el = model_part.GetNode(*it).GetValue(NEIGHBOUR_ELEMENTS);
 
                 for (int i=0; i<10; ++i)
                 {
-                    Point<3> spstep = old_position + step*(i+1);
+                    Point<3> spstep = static_cast<Point<3> >(old_position + step*(i+1));
                     //move the node
                     if (!MoveNode( model_part, rneigh_el, model_part.GetNode(*it), spstep)) std::cout << "node " << model_part.GetNode(*it).Id() << " could not be moved from " << model_part.GetNode(*it).GetInitialPosition() << " to " << spstep << std::endl;
                     else
@@ -410,7 +409,7 @@ public:
      *
      * TODO: doesn't work
      */
-    void MoveCylinderCircleNodes(ModelPart& model_part, ClosedCylinder3D &cylinder)
+    void MoveCylinderCircleNodes(ModelPart& model_part, const ClosedCylinder3D &cylinder)
     {
         //loop over all elements
         for( ElementsArrayType::iterator ielem = model_part.ElementsBegin(); ielem != model_part.ElementsEnd(); ++ielem )
@@ -461,7 +460,7 @@ public:
                         {
                             //the current node is on the new_position
                             Point<3> old_position2 = rneigh_nodes[i].GetInitialPosition();
-                            Point<3> new_position2 = old_position2 + 0.5*(old_position2 - old_position);
+                            Point<3> new_position2 = static_cast<Point<3> >(old_position2 + 0.5*(old_position2 - old_position));
                             WeakPointerVector<Element>& rneigh_el2 = rneigh_nodes[i].GetValue(NEIGHBOUR_ELEMENTS);
                             //move the node
                             if (!MoveNode( model_part, rneigh_el2, rneigh_nodes[i], new_position2)) std::cout << "node " << rneigh_nodes[i].Id() << " could not be moved from " << rneigh_nodes[i].GetInitialPosition() << " to " << new_position2 << std::endl;
@@ -474,7 +473,7 @@ public:
                         }
                     }
 
-                    Point<3> step = (new_position - old_position) / 10;
+                    Point<3> step = static_cast<Point<3> >((new_position - old_position) / 10);
 
                     WeakPointerVector<Element>& rneigh_el = edge->pGetPoint(node0)->GetValue(NEIGHBOUR_ELEMENTS);
 
@@ -482,7 +481,7 @@ public:
                     for (int i=0; i<10; ++i)
                     {
                         //calculate new node position
-                        Point<3> spstep = old_position + step*(i+1);
+                        Point<3> spstep = static_cast<Point<3> >(old_position + step*(i+1));
 
                         //move the node onto the cap
                         if (!MoveNode( model_part, rneigh_el, *(edge->pGetPoint(node0)), spstep)) std::cout << "node " << edge->pGetPoint(node0)->Id() << " could not be moved from " << edge->pGetPoint(node0)->GetInitialPosition() << " to " << spstep << std::endl;
@@ -525,8 +524,8 @@ public:
                                  iedd->pGetPoint(2)->FastGetSolutionStepValue( IS_VISITED ) == 3 ) )
                         {
                             //one of the edge's nodes is visited
-                            Point<3> new_position = 0.5 * (iedd->pGetPoint(0)->GetInitialPosition() + iedd->pGetPoint(2)->GetInitialPosition());
-                            Point<3> point = new_position - iedd->pGetPoint(1)->GetInitialPosition();
+                            Point<3> new_position = static_cast<Point<3> >(0.5 * (iedd->pGetPoint(0)->GetInitialPosition() + iedd->pGetPoint(2)->GetInitialPosition()));
+                            Point<3> point = static_cast<Point<3> >(new_position - iedd->pGetPoint(1)->GetInitialPosition());
                             double distance = pow(point[0],2.0)+pow(point[1],2.0)+pow(point[2],2.0);
 
                             if ( distance > 0.000001 )
@@ -570,7 +569,7 @@ public:
             MapNodalValues( rNode, elem, newLocalPoint );
             //determine current deformation state in newLocalPoint
             Point<3> undeformed_point( 0.0, 0.0, 0.0 );
-            undeformed_point = newPosition - rNode.GetSolutionStepValue(DISPLACEMENT);
+            noalias(undeformed_point) = newPosition - rNode.GetSolutionStepValue(DISPLACEMENT);
             //move node to new undeformed_point
             rNode.SetInitialPosition( undeformed_point );
             //reset element

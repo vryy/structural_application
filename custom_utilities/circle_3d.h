@@ -80,7 +80,7 @@ public:
     /**
      * Constructor.
      */
-    Circle3D( Point<3> M, Point<3> e1, Point<3> e2 )
+    Circle3D( const Point<3>& M, const Point<3>& e1, const Point<3>& e2 )
         :mM(M),mE1(e1),mE2(e2)
     {
         r1 = mE1-M;
@@ -109,7 +109,7 @@ public:
      */
     Point<3>& GetPoint( Point<3>& result, double s )
     {
-        result = cos( s/radius )*r1 + sin( s/radius )*r2 + mM;
+        noalias(result) = cos( s/radius )*r1 + sin( s/radius )*r2 + mM;
         return result;
     }
 
@@ -151,7 +151,7 @@ public:
     array_1d<double,3>& GetDerivative( array_1d<double,3>& result, double s )
     {
 //                 result = r2-r1;
-        result = (1.0/radius)*(-sin(s/radius)*r1+cos(s/radius)*r2);
+        noalias(result) = (1.0/radius)*(-sin(s/radius)*r1+cos(s/radius)*r2);
         return result;
     }
 

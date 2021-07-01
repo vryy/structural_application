@@ -1077,7 +1077,7 @@ private:
             //calculating global coordinates of current integration point
             Point<3> SlaveContactGlobalPoint;
 
-            SlaveContactGlobalPoint = GlobalCoordinates( Slave, SlaveContactGlobalPoint, SlaveContactLocalPoint);
+            noalias(SlaveContactGlobalPoint) = GlobalCoordinates( Slave, SlaveContactGlobalPoint, SlaveContactLocalPoint);
 
             Point<3> GlobalCandidate;
             //defining set of possible master surface elements

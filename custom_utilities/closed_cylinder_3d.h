@@ -118,11 +118,21 @@ public:
         return mM;
     }
 
+    const Point<3>& GetCenter() const
+    {
+        return mM;
+    }
+
     /**
      * Returns point on the circle above the midpoint
      * @return mE1
      */
     array_1d<double,3>& GetPoint1()
+    {
+        return mE1;
+    }
+
+    const array_1d<double,3>& GetPoint1() const
     {
         return mE1;
     }
@@ -136,6 +146,11 @@ public:
         return mE2;
     }
 
+    const array_1d<double,3>& GetPoint2() const
+    {
+        return mE2;
+    }
+
     /**
      * Returns point on the direction vector of the cylinder
      * @return mE3
@@ -145,11 +160,21 @@ public:
         return mE3;
     }
 
+    const array_1d<double,3>& GetPoint3() const
+    {
+        return mE3;
+    }
+
     /**
      * Returns the direction vector r1
      * @return r1
      */
-    array_1d<double, 3> GetR1()
+    array_1d<double, 3>& GetR1()
+    {
+        return r1;
+    }
+
+    const array_1d<double, 3>& GetR1() const
     {
         return r1;
     }
@@ -158,7 +183,12 @@ public:
      * Returns the direction vector r2
      * @return r2
      */
-    array_1d<double, 3> GetR2()
+    array_1d<double, 3>& GetR2()
+    {
+        return r2;
+    }
+
+    const array_1d<double, 3>& GetR2() const
     {
         return r2;
     }
@@ -167,7 +197,12 @@ public:
      * Returns the direction vector r3
      * @return r3
      */
-    array_1d<double, 3> GetR3()
+    array_1d<double, 3>& GetR3()
+    {
+        return r3;
+    }
+
+    const array_1d<double, 3>& GetR3() const
     {
         return r3;
     }
@@ -179,9 +214,9 @@ public:
      * @param result a Point in 3D result(s,t) on the cylinder
      * @return result
      */
-    Point<3>& GetPoint( Point<3>& result, double s , double t)
+    Point<3>& GetPoint( Point<3>& result, double s , double t) const
     {
-        result = cos( s/radius )*r1 + sin( s/radius )*r2 + (mM+t*r3);
+        noalias(result) = cos( s/radius )*r1 + sin( s/radius )*r2 + (mM+t*r3);
         return result;
     }
 
@@ -190,7 +225,7 @@ public:
      * @param result represents the partial derivative after t
      * @return result
      */
-    array_1d<double,3>& GetDerivative_t( array_1d<double,3>& result )
+    array_1d<double,3>& GetDerivative_t( array_1d<double,3>& result ) const
     {
         result = r3;
         return result;
@@ -201,7 +236,7 @@ public:
      * @param result represents the partial derivative after s
      * @return result
      */
-    array_1d<double,3>& GetDerivative_s( array_1d<double,3>& result, double s )
+    array_1d<double,3>& GetDerivative_s( array_1d<double,3>& result, double s ) const
     {
         result = (1.0/radius)*(-sin(s/radius)*r1+cos(s/radius)*r2);
         return result;
@@ -214,9 +249,9 @@ public:
      * @param result a Point in 3D result(s,t) on the cylinder cap
      * @return result
      */
-    Point<3>& GetPointOnCap( Point<3>& result, double s, double t)
+    Point<3>& GetPointOnCap( Point<3>& result, double s, double t) const
     {
-        result = r1*s + r2*t + (mM+r3);
+        noalias(result) = r1*s + r2*t + (mM+r3);
         return result;
     }
 
@@ -225,7 +260,7 @@ public:
      * @param result represents the partial derivative after t
      * @return result
      */
-    array_1d<double,3>& GetDerivativeCap_t( array_1d<double,3>& result)
+    array_1d<double,3>& GetDerivativeCap_t( array_1d<double,3>& result) const
     {
         result = r2;
         return result;
@@ -236,7 +271,7 @@ public:
      * @param result represents the partial derivative after s
      * @return result
      */
-    array_1d<double,3>& GetDerivativeCap_s( array_1d<double,3>& result)
+    array_1d<double,3>& GetDerivativeCap_s( array_1d<double,3>& result) const
     {
         result = r1;
         return result;
@@ -246,7 +281,7 @@ public:
      * Returns the length of the cylinder
      * @return mLength
      */
-    double GetLength()
+    double GetLength() const
     {
         return mLength;
     }
@@ -255,7 +290,7 @@ public:
      * Returns the radius of the cylinder
      * @return radius
      */
-    double GetRadius()
+    double GetRadius() const
     {
         return radius;
     }
@@ -266,7 +301,7 @@ public:
      * @retval false if the point is not in or on the cylinder
      * @retval true if the point is in or on the cylinder
      */
-    bool IsInorOn(Point<3>& point)
+    bool IsInorOn(const Point<3>& point) const
     {
         Vector distance= point-mM;
         double t= MathUtils<double>::Dot3(distance,
@@ -288,7 +323,7 @@ public:
      * @retval false if the point is on or outside the cylinder
      * @retval true if the point is inside the cylinder
      */
-    bool IsIn(Point<3>& point)
+    bool IsIn(const Point<3>& point) const
     {
         Vector distance= point-mM;
         double t= MathUtils<double>::Dot3(distance,
@@ -310,7 +345,7 @@ public:
      * @retval false if the point is on or outside the cylinder
      * @retval true if the point is inside a bigger cylinder
      */
-    bool IsInBigger(Point<3>& point)
+    bool IsInBigger(const Point<3>& point) const
     {
         Vector distance= point-mM;
         double t= MathUtils<double>::Dot3(distance,
@@ -332,7 +367,7 @@ public:
      * @retval false if the point is inside or outside the cylinder
      * @retval true if the point is on the cylinder
      */
-    bool IsOn(Point<3>& point)
+    bool IsOn(const Point<3>& point) const
     {
         Vector distance= point-mM;
         double t= MathUtils<double>::Dot3(distance,
@@ -358,7 +393,7 @@ public:
      * @retval false if the point is not on the cylinder wall
      * @retval true if the point is on the cylinder wall
      */
-    bool IsOnWall(Point<3>& point)
+    bool IsOnWall(const Point<3>& point) const
     {
         Vector distance= point-mM;
         double t= MathUtils<double>::Dot3(distance,
@@ -384,7 +419,7 @@ public:
      * @retval false if the point is not on the cylinder cap
      * @retval true if the point is on the cylinder cap
      */
-    bool IsOnCap(Point<3>& point)
+    bool IsOnCap(const Point<3>& point) const
     {
         Vector distance= point-mM;
         double t= MathUtils<double>::Dot3(distance,
@@ -409,7 +444,7 @@ public:
      * @param point for which the closest point on the cap is searched
      * @return closestpoint
      */
-    Point<3> ClosestPointOnCap(Point<3>& point)
+    Point<3> ClosestPointOnCap(const Point<3>& point) const
     {
         Vector distance= point-mM;
         double t= MathUtils<double>::Dot3(distance,
@@ -417,7 +452,7 @@ public:
 
         Point<3> closestpoint;
 
-        closestpoint = point + (mLength-t)*r3_normalized;
+        noalias(closestpoint) = point + (mLength-t)*r3_normalized;
 
         return closestpoint;
     }
@@ -427,7 +462,7 @@ public:
      * @param point for which the closest point on the wall is searched
      * @return closestpoint
      */
-    Point<3> ClosestPointOnWall(Point<3>& point)
+    Point<3> ClosestPointOnWall(const Point<3>& point) const
     {
         Vector distance= point-mM;
         double t= MathUtils<double>::Dot3(distance,
@@ -444,10 +479,10 @@ public:
             //point is above cylinder wall
             Vector helpvector = s1 * r1_normalized + s2 * r2_normalized;
             helpvector = helpvector / MathUtils<double>::Norm(helpvector);
-            closestpoint = mM + radius * (helpvector) + t*r3_normalized;
+            noalias(closestpoint) = mM + radius * (helpvector) + t*r3_normalized;
         }
         else
-            closestpoint = point;
+            noalias(closestpoint) = point;
 
         return closestpoint;
     }
@@ -457,7 +492,7 @@ public:
      * @param point for which the closest point is searched
      * @return closestpoint
      */
-    Point<3> ClosestPoint(Point<3>& point)
+    Point<3> ClosestPoint(const Point<3>& point) const
     {
         Vector distance= point-mM;
         double t= MathUtils<double>::Dot3(distance,
@@ -478,18 +513,18 @@ public:
                 //outside cylinder wall and cap
                 Vector helpvector = s1 * r1_normalized + s2 * r2_normalized;
                 helpvector = helpvector / MathUtils<double>::Norm(helpvector);
-                closestpoint = mM + radius * (helpvector) + mLength*r3_normalized;
+                noalias(closestpoint) = mM + radius * (helpvector) + mLength*r3_normalized;
             }
             else
                 //only ouside cylinder cap
-                closestpoint = point + (mLength-t)*r3_normalized;
+                noalias(closestpoint) = point + (mLength-t)*r3_normalized;
         }
         else if (radius < rad)
         {
             //only outside cylinder wall
             Vector helpvector = s1 * r1_normalized + s2 * r2_normalized;
             helpvector = helpvector / MathUtils<double>::Norm(helpvector);
-            closestpoint = mM + radius * (helpvector) + t*r3_normalized;
+            noalias(closestpoint) = mM + radius * (helpvector) + t*r3_normalized;
         }
         else
         {
@@ -497,14 +532,14 @@ public:
             if(fabs(mLength-t) < fabs(radius-rad))
             {
                 //node is closer to cap than on wall
-                closestpoint = point + (mLength-t)*r3_normalized;
+                noalias(closestpoint) = point + (mLength-t)*r3_normalized;
             }
             else
             {
                 //node is closer on wall than on cap
                 Vector helpvector = s1 * r1_normalized + s2 * r2_normalized;
                 helpvector = helpvector / MathUtils<double>::Norm(helpvector);
-                closestpoint = mM + radius * (helpvector) + t*r3_normalized;
+                noalias(closestpoint) = mM + radius * (helpvector) + t*r3_normalized;
             }
         }
         return closestpoint;
