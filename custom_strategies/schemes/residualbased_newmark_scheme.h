@@ -50,8 +50,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 * ***********************************************************/
 
 
-#if !defined(KRATOS_RESIDUALBASED_NEWMARK_SCHEME )
-#define  KRATOS_RESIDUALBASED_NEWMARK_SCHEME
+#if !defined(KRATOS_STRUCTURAL_APPLICATION_RESIDUALBASED_NEWMARK_SCHEME )
+#define  KRATOS_STRUCTURAL_APPLICATION_RESIDUALBASED_NEWMARK_SCHEME
 
 /* System includes */
 
@@ -63,7 +63,11 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/model_part.h"
 #include "includes/variables.h"
 #include "includes/element.h"
+#ifdef SD_APP_FORWARD_COMPATIBILITY
+#include "custom_python3/legacy_structural_app_vars.h"
+#else
 #include "includes/legacy_structural_app_vars.h"
+#endif
 #include "containers/array_1d.h"
 #include "solving_strategies/schemes/scheme.h"
 #include "structural_application_variables.h"
@@ -1341,23 +1345,23 @@ public:
     //***************************************************************************
 
     void CalculateSystemContributions(
-        Element::Pointer pCurrentElement,
+        Element& rCurrentElement,
         LocalSystemMatrixType& LHS_Contribution,
         LocalSystemVectorType& RHS_Contribution,
         Element::EquationIdVectorType& EquationId,
-        ProcessInfo& CurrentProcessInfo) final
+        const ProcessInfo& CurrentProcessInfo) final
     {
         KRATOS_TRY
 
-        (pCurrentElement)->CalculateLocalSystem(LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
+        rCurrentElement.CalculateLocalSystem(LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
 
-        (pCurrentElement)->EquationIdVector(EquationId,CurrentProcessInfo);
+        rCurrentElement.EquationIdVector(EquationId,CurrentProcessInfo);
 
         if (CurrentProcessInfo[QUASI_STATIC_ANALYSIS])
         {
             Matrix DampingMatrix;
 
-            (pCurrentElement)->CalculateDampingMatrix(DampingMatrix, CurrentProcessInfo);
+            rCurrentElement.CalculateDampingMatrix(DampingMatrix, CurrentProcessInfo);
 
             if (norm_frobenius(DampingMatrix) > 0.0) // filter out the element that did not calculate damping and then set it to a zero matrix
                 AssembleTimeSpaceLHS_QuasiStatic(LHS_Contribution, DampingMatrix, CurrentProcessInfo);
@@ -1370,18 +1374,18 @@ public:
 
             Matrix MassMatrix;
 
-            (pCurrentElement)->CalculateDampingMatrix(DampingMatrix, CurrentProcessInfo);
+            rCurrentElement.CalculateDampingMatrix(DampingMatrix, CurrentProcessInfo);
 
-            (pCurrentElement)->CalculateMassMatrix(MassMatrix, CurrentProcessInfo);
+            rCurrentElement.CalculateMassMatrix(MassMatrix, CurrentProcessInfo);
 
-            // KRATOS_WATCH(pCurrentElement->Id())
+            // KRATOS_WATCH(rCurrentElement.Id())
             // KRATOS_WATCH(MassMatrix)
             // KRATOS_WATCH(DampingMatrix)
             // KRATOS_WATCH(LHS_Contribution)
 
             if ((norm_frobenius(DampingMatrix) == 0.0) && (norm_frobenius(MassMatrix) > 0.0))
             {
-                AddInertiaToRHS(pCurrentElement, RHS_Contribution, MassMatrix, CurrentProcessInfo);
+                AddInertiaToRHS(rCurrentElement, RHS_Contribution, MassMatrix, CurrentProcessInfo);
 
                 if ((DampingMatrix.size1() != MassMatrix.size1()) || (DampingMatrix.size2() != MassMatrix.size2()))
                     DampingMatrix.resize(MassMatrix.size1(), MassMatrix.size2(), false);
@@ -1391,24 +1395,24 @@ public:
             }
             else if ((norm_frobenius(DampingMatrix) > 0.0) && (norm_frobenius(MassMatrix) == 0.0))
             {
-                AddDampingToRHS(pCurrentElement, RHS_Contribution, DampingMatrix, CurrentProcessInfo);
+                AddDampingToRHS(rCurrentElement, RHS_Contribution, DampingMatrix, CurrentProcessInfo);
 
                 AssembleTimeSpaceLHS_QuasiStatic(LHS_Contribution, DampingMatrix, CurrentProcessInfo);
             }
             else if ((norm_frobenius(DampingMatrix) > 0.0) && (norm_frobenius(MassMatrix) > 0.0))
             {
-                AddInertiaToRHS(pCurrentElement, RHS_Contribution, MassMatrix, CurrentProcessInfo);
+                AddInertiaToRHS(rCurrentElement, RHS_Contribution, MassMatrix, CurrentProcessInfo);
 
-                AddDampingToRHS(pCurrentElement, RHS_Contribution, DampingMatrix, CurrentProcessInfo);
+                AddDampingToRHS(rCurrentElement, RHS_Contribution, DampingMatrix, CurrentProcessInfo);
 
                 AssembleTimeSpaceLHS_Dynamics(LHS_Contribution, DampingMatrix, MassMatrix, CurrentProcessInfo);
             }
         }
 
-        // if (pCurrentElement->Id() == 743)
+        // if (rCurrentElement.Id() == 743)
         // {
         //     Vector u;
-        //     pCurrentElement->GetValuesVector(u, 0);
+        //     rCurrentElement.GetValuesVector(u, 0);
         //     KRATOS_WATCH(u)
         //     Vector RHS(u.size());
         //     noalias(RHS) = prod( LHS_Contribution, u );
@@ -1419,17 +1423,17 @@ public:
         KRATOS_CATCH("")
     }
 
-    void Calculate_RHS_Contribution(
-        Element::Pointer pCurrentElement,
+    void CalculateRHSContribution(
+        Element& rCurrentElement,
         LocalSystemVectorType& RHS_Contribution,
         Element::EquationIdVectorType& EquationId,
-        ProcessInfo& CurrentProcessInfo) final
+        const ProcessInfo& CurrentProcessInfo) final
     {
         KRATOS_TRY
 
-        (pCurrentElement)->CalculateRightHandSide(RHS_Contribution, CurrentProcessInfo);
+        rCurrentElement.CalculateRightHandSide(RHS_Contribution, CurrentProcessInfo);
 
-        (pCurrentElement)->EquationIdVector(EquationId,CurrentProcessInfo);
+        rCurrentElement.EquationIdVector(EquationId,CurrentProcessInfo);
 
         if (!CurrentProcessInfo[QUASI_STATIC_ANALYSIS])
         {
@@ -1437,23 +1441,23 @@ public:
 
             Matrix MassMatrix;
 
-            (pCurrentElement)->CalculateDampingMatrix(DampingMatrix, CurrentProcessInfo);
+            rCurrentElement.CalculateDampingMatrix(DampingMatrix, CurrentProcessInfo);
 
-            (pCurrentElement)->CalculateMassMatrix(MassMatrix, CurrentProcessInfo);
+            rCurrentElement.CalculateMassMatrix(MassMatrix, CurrentProcessInfo);
 
             if ((norm_frobenius(DampingMatrix) == 0.0) && (norm_frobenius(MassMatrix) > 0.0))
             {
-                AddInertiaToRHS(pCurrentElement, RHS_Contribution, MassMatrix, CurrentProcessInfo);
+                AddInertiaToRHS(rCurrentElement, RHS_Contribution, MassMatrix, CurrentProcessInfo);
             }
             else if ((norm_frobenius(DampingMatrix) > 0.0) && (norm_frobenius(MassMatrix) == 0.0))
             {
-                AddDampingToRHS(pCurrentElement, RHS_Contribution, DampingMatrix, CurrentProcessInfo);
+                AddDampingToRHS(rCurrentElement, RHS_Contribution, DampingMatrix, CurrentProcessInfo);
             }
             else if ((norm_frobenius(DampingMatrix) > 0.0) && (norm_frobenius(MassMatrix) > 0.0))
             {
-                AddInertiaToRHS(pCurrentElement, RHS_Contribution, MassMatrix, CurrentProcessInfo);
+                AddInertiaToRHS(rCurrentElement, RHS_Contribution, MassMatrix, CurrentProcessInfo);
 
-                AddDampingToRHS(pCurrentElement, RHS_Contribution, DampingMatrix, CurrentProcessInfo);
+                AddDampingToRHS(rCurrentElement, RHS_Contribution, DampingMatrix, CurrentProcessInfo);
             }
         }
 
@@ -1461,23 +1465,23 @@ public:
     }
 
 
-    void Calculate_LHS_Contribution(
-        Element::Pointer pCurrentElement,
+    void CalculateLHSContribution(
+        Element& rCurrentElement,
         LocalSystemMatrixType& LHS_Contribution,
         Element::EquationIdVectorType& EquationId,
-        ProcessInfo& CurrentProcessInfo) final
+        const ProcessInfo& CurrentProcessInfo) final
     {
         KRATOS_TRY
 
-        (pCurrentElement)->CalculateLeftHandSide(LHS_Contribution, CurrentProcessInfo);
+        rCurrentElement.CalculateLeftHandSide(LHS_Contribution, CurrentProcessInfo);
 
-        (pCurrentElement)->EquationIdVector(EquationId,CurrentProcessInfo);
+        rCurrentElement.EquationIdVector(EquationId,CurrentProcessInfo);
 
         if (CurrentProcessInfo[QUASI_STATIC_ANALYSIS])
         {
             Matrix DampingMatrix;
 
-            (pCurrentElement)->CalculateDampingMatrix(DampingMatrix, CurrentProcessInfo);
+            rCurrentElement.CalculateDampingMatrix(DampingMatrix, CurrentProcessInfo);
 
             if (norm_frobenius(DampingMatrix) > 0.0) // filter out the element that did not calculate damping and then set it to a zero matrix
                 AssembleTimeSpaceLHS_QuasiStatic(LHS_Contribution, DampingMatrix, CurrentProcessInfo);
@@ -1490,9 +1494,9 @@ public:
 
             Matrix MassMatrix;
 
-            (pCurrentElement)->CalculateDampingMatrix(DampingMatrix, CurrentProcessInfo);
+            rCurrentElement.CalculateDampingMatrix(DampingMatrix, CurrentProcessInfo);
 
-            (pCurrentElement)->CalculateMassMatrix(MassMatrix, CurrentProcessInfo);
+            rCurrentElement.CalculateMassMatrix(MassMatrix, CurrentProcessInfo);
 
             if ((norm_frobenius(DampingMatrix) == 0.0) && (norm_frobenius(MassMatrix) > 0.0))
             {
@@ -1516,22 +1520,22 @@ public:
     }
 
 
-    void Condition_CalculateSystemContributions(
-        Condition::Pointer pCurrentCondition,
+    void CalculateSystemContributions(
+        Condition& rCurrentCondition,
         LocalSystemMatrixType& LHS_Contribution,
         LocalSystemVectorType& RHS_Contribution,
         Element::EquationIdVectorType& EquationId,
-        ProcessInfo& CurrentProcessInfo) final
+        const ProcessInfo& CurrentProcessInfo) final
     {
         KRATOS_TRY
 
         Matrix DampingMatrix;
 
-        (pCurrentCondition)->CalculateLocalSystem(LHS_Contribution,RHS_Contribution,CurrentProcessInfo);
+        rCurrentCondition.CalculateLocalSystem(LHS_Contribution,RHS_Contribution,CurrentProcessInfo);
 
-        (pCurrentCondition)->EquationIdVector(EquationId, CurrentProcessInfo);
+        rCurrentCondition.EquationIdVector(EquationId, CurrentProcessInfo);
 
-        (pCurrentCondition)->CalculateDampingMatrix(DampingMatrix, CurrentProcessInfo);
+        rCurrentCondition.CalculateDampingMatrix(DampingMatrix, CurrentProcessInfo);
 
         if (norm_frobenius(DampingMatrix) > 0.0) // filter out the condition that did not calculate damping and then set it to a zero matrix
             AssembleTimeSpaceLHS_QuasiStatic(LHS_Contribution, DampingMatrix, CurrentProcessInfo);
@@ -1542,31 +1546,31 @@ public:
     }
 
 
-    void Condition_Calculate_LHS_Contribution(
-        Condition::Pointer rCurrentCondition,
+    void CalculateLHSContribution(
+        Condition& rCurrentCondition,
         LocalSystemMatrixType& LHS_Contribution,
         Element::EquationIdVectorType& EquationId,
-        ProcessInfo& CurrentProcessInfo) final
+        const ProcessInfo& CurrentProcessInfo) final
     {
         KRATOS_TRY
 
-        (rCurrentCondition)->CalculateLeftHandSide(LHS_Contribution,CurrentProcessInfo);
-        (rCurrentCondition)->EquationIdVector(EquationId,CurrentProcessInfo);
+        rCurrentCondition.CalculateLeftHandSide(LHS_Contribution,CurrentProcessInfo);
+        rCurrentCondition.EquationIdVector(EquationId,CurrentProcessInfo);
 
         KRATOS_CATCH("")
     }
 
 
-    void Condition_Calculate_RHS_Contribution(
-        Condition::Pointer pCurrentCondition,
+    void CalculateRHSContribution(
+        Condition& rCurrentCondition,
         LocalSystemVectorType& RHS_Contribution,
         Element::EquationIdVectorType& EquationId,
-        ProcessInfo& CurrentProcessInfo) final
+        const ProcessInfo& CurrentProcessInfo) final
     {
         KRATOS_TRY
 
-        (pCurrentCondition)->CalculateRightHandSide(RHS_Contribution,CurrentProcessInfo);
-        (pCurrentCondition)->EquationIdVector(EquationId,CurrentProcessInfo);
+        rCurrentCondition.CalculateRightHandSide(RHS_Contribution,CurrentProcessInfo);
+        rCurrentCondition.EquationIdVector(EquationId,CurrentProcessInfo);
 
         KRATOS_CATCH("")
     }
@@ -1618,26 +1622,26 @@ public:
 protected:
 
     void AddInertiaToRHS(
-        Element::Pointer pCurrentElement,
+        Element& rCurrentElement,
         LocalSystemVectorType& RHS_Contribution,
         LocalSystemMatrixType& M,
-        ProcessInfo& CurrentProcessInfo)
+        const ProcessInfo& CurrentProcessInfo)
     {
         // adding inertia contribution
         Vector acceleration;
-        pCurrentElement->GetSecondDerivativesVector(acceleration, 0);
+        rCurrentElement.GetSecondDerivativesVector(acceleration, 0);
         noalias(RHS_Contribution) -= prod(M, acceleration);
     }
 
     void AddDampingToRHS(
-        Element::Pointer pCurrentElement,
+        Element& rCurrentElement,
         LocalSystemVectorType& RHS_Contribution,
         LocalSystemMatrixType& D,
-        ProcessInfo& CurrentProcessInfo)
+        const ProcessInfo& CurrentProcessInfo)
     {
         // adding damping contribution
         Vector velocity;
-        pCurrentElement->GetFirstDerivativesVector(velocity, 0);
+        rCurrentElement.GetFirstDerivativesVector(velocity, 0);
         noalias(RHS_Contribution) -= prod(D, velocity);
     }
 
@@ -1744,4 +1748,4 @@ private:
 }; /* Class Scheme */
 }  /* namespace Kratos.*/
 
-#endif /* KRATOS_RESIDUALBASED_NEWMARK_SCHEME  defined */
+#endif /* KRATOS_STRUCTURAL_APPLICATION_RESIDUALBASED_NEWMARK_SCHEME  defined */

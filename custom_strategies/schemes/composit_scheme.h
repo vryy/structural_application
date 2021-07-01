@@ -413,7 +413,7 @@ public:
     /**
     function to clean up "elemental" scratch space after each element is built.
     */
-    virtual void CleanMemory(Element::Pointer rCurrentElement)
+    void CleanMemory(Element& rCurrentElement) override
     {
         mrScheme1.CleanMemory(rCurrentElement);
         mrScheme2.CleanMemory(rCurrentElement);
@@ -426,12 +426,12 @@ public:
       this function calculates at the same time the contribution to the LHS and to the RHS
       of the system
     */
-    virtual void CalculateSystemContributions(
-        Element::Pointer rCurrentElement,
+    void CalculateSystemContributions(
+        Element& rCurrentElement,
         LocalSystemMatrixType& LHS_Contribution,
         LocalSystemVectorType& RHS_Contribution,
         Element::EquationIdVectorType& EquationId,
-        ProcessInfo& CurrentProcessInfo)
+        const ProcessInfo& CurrentProcessInfo) override
     {
         mrScheme1.CalculateSystemContributions(rCurrentElement,LHS_Contribution,RHS_Contribution, EquationId, CurrentProcessInfo);
         mrScheme2.CalculateSystemContributions(rCurrentElement,LHS_Contribution,RHS_Contribution, EquationId, CurrentProcessInfo);
@@ -439,32 +439,32 @@ public:
 
     }
 
-    virtual void Calculate_RHS_Contribution(
-        Element::Pointer rCurrentElement,
+    void CalculateRHSContribution(
+        Element& rCurrentElement,
         LocalSystemVectorType& RHS_Contribution,
         Element::EquationIdVectorType& EquationId,
-        ProcessInfo& CurrentProcessInfo)
+        const ProcessInfo& CurrentProcessInfo) override
     {
-        mrScheme1.Calculate_RHS_Contribution(rCurrentElement,RHS_Contribution, EquationId, CurrentProcessInfo);
-        mrScheme2.Calculate_RHS_Contribution(rCurrentElement,RHS_Contribution, EquationId, CurrentProcessInfo);
+        mrScheme1.CalculateRHSContribution(rCurrentElement,RHS_Contribution, EquationId, CurrentProcessInfo);
+        mrScheme2.CalculateRHSContribution(rCurrentElement,RHS_Contribution, EquationId, CurrentProcessInfo);
 
     }
 
-    virtual void Calculate_LHS_Contribution(
-        Element::Pointer rCurrentElement,
+    void CalculateLHSContribution(
+        Element& rCurrentElement,
         LocalSystemMatrixType& LHS_Contribution,
         Element::EquationIdVectorType& EquationId,
-        ProcessInfo& CurrentProcessInfo)
+        const ProcessInfo& CurrentProcessInfo) override
     {
-        mrScheme1.Calculate_LHS_Contribution(rCurrentElement,LHS_Contribution, EquationId, CurrentProcessInfo);
-        mrScheme2.Calculate_LHS_Contribution(rCurrentElement,LHS_Contribution, EquationId, CurrentProcessInfo);
+        mrScheme1.CalculateLHSContribution(rCurrentElement,LHS_Contribution, EquationId, CurrentProcessInfo);
+        mrScheme2.CalculateLHSContribution(rCurrentElement,LHS_Contribution, EquationId, CurrentProcessInfo);
 
     }
 
-    virtual void EquationId(
-        Element::Pointer rCurrentElement,
+    void EquationId(
+        const Element& rCurrentElement,
         Element::EquationIdVectorType& EquationId,
-        ProcessInfo& CurrentProcessInfo)
+        const ProcessInfo& CurrentProcessInfo)
     {
         mrScheme1.EquationId(rCurrentElement,EquationId,CurrentProcessInfo);
         mrScheme2.EquationId(rCurrentElement,EquationId,CurrentProcessInfo);
@@ -473,70 +473,70 @@ public:
     /** functions totally analogous to the precedent but applied to
     the "condition" objects
     */
-    virtual void Condition_CalculateSystemContributions(
-        Condition::Pointer rCurrentCondition,
+    void CalculateSystemContributions(
+        Condition& rCurrentCondition,
         LocalSystemMatrixType& LHS_Contribution,
         LocalSystemVectorType& RHS_Contribution,
         Element::EquationIdVectorType& EquationId,
-        ProcessInfo& CurrentProcessInfo)
+        const ProcessInfo& CurrentProcessInfo) override
     {
-        mrScheme1.Condition_CalculateSystemContributions(rCurrentCondition, LHS_Contribution, RHS_Contribution,EquationId,CurrentProcessInfo);
-        mrScheme2.Condition_CalculateSystemContributions(rCurrentCondition, LHS_Contribution, RHS_Contribution,EquationId,CurrentProcessInfo);
+        mrScheme1.CalculateSystemContributions(rCurrentCondition, LHS_Contribution, RHS_Contribution,EquationId,CurrentProcessInfo);
+        mrScheme2.CalculateSystemContributions(rCurrentCondition, LHS_Contribution, RHS_Contribution,EquationId,CurrentProcessInfo);
 
 
     }
 
-    virtual void Condition_Calculate_RHS_Contribution(
-        Condition::Pointer rCurrentCondition,
+    void CalculateRHSContribution(
+        Condition& rCurrentCondition,
         LocalSystemVectorType& RHS_Contribution,
         Element::EquationIdVectorType& EquationId,
-        ProcessInfo& CurrentProcessInfo)
+        const ProcessInfo& CurrentProcessInfo) override
     {
-        mrScheme1.Condition_Calculate_RHS_Contribution(rCurrentCondition,RHS_Contribution, EquationId, CurrentProcessInfo);
-        mrScheme2.Condition_Calculate_RHS_Contribution(rCurrentCondition,RHS_Contribution, EquationId, CurrentProcessInfo);
+        mrScheme1.CalculateRHSContribution(rCurrentCondition,RHS_Contribution, EquationId, CurrentProcessInfo);
+        mrScheme2.CalculateRHSContribution(rCurrentCondition,RHS_Contribution, EquationId, CurrentProcessInfo);
     }
 
-    virtual void Condition_Calculate_LHS_Contribution(
-        Condition::Pointer rCurrentCondition,
+    void CalculateLHSContribution(
+        Condition& rCurrentCondition,
         LocalSystemMatrixType& LHS_Contribution,
         Element::EquationIdVectorType& EquationId,
-        ProcessInfo& CurrentProcessInfo)
+        const ProcessInfo& CurrentProcessInfo) override
     {
-        mrScheme1.Condition_Calculate_LHS_Contribution(rCurrentCondition,LHS_Contribution, EquationId, CurrentProcessInfo);
-        mrScheme2.Condition_Calculate_LHS_Contribution(rCurrentCondition,LHS_Contribution, EquationId, CurrentProcessInfo);
+        mrScheme1.CalculateLHSContribution(rCurrentCondition,LHS_Contribution, EquationId, CurrentProcessInfo);
+        mrScheme2.CalculateLHSContribution(rCurrentCondition,LHS_Contribution, EquationId, CurrentProcessInfo);
     }
 
-    virtual void Condition_EquationId(
-        Condition::Pointer rCurrentCondition,
+    void EquationId(
+        const Condition& rCurrentCondition,
         Element::EquationIdVectorType& EquationId,
-        ProcessInfo& CurrentProcessInfo)
+        const ProcessInfo& CurrentProcessInfo) override
     {
-        mrScheme1.Condition_EquationId(rCurrentCondition,EquationId,CurrentProcessInfo);
-        mrScheme2.Condition_EquationId(rCurrentCondition,EquationId,CurrentProcessInfo);
+        mrScheme1.EquationId(rCurrentCondition,EquationId,CurrentProcessInfo);
+        mrScheme2.EquationId(rCurrentCondition,EquationId,CurrentProcessInfo);
     }
 
     /** Function that returns the list of Degrees of freedom to be
     assembled in the system for a Given Element
     */
-    virtual void GetElementalDofList(
-        Element::Pointer rCurrentElement,
+    void GetDofList(
+        const Element& rCurrentElement,
         Element::DofsVectorType& ElementalDofList,
-        ProcessInfo& CurrentProcessInfo)
+        const ProcessInfo& CurrentProcessInfo) override
     {
-        mrScheme1.GetElementalDofList(rCurrentElement,ElementalDofList,CurrentProcessInfo);
-        mrScheme2.GetElementalDofList(rCurrentElement,ElementalDofList,CurrentProcessInfo);
+        mrScheme1.GetDofList(rCurrentElement,ElementalDofList,CurrentProcessInfo);
+        mrScheme2.GetDofList(rCurrentElement,ElementalDofList,CurrentProcessInfo);
     }
 
     /** Function that returns the list of Degrees of freedom to be
     assembled in the system for a Given Element
     */
-    virtual void GetConditionDofList(
-        Condition::Pointer rCurrentCondition,
+    void GetDofList(
+        const Condition& rCurrentCondition,
         Element::DofsVectorType& ConditionDofList,
-        ProcessInfo& CurrentProcessInfo)
+        const ProcessInfo& CurrentProcessInfo) override
     {
-        mrScheme1.GetConditionDofList(rCurrentCondition,ConditionDofList,CurrentProcessInfo);
-        mrScheme2.GetConditionDofList(rCurrentCondition,ConditionDofList,CurrentProcessInfo);
+        mrScheme1.GetDofList(rCurrentCondition,ConditionDofList,CurrentProcessInfo);
+        mrScheme2.GetDofList(rCurrentCondition,ConditionDofList,CurrentProcessInfo);
     }
 
     /*@} */
