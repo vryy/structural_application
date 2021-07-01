@@ -676,7 +676,14 @@ namespace Kratos
     {
         if(mConstitutiveLawVector.size() > 0)
         {
-            if ( mConstitutiveLawVector[0]->Has( CURRENT_STRAIN_VECTOR ) )
+            int need_current_strain_vector = 0, tmp;
+            for ( unsigned int Point = 0; Point < mConstitutiveLawVector.size(); ++Point )
+            {
+                if (mConstitutiveLawVector[Point]->Has(CURRENT_STRAIN_VECTOR))
+                    ++need_current_strain_vector;
+            }
+
+            if ( need_current_strain_vector )
             {
                 std::vector<Vector> Values;
                 this->CalculateOnIntegrationPoints( CURRENT_STRAIN_VECTOR, Values, CurrentProcessInfo );
@@ -837,18 +844,25 @@ namespace Kratos
      */
     void KinematicLinear::FinalizeSolutionStep( const ProcessInfo& CurrentProcessInfo )
     {
-//        if(mConstitutiveLawVector.size() > 0)
-//        {
-//            if(mConstitutiveLawVector[0]->Has(CURRENT_STRAIN_VECTOR))
-//            {
-//                std::vector<Vector> Values;
-//                this->CalculateOnIntegrationPoints(CURRENT_STRAIN_VECTOR, Values, CurrentProcessInfo);
-//                for ( unsigned int Point = 0; Point < mConstitutiveLawVector.size(); ++Point )
-//                {
-//                    mConstitutiveLawVector[Point]->SetValue( CURRENT_STRAIN_VECTOR, Values[Point], CurrentProcessInfo );
-//                }
-//            }
-//        }
+        if(mConstitutiveLawVector.size() > 0)
+        {
+            int need_current_strain_vector = 0, tmp;
+            for ( unsigned int Point = 0; Point < mConstitutiveLawVector.size(); ++Point )
+            {
+                if (mConstitutiveLawVector[Point]->Has(CURRENT_STRAIN_VECTOR))
+                    ++need_current_strain_vector;
+            }
+
+            if ( need_current_strain_vector )
+            {
+                std::vector<Vector> Values;
+                this->CalculateOnIntegrationPoints( CURRENT_STRAIN_VECTOR, Values, CurrentProcessInfo );
+                for ( unsigned int Point = 0; Point < mConstitutiveLawVector.size(); ++Point )
+                {
+                    mConstitutiveLawVector[Point]->SetValue( CURRENT_STRAIN_VECTOR, Values[Point], CurrentProcessInfo );
+                }
+            }
+        }
 
         int need_shape_function = 0, tmp;
         for ( unsigned int Point = 0; Point < mConstitutiveLawVector.size(); ++Point )
