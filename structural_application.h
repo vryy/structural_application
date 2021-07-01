@@ -76,8 +76,16 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
     #include "custom_elements/beam_element.h"
     #include "custom_elements/kinematic_linear.h"
     #include "custom_elements/total_lagrangian.h"
-    #include "custom_conditions/line_force.h"
+    #include "custom_conditions/pointforce3D.h"
+    #include "custom_conditions/pointforce2D.h"
+    #include "custom_conditions/pointmoment3D.h"
+    #include "custom_conditions/face2D.h"
+    #include "custom_conditions/face3D.h"
+    #include "custom_conditions/face_pressure3D.h"
+    #include "custom_conditions/face_pressure3D_total_lagrangian.h"
     #include "custom_conditions/faceforce3D.h"
+    #include "custom_conditions/line_force.h"
+    #include "custom_conditions/line_pressure.h"
 #else
     #include "custom_elements/total_lagrangian.h"
     //#include "custom_elements/linear_incompresible_element.h"
@@ -102,7 +110,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
     #include "custom_elements/ebst_vel.h"
     #include "custom_elements/eas_element_q4e4.h"
 
-    #include "custom_conditions/pointforce3D.h"
     #include "custom_conditions/node_tying_lagrange.h"
     #include "custom_conditions/node_tying_lagrange_z.h"
     #include "custom_conditions/face2D.h"
@@ -270,6 +277,37 @@ private:
     const KinematicLinear mKinematicLinear3D6N;
     const KinematicLinear mKinematicLinear3D15N;
 
+    const PointForce2D  mPointForce2D;
+    const PointForce3D  mPointForce3D;
+    const PointMoment3D mPointMoment3D;
+    const Face2D  mFace2D;
+    const Face3D  mFace3D3N;
+    const Face3D  mFace3D6N;
+    const Face3D  mFace3D4N;
+    const Face3D  mFace3D8N;
+    const Face3D  mFace3D9N;
+    const FacePressure3D  mFacePressure3D3N;
+    const FacePressure3D  mFacePressure3D6N;
+    const FacePressure3D  mFacePressure3D4N;
+    const FacePressure3D  mFacePressure3D8N;
+    const FacePressure3D  mFacePressure3D9N;
+    const FacePressure3DTotalLagrangian  mFacePressureTotalLagrangian3D3N;
+    const FacePressure3DTotalLagrangian  mFacePressureTotalLagrangian3D6N;
+    const FacePressure3DTotalLagrangian  mFacePressureTotalLagrangian3D4N;
+    const FacePressure3DTotalLagrangian  mFacePressureTotalLagrangian3D8N;
+    const FacePressure3DTotalLagrangian  mFacePressureTotalLagrangian3D9N;
+    const LineForce mLineForce2D2N;
+    const LineForce mLineForce2D3N;
+    const LineForce mLineForce3D2N;
+    const LineForce mLineForce3D3N;
+    const LinePressure mLinePressure2D2N;
+    const LinePressure mLinePressure2D3N;
+    const FaceForce3D mFaceForce3D3N;
+    const FaceForce3D mFaceForce3D6N;
+    const FaceForce3D mFaceForce3D4N;
+    const FaceForce3D mFaceForce3D8N;
+    const FaceForce3D mFaceForce3D9N;
+
     #else
 
     const CrisfieldTrussElement mCrisfieldTrussElement3D2N;
@@ -303,7 +341,7 @@ private:
     const TotalLagrangian mTotalLagrangian3D8N;
     const TotalLagrangian mTotalLagrangian3D20N;
     const TotalLagrangian mTotalLagrangian3D27N;
-	
+
     const MixedLagrangian mMixedLagrangian2D3N;
     const MixedLagrangian mMixedLagrangian2D4N;
     const MixedLagrangian mMixedLagrangian2D6N;
@@ -459,4 +497,4 @@ private:
 }; // Class KratosStructuralApplication
 ///@}
 }  // namespace Kratos.
-#endif // KRATOS_STRUCTURAL_APPLICATION_H_INCLUDED  defined 
+#endif // KRATOS_STRUCTURAL_APPLICATION_H_INCLUDED  defined

@@ -3529,10 +3529,14 @@ public:
                 }
                 else if (TFrame == 0)
                 {
+                    #ifdef SD_APP_FORWARD_COMPATIBILITY
+                    is_inside = (*it)->GetGeometry().IsInside( newNode, rResult ); // TODO: remove when the geometry add IsInside with DeltaPosition
+                    #else
                     Matrix DeltaPosition((*it)->GetGeometry().size(), 3);
                     for ( unsigned int node = 0; node < (*it)->GetGeometry().size(); ++node )
                         noalias( row( DeltaPosition, node ) ) = (*it)->GetGeometry()[node].Coordinates() - (*it)->GetGeometry()[node].GetInitialPosition();
                     is_inside = (*it)->GetGeometry().IsInside( newNode, rResult, DeltaPosition );
+                    #endif
                 }
 
 /*                KRATOS_WATCH(is_inside)*/

@@ -1,6 +1,6 @@
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
-message("**** configuring KratosStructuralApplication ****")
+message("**** CMakeLists3.txt: configuring KratosStructuralApplication ****")
 
 ################### PYBIND11
 include(pybind11Tools)
@@ -11,14 +11,26 @@ include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/.. )
 add_definitions(-DSD_APP_FORWARD_COMPATIBILITY)
 
 ## Structural Core sources
-file(GLOB_RECURSE KRATOS_STRUCTURAL_APPLICATION_CORE
+set(KRATOS_STRUCTURAL_APPLICATION_CORE
     ${CMAKE_CURRENT_SOURCE_DIR}/structural_application.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_python3/legacy_structural_app_vars.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_python3/structural_application_variables3.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/line_force.cpp
+
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/pointforce2D.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/pointmoment3D.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/pointforce3D.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/face2D.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/face3D.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/face_pressure3D.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/face_pressure3D_total_lagrangian.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/faceforce3D.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/line_force.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/line_pressure.cpp
+
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/pile_kinematic_linear.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/tip_condition.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/foundation_condition.cpp
+
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/crisfield_truss_element.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/truss_element.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/beam_element.cpp
@@ -27,7 +39,8 @@ file(GLOB_RECURSE KRATOS_STRUCTURAL_APPLICATION_CORE
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/eas_element_q4e4.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/kinematic_linear.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/total_lagrangian.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/constitutive_laws/dummy_consitutive_law.cpp
+
+    ${CMAKE_CURRENT_SOURCE_DIR}/constitutive_laws/dummy_constitutive_law.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/constitutive_laws/plane_strain.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/constitutive_laws/plane_stress.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/constitutive_laws/isotropic_3d.cpp
@@ -39,10 +52,11 @@ if(${KRATOS_BUILD_TESTING} MATCHES ON)
 endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 
 ## Structural python interface sources
-file(GLOB_RECURSE KRATOS_STRUCTURAL_APPLICATION_PYTHON_INTERFACE
+set(KRATOS_STRUCTURAL_APPLICATION_PYTHON_INTERFACE
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_python3/add_constitutive_laws_to_python.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_python3/add_custom_utilities_to_python.cpp
-    #${CMAKE_CURRENT_SOURCE_DIR}/custom_python3/add_custom_processes_to_python.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python3/add_custom_processes_to_python.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python3/add_custom_strategies_to_python.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_python3/structural_python_application.cpp
 )
 
@@ -53,8 +67,14 @@ set_target_properties(KratosStructuralCore PROPERTIES COMPILE_DEFINITIONS "STRUC
 ###############################################################
 ## define library Kratos which defines the basic python interface
 pybind11_add_module(KratosStructuralApplication MODULE THIN_LTO ${KRATOS_STRUCTURAL_APPLICATION_PYTHON_INTERFACE})
-target_link_libraries(KratosStructuralApplication PRIVATE KratosStructuralCore)
+target_link_libraries(KratosStructuralApplication PUBLIC KratosStructuralCore)
 set_target_properties(KratosStructuralApplication PROPERTIES PREFIX "")
+
+# Set batch size in the unity build
+IF(CMAKE_UNITY_BUILD MATCHES ON)
+    set_target_properties(KratosStructuralCore PROPERTIES UNITY_BUILD_BATCH_SIZE ${KRATOS_UNITY_BUILD_BATCH_SIZE})
+    set_target_properties(KratosStructuralApplication PROPERTIES UNITY_BUILD_BATCH_SIZE ${KRATOS_UNITY_BUILD_BATCH_SIZE})
+ENDIF(CMAKE_UNITY_BUILD MATCHES ON)
 
 # changing the .dll suffix to .pyd (Windows)
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
@@ -76,13 +96,11 @@ endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 kratos_python_install(${INSTALL_PYTHON_USING_LINKS} ${CMAKE_CURRENT_SOURCE_DIR}/StructuralApplication3.py KratosMultiphysics/StructuralApplication/__init__.py )
 
 # Install python files
-get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
-kratos_python_install_directory(${INSTALL_PYTHON_USING_LINKS} ${CMAKE_CURRENT_SOURCE_DIR}/python_scripts3 KratosMultiphysics/${CURRENT_DIR_NAME} )
+kratos_python_install_directory(${INSTALL_PYTHON_USING_LINKS} ${CMAKE_CURRENT_SOURCE_DIR}/python_scripts3 KratosMultiphysics/StructuralApplication )
 
 # Kratos Testing. Install everything except sources to ensure that reference and configuration files are copied.
 if(${INSTALL_TESTING_FILES} MATCHES ON )
-    get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
-    install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests_python3 DESTINATION applications/${CURRENT_DIR_NAME}
+    install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests_python3 DESTINATION applications/StructuralApplication
         PATTERN "*.git" EXCLUDE
         PATTERN "*.c" EXCLUDE
         PATTERN "*.h" EXCLUDE

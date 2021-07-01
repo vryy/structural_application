@@ -129,12 +129,12 @@ void Push_Back_Constitutive_Laws( MaterialsContainer& ThisMaterialsContainer,
 
 void StructuralApplication_AddConstitutiveLawsToPython(pybind11::module& m)
 {
-    class_< MaterialsContainer >( m, "MaterialsContainer" )
-    .def( init<>() )
-    .def( "PushBack", Push_Back_Constitutive_Laws )
-    ;
+    // class_< MaterialsContainer >( m, "MaterialsContainer" )
+    // .def( init<>() )
+    // .def( "PushBack", Push_Back_Constitutive_Laws )
+    // ;
 
-    class_< DummyConstitutiveLaw, ConstitutiveLawBaseType >
+    class_< DummyConstitutiveLaw, DummyConstitutiveLaw::Pointer, ConstitutiveLawBaseType >
     ( m, "DummyConstitutiveLaw" )
     .def( init<>() )
     ;
@@ -150,12 +150,12 @@ void StructuralApplication_AddConstitutiveLawsToPython(pybind11::module& m)
     // // .def("Clone",              &Isotropic2D::Clone)
     // ;
 
-    class_< PlaneStrain, ConstitutiveLawBaseType >
+    class_< PlaneStrain, PlaneStrain::Pointer, ConstitutiveLawBaseType >
     ( m, "PlaneStrain" )
     .def( init<>() )
     ;
 
-    class_< PlaneStress, ConstitutiveLawBaseType >
+    class_< PlaneStress, PlaneStress::Pointer, ConstitutiveLawBaseType >
     ( m, "PlaneStress" )
     .def( init<>() )
     ;
@@ -173,7 +173,7 @@ void StructuralApplication_AddConstitutiveLawsToPython(pybind11::module& m)
     // .def( init<>() )
     // ;
 
-    class_< Isotropic3D, ConstitutiveLawBaseType >
+    class_< Isotropic3D, Isotropic3D::Pointer, ConstitutiveLawBaseType >
     ( m, "Isotropic3D" )
     .def( init<>() )
     ;

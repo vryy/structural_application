@@ -44,9 +44,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 //
 //   Project Name:        Kratos
-//   Last Modified by:    $Author: anonymous $
-//   Date:                $Date: 2008-10-23 14:27:01 $
-//   Revision:            $Revision: 1.20 $
+//   Last Modified by:    $Author: hbui $
+//   Date:                $Date: 3/6/2021 $
+//   Revision:            $Revision: 1.0 $
 //
 //
 
@@ -59,12 +59,13 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // Project includes
 #include "custom_python3/add_custom_utilities_to_python.h"
 #include "includes/define.h"
-#include "containers/variable_component.h"
-#include "containers/vector_component_adaptor.h"
 #include "custom_utilities/deactivation_utility.h"
-// #include "custom_utilities/variable_transfer_utility.h"
-// #include "custom_utilities/variable_projection_utility.h"
-// #include "custom_utilities/variable_advanced_transfer_utility.h"
+#include "custom_utilities/variable_transfer_utility.h"
+#include "custom_utilities/variable_utility.h"
+#include "custom_utilities/variable_projection_utility.h"
+#include "custom_utilities/variable_interpolation_utility.h"
+#include "custom_utilities/variable_binning_interpolation_utility.h"
+// #include "custom_utilities/variable_bvh_interpolation_utility.h"
 
 // #ifdef _OPENMP
 // #include "custom_utilities/parallel_variable_transfer_utility.h"
@@ -198,235 +199,288 @@ using namespace pybind11;
 //     );
 // }
 
-// void DoubleTransferVariablesToNodes(VariableTransferUtility& dummy,
-//         ModelPart& model_part, Variable<double>& rThisVariable)
-// {
-//     dummy.TransferVariablesToNodes(model_part, rThisVariable);
-// }
+void DoubleTransferVariablesToNodes(VariableTransferUtility& dummy,
+        ModelPart& model_part, Variable<double>& rThisVariable)
+{
+    dummy.TransferVariablesToNodes(model_part, rThisVariable);
+}
 
-// void DoubleTransferVariablesToNodesForElementsAsList(VariableTransferUtility& dummy,
-//         ModelPart& model_part, pybind11::list& listElements, Variable<double>& rThisVariable)
-// {
-//     ModelPart::ElementsContainerType rElements;
-//     for (pybind11::handle obj : listElements)
-//         rElements.push_back(obj.cast<Element::Pointer>());
-//     dummy.TransferVariablesToNodes(model_part, rElements, rThisVariable);
-// }
+void DoubleTransferVariablesToNodesForElements(VariableTransferUtility& dummy,
+        ModelPart& model_part, ModelPart::ElementsContainerType& rElements, Variable<double>& rThisVariable)
+{
+    dummy.TransferVariablesToNodes(model_part, rElements, rThisVariable);
+}
 
-// void Array1DTransferVariablesToNodes(VariableTransferUtility& dummy,
-//         ModelPart& model_part, Variable<array_1d<double, 3> >& rThisVariable)
-// {
-//     dummy.TransferVariablesToNodes(model_part, rThisVariable);
-// }
+void DoubleTransferVariablesToNodesForElementsAsList(VariableTransferUtility& dummy,
+        ModelPart& model_part, pybind11::list& listElements, Variable<double>& rThisVariable)
+{
+    ModelPart::ElementsContainerType rElements;
+    for (pybind11::handle obj : listElements)
+        rElements.push_back(obj.cast<Element::Pointer>());
+    dummy.TransferVariablesToNodes(model_part, rElements, rThisVariable);
+}
 
-// void Array1DTransferVariablesToNodesForElements(VariableTransferUtility& dummy,
-//         ModelPart& model_part, ModelPart::ElementsContainerType& rElements, Variable<array_1d<double, 3> >& rThisVariable)
-// {
-//     dummy.TransferVariablesToNodes(model_part, rElements, rThisVariable);
-// }
+void Array1DTransferVariablesToNodes(VariableTransferUtility& dummy,
+        ModelPart& model_part, Variable<array_1d<double, 3> >& rThisVariable)
+{
+    dummy.TransferVariablesToNodes(model_part, rThisVariable);
+}
 
-// void Array1DTransferVariablesToNodesForElementsAsList(VariableTransferUtility& dummy,
-//         ModelPart& model_part, pybind11::list& listElements, Variable<array_1d<double, 3> >& rThisVariable)
-// {
-//     ModelPart::ElementsContainerType rElements;
-//     for (pybind11::handle obj : listElements)
-//         rElements.push_back(obj.cast<Element::Pointer>());
-//     dummy.TransferVariablesToNodes(model_part, rElements, rThisVariable);
-// }
+void Array1DTransferVariablesToNodesForElements(VariableTransferUtility& dummy,
+        ModelPart& model_part, ModelPart::ElementsContainerType& rElements, Variable<array_1d<double, 3> >& rThisVariable)
+{
+    dummy.TransferVariablesToNodes(model_part, rElements, rThisVariable);
+}
 
-// void Array1DTransferVariablesToNodesForConditions(VariableTransferUtility& dummy,
-//         ModelPart& model_part, ModelPart::ConditionsContainerType& rConditions, Variable<array_1d<double, 3> >& rThisVariable)
-// {
-//     dummy.TransferVariablesToNodes(model_part, rConditions, rThisVariable);
-// }
+void Array1DTransferVariablesToNodesForElementsAsList(VariableTransferUtility& dummy,
+        ModelPart& model_part, pybind11::list& listElements, Variable<array_1d<double, 3> >& rThisVariable)
+{
+    ModelPart::ElementsContainerType rElements;
+    for (pybind11::handle obj : listElements)
+        rElements.push_back(obj.cast<Element::Pointer>());
+    dummy.TransferVariablesToNodes(model_part, rElements, rThisVariable);
+}
 
-// void Array1DTransferVariablesToNodesForConditionsAsList(VariableTransferUtility& dummy,
-//         ModelPart& model_part, pybind11::list& listConditions, Variable<array_1d<double, 3> >& rThisVariable)
-// {
-//     ModelPart::ConditionsContainerType rConditions;
-//     for (pybind11::handle obj : listConditions)
-//         rConditions.push_back(obj.cast<Condition::Pointer>());
-//     dummy.TransferVariablesToNodes(model_part, rConditions, rThisVariable);
-// }
+void Array1DTransferVariablesToNodesForConditions(VariableTransferUtility& dummy,
+        ModelPart& model_part, ModelPart::ConditionsContainerType& rConditions, Variable<array_1d<double, 3> >& rThisVariable)
+{
+    dummy.TransferVariablesToNodes(model_part, rConditions, rThisVariable);
+}
 
-// void VectorTransferVariablesToNodes(VariableTransferUtility& dummy,
-//         ModelPart& model_part, Variable<Vector>& rThisVariable)
-// {
-//     dummy.TransferVariablesToNodes(model_part, rThisVariable);
-// }
+void Array1DTransferVariablesToNodesForConditionsAsList(VariableTransferUtility& dummy,
+        ModelPart& model_part, pybind11::list& listConditions, Variable<array_1d<double, 3> >& rThisVariable)
+{
+    ModelPart::ConditionsContainerType rConditions;
+    for (pybind11::handle obj : listConditions)
+        rConditions.push_back(obj.cast<Condition::Pointer>());
+    dummy.TransferVariablesToNodes(model_part, rConditions, rThisVariable);
+}
 
-// void VectorTransferVariablesToNodesComponents(VariableTransferUtility& dummy,
-//         ModelPart& model_part, Variable<Vector>& rThisVariable, const std::size_t& ncomponents)
-// {
-//     dummy.TransferVariablesToNodes(model_part, rThisVariable, ncomponents);
-// }
+void VectorTransferVariablesToNodes(VariableTransferUtility& dummy,
+        ModelPart& model_part, Variable<Vector>& rThisVariable)
+{
+    dummy.TransferVariablesToNodes(model_part, rThisVariable);
+}
 
-// void VectorTransferVariablesToNodesComponentsForElements(VariableTransferUtility& dummy,
-//         ModelPart& model_part, ModelPart::ElementsContainerType& rElements, Variable<Vector>& rThisVariable, const std::size_t& ncomponents)
-// {
-//     dummy.TransferVariablesToNodes(model_part, rElements, rThisVariable, ncomponents);
-// }
+void VectorTransferVariablesToNodesComponents(VariableTransferUtility& dummy,
+        ModelPart& model_part, Variable<Vector>& rThisVariable, const std::size_t& ncomponents)
+{
+    dummy.TransferVariablesToNodes(model_part, rThisVariable, ncomponents);
+}
 
-// void VectorTransferVariablesToNodesComponentsForElementsAsList(VariableTransferUtility& dummy,
-//         ModelPart& model_part, pybind11::list& listElements, Variable<Vector>& rThisVariable, const std::size_t& ncomponents)
-// {
-//     ModelPart::ElementsContainerType rElements;
-//     for (pybind11::handle obj : listElements)
-//         rElements.push_back(obj.cast<Element::Pointer>());
-//     dummy.TransferVariablesToNodes(model_part, rElements, rThisVariable, ncomponents);
-// }
+void VectorTransferVariablesToNodesComponentsForElements(VariableTransferUtility& dummy,
+        ModelPart& model_part, ModelPart::ElementsContainerType& rElements, Variable<Vector>& rThisVariable, const std::size_t& ncomponents)
+{
+    dummy.TransferVariablesToNodes(model_part, rElements, rThisVariable, ncomponents);
+}
 
-// void VectorTransferVariablesToNodesComponentsForConditions(VariableTransferUtility& dummy,
-//         ModelPart& model_part, ModelPart::ConditionsContainerType& rConditions, Variable<Vector>& rThisVariable, const std::size_t& ncomponents)
-// {
-//     dummy.TransferVariablesToNodes(model_part, rConditions, rThisVariable, ncomponents);
-// }
+void VectorTransferVariablesToNodesComponentsForElementsAsList(VariableTransferUtility& dummy,
+        ModelPart& model_part, pybind11::list& listElements, Variable<Vector>& rThisVariable, const std::size_t& ncomponents)
+{
+    ModelPart::ElementsContainerType rElements;
+    for (pybind11::handle obj : listElements)
+        rElements.push_back(obj.cast<Element::Pointer>());
+    dummy.TransferVariablesToNodes(model_part, rElements, rThisVariable, ncomponents);
+}
 
-// void VectorTransferVariablesToNodesComponentsForConditionsAsList(VariableTransferUtility& dummy,
-//         ModelPart& model_part, pybind11::list& listConditions, Variable<Vector>& rThisVariable, const std::size_t& ncomponents)
-// {
-//     ModelPart::ConditionsContainerType rConditions;
-//     for (pybind11::handle obj : listConditions)
-//         rConditions.push_back(obj.cast<Condition::Pointer>());
-//     dummy.TransferVariablesToNodes(model_part, rConditions, rThisVariable, ncomponents);
-// }
+void VectorTransferVariablesToNodesComponentsForConditions(VariableTransferUtility& dummy,
+        ModelPart& model_part, ModelPart::ConditionsContainerType& rConditions, Variable<Vector>& rThisVariable, const std::size_t& ncomponents)
+{
+    dummy.TransferVariablesToNodes(model_part, rConditions, rThisVariable, ncomponents);
+}
 
-// pybind11::list DoubleComputeExtrapolatedNodalValues(VariableTransferUtility& dummy,
-//         Element& source_element, Variable<double>& rThisVariable,
-//         const ProcessInfo& CurrentProcessInfo)
-// {
-//     std::vector<double> values;
-//     dummy.ComputeExtrapolatedNodalValues(values, source_element, rThisVariable, CurrentProcessInfo);
-//     pybind11::list output;
-//     for (std::size_t i = 0; i < values.size(); ++i)
-//         output.append(values[i]);
-//     return output;
-// }
+void VectorTransferVariablesToNodesComponentsForConditionsAsList(VariableTransferUtility& dummy,
+        ModelPart& model_part, pybind11::list& listConditions, Variable<Vector>& rThisVariable, const std::size_t& ncomponents)
+{
+    ModelPart::ConditionsContainerType rConditions;
+    for (pybind11::handle obj : listConditions)
+        rConditions.push_back(obj.cast<Condition::Pointer>());
+    dummy.TransferVariablesToNodes(model_part, rConditions, rThisVariable, ncomponents);
+}
 
-// pybind11::list Array1DComputeExtrapolatedNodalValues(VariableTransferUtility& dummy,
-//         Element& source_element, Variable<array_1d<double, 3> >& rThisVariable,
-//         const ProcessInfo& CurrentProcessInfo)
-// {
-//     std::vector<array_1d<double, 3> > values;
-//     dummy.ComputeExtrapolatedNodalValues(values, source_element, rThisVariable, CurrentProcessInfo);
-//     pybind11::list output;
-//     for (std::size_t i = 0; i < values.size(); ++i)
-//         output.append(values[i]);
-//     return output;
-// }
+void DoubleTransferVariablesToNode(VariableTransferUtility& dummy,
+        ModelPart::ElementsContainerType& rElements, Variable<double>& rThisVariable, Element::GeometryType::PointType& rNode)
+{
+    dummy.TransferVariablesToNode(rElements, rThisVariable, rNode);
+}
 
-// pybind11::list VectorComputeExtrapolatedNodalValues(VariableTransferUtility& dummy,
-//         Element& source_element, Variable<Vector>& rThisVariable,
-//         const ProcessInfo& CurrentProcessInfo, const std::size_t& ncomponents)
-// {
-//     std::vector<Vector> values;
-//     dummy.ComputeExtrapolatedNodalValues(values, source_element, rThisVariable, CurrentProcessInfo, ncomponents);
-//     pybind11::list output;
-//     for (std::size_t i = 0; i < values.size(); ++i)
-//         output.append(values[i]);
-//     return output;
-// }
+void Array1DTransferVariablesToNode(VariableTransferUtility& dummy,
+        ModelPart::ElementsContainerType& rElements, Variable<array_1d<double, 3> >& rThisVariable, Element::GeometryType::PointType& rNode)
+{
+    dummy.TransferVariablesToNode(rElements, rThisVariable, rNode);
+}
 
-// void DoubleTransferVariablesToGaussPointsFromNodalValues(VariableTransferUtility& dummy,
-//         pybind11::list& list_values, Element& target_element, Variable<double>& rThisVariable,
-//         const ProcessInfo& CurrentProcessInfo)
-// {
-//     std::vector<double> values;
-//     for (pybind11::handle obj : list_values)
-//         values.push_back(obj.cast<double>());
-//     dummy.TransferVariablesToGaussPoints(values, target_element, rThisVariable, CurrentProcessInfo);
-// }
+pybind11::list DoubleComputeExtrapolatedNodalValues(VariableTransferUtility& dummy,
+        Element& source_element, Variable<double>& rThisVariable,
+        const ProcessInfo& CurrentProcessInfo)
+{
+    std::vector<double> values;
+    dummy.ComputeExtrapolatedNodalValues(values, source_element, rThisVariable, CurrentProcessInfo);
+    pybind11::list output;
+    for (std::size_t i = 0; i < values.size(); ++i)
+        output.append(values[i]);
+    return output;
+}
 
-// void Array1DTransferVariablesToGaussPointsFromNodalValues(VariableTransferUtility& dummy,
-//         pybind11::list& list_values, Element& target_element, Variable<array_1d<double, 3> >& rThisVariable,
-//         const ProcessInfo& CurrentProcessInfo)
-// {
-//     std::vector<array_1d<double, 3> > values;
-//     for (pybind11::handle obj : list_values)
-//         values.push_back(obj.cast<array_1d<double, 3> >());
-//     dummy.TransferVariablesToGaussPoints(values, target_element, rThisVariable, CurrentProcessInfo);
-// }
+pybind11::list Array1DComputeExtrapolatedNodalValues(VariableTransferUtility& dummy,
+        Element& source_element, Variable<array_1d<double, 3> >& rThisVariable,
+        const ProcessInfo& CurrentProcessInfo)
+{
+    std::vector<array_1d<double, 3> > values;
+    dummy.ComputeExtrapolatedNodalValues(values, source_element, rThisVariable, CurrentProcessInfo);
+    pybind11::list output;
+    for (std::size_t i = 0; i < values.size(); ++i)
+        output.append(values[i]);
+    return output;
+}
 
-// void VectorTransferVariablesToGaussPointsFromNodalValues(VariableTransferUtility& dummy,
-//         pybind11::list& list_values, Element& target_element, Variable<Vector>& rThisVariable,
-//         const ProcessInfo& CurrentProcessInfo, const std::size_t& ncomponents)
-// {
-//     std::vector<Vector> values;
-//     for (pybind11::handle obj : list_values)
-//         values.push_back(obj.cast<Vector>());
-//     dummy.TransferVariablesToGaussPoints(values, target_element, rThisVariable, CurrentProcessInfo, ncomponents);
-// }
+pybind11::list VectorComputeExtrapolatedNodalValues(VariableTransferUtility& dummy,
+        Element& source_element, Variable<Vector>& rThisVariable,
+        const ProcessInfo& CurrentProcessInfo, const std::size_t& ncomponents)
+{
+    std::vector<Vector> values;
+    dummy.ComputeExtrapolatedNodalValues(values, source_element, rThisVariable, CurrentProcessInfo, ncomponents);
+    pybind11::list output;
+    for (std::size_t i = 0; i < values.size(); ++i)
+        output.append(values[i]);
+    return output;
+}
 
-// void DoubleTransferVariablesToGaussPoints(VariableTransferUtility& dummy,
-//         ModelPart& source_model_part, ModelPart& target_model_part, Variable<double>& rThisVariable)
-// {
-//     dummy.TransferVariablesToGaussPoints(source_model_part, target_model_part, rThisVariable);
-// }
+void DoubleTransferVariablesToGaussPointsFromNodalValues(VariableTransferUtility& dummy,
+        pybind11::list& list_values, Element& target_element, Variable<double>& rThisVariable,
+        const ProcessInfo& CurrentProcessInfo)
+{
+    std::vector<double> values;
+    for (pybind11::handle obj : list_values)
+        values.push_back(obj.cast<double>());
+    dummy.TransferVariablesToGaussPoints(values, target_element, rThisVariable, CurrentProcessInfo);
+}
 
-// void DoubleTransferVariablesToGaussPointsLocal(VariableTransferUtility& dummy,
-//         Element& source_element, Element& target_element, Variable<double>& rThisVariable,
-//         const ProcessInfo& CurrentProcessInfo)
-// {
-//     dummy.TransferVariablesToGaussPoints(source_element, target_element, rThisVariable, CurrentProcessInfo);
-// }
+void Array1DTransferVariablesToGaussPointsFromNodalValues(VariableTransferUtility& dummy,
+        pybind11::list& list_values, Element& target_element, Variable<array_1d<double, 3> >& rThisVariable,
+        const ProcessInfo& CurrentProcessInfo)
+{
+    std::vector<array_1d<double, 3> > values;
+    for (pybind11::handle obj : list_values)
+        values.push_back(obj.cast<array_1d<double, 3> >());
+    dummy.TransferVariablesToGaussPoints(values, target_element, rThisVariable, CurrentProcessInfo);
+}
 
-// void Array1DTransferVariablesToGaussPointsLocal(VariableTransferUtility& dummy,
-//         Element& source_element, Element& target_element, Variable<array_1d<double, 3> >& rThisVariable,
-//         const ProcessInfo& CurrentProcessInfo)
-// {
-//     dummy.TransferVariablesToGaussPoints(source_element, target_element, rThisVariable, CurrentProcessInfo);
-// }
+void VectorTransferVariablesToGaussPointsFromNodalValues(VariableTransferUtility& dummy,
+        pybind11::list& list_values, Element& target_element, Variable<Vector>& rThisVariable,
+        const ProcessInfo& CurrentProcessInfo, const std::size_t& ncomponents)
+{
+    std::vector<Vector> values;
+    for (pybind11::handle obj : list_values)
+        values.push_back(obj.cast<Vector>());
+    dummy.TransferVariablesToGaussPoints(values, target_element, rThisVariable, CurrentProcessInfo, ncomponents);
+}
 
-// void VectorTransferVariablesToGaussPoints(VariableTransferUtility& dummy,
-//         ModelPart& source_model_part, ModelPart& target_model_part, Variable<Vector>& rThisVariable)
-// {
-//     dummy.TransferVariablesToGaussPoints(source_model_part, target_model_part, rThisVariable);
-// }
+void DoubleTransferVariablesToGaussPoints(VariableTransferUtility& dummy,
+        ModelPart& source_model_part, ModelPart& target_model_part, Variable<double>& rThisVariable)
+{
+    dummy.TransferVariablesToGaussPoints(source_model_part, target_model_part, rThisVariable);
+}
 
-// void VectorTransferVariablesToGaussPointsLocal(VariableTransferUtility& dummy,
-//         Element& source_element, Element& target_element, Variable<Vector>& rThisVariable,
-//         const ProcessInfo& CurrentProcessInfo, const std::size_t& ncomponents)
-// {
-//     dummy.TransferVariablesToGaussPoints(source_element, target_element, rThisVariable, CurrentProcessInfo, ncomponents);
-// }
+void DoubleTransferVariablesToGaussPointsLocal(VariableTransferUtility& dummy,
+        Element& source_element, Element& target_element, Variable<double>& rThisVariable,
+        const ProcessInfo& CurrentProcessInfo)
+{
+    dummy.TransferVariablesToGaussPoints(source_element, target_element, rThisVariable, CurrentProcessInfo);
+}
 
-// void VectorTransferVariablesToGaussPointsElementComponents(VariableTransferUtility& dummy,
-//         ModelPart& source_model_part, Element::Pointer pTargetElement, Variable<Vector>& rThisVariable, std::size_t ncomponents)
-// {
-//     dummy.TransferVariablesToGaussPoints(source_model_part, pTargetElement, rThisVariable, ncomponents);
-// }
+void Array1DTransferVariablesToGaussPointsElements(VariableTransferUtility& dummy,
+        ModelPart::ElementsContainerType& source_elements,
+        ModelPart::ElementsContainerType& target_elements,
+        Variable<array_1d<double, 3> >& rThisVariable,
+        const ProcessInfo& CurrentProcessInfo)
+{
+    dummy.TransferVariablesToGaussPoints(source_elements, target_elements, rThisVariable, CurrentProcessInfo);
+}
 
-// void VectorTransferVariablesToGaussPointsElementComponentsIdentically(VariableTransferUtility& dummy,
-//         ModelPart& source_model_part, Element::Pointer pTargetElement, Variable<Vector>& rThisVariable, std::size_t ncomponents)
-// {
-//     dummy.TransferVariablesToGaussPointsIdentically(source_model_part, pTargetElement, rThisVariable, ncomponents);
-// }
+void Array1DTransferVariablesToGaussPoints(VariableTransferUtility& dummy,
+        ModelPart& source_model_part, ModelPart& target_model_part, Variable<array_1d<double, 3> >& rThisVariable)
+{
+    dummy.TransferVariablesToGaussPoints(source_model_part, target_model_part, rThisVariable);
+}
 
-// void DoubleTransferVariablesToGaussPointsElementComponentsIdentically(VariableTransferUtility& dummy,
-//         ModelPart::ElementsContainerType& source_elements, ModelPart::ElementsContainerType& target_elements,
-//         Variable<double>& rThisVariable, const ProcessInfo& CurrentProcessInfo)
-// {
-//     dummy.TransferVariablesToGaussPointsIdentically(source_elements, target_elements, rThisVariable, CurrentProcessInfo);
-// }
+void Array1DTransferVariablesToGaussPointsLocal(VariableTransferUtility& dummy,
+        Element& source_element, Element& target_element, Variable<array_1d<double, 3> >& rThisVariable,
+        const ProcessInfo& CurrentProcessInfo)
+{
+    dummy.TransferVariablesToGaussPoints(source_element, target_element, rThisVariable, CurrentProcessInfo);
+}
 
-// void VectorTransferVariablesToGaussPointsElementComponentsIdentically2(VariableTransferUtility& dummy,
-//         ModelPart::ElementsContainerType& source_elements, ModelPart::ElementsContainerType& target_elements,
-//         Variable<Vector>& rThisVariable, const ProcessInfo& CurrentProcessInfo)
-// {
-//     dummy.TransferVariablesToGaussPointsIdentically(source_elements, target_elements, rThisVariable, CurrentProcessInfo);
-// }
+void VectorTransferVariablesToGaussPoints(VariableTransferUtility& dummy,
+        ModelPart& source_model_part, ModelPart& target_model_part, Variable<Vector>& rThisVariable)
+{
+    dummy.TransferVariablesToGaussPoints(source_model_part, target_model_part, rThisVariable);
+}
 
-// void DoubleTransferVariablesBetweenMeshes(VariableTransferUtility& dummy,
-//         ModelPart& rSource, ModelPart& rTarget, Variable<double>& rThisVariable)
-// {
-//     dummy.TransferVariablesBetweenMeshes(rSource, rTarget, rThisVariable);
-// }
+void VectorTransferVariablesToGaussPointsFromElementsToElements(VariableTransferUtility& dummy,
+        ModelPart::ElementsContainerType& source_elements, ModelPart::ElementsContainerType& target_elements,
+        const ProcessInfo& CurrentProcessInfo, Variable<Vector>& rThisVariable)
+{
+    dummy.TransferVariablesToGaussPoints(source_elements, target_elements, CurrentProcessInfo, rThisVariable);
+}
 
-// void VectorTransferVariablesBetweenMeshes(VariableTransferUtility& dummy,
-//         ModelPart& rSource, ModelPart& rTarget, Variable<Kratos::Vector>& rThisVariable)
-// {
-//     dummy.TransferVariablesBetweenMeshes(rSource, rTarget, rThisVariable);
-// }
+void VectorTransferVariablesToGaussPointsComponents(VariableTransferUtility& dummy,
+        ModelPart& source_model_part, ModelPart& target_model_part, Variable<Vector>& rThisVariable, const std::size_t& ncomponents)
+{
+    dummy.TransferVariablesToGaussPoints(source_model_part, target_model_part, rThisVariable, ncomponents);
+}
+
+void VectorTransferVariablesToGaussPointsFromElementsToElementsComponents(VariableTransferUtility& dummy,
+        ModelPart::ElementsContainerType& source_elements, ModelPart::ElementsContainerType& target_elements,
+        const ProcessInfo& CurrentProcessInfo, Variable<Vector>& rThisVariable, const std::size_t& ncomponents)
+{
+    dummy.TransferVariablesToGaussPoints(source_elements, target_elements, CurrentProcessInfo, rThisVariable, ncomponents);
+}
+
+void VectorTransferVariablesToGaussPointsLocal(VariableTransferUtility& dummy,
+        Element& source_element, Element& target_element, Variable<Vector>& rThisVariable,
+        const ProcessInfo& CurrentProcessInfo, const std::size_t& ncomponents)
+{
+    dummy.TransferVariablesToGaussPoints(source_element, target_element, rThisVariable, CurrentProcessInfo, ncomponents);
+}
+
+void VectorTransferVariablesToGaussPointsElementComponents(VariableTransferUtility& dummy,
+        ModelPart& source_model_part, Element::Pointer pTargetElement, Variable<Vector>& rThisVariable, std::size_t ncomponents)
+{
+    dummy.TransferVariablesToGaussPoints(source_model_part, pTargetElement, rThisVariable, ncomponents);
+}
+
+void VectorTransferVariablesToGaussPointsElementComponentsIdentically(VariableTransferUtility& dummy,
+        ModelPart& source_model_part, Element::Pointer pTargetElement, Variable<Vector>& rThisVariable, std::size_t ncomponents)
+{
+    dummy.TransferVariablesToGaussPointsIdentically(source_model_part, pTargetElement, rThisVariable, ncomponents);
+}
+
+void DoubleTransferVariablesToGaussPointsElementComponentsIdentically(VariableTransferUtility& dummy,
+        ModelPart::ElementsContainerType& source_elements, ModelPart::ElementsContainerType& target_elements,
+        Variable<double>& rThisVariable, const ProcessInfo& CurrentProcessInfo)
+{
+    dummy.TransferVariablesToGaussPointsIdentically(source_elements, target_elements, rThisVariable, CurrentProcessInfo);
+}
+
+void VectorTransferVariablesToGaussPointsElementComponentsIdentically2(VariableTransferUtility& dummy,
+        ModelPart::ElementsContainerType& source_elements, ModelPart::ElementsContainerType& target_elements,
+        Variable<Vector>& rThisVariable, const ProcessInfo& CurrentProcessInfo)
+{
+    dummy.TransferVariablesToGaussPointsIdentically(source_elements, target_elements, rThisVariable, CurrentProcessInfo);
+}
+
+void DoubleTransferVariablesBetweenMeshes(VariableTransferUtility& dummy,
+        ModelPart& rSource, ModelPart& rTarget, Variable<double>& rThisVariable)
+{
+    dummy.TransferVariablesBetweenMeshes(rSource, rTarget, rThisVariable);
+}
+
+void VectorTransferVariablesBetweenMeshes(VariableTransferUtility& dummy,
+        ModelPart& rSource, ModelPart& rTarget, Variable<Kratos::Vector>& rThisVariable)
+{
+    dummy.TransferVariablesBetweenMeshes(rSource, rTarget, rThisVariable);
+}
 
 void ListDofs(DofUtility& dummy, ModelPart::DofsArrayType& rDofSet, std::size_t EquationSystemSize)
 {
@@ -548,75 +602,122 @@ void StructuralApplication_AddCustomUtilitiesToPython(pybind11::module& m)
     .def( "SetAssociatedElement", &SetAssociatedElement )
     ;
 
-    // void(VariableTransferUtility::*pointer_to_TransferPrestressIdentically)(ModelPart&, ModelPart&) = &VariableTransferUtility::TransferPrestressIdentically;
-    // void(VariableTransferUtility::*pointer_to_TransferPrestressIdenticallyForElement)(Element&, Element&, const ProcessInfo&) = &VariableTransferUtility::TransferPrestressIdentically;
+    void(VariableTransferUtility::*pointer_to_TransferPrestressIdentically)(ModelPart&, ModelPart&) = &VariableTransferUtility::TransferPrestressIdentically;
+    void(VariableTransferUtility::*pointer_to_TransferPrestressIdenticallyForElement)(Element&, Element&, const ProcessInfo&) = &VariableTransferUtility::TransferPrestressIdentically;
 
-    // class_<VariableTransferUtility, VariableTransferUtility::Pointer>
-    // (m, "VariableTransferUtility")
-    // .def(init<>())
-    // .def(init<VariableTransferUtility::LinearSolverType::Pointer>())
-    // .def( "TransferNodalVariables", &VariableTransferUtility::TransferNodalVariables )
-    // .def( "TransferNodalVariables", &VariableTransferUtility::TransferGeneralNodalVariables<Variable<double> > )
-    // .def( "TransferNodalVariables", &VariableTransferUtility::TransferGeneralNodalVariables<Variable<Vector> > )
-    // .def( "TransferConstitutiveLawVariables", &VariableTransferUtility::TransferConstitutiveLawVariables )
-    // .def( "TransferInSituStress", &VariableTransferUtility::TransferInSituStress )
-    // .def( "TransferPrestress", &VariableTransferUtility::TransferPrestress )
-    // .def( "TransferPrestressIdentically", pointer_to_TransferPrestressIdentically )
-    // .def( "TransferPrestressIdentically", pointer_to_TransferPrestressIdenticallyForElement )
-    // .def( "TransferSpecificVariable", &VariableTransferUtility::TransferSpecificVariable )
-    // .def( "TransferSpecificVariableWithComponents", &VariableTransferUtility::TransferSpecificVariableWithComponents )
-    // .def( "InitializeModelPart", &VariableTransferUtility::InitializeModelPart )
-    // .def("TransferVariablesToNodes", &DoubleTransferVariablesToNodes)
-    // .def("TransferVariablesToNodesForElements", &DoubleTransferVariablesToNodesForElementsAsList)
-    // .def("TransferVariablesToNodes", &Array1DTransferVariablesToNodes)
-    // .def("TransferVariablesToNodes", &Array1DTransferVariablesToNodesForElements)
-    // .def("TransferVariablesToNodesForElements", &Array1DTransferVariablesToNodesForElementsAsList)
-    // .def("TransferVariablesToNodes", &Array1DTransferVariablesToNodesForConditions)
-    // .def("TransferVariablesToNodesForConditions", &Array1DTransferVariablesToNodesForConditionsAsList)
-    // .def("TransferVariablesToNodes", &VectorTransferVariablesToNodes)
-    // .def("TransferVariablesToNodes", &VectorTransferVariablesToNodesComponents)
-    // .def("TransferVariablesToNodes", &VectorTransferVariablesToNodesComponentsForElements)
-    // .def("TransferVariablesToNodesForElements", &VectorTransferVariablesToNodesComponentsForElementsAsList)
-    // .def("TransferVariablesToNodes", &VectorTransferVariablesToNodesComponentsForConditions)
-    // .def("TransferVariablesToNodesForConditions", &VectorTransferVariablesToNodesComponentsForConditionsAsList)
-    // .def("ComputeExtrapolatedNodalValues", &DoubleComputeExtrapolatedNodalValues)
-    // .def("ComputeExtrapolatedNodalValues", &Array1DComputeExtrapolatedNodalValues)
-    // .def("ComputeExtrapolatedNodalValues", &VectorComputeExtrapolatedNodalValues)
-    // .def("TransferVariablesToGaussPoints", &DoubleTransferVariablesToGaussPoints)
-    // .def("TransferVariablesToGaussPoints", &DoubleTransferVariablesToGaussPointsLocal)
-    // .def("TransferVariablesToGaussPoints", &Array1DTransferVariablesToGaussPointsLocal)
-    // .def("TransferVariablesToGaussPoints", &VectorTransferVariablesToGaussPoints)
-    // .def("TransferVariablesToGaussPoints", &VectorTransferVariablesToGaussPointsLocal)
-    // .def("TransferVariablesToGaussPoints", &VectorTransferVariablesToGaussPointsElementComponents)
-    // .def("TransferVariablesToGaussPoints", &DoubleTransferVariablesToGaussPointsFromNodalValues)
-    // .def("TransferVariablesToGaussPoints", &Array1DTransferVariablesToGaussPointsFromNodalValues)
-    // .def("TransferVariablesToGaussPoints", &VectorTransferVariablesToGaussPointsFromNodalValues)
-    // .def("TransferVariablesToGaussPointsIdentically", &DoubleTransferVariablesToGaussPointsElementComponentsIdentically)
-    // .def("TransferVariablesToGaussPointsIdentically", &VectorTransferVariablesToGaussPointsElementComponentsIdentically)
-    // .def("TransferVariablesToGaussPointsIdentically", &VectorTransferVariablesToGaussPointsElementComponentsIdentically2)
-    // .def("TransferVariablesFromNodeToNode", &VariableTransferUtility::TransferVariablesFromNodeToNode<Variable<Vector> >)
-    // .def("TransferVariablesFromNodeToNode", &VariableTransferUtility::TransferVariablesFromNodeToNode<Variable<array_1d<double, 3> > >)
-    // .def("TransferVariablesFromNodeToNode", &VariableTransferUtility::TransferVariablesFromNodeToNode<Variable<double> >)
-    // .def("TransferVariablesBetweenMeshes", &DoubleTransferVariablesBetweenMeshes)
-    // .def("TransferVariablesBetweenMeshes", &VectorTransferVariablesBetweenMeshes)
+    class_<VariableTransferUtility, VariableTransferUtility::Pointer >
+    ( m, "VariableTransferUtility" )
+    .def( init<>() )
+    .def( init<VariableTransferUtility::LinearSolverType::Pointer>() )
+    .def( "TransferNodalVariables", &VariableTransferUtility::TransferNodalVariables )
+    .def( "TransferNodalVariables", &VariableTransferUtility::TransferGeneralNodalVariables<Variable<double> > )
+    .def( "TransferNodalVariables", &VariableTransferUtility::TransferGeneralNodalVariables<Variable<Vector> > )
+    .def( "TransferConstitutiveLawVariables", &VariableTransferUtility::TransferConstitutiveLawVariables )
+    .def( "TransferInSituStress", &VariableTransferUtility::TransferInSituStress )
+    .def( "TransferPrestress", &VariableTransferUtility::TransferPrestress )
+    .def( "TransferPrestressIdentically", pointer_to_TransferPrestressIdentically )
+    .def( "TransferPrestressIdentically", pointer_to_TransferPrestressIdenticallyForElement )
+    .def( "TransferSpecificVariable", &VariableTransferUtility::TransferSpecificVariable )
+    .def( "TransferSpecificVariableWithComponents", &VariableTransferUtility::TransferSpecificVariableWithComponents )
+    .def( "InitializeModelPart", &VariableTransferUtility::InitializeModelPart )
+    .def("TransferVariablesToNodes", &DoubleTransferVariablesToNodes)
+    .def("TransferVariablesToNodes", &DoubleTransferVariablesToNodesForElements)
+    .def("TransferVariablesToNodesForElements", &DoubleTransferVariablesToNodesForElementsAsList)
+    .def("TransferVariablesToNodes", &Array1DTransferVariablesToNodes)
+    .def("TransferVariablesToNodes", &Array1DTransferVariablesToNodesForElements)
+    .def("TransferVariablesToNodesForElements", &Array1DTransferVariablesToNodesForElementsAsList)
+    .def("TransferVariablesToNodes", &Array1DTransferVariablesToNodesForConditions)
+    .def("TransferVariablesToNodesForConditions", &Array1DTransferVariablesToNodesForConditionsAsList)
+    .def("TransferVariablesToNodes", &VectorTransferVariablesToNodes)
+    .def("TransferVariablesToNodes", &VectorTransferVariablesToNodesComponents)
+    .def("TransferVariablesToNodes", &VectorTransferVariablesToNodesComponentsForElements)
+    .def("TransferVariablesToNodesForElements", &VectorTransferVariablesToNodesComponentsForElementsAsList)
+    .def("TransferVariablesToNodes", &VectorTransferVariablesToNodesComponentsForConditions)
+    .def("TransferVariablesToNodesForConditions", &VectorTransferVariablesToNodesComponentsForConditionsAsList)
+    .def("ComputeExtrapolatedNodalValues", &DoubleComputeExtrapolatedNodalValues)
+    .def("ComputeExtrapolatedNodalValues", &Array1DComputeExtrapolatedNodalValues)
+    .def("ComputeExtrapolatedNodalValues", &VectorComputeExtrapolatedNodalValues)
+    .def("TransferVariablesToGaussPoints", &DoubleTransferVariablesToGaussPoints)
+    .def("TransferVariablesToGaussPoints", &DoubleTransferVariablesToGaussPointsLocal)
+    .def("TransferVariablesToGaussPoints", &Array1DTransferVariablesToGaussPointsElements)
+    .def("TransferVariablesToGaussPoints", &Array1DTransferVariablesToGaussPoints)
+    .def("TransferVariablesToGaussPoints", &Array1DTransferVariablesToGaussPointsLocal)
+    .def("TransferVariablesToGaussPoints", &VectorTransferVariablesToGaussPoints)
+    .def("TransferVariablesToGaussPoints", &VectorTransferVariablesToGaussPointsFromElementsToElements)
+    .def("TransferVariablesToGaussPoints", &VectorTransferVariablesToGaussPointsFromElementsToElementsComponents)
+    .def("TransferVariablesToGaussPoints", &VectorTransferVariablesToGaussPointsComponents)
+    .def("TransferVariablesToGaussPoints", &VectorTransferVariablesToGaussPointsLocal)
+    .def("TransferVariablesToGaussPoints", &VectorTransferVariablesToGaussPointsElementComponents)
+    .def("TransferVariablesToGaussPoints", &DoubleTransferVariablesToGaussPointsFromNodalValues)
+    .def("TransferVariablesToGaussPoints", &Array1DTransferVariablesToGaussPointsFromNodalValues)
+    .def("TransferVariablesToGaussPoints", &VectorTransferVariablesToGaussPointsFromNodalValues)
+    .def("TransferVariablesToGaussPointsIdentically", &DoubleTransferVariablesToGaussPointsElementComponentsIdentically)
+    .def("TransferVariablesToGaussPointsIdentically", &VectorTransferVariablesToGaussPointsElementComponentsIdentically)
+    .def("TransferVariablesToGaussPointsIdentically", &VectorTransferVariablesToGaussPointsElementComponentsIdentically2)
+    .def("TransferVariablesFromNodeToNode", &VariableTransferUtility::TransferVariablesFromNodeToNode<Variable<Vector> >)
+    .def("TransferVariablesFromNodeToNode", &VariableTransferUtility::TransferVariablesFromNodeToNode<Variable<array_1d<double, 3> > >)
+    .def("TransferVariablesFromNodeToNode", &VariableTransferUtility::TransferVariablesFromNodeToNode<Variable<double> >)
+    .def("TransferVariablesBetweenMeshes", &DoubleTransferVariablesBetweenMeshes)
+    .def("TransferVariablesBetweenMeshes", &VectorTransferVariablesBetweenMeshes)
+    .def("TransferVariablesToNode", &DoubleTransferVariablesToNode)
+    .def("TransferVariablesToNode", &Array1DTransferVariablesToNode)
+    ;
+
+    class_<VariableUtility, VariableUtility::Pointer >
+    ( m, "VariableUtility" )
+    .def( init<ModelPart::ElementsContainerType&>() )
+    // .add_property("EchoLevel", &VariableProjectionUtility::GetEchoLevel, &VariableProjectionUtility::SetEchoLevel)
+    ;
+
+    class_<VariableProjectionUtility, VariableProjectionUtility::Pointer, VariableUtility >
+    ( m, "VariableProjectionUtility" )
+    .def( init<ModelPart::ElementsContainerType&, VariableProjectionUtility::LinearSolverType::Pointer>() )
+    .def("TransferVariablesToNodes", &VariableProjectionUtility::TransferVariablesToNodes)
+    ;
+
+    void(VariableInterpolationUtility::*pointer_to_TransferVariablesToNodesDouble1)(ModelPart&, const Variable<double>&) = &VariableInterpolationUtility::TransferVariablesToNodes;
+    void(VariableInterpolationUtility::*pointer_to_TransferVariablesToNodesDouble2)(ModelPart::NodesContainerType&, const Variable<double>&) = &VariableInterpolationUtility::TransferVariablesToNodes;
+    void(VariableInterpolationUtility::*pointer_to_TransferVariablesToNodesArray1D1)(ModelPart&, const Variable<array_1d<double, 3> >&) = &VariableInterpolationUtility::TransferVariablesToNodes;
+    void(VariableInterpolationUtility::*pointer_to_TransferVariablesToNodesArray1D2)(ModelPart::NodesContainerType&, const Variable<array_1d<double, 3> >&) = &VariableInterpolationUtility::TransferVariablesToNodes;
+    void(VariableInterpolationUtility::*pointer_to_TransferVariablesToNodesVector1)(ModelPart&, const Variable<Vector>&, const std::size_t&) = &VariableInterpolationUtility::TransferVariablesToNodes;
+    void(VariableInterpolationUtility::*pointer_to_TransferVariablesToNodesVector2)(ModelPart::NodesContainerType&, const Variable<Vector>&, const std::size_t&) = &VariableInterpolationUtility::TransferVariablesToNodes;
+    void(VariableInterpolationUtility::*pointer_to_TransferVariablesToGaussPointsDouble1)(ModelPart&, const Variable<double>&) = &VariableInterpolationUtility::TransferVariablesToGaussPoints;
+    void(VariableInterpolationUtility::*pointer_to_TransferVariablesToGaussPointsDouble2)(ModelPart::ElementsContainerType&, const Variable<double>&, const ProcessInfo&) = &VariableInterpolationUtility::TransferVariablesToGaussPoints;
+    void(VariableInterpolationUtility::*pointer_to_TransferVariablesToGaussPointsArray1D1)(ModelPart&, const Variable<array_1d<double, 3> >&) = &VariableInterpolationUtility::TransferVariablesToGaussPoints;
+    void(VariableInterpolationUtility::*pointer_to_TransferVariablesToGaussPointsArray1D2)(ModelPart::ElementsContainerType&, const Variable<array_1d<double, 3> >&, const ProcessInfo&) = &VariableInterpolationUtility::TransferVariablesToGaussPoints;
+    void(VariableInterpolationUtility::*pointer_to_TransferVariablesToGaussPointsVector1)(ModelPart&, const Variable<Vector>&, std::size_t) = &VariableInterpolationUtility::TransferVariablesToGaussPoints;
+    void(VariableInterpolationUtility::*pointer_to_TransferVariablesToGaussPointsVector2)(ModelPart::ElementsContainerType&, const Variable<Vector>&, const ProcessInfo&, std::size_t) = &VariableInterpolationUtility::TransferVariablesToGaussPoints;
+    ModelPart::ElementsContainerType(VariableInterpolationUtility::*pointer_to_FindPotentialPartners)(const Element::GeometryType::PointType::PointType&) const = &VariableInterpolationUtility::FindPotentialPartners;
+    Element::Pointer(VariableInterpolationUtility::*pointer_to_SearchPartner)(const Element::GeometryType::PointType::PointType&, ModelPart::ElementsContainerType&) const = &VariableInterpolationUtility::SearchPartner;
+
+    class_<VariableInterpolationUtility, VariableInterpolationUtility::Pointer, VariableUtility >
+    ( m, "VariableInterpolationUtility" )
+    .def( init<ModelPart::ElementsContainerType&>() )
+    .def("FindPotentialPartners", pointer_to_FindPotentialPartners)
+    .def("SearchPartner", pointer_to_SearchPartner)
+    .def("TransferVariablesToNodes", pointer_to_TransferVariablesToNodesDouble1)
+    .def("TransferVariablesToNodes", pointer_to_TransferVariablesToNodesDouble2)
+    .def("TransferVariablesToNodes", pointer_to_TransferVariablesToNodesArray1D1)
+    .def("TransferVariablesToNodes", pointer_to_TransferVariablesToNodesArray1D2)
+    .def("TransferVariablesToNodes", pointer_to_TransferVariablesToNodesVector1)
+    .def("TransferVariablesToNodes", pointer_to_TransferVariablesToNodesVector2)
+    .def("TransferVariablesToGaussPoints", pointer_to_TransferVariablesToGaussPointsDouble1)
+    .def("TransferVariablesToGaussPoints", pointer_to_TransferVariablesToGaussPointsDouble2)
+    .def("TransferVariablesToGaussPoints", pointer_to_TransferVariablesToGaussPointsArray1D1)
+    .def("TransferVariablesToGaussPoints", pointer_to_TransferVariablesToGaussPointsArray1D2)
+    .def("TransferVariablesToGaussPoints", pointer_to_TransferVariablesToGaussPointsVector1)
+    .def("TransferVariablesToGaussPoints", pointer_to_TransferVariablesToGaussPointsVector2)
+    ;
+
+    class_<VariableBinningInterpolationUtility, VariableBinningInterpolationUtility::Pointer, VariableInterpolationUtility >
+    ( m, "VariableBinningInterpolationUtility" )
+    .def( init<ModelPart::ElementsContainerType&, const double&, const double&, const double&>() )
+    ;
+
+    // class_<VariableBVHInterpolationUtility, VariableBVHInterpolationUtility::Pointer, VariableInterpolationUtility >
+    // ( m, "VariableBVHInterpolationUtility" )
+    // .def( init<ModelPart::ElementsContainerType&, const int&>() )
     // ;
-
-    // class_<VariableProjectionUtility, boost::noncopyable >
-    // ( "VariableProjectionUtility", init<VariableProjectionUtility::LinearSolverType::Pointer>() )
-    // .def("SetEchoLevel", &VariableProjectionUtility::SetEchoLevel)
-    // .def("BeginProjection", &VariableProjectionUtility::BeginProjection)
-    // .def("TransferVariablesToNodes", &VariableProjectionUtility::TransferVariablesToNodes)
-    // .def("EndProjection", &VariableProjectionUtility::EndProjection)
-    // ;
-
-//     class_<VariableAdvancedTransferUtility, boost::noncopyable >
-//     ( "VariableAdvancedTransferUtility", init<ModelPart::ElementsContainerType&, const double&, const double&, const double&>() )
-//     .def("SetEchoLevel", &VariableAdvancedTransferUtility::SetEchoLevel)
-//     .def("TransferVariablesFromNodeToNode", &VariableAdvancedTransferUtility::TransferVariablesFromNodeToNode<Variable<double> >)
-//     .def("TransferVariablesFromNodeToNode", &VariableAdvancedTransferUtility::TransferVariablesFromNodeToNode<Variable<array_1d<double, 3> > >)
-//     .def("TransferVariablesFromNodeToNode", &VariableAdvancedTransferUtility::TransferVariablesFromNodeToNode<Variable<Vector> >)
-//     .def("TransferVariablesFromNodeToNode", &VariableAdvancedTransferUtility::TransferVariablesFromNodeToNode<Variable<Matrix> >)
-//     ;
 
 // #ifdef _OPENMP
 //     class_<ParallelVariableTransferUtility, boost::noncopyable >
@@ -739,9 +840,7 @@ void StructuralApplication_AddCustomUtilitiesToPython(pybind11::module& m)
     .def( init<>() )
     .def( "ListDofs", &ListDofs )
     .def( "RemoveDof", &RemoveDof<Variable<double> > )
-    .def( "RemoveDof", &RemoveDof<VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > > )
     .def( "PrintKey", &PrintKey<Variable<double> > )
-    .def( "PrintKey", &PrintKey<VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > > )
     .def( "PrintMaxUnbalancedForce", &PrintMaxUnbalancedForce )
     .def( "PrintMinUnbalancedForce", &PrintMinUnbalancedForce )
     ;
