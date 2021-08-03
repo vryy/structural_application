@@ -132,6 +132,19 @@ Vector& NeoHookean2D::GetValue( const Variable<Vector>& rThisVariable, Vector& r
         return rValue;
     }
 
+    if ( rThisVariable == THREED_STRESSES )
+    {
+        if(rValue.size() != 6)
+            rValue.resize(6, false);
+        rValue(0) = mCurrentStress(0);
+        rValue(1) = mCurrentStress(1);
+        rValue(2) = mNU * (mCurrentStress(0) + mCurrentStress(1));
+        rValue(3) = mCurrentStress(2);
+        rValue(4) = 0.0;
+        rValue(5) = 0.0;
+        return rValue;
+    }
+
     if ( rThisVariable == PLASTIC_STRAIN_VECTOR )
     {
         noalias(rValue) = ZeroVector( rValue.size() );
@@ -255,27 +268,35 @@ void NeoHookean2D::CalculateMaterialResponseCauchy (Parameters& rValues)
     Vector& StressVector = rValues.GetStressVector();
     Matrix& AlgorithmicTangent = rValues.GetConstitutiveMatrix();
 
-    Vector StrainVector3D(6), StressVector3D(6);
-    Matrix AlgorithmicTangent3D(6, 6);
+    const int cmap[] = {0, 1, 3};
 
+    Vector StrainVector3D(6);
     noalias(StrainVector3D) = ZeroVector(6);
-    StrainVector3D(0) = StrainVector(0);
-    StrainVector3D(1) = StrainVector(1);
-    StrainVector3D(3) = StrainVector(2);
 
-    CalculateStress( StressVector3D, StrainVector3D );
-    CalculateTangentMatrix( AlgorithmicTangent3D, StrainVector3D );
-
-    StressVector(0) = StressVector3D(0);
-    StressVector(1) = StressVector3D(1);
-    StressVector(2) = StressVector3D(3);
-
-    std::vector<int> cmap = {0, 1, 3};
     for (int i = 0; i < 3; ++i)
+        StrainVector3D(cmap[i]) = StrainVector(i);
+
+    if (rValues.IsSetStressVector())
     {
-        for (int j = 0; j < 3; ++j)
+        Vector StressVector3D(6);
+
+        CalculateStress( StressVector3D, StrainVector3D );
+
+        for (int i = 0; i < 3; ++i)
+            StressVector(i) = StressVector3D(cmap[i]);
+    }
+
+    if (rValues.IsSetConstitutiveMatrix())
+    {
+        Matrix AlgorithmicTangent3D(6, 6);
+        CalculateTangentMatrix( AlgorithmicTangent3D, StrainVector3D );
+
+        for (int i = 0; i < 3; ++i)
         {
-            AlgorithmicTangent(i, j) = AlgorithmicTangent3D(cmap[i], cmap[j]);
+            for (int j = 0; j < 3; ++j)
+            {
+                AlgorithmicTangent(i, j) = AlgorithmicTangent3D(cmap[i], cmap[j]);
+            }
         }
     }
 }
@@ -408,7 +429,7 @@ void NeoHookean2D::CalculateStress( Vector& StressVector, const Vector& StrainVe
         KRATOS_WATCH(mNU)
         KRATOS_WATCH(StrainVector)
         KRATOS_WATCH(aux)
-        KRATOS_THROW_ERROR(std::logic_error, "Error encounting negative NaN value", "")
+        KRATOS_THROW_ERROR(std::logic_error, "Error encounting NaN values", "")
     }
 
     StressVector(0) = (lambda*(2*e_22 + 2*e_33 + 1)*log(aux)/2 - mu*(2*e_22 + 2*e_33 + 1) + mu*aux) / aux;

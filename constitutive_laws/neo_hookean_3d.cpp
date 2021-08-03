@@ -132,6 +132,19 @@ Vector& NeoHookean3D::GetValue( const Variable<Vector>& rThisVariable, Vector& r
         return rValue;
     }
 
+    if ( rThisVariable == THREED_STRESSES )
+    {
+        if(rValue.size() != 6)
+            rValue.resize(6, false);
+        rValue(0) = mCurrentStress(0);
+        rValue(1) = mCurrentStress(1);
+        rValue(2) = mCurrentStress(2);
+        rValue(3) = mCurrentStress(3);
+        rValue(4) = mCurrentStress(4);
+        rValue(5) = mCurrentStress(5);
+        return rValue;
+    }
+
     if ( rThisVariable == PLASTIC_STRAIN_VECTOR )
     {
         noalias(rValue) = ZeroVector( rValue.size() );
@@ -246,6 +259,30 @@ void NeoHookean3D::FinalizeSolutionStep( const Properties& props,
         const Vector& ShapeFunctionsValues ,
         const ProcessInfo& CurrentProcessInfo )
 {
+}
+
+//**********************************************************************
+void NeoHookean3D::CalculateMaterialResponseCauchy (Parameters& rValues)
+{
+    const Vector& StrainVector = rValues.GetStrainVector();
+
+    if (rValues.IsSetStressVector())
+    {
+        Vector& StressVector = rValues.GetStressVector();
+        if(StressVector.size() != 6)
+            StressVector.resize(6, false);
+
+        CalculateStress( StressVector, StrainVector );
+    }
+
+    if (rValues.IsSetConstitutiveMatrix())
+    {
+        Matrix& AlgorithmicTangent = rValues.GetConstitutiveMatrix();
+        if(AlgorithmicTangent.size1() != 6 || AlgorithmicTangent.size2() != 6)
+            AlgorithmicTangent.resize(6, 6, false);
+
+        CalculateTangentMatrix( AlgorithmicTangent, StrainVector );
+    }
 }
 
 //**********************************************************************

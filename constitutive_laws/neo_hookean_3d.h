@@ -150,6 +150,12 @@ namespace Kratos
                                const GeometryType& geom,
                                const ProcessInfo& CurrentProcessInfo );
 
+            /**
+             * Computes the material response in terms of Cauchy stresses and constitutive tensor
+             * @see Parameters
+             */
+            void CalculateMaterialResponseCauchy (Parameters& rValues) final;
+
             void CalculateMaterialResponse( const Vector& StrainVector,
                                             const Matrix& DeformationGradient,
                                             Vector& StressVector,
@@ -181,14 +187,23 @@ namespace Kratos
             /**
              * Input and output
              */
-            /**
+
+/**
              * Turn back information as a string.
              */
-            //virtual String Info() const;
+            std::string Info() const final
+            {
+                return "NeoHookean3D";
+            }
+
             /**
              * Print information about this object.
              */
-            //virtual void PrintInfo(std::ostream& rOStream) const;
+            void PrintInfo(std::ostream& rOStream) const final
+            {
+                rOStream << Info();
+            }
+
             /**
              * Print object's data.
              */
