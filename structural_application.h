@@ -334,6 +334,7 @@ private:
     const TotalLagrangian mTotalLagrangian2D4N;
     const TotalLagrangian mTotalLagrangian2D6N;
     const TotalLagrangian mTotalLagrangian2D8N;
+    const TotalLagrangian mTotalLagrangian2D9N;
     const TotalLagrangian mTotalLagrangian3D4N;
     const TotalLagrangian mTotalLagrangian3D10N;
     const TotalLagrangian mTotalLagrangian3D6N;
