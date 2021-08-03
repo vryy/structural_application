@@ -964,9 +964,9 @@ public:
     {
         if(StrainVector.size() == 3)
         {
-	        StrainVector[0] = StrainTensor(0, 0);
-	        StrainVector[1] = StrainTensor(1, 1);
-	        StrainVector[2] = 2.0*StrainTensor(0, 1);
+            StrainVector[0] = StrainTensor(0, 0);
+            StrainVector[1] = StrainTensor(1, 1);
+            StrainVector[2] = 2.0*StrainTensor(0, 1);
         }
         else if(StrainVector.size() == 6)
         {
@@ -1007,9 +1007,9 @@ public:
     {
         if(StressVector.size() == 3)
         {
-	        StressVector[0] = StressTensor(0, 0);
-	        StressVector[1] = StressTensor(1, 1);
-	        StressVector[2] = StressTensor(0, 1);
+            StressVector[0] = StressTensor(0, 0);
+            StressVector[1] = StressTensor(1, 1);
+            StressVector[2] = StressTensor(0, 1);
         }
         else if(StressVector.size() == 6)
         {
@@ -1957,7 +1957,7 @@ public:
         for(unsigned int clipp_edge=0; clipp_edge<clipping_points.size(); clipp_edge++)
         {
             temp_results.clear();
-            unsigned int	index_clipp_2=0;
+            unsigned int    index_clipp_2=0;
             if(clipp_edge< (clipping_points.size()-1))
                 index_clipp_2= clipp_edge+1;
             //define clipping edge vector
@@ -1986,7 +1986,7 @@ public:
 
             for(unsigned int subj_edge=0; subj_edge< result_points.size(); subj_edge++)
             {
-                unsigned int	index_subj_2=0;
+                unsigned int    index_subj_2=0;
 
                 if(subj_edge< (result_points.size()-1))
                     index_subj_2= subj_edge+1;
