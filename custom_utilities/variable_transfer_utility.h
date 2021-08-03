@@ -378,6 +378,32 @@ public:
         for( ModelPart::ElementIterator it = rSource.ElementsBegin();
                 it != rSource.ElementsEnd(); ++it )
         {
+            it->CalculateOnIntegrationPoints(PRESTRESS, PreStresses, rSource.GetProcessInfo());
+            auto it_elem = rTarget.Elements().find(it->Id());
+            if (it_elem == rTarget.Elements().end())
+            {
+                std::stringstream ss;
+                ss << "Element " << it->Id() << " does not exist in the target model_part " << rTarget.Name();
+                KRATOS_THROW_ERROR(std::logic_error, ss.str(), "")
+            }
+            it_elem->SetValuesOnIntegrationPoints(PRESTRESS, PreStresses, rTarget.GetProcessInfo());
+        }
+        std::cout << __FUNCTION__ << " from " << rSource.Name() << " to " << rTarget.Name() << " completed" << std::endl;
+    }
+
+    /**
+     * Transfer of PRESTRESS.
+     * This transfers the in-situ stress from rSource to rTarget.
+     * If the element does not exist in target, a warning will be thrown
+     * @param rSource the source model part
+     * @param rTarget the target model part
+     */
+    void TransferPrestressIdenticallyWithCheck( ModelPart& rSource, ModelPart& rTarget )
+    {
+        std::vector<Vector> PreStresses;
+        for( ModelPart::ElementIterator it = rSource.ElementsBegin();
+                it != rSource.ElementsEnd(); ++it )
+        {
             auto it_elem = rTarget.Elements().find(it->Id());
             if (it_elem != rTarget.Elements().end())
             {
