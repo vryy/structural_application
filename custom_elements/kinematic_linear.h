@@ -328,8 +328,6 @@ private:
 
     void CalculateBodyForces( Vector& BodyForce, const ProcessInfo& CurrentProcessInfo );
 
-    void InitializeVariables();
-
     //************************************************************************************
     //************************************************************************************
     //************************************************************************************
@@ -417,6 +415,6 @@ private:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_KINEMATIC_LINEAR2_INCLUDED defined
+#endif // KRATOS_KINEMATIC_LINEAR_INCLUDED defined
 
 

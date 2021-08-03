@@ -337,8 +337,8 @@ void PlaneStress::CalculateStress(const Vector& StrainVector, Vector& StressVect
     double c2 = c1 * mNU;
     double c3 = 0.5*mE / (1 + mNU);
 
-    StressVector[0] = c1 * StrainVector[0] + c2 * (StrainVector[1])	;
-    StressVector[1] = c1 * StrainVector[1] + c2 * (StrainVector[0])	;
+    StressVector[0] = c1 * StrainVector[0] + c2 * StrainVector[1];
+    StressVector[1] = c1 * StrainVector[1] + c2 * StrainVector[0];
     StressVector[2] = c3 * StrainVector[2];
 
     noalias( mCurrentStress ) = StressVector;
@@ -382,15 +382,6 @@ void PlaneStress::Calculate(const Variable<double>& rVariable,
                             double& Output,
                             const ProcessInfo& rCurrentProcessInfo)
 {
-}
-
-
-/// Turn back information as a string.
-std::string PlaneStress::Info() const
-{
-    std::stringstream buffer;
-    buffer << "Plane stress for strong discontinuities" << std::endl;
-    return buffer.str();
 }
 
 int PlaneStress::Check(const Properties& props,
