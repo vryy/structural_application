@@ -232,14 +232,23 @@ namespace Kratos
             /**
              * Input and output
              */
+
             /**
              * Turn back information as a string.
              */
-            //virtual String Info() const;
+            std::string Info() const final
+            {
+                return "Isotropic3D";
+            }
+
             /**
              * Print information about this object.
              */
-            //virtual void PrintInfo(std::ostream& rOStream) const;
+            void PrintInfo(std::ostream& rOStream) const final
+            {
+                rOStream << Info();
+            }
+
             /**
              * Print object's data.
              */

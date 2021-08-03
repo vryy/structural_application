@@ -125,9 +125,7 @@ public:
     /// Turn back information as a string.
     std::string Info() const final
     {
-        std::stringstream ss;
-        ss << "PointForce3D #" << Id();
-        return ss.str();
+        return "PointForce";
     }
 
     /// Print information about this object.

@@ -230,7 +230,25 @@ public:
                                    bool SaveInternalVariables = true
                                   );
 
-    std::string Info() const;
+    /**
+     * Input and output
+     */
+
+    /**
+     * Turn back information as a string.
+     */
+    std::string Info() const final
+    {
+        return "PlaneStress";
+    }
+
+    /**
+     * Print information about this object.
+     */
+    void PrintInfo(std::ostream& rOStream) const final
+    {
+        rOStream << Info();
+    }
 
     /**
      * returns the size of the strain vector of the current constitutive law

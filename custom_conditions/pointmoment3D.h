@@ -109,14 +109,22 @@ public:
     ///@{
 
     /// Turn back information as a string.
-//      virtual String Info() const;
+    std::string Info() const final
+    {
+        return "PointMoment";
+    }
 
     /// Print information about this object.
-//      virtual void PrintInfo(std::ostream& rOStream) const;
+    void PrintInfo(std::ostream& rOStream) const final
+    {
+        rOStream << "PointMoment3D #" << Id();
+    }
 
     /// Print object's data.
-//      virtual void PrintData(std::ostream& rOStream) const;
-
+    void PrintData(std::ostream& rOStream) const final
+    {
+        Condition::PrintData(rOStream);
+    }
 
     ///@}
     ///@name Friends
