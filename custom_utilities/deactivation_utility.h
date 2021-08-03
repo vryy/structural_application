@@ -136,7 +136,6 @@ public:
      */
     void Initialize( ModelPart& model_part )
     {
-        #ifndef _OPENMP
         if(mEchoLevel > 0)
             std::cout << "initializing deactivation utility" << std::endl;
 
@@ -175,7 +174,18 @@ public:
             }
             // (*it)->Initialize(); // conditions shall not be initialized here. They should be initialized by the nonlinear solver.
         }
-        #else
+
+        if(mEchoLevel > 0)
+            std::cout << "deactivation utility initialized" << std::endl;
+    }
+
+    /**
+     * Initializes all elements before performing any calculation.
+     * This is done even for those elements that are deactivated
+     * in the beginning of the simulation
+     */
+    void InitializeWithThreads( ModelPart& model_part )
+    {
         if(mEchoLevel > 0)
             std::cout << "multithreaded initializing deactivation utility" << std::endl;
 
@@ -234,10 +244,6 @@ public:
                 // (*it)->Initialize(); // conditions shall not be initialized here. They should be initialized by the nonlinear solver.
             }
         }
-        #endif
-
-        if(mEchoLevel > 0)
-            std::cout << "deactivation utility initialized" << std::endl;
     }
 
     /**
@@ -435,4 +441,4 @@ private:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_DEACTIVATION_UTILITY_INCLUDED  defined 
+#endif // KRATOS_DEACTIVATION_UTILITY_INCLUDED  defined
