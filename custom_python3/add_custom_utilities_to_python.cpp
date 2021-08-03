@@ -597,12 +597,14 @@ void StructuralApplication_AddCustomUtilitiesToPython(pybind11::module& m)
     .def( "ReactivateStressFree", &DeactivationUtility::ReactivateStressFree )
     .def( "ReactivateAll", &DeactivationUtility::ReactivateAll )
     .def( "Initialize", &DeactivationUtility::Initialize )
+    .def( "InitializeWithThreads", &DeactivationUtility::InitializeWithThreads )
     .def( "GetName", &DeactivationUtility::GetName<Element> )
     .def( "GetName", &DeactivationUtility::GetName<Condition> )
     .def( "SetAssociatedElement", &SetAssociatedElement )
     ;
 
     void(VariableTransferUtility::*pointer_to_TransferPrestressIdentically)(ModelPart&, ModelPart&) = &VariableTransferUtility::TransferPrestressIdentically;
+    void(VariableTransferUtility::*pointer_to_TransferPrestressIdenticallyWithCheck)(ModelPart&, ModelPart&) = &VariableTransferUtility::TransferPrestressIdenticallyWithCheck;
     void(VariableTransferUtility::*pointer_to_TransferPrestressIdenticallyForElement)(Element&, Element&, const ProcessInfo&) = &VariableTransferUtility::TransferPrestressIdentically;
 
     class_<VariableTransferUtility, VariableTransferUtility::Pointer >
@@ -616,6 +618,7 @@ void StructuralApplication_AddCustomUtilitiesToPython(pybind11::module& m)
     .def( "TransferInSituStress", &VariableTransferUtility::TransferInSituStress )
     .def( "TransferPrestress", &VariableTransferUtility::TransferPrestress )
     .def( "TransferPrestressIdentically", pointer_to_TransferPrestressIdentically )
+    .def( "TransferPrestressIdenticallyWithCheck", pointer_to_TransferPrestressIdenticallyWithCheck )
     .def( "TransferPrestressIdentically", pointer_to_TransferPrestressIdenticallyForElement )
     .def( "TransferSpecificVariable", &VariableTransferUtility::TransferSpecificVariable )
     .def( "TransferSpecificVariableWithComponents", &VariableTransferUtility::TransferSpecificVariableWithComponents )
