@@ -334,6 +334,8 @@ private:
 
     double CalculateIntegrationWeight(const double& GaussPointWeight, const double& DetJ0);
 
+    void AddBodyForcesToRHS( Vector& R, const Vector& N_DISP, const double& Weight );
+
     void CalculateAndAdd_ExtForceContribution(
         const Vector& N,
         const ProcessInfo& CurrentProcessInfo,

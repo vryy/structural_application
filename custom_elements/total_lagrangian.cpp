@@ -346,6 +346,9 @@ namespace Kratos
                 // operation performed: rRightHandSideVector += ExtForce*IntToReferenceWeight
                 CalculateAndAdd_ExtForceContribution( row( Ncontainer, PointNumber ), rCurrentProcessInfo, BodyForce, rRightHandSideVector, IntToReferenceWeight );
 
+                //contribution of gravity (if there is)
+                AddBodyForcesToRHS( rRightHandSideVector, row( Ncontainer, PointNumber ), IntToReferenceWeight );
+
                 // operation performed: rRightHandSideVector -= IntForce*IntToReferenceWeight
                 noalias( rRightHandSideVector ) -= IntToReferenceWeight * prod( trans( B ), StressVector );
             }
@@ -636,6 +639,39 @@ namespace Kratos
 //************************************************************************************
 //************************************************************************************
 
+    inline void TotalLagrangian::AddBodyForcesToRHS( Vector& R, const Vector& N_DISP, const double& Weight )
+    {
+        KRATOS_TRY
+
+        unsigned int dim = GetGeometry().WorkingSpaceDimension();
+
+        array_1d<double, 3> gravity;
+        noalias( gravity ) = GetProperties()[GRAVITY];
+
+        double density = 0.0;
+        if( GetValue( USE_DISTRIBUTED_PROPERTIES ) )
+        {
+            density = GetValue(DENSITY);
+        }
+        else
+        {
+            density = GetProperties()[DENSITY];
+        }
+
+        for ( unsigned int prim = 0; prim < GetGeometry().size(); ++prim )
+        {
+            for ( unsigned int i = 0; i < dim; ++i )
+            {
+                R( prim*dim + i ) += N_DISP( prim ) * density * gravity( i ) * Weight;
+            }
+        }
+
+        KRATOS_CATCH( "" )
+    }
+
+//************************************************************************************
+//************************************************************************************
+
     inline void TotalLagrangian::CalculateAndAdd_ExtForceContribution(
         const Vector& N,
         const ProcessInfo& CurrentProcessInfo,
@@ -657,8 +693,6 @@ namespace Kratos
 
         KRATOS_CATCH( "" )
     }
-
-
 
 //************************************************************************************
 //************************************************************************************
