@@ -1679,6 +1679,7 @@ public:
 
     /**
      * Computes outer product of two 2nd order tensors (Matrix) and add to a given 4th order tensor (Result += alpha * (A \odot B))
+     * In the indices notation: Result(i,j,k,l) += alpha * A(i, j) * B(k, l)
      * @param C the given Tensor
      * @param alpha
      */
@@ -1701,6 +1702,56 @@ public:
         }
     }
 
+    /**
+     * In the indices notation: Result(i,j,k,l) += alpha * A(i, k) * B(j, l)
+     * @param C the given Tensor
+     * @param alpha
+     * TODO make a better name
+     */
+    template<int Op = 1>
+    static void SpecialProduct1FourthOrderTensor(const double& alpha, const MatrixType& A, const MatrixType& B, Fourth_Order_Tensor& Result)
+    {
+        for(unsigned int i = 0; i < 3; ++i)
+        {
+            for(unsigned int j = 0; j < 3; ++j)
+            {
+                if (Op == 0) noalias(Result[i][j]) = ZeroMatrix(3, 3);
+                for(unsigned int k = 0; k < 3; ++k)
+                {
+                    for(unsigned int l = 0; l < 3; ++l)
+                    {
+                        Result[i][j](k, l) += alpha * A(i, k) * B(j, l);
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * In the indices notation: Result(i,j,k,l) += alpha * A(i, l) * B(j, k)
+     * @param C the given Tensor
+     * @param alpha
+     * TODO make a better name
+     */
+    template<int Op = 1>
+    static void SpecialProduct2FourthOrderTensor(const double& alpha, const MatrixType& A, const MatrixType& B, Fourth_Order_Tensor& Result)
+    {
+        for(unsigned int i = 0; i < 3; ++i)
+        {
+            for(unsigned int j = 0; j < 3; ++j)
+            {
+                if (Op == 0) noalias(Result[i][j]) = ZeroMatrix(3, 3);
+                for(unsigned int k = 0; k < 3; ++k)
+                {
+                    for(unsigned int l = 0; l < 3; ++l)
+                    {
+                        Result[i][j](k, l) += alpha * A(i, l) * B(j, k);
+                    }
+                }
+            }
+        }
+    }
+
     // C += alpha A
     template<int Op = 1>
     static inline void AddFourthOrderTensor(const double& alpha, const Fourth_Order_Tensor& A, Fourth_Order_Tensor& Result)
@@ -1713,6 +1764,54 @@ public:
                     noalias(Result[i][j]) = alpha * A[i][j];
                 else if (Op == 1)
                     noalias(Result[i][j]) += alpha * A[i][j];
+            }
+        }
+    }
+
+    /**
+     * Computes the derivatives of the inverse of matrix
+     * d (A^-1) / dA = -A^(-1)_ki A^(-1)_lj
+     * Reference:
+     * + Le Khanh Chau's lecture note
+     * + https://www.quora.com/What-is-the-derivative-of-inverse-matrix
+     */
+    static void InverseDerivatives(const MatrixType& InvA, Fourth_Order_Tensor& Result)
+    {
+        for(unsigned int i = 0; i < 3; ++i)
+        {
+            for(unsigned int j = 0; j < 3; ++j)
+            {
+                for(unsigned int k = 0; k < 3; ++k)
+                {
+                    for(unsigned int l = 0; l < 3; ++l)
+                    {
+                        Result[i][j](k, l) = -InvA(i, k) * InvA(l, j);
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Computes the derivatives of the inverse of matrix and multiply with a factor
+     * d (A^-1) / dA = -A^(-1)_ki A^(-1)_lj
+     * Reference:
+     * + Le Khanh Chau's lecture note
+     * + https://www.quora.com/What-is-the-derivative-of-inverse-matrix
+     */
+    static void AddInverseDerivatives(const double& alpha, const MatrixType& InvA, Fourth_Order_Tensor& Result)
+    {
+        for(unsigned int i = 0; i < 3; ++i)
+        {
+            for(unsigned int j = 0; j < 3; ++j)
+            {
+                for(unsigned int k = 0; k < 3; ++k)
+                {
+                    for(unsigned int l = 0; l < 3; ++l)
+                    {
+                        Result[i][j](k, l) += -alpha*InvA(i, k) * InvA(l, j);
+                    }
+                }
             }
         }
     }
