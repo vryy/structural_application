@@ -111,6 +111,16 @@ public:
         return p_clone;
     }
 
+    ConstitutiveLaw::StrainMeasure GetStrainMeasure() final
+    {
+        return StrainMeasure_Infinitesimal;
+    }
+
+    ConstitutiveLaw::StressMeasure GetStressMeasure() final
+    {
+        return StressMeasure_Cauchy;
+    }
+
     bool Has(const Variable<int>& rThisVariable);
     bool Has(const Variable<double>& rThisVariable);
     bool Has(const Variable<Vector>& rThisVariable);
@@ -151,7 +161,7 @@ public:
      * @param rResult Matrix the result will be stored in
      */
     void CalculateConstitutiveMatrix(Matrix& rResult);
-    //		void PlaneStrainConstitutiveMatrix(const Vector& StrainVector, Matrix& rResult);
+    //      void PlaneStrainConstitutiveMatrix(const Vector& StrainVector, Matrix& rResult);
 
     /**
      * Calculates the stresses for given strain state
@@ -183,7 +193,7 @@ public:
             const GeometryType& geom, //this is just to give the array of nodes
             const Vector& ShapeFunctionsValues ,
             const ProcessInfo& CurrentProcessInfo );
-                                            
+
     /**
      * Calculates the cauchy stresses. For a given deformation and stress state
      * the cauchy stress vector is calculated
@@ -215,6 +225,12 @@ public:
      * @see Parameters
      */
     void CalculateMaterialResponseCauchy (Parameters& rValues) final;
+
+    /**
+     * Computes the material response in terms of 2nd Piola-Kirchhoff stresses and constitutive tensor
+     * @see Parameters
+     */
+    void CalculateMaterialResponsePK2 (Parameters& rValues) final;
 
     /// DEPRECATED interface
     void CalculateMaterialResponse(const Vector& StrainVector,
@@ -254,14 +270,14 @@ public:
      * returns the size of the strain vector of the current constitutive law
      * NOTE: this function HAS TO BE IMPLEMENTED by any derived class
      */
-    virtual SizeType GetStrainSize()
+    SizeType GetStrainSize() final
     {
         return 3;
     }
 
     int Check(const Properties& props,
               const GeometryType& geom,
-              const ProcessInfo& CurrentProcessInfo);
+              const ProcessInfo& CurrentProcessInfo) final;
 
 
     /**

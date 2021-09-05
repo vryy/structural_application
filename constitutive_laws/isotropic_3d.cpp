@@ -349,6 +349,11 @@ void Isotropic3D::CalculateMaterialResponseCauchy (Parameters& rValues)
     }
 }
 
+void Isotropic3D::CalculateMaterialResponsePK2 (Parameters& rValues)
+{
+    CalculateMaterialResponseCauchy(rValues);
+}
+
 void Isotropic3D::CalculateMaterialResponse( const Vector& StrainVector,
         const Matrix& DeformationGradient,
         Vector& StressVector,

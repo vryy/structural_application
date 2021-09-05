@@ -287,6 +287,11 @@ void PlaneStress::CalculateMaterialResponseCauchy (Parameters& rValues)
     }
 }
 
+void PlaneStress::CalculateMaterialResponsePK2 (Parameters& rValues)
+{
+    CalculateMaterialResponseCauchy(rValues);
+}
+
 void PlaneStress::CalculateMaterialResponse( const Vector& StrainVector,
         const Matrix& DeformationGradient,
         Vector& StressVector,

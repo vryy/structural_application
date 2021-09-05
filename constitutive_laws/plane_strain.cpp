@@ -288,6 +288,11 @@ void PlaneStrain::CalculateMaterialResponseCauchy (Parameters& rValues)
     }
 }
 
+void PlaneStrain::CalculateMaterialResponsePK2 (Parameters& rValues)
+{
+    CalculateMaterialResponseCauchy(rValues);
+}
+
 void PlaneStrain::CalculateMaterialResponse( const Vector& StrainVector,
         const Matrix& DeformationGradient,
         Vector& StressVector,

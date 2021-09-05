@@ -115,6 +115,16 @@ public:
         return p_clone;
     }
 
+    ConstitutiveLaw::StrainMeasure GetStrainMeasure() final
+    {
+        return StrainMeasure_Infinitesimal;
+    }
+
+    ConstitutiveLaw::StressMeasure GetStressMeasure() final
+    {
+        return StressMeasure_Cauchy;
+    }
+
     bool Has( const Variable<int>& rThisVariable );
     bool Has( const Variable<double>& rThisVariable );
     bool Has( const Variable<Vector>& rThisVariable );
@@ -124,7 +134,7 @@ public:
     double& GetValue( const Variable<double>& rThisVariable, double& rValue );
     Vector& GetValue( const Variable<Vector>& rThisVariable, Vector& rValue );
     Matrix& GetValue( const Variable<Matrix>& rThisVariable, Matrix& rValue );
-    std::size_t GetStrainSize();
+    std::size_t GetStrainSize() final;
 
     void SetValue( const Variable<int>& rVariable,
                    const int& Value,
@@ -167,7 +177,6 @@ public:
      */
     void CalculateConstitutiveMatrix(Matrix& rResult);
 
-
     /**
      * Calculates the stresses for given strain state
      * @param StrainVector the current vector of strains
@@ -202,7 +211,6 @@ public:
                                   const Vector& PK2_StressVector,
                                   const Vector& GreenLagrangeStrainVector);
 
-
     /**
      * converts a strain vector styled variable into its form, which the
      * deviatoric parts are no longer multiplied by 2
@@ -215,6 +223,12 @@ public:
      * @see Parameters
      */
     void CalculateMaterialResponseCauchy (Parameters& rValues) final;
+
+    /**
+     * Computes the material response in terms of 2nd Piola-Kirchhoff stresses and constitutive tensor
+     * @see Parameters
+     */
+    void CalculateMaterialResponsePK2 (Parameters& rValues) final;
 
     /// DEPRECATED interface
     void CalculateMaterialResponse( const Vector& StrainVector,
