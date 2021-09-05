@@ -137,8 +137,11 @@ namespace Kratos
 //                    ++show_progress;
                 }
 
-                for(ConditionsContainerType::ptr_iterator it = LinkingConditions.ptr_begin(); it != LinkingConditions.ptr_end(); ++it)
+                for( ModelPart::ConditionsContainerType::ptr_iterator it = LinkingConditions.ptr_begin();
+                        it != LinkingConditions.ptr_end(); ++it )
+                {
                     r_model_part.Conditions().push_back(*it);
+                }
 
                 std::cout << "Setup node tying links completed, "
                     << LinkingConditions.size() << " linking conditions of " << typeid(SampleLink).name()
