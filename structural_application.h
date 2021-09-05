@@ -90,6 +90,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
     #include "custom_elements/total_lagrangian.h"
     //#include "custom_elements/linear_incompresible_element.h"
     #include "custom_elements/mixed_lagrangian.h"
+    #include "custom_elements/finite_strain.h"
     #include "custom_elements/beam_element.h"
     #include "custom_elements/timoshenko_beam_element.h"
     #include "custom_elements/timoshenko_linear_beam_element.h"
@@ -239,7 +240,7 @@ private:
     ///@name Member Variables
     ///@{
 
-    #ifdef SD_APP_FORWARD_COMPATIBILITY
+#ifdef SD_APP_FORWARD_COMPATIBILITY
 
     const CrisfieldTrussElement mCrisfieldTrussElement3D2N;
     const CrisfieldTrussElement mCrisfieldTrussElement3D3N;
@@ -256,6 +257,7 @@ private:
     const TotalLagrangian mTotalLagrangian2D4N;
     const TotalLagrangian mTotalLagrangian2D6N;
     const TotalLagrangian mTotalLagrangian2D8N;
+    const TotalLagrangian mTotalLagrangian2D9N;
     const TotalLagrangian mTotalLagrangian3D4N;
     const TotalLagrangian mTotalLagrangian3D10N;
     const TotalLagrangian mTotalLagrangian3D6N;
@@ -308,7 +310,7 @@ private:
     const FaceForce3D mFaceForce3D8N;
     const FaceForce3D mFaceForce3D9N;
 
-    #else
+#else // SD_APP_FORWARD_COMPATIBILITY
 
     const CrisfieldTrussElement mCrisfieldTrussElement3D2N;
     const CrisfieldTrussElement mCrisfieldTrussElement3D3N;
@@ -354,6 +356,19 @@ private:
     const MixedLagrangian mMixedLagrangian3D8N;
     const MixedLagrangian mMixedLagrangian3D20N;
     const MixedLagrangian mMixedLagrangian3D27N;
+
+    const FiniteStrain mFiniteStrain2D3N;
+    const FiniteStrain mFiniteStrain2D4N;
+    const FiniteStrain mFiniteStrain2D6N;
+    const FiniteStrain mFiniteStrain2D8N;
+    const FiniteStrain mFiniteStrain2D9N;
+    const FiniteStrain mFiniteStrain3D4N;
+    const FiniteStrain mFiniteStrain3D10N;
+    const FiniteStrain mFiniteStrain3D6N;
+    const FiniteStrain mFiniteStrain3D15N;
+    const FiniteStrain mFiniteStrain3D8N;
+    const FiniteStrain mFiniteStrain3D20N;
+    const FiniteStrain mFiniteStrain3D27N;
 
     const KinematicLinear mKinematicLinear2D3N;
     const KinematicLinear mKinematicLinear2D4N;
@@ -469,7 +484,7 @@ private:
     const DummyConstitutiveLaw mDummyConstitutiveLaw;
     const DruckerPrager mDruckerPrager;
     const CamClay3D mCamClay3D;
-    #endif
+#endif
 
 //             const UPCTestElement mUPCTestElement3D20N;
     ///@}
