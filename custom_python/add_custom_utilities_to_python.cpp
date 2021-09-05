@@ -81,9 +81,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "spaces/ublas_space.h"
 #include "linear_solvers/linear_solver.h"
 #include "custom_utilities/contact_utility.h"
-#include "custom_utilities/volume_utility.h"
 #include "custom_utilities/restart_utility.h"
-#include "custom_utilities/node_snapping_utility.h"
 #include "custom_elements/rigid_body_3D.h"
 #include "custom_utilities/output_utility.h"
 #include "custom_utilities/dof_utility.h"
@@ -91,13 +89,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_utilities/tip_utility.h"
 #include "custom_utilities/pile_utility.h"
 #include "custom_utilities/foundation_utility.h"
-
-//#include "custom_utilities/detect_elements_utility.h"
-#include "custom_utilities/intra_fracture_triangle_utility.h"
-#include "custom_utilities/inter_fracture_triangle_utility.h"
-#include "custom_utilities/inter_fracture_tetrahedra_utility.h"
-//#include "custom_utilities/mark_element_for_refinement.h"
-#include "custom_utilities/disconnect_utility.h"
 
 #include "custom_utilities/embedded_node_tying_utility.h"
 #include "custom_conditions/embedded_node_lagrange_tying_condition.h"
@@ -797,13 +788,6 @@ void  AddCustomUtilitiesToPython()
     .def( "Clean", &ContactUtility::Clean )
     .def( "CleanLagrangeTying", &ContactUtility::CleanLagrangeTying )
     ;
-// VM
-    class_<VolumeUtility, boost::noncopyable >
-    ( "VolumeUtility",
-      init<int>() )
-    .def( "Calculate_this_Volume", &VolumeUtility::CalculateVolume ) // VM
-    ;
-//VM
 
     class_<RestartUtility, boost::noncopyable >
     ( "RestartUtility",
@@ -817,20 +801,6 @@ void  AddCustomUtilitiesToPython()
     .def( "WriteInSituStress", &RestartUtility::WriteInSituStress )
     ;
 
-    class_<NodeSnappingUtility, boost::noncopyable >
-    ( "NodeSnappingUtility",
-      init<>() )
-    .def( "MoveNode", &NodeSnappingUtility::MoveNode )
-    .def( "AdjustNodes", &NodeSnappingUtility::AdjustNodes )
-    .def( "AdjustToCircle", &NodeSnappingUtility::AdjustToCircle )
-    .def( "AdjustToCylinder", &NodeSnappingUtility::AdjustToCylinder )
-    .def( "AdjustToClosedCylinder", &NodeSnappingUtility::AdjustToClosedCylinder )
-    .def( "IdentifyInsideElements", &NodeSnappingUtility::IdentifyInsideElements )
-    .def( "SetInsituStress", &NodeSnappingUtility::SetInsituStress )
-    .def( "ExtractCapNodes", &NodeSnappingUtility::ExtractCapNodes )
-    .def( "TestElements", &NodeSnappingUtility::TestElements )
-    ;
-
     class_<OutputUtility, boost::noncopyable >
     ( "OutputUtility",
       init<>() )
@@ -841,20 +811,10 @@ void  AddCustomUtilitiesToPython()
     .def( "ListPlasticPoints", &OutputUtility::ListPlasticPoints )
     ;
 
-
     def( "AddNewRigidBody3D", AddNewRigidBody3D );
     def( "AddNewRigidBodyAndSpring3D", AddNewRigidBodyAndSpring3D );
     ;
 
-    /*
-                class_<Detect_Elements_And_Nodes, boost::noncopyable >
-                        ("DetectElementsAndNodes", init<ModelPart&, int >() )
-          .def("DetectNode",              &Detect_Elements_And_Nodes::Detect_Node_To_Be_Splitted)
-                        .def("DetectElements",          &Detect_Elements_And_Nodes::Detect_Elements_To_Be_Splitted)
-                        .def("CalculateMapFailure",     &Detect_Elements_And_Nodes::Calculate_Map_Failure)
-                        .def("Finalize",                &Detect_Elements_And_Nodes::Finalize)
-                        ;
-    */
     class_<Smoothing_Utility, boost::noncopyable >
     ( "SmoothingUtility", init<ModelPart&, int >() )
     .def( "WeightedRecoveryGradients", &Smoothing_Utility::WeightedRecoveryGradients<double> )
@@ -866,31 +826,6 @@ void  AddCustomUtilitiesToPython()
     .def( "SettingNodalValues", &Smoothing_Utility::SettingNodalValues )
     ;
 
-
-
-
-    class_<Disconnect_Triangle_Utilities, boost::noncopyable >
-    ( "DisconnectTriangle", init<ModelPart&>() )
-    .def( "DisconnectElements", &Disconnect_Triangle_Utilities::Disconnect_Elements )
-    ;
-
-
-    class_<Intra_Fracture_Triangle, boost::noncopyable >
-    ( "IntraFractureTriangle", init<ModelPart&, int >() )
-    .def( "DetectAndSplitElements",              &Intra_Fracture_Triangle::Detect_And_Split_Elements )
-    ;
-
-    class_<Inter_Fracture_Triangle, boost::noncopyable >
-    ( "InterFractureTriangle", init<ModelPart&, int >() )
-    .def( "DetectAndSplitElementsHeuristicFormula", &Inter_Fracture_Triangle::Detect_And_Split_Elements_Heuristic_Formula )
-    .def( "DetectAndSplitElements",              &Inter_Fracture_Triangle::Detect_And_Split_Elements )
-    .def( "Finalize",                            &Inter_Fracture_Triangle::Finalize )
-    ;
-
-    class_<Inter_Fracture_Tetrahedra, boost::noncopyable >
-    ( "InterFractureTetrahedra", init<ModelPart&, int >() )
-    .def( "DetectAndSplitElements",              &Inter_Fracture_Tetrahedra::Detect_And_Split_Elements )
-    ;
 
     class_<DofUtility, boost::noncopyable >
     ( "DofUtility", init<>() )
