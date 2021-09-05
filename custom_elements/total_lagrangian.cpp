@@ -12,6 +12,7 @@ pooyan@cimne.upc.edu
 rrossi@cimne.upc.edu
 janosch.stascheit@rub.de
 nagel@sd.rub.de
+giang.bui@rub.de
 - CIMNE (International Center for Numerical Methods in Engineering),
 Gran Capita' s/n, 08034 Barcelona, Spain
 - Ruhr-University Bochum, Institute for Structural Mechanics, Germany
@@ -44,7 +45,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 //
 //   Project Name:        Kratos
-//   Last modified by:    $Author: virginia $
+//   Modified by:         $Author: virginia $
 //   Date:                $Date: 2009-01-23 14:39:59 $
 //   Revision:            $Revision: 1.27 $
 //
@@ -246,6 +247,8 @@ namespace Kratos
 
         double DetJ0;
 
+        double DetF;
+
         //constitutive law
         ConstitutiveLaw::Parameters const_params;
         const_params.SetStrainVector(StrainVector);
@@ -255,7 +258,7 @@ namespace Kratos
         const_params.SetProcessInfo(rCurrentProcessInfo);
         const_params.SetMaterialProperties(GetProperties());
         const_params.SetElementGeometry(GetGeometry());
-        ConstitutiveLaw::StressMeasure stress_measure = ConstitutiveLaw::StressMeasure_Cauchy;
+        ConstitutiveLaw::StressMeasure stress_measure = ConstitutiveLaw::StressMeasure_PK2;
 
         //resizing as needed the LHS
         unsigned int MatSize = number_of_nodes * dim;
@@ -314,6 +317,8 @@ namespace Kratos
 
             //deformation gradient
             noalias( F ) = prod( J[PointNumber], InvJ0 );
+            DetF = MathUtils<double>::Det(F);
+            const_params.SetDeterminantF(DetF);
 
             //strain calculation
             noalias( C ) = prod( trans( F ), F );
@@ -771,11 +776,6 @@ namespace Kratos
         KRATOS_TRY
         const unsigned int number_of_nodes = GetGeometry().PointsNumber();
         unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-        //
-        //unsigned int dim2 = number_of_nodes*dimension;
-        //if(B.size1() != StrainSize || B.size2()!=dim2)
-        // B.resize(StrainSize,dim2);
-        //Matrix Bi;
 
         for ( unsigned int i = 0; i < number_of_nodes; i++ )
         {
@@ -811,9 +811,6 @@ namespace Kratos
                 B( 5, index + 1 ) = F( 1, 2 ) * DN_DX( i, 0 ) + F( 1, 0 ) * DN_DX( i, 2 );
                 B( 5, index + 2 ) = F( 2, 2 ) * DN_DX( i, 0 ) + F( 2, 0 ) * DN_DX( i, 2 );
             }
-
-            //CalculateBi(Bi,F,DN_DX,i);
-            //MathUtils<double>::WriteMatrix(B,Bi,0,index);
         }
 
         KRATOS_CATCH( "" )
@@ -1443,8 +1440,6 @@ namespace Kratos
 
         unsigned int dimension = this->GetGeometry().WorkingSpaceDimension();
 
-
-
         //verify that the variables are correctly initialized
 
 //        if ( VELOCITY.Key() == 0 )
@@ -1479,6 +1474,16 @@ namespace Kratos
         if ( this->GetProperties().Has( CONSTITUTIVE_LAW ) == false )
         {
             KRATOS_THROW_ERROR( std::logic_error, "constitutive law not provided for property ", this->GetProperties().Id() );
+        }
+
+        // verify the strain measure
+        auto strain_mearure = this->GetProperties().GetValue( CONSTITUTIVE_LAW )->GetStrainMeasure();
+        if ( strain_mearure != ConstitutiveLaw::StrainMeasure_Infinitesimal
+          && strain_mearure != ConstitutiveLaw::StrainMeasure_GreenLagrange )
+        {
+            std::stringstream ss;
+            ss << "The strain measure " << strain_mearure << " is not supported by this element";
+            KRATOS_THROW_ERROR( std::logic_error, ss.str(), "" )
         }
 
         //Verify that the body force is defined

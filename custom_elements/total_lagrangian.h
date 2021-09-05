@@ -12,6 +12,7 @@ pooyan@cimne.upc.edu
 rrossi@cimne.upc.edu
 janosch.stascheit@rub.de
 nagel@sd.rub.de
+giang.bui@rub.de
 - CIMNE (International Center for Numerical Methods in Engineering),
 Gran Capita' s/n, 08034 Barcelona, Spain
 - Ruhr-University Bochum, Institute for Structural Mechanics, Germany
@@ -105,10 +106,15 @@ namespace Kratos
 /**
  * Implements a total Lagrangian definition for structural analysis.
  * This works for arbitrary geometries in 2D and 3D
+ * In this element, the strain measure is Green-Lagrange strain and
+ * the stress measure is 2nd Piola Kirchhoff stress.
+ * Because the compatibility of Infinitesimal strain and Green-Lagrange strain,
+ * the constitutive law supporting Infinitesimal strain (i.e. linear elastic) can
+ * also be used
+ * It is noted that, this element is only compatible with symmetric constitutive law (i.e C_ijkl=C_jikl=C_ijlk=C_klij)
+ * Reference: D. Kuhl, Computational Dynamics lecture note
  */
-
-class TotalLagrangian
-    : public Element
+class TotalLagrangian : public Element
 {
 public:
     ///@name Type Definitions
@@ -191,7 +197,6 @@ public:
     void GetValuesVector(Vector& values, int Step = 0) const;
     void GetFirstDerivativesVector(Vector& values, int Step = 0) const;
     void GetSecondDerivativesVector(Vector& values, int Step = 0) const;
-
 
     void Calculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& rCurrentProcessInfo);
 
