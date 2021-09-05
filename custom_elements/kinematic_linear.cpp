@@ -12,6 +12,7 @@ pooyan@cimne.upc.edu
 rrossi@cimne.upc.edu
 janosch.stascheit@rub.de
 nagel@sd.rub.de
+giang.bui@rub.de
 - CIMNE (International Center for Numerical Methods in Engineering),
 Gran Capita' s/n, 08034 Barcelona, Spain
 - Ruhr-University Bochum, Institute for Structural Mechanics, Germany
@@ -43,7 +44,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 /* *********************************************************
  *
- *   Last Modified by:    $Author: hbui $
+ *   Modified by:         $Author: hbui $
  *   Date:                $Date: 2013-02-22 16:16:48 $
  *   Revision:            $Revision: 1.2 $
  *
@@ -170,10 +171,11 @@ namespace Kratos
             else
                 mThisIntegrationMethod = GetGeometry().GetDefaultIntegrationMethod(); // default method
 
-            // use the default integration rule in the case of finite cell geometry
-            std::string geo_name = typeid(GetGeometry()).name();
-            if ( geo_name.find("FiniteCellGeometry") != std::string::npos )
-                mThisIntegrationMethod = GetGeometry().GetDefaultIntegrationMethod();
+            // // use the default integration rule in the case of finite cell geometry
+            // This is not necessary if the INTEGRATION_ORDER is set for finite cell geometry
+            // std::string geo_name = typeid(GetGeometry()).name();
+            // if ( geo_name.find("FiniteCellGeometry") != std::string::npos )
+            //     mThisIntegrationMethod = GetGeometry().GetDefaultIntegrationMethod();
 
             // number of integration points used, mThisIntegrationMethod refers to the
             // integration method defined in the constructor
@@ -422,13 +424,16 @@ namespace Kratos
         //reading integration points and local gradients
         const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
 
-//        KRATOS_WATCH(mThisIntegrationMethod)
-//        KRATOS_WATCH(integration_points.size())
-//        std::cout << "quadrature listing:" << std::endl;
-//        for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); ++PointNumber )
-//        {
-//            std::cout << "integration point " << PointNumber << ": " << integration_points[PointNumber] << std::endl;
-//        }
+        // KRATOS_WATCH(mThisIntegrationMethod)
+        // KRATOS_WATCH(integration_points.size())
+        // std::cout << "quadrature listing:" << std::endl;
+        // for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); ++PointNumber )
+        // {
+        //    std::cout << "integration point " << PointNumber << ": " << integration_points[PointNumber] << std::endl;
+        //    Vector shape_values;
+        //    GetGeometry().ShapeFunctionsValues(shape_values, integration_points[PointNumber]);
+        //    std::cout << "shape values: " << shape_values << std::endl;
+        // }
 
         const GeometryType::ShapeFunctionsGradientsType& DN_De = GetGeometry().ShapeFunctionsLocalGradients( mThisIntegrationMethod );
 
@@ -2127,6 +2132,16 @@ namespace Kratos
         if ( this->GetProperties().Has( CONSTITUTIVE_LAW ) == false )
         {
             KRATOS_THROW_ERROR( std::logic_error, "constitutive law not provided for property", this->GetProperties().Id() );
+        }
+
+        // verify the strain measure
+        auto strain_mearure = this->GetProperties().GetValue( CONSTITUTIVE_LAW )->GetStrainMeasure();
+        if ( strain_mearure != ConstitutiveLaw::StrainMeasure_Infinitesimal
+          && strain_mearure != ConstitutiveLaw::StrainMeasure_GreenLagrange )
+        {
+            std::stringstream ss;
+            ss << "The strain measure " << strain_mearure << " is not supported by this element";
+            KRATOS_THROW_ERROR( std::logic_error, ss.str(), "" )
         }
 
         //Verify that the body force is defined

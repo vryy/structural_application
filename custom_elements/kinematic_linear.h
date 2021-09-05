@@ -12,6 +12,7 @@ pooyan@cimne.upc.edu
 rrossi@cimne.upc.edu
 janosch.stascheit@rub.de
 nagel@sd.rub.de
+giang.bui@rub.de
 - CIMNE (International Center for Numerical Methods in Engineering),
 Gran Capita' s/n, 08034 Barcelona, Spain
 - Ruhr-University Bochum, Institute for Structural Mechanics, Germany
@@ -43,9 +44,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 //
 //   Project Name:        Kratos
-//   Last Modified by:    $Author: janosch $
+//   Modified by:         $Author: janosch $
 //   Date:                $Date: 2009-01-14 09:30:38 $
-//   Revision:            $Revision: 1.4 $
+//   Modified by:         $Author: hbui $
+//   Date:                $Date: 2013-02-22 16:16:48 $
 //
 //
 
@@ -93,11 +95,8 @@ namespace Kratos
 
 /// Short class definition.
 /** Detail class definition.
-
-KinematicLinear is designed to be a general linear strutural element support for both 2D and 3D.
-
+Define a small strain element with strain measure as Infinitesimal strain and stress measure as Cauchy stress
  */
-
 class KinematicLinear : public Element
 {
 
