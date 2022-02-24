@@ -87,6 +87,11 @@ class SolvingStrategyPython:
         if 'stop_Newton_Raphson_if_not_converge' in self.Parameters:
             self.Parameters['stop_Newton_Raphson_if_not_converged'] = self.Parameters['stop_Newton_Raphson_if_not_converge']
 
+        self.log_residuum = open('residuum.log', 'w')
+
+    def __del__(self):
+        self.log_residuum.close()
+
     #######################################################################
     def Initialize(self):
         if(self.time_scheme.SchemeIsInitialized() == False):
@@ -231,6 +236,13 @@ class SolvingStrategyPython:
                     original_penalty = cond.GetValue( PENALTY )[0]
                     break
 
+        er_0 = self.space_utils.TwoNorm(self.b)
+        er_n = er_0
+        self.log_residuum.write('time: ' + str(self.model_part.ProcessInfo[TIME]) + '\n')
+        self.log_residuum.write('it\tresidual\tratio\treduction\n')
+        self.log_residuum.write('0\t' + str(er_0) + '\n')
+        self.log_residuum.flush()
+
         #non linear loop
         converged = False
         it = 0
@@ -264,6 +276,25 @@ class SolvingStrategyPython:
 
             #update iteration count
             it = it + 1
+
+            # record the residuum and reduction
+            er = self.space_utils.TwoNorm(self.b)
+
+            if er_0 > 0.0:
+                er_ratio = er/er_0
+            else:
+                er_ratio = 1.0
+            if er > 0.0:
+                er_reduction = er_n/er
+            else:
+                if er_n == 0.0:
+                    er_reduction = 1.0
+                else:
+                    er_reduction = 1.0e99
+            er_n = er
+
+            self.log_residuum.write(str(it) + '\t' + str(er) + '\t' + str(er_ratio) + '\t' + str(er_reduction) + '\n')
+            self.log_residuum.flush()
 
         if( it == self.max_iter and converged == False):
             print("Iteration did not converge at time step " + str(self.model_part.ProcessInfo[TIME]))
@@ -576,5 +607,3 @@ class SolvingStrategyPython:
         if str is not None:
             print(str)
         raw_input(prompt)
-
-
