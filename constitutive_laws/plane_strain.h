@@ -134,7 +134,7 @@ public:
     double& GetValue( const Variable<double>& rThisVariable, double& rValue );
     Vector& GetValue( const Variable<Vector>& rThisVariable, Vector& rValue );
     Matrix& GetValue( const Variable<Matrix>& rThisVariable, Matrix& rValue );
-    std::size_t GetStrainSize() final;
+    std::size_t GetStrainSize() const final;
 
     void SetValue( const Variable<int>& rVariable,
                    const int& Value,

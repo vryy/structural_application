@@ -235,7 +235,7 @@ public:
     int Check(const Properties& props, const GeometryType& geom, const ProcessInfo& CurrentProcessInfo);
 
 
-    virtual SizeType GetStrainSize()
+    SizeType GetStrainSize() const final
     {
         return 6;
     }

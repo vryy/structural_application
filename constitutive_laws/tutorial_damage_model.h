@@ -162,9 +162,9 @@ public:
      * @param CurrentProcessInfo
      * @return
      */
-    virtual int Check( const Properties& props,
-                       const GeometryType& geom,
-                       const ProcessInfo& CurrentProcessInfo );
+    int Check( const Properties& props,
+               const GeometryType& geom,
+               const ProcessInfo& CurrentProcessInfo ) final;
 
     void CalculateMaterialResponse( const Vector& StrainVector,
                                     const Matrix& DeformationGradient,
@@ -183,7 +183,7 @@ public:
      * returns the size of the strain vector of the current constitutive law
      * NOTE: this function HAS TO BE IMPLEMENTED by any derived class
      */
-    virtual SizeType GetStrainSize()
+    SizeType GetStrainSize() const final
     {
         return 6;
     }

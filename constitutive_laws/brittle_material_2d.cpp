@@ -738,7 +738,7 @@ void BrittleMaterial2D::ResetMaterial(const Properties& props,
 //***********************************************************************************************
 //***********************************************************************************************
 
-std::size_t BrittleMaterial2D::GetStrainSize()
+std::size_t BrittleMaterial2D::GetStrainSize() const
 {
     return 3;
 }

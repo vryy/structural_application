@@ -399,7 +399,7 @@ void PlaneStrain::CalculateConstitutiveMatrix( Matrix& rResult )
 }
 
 
-std::size_t PlaneStrain::GetStrainSize()
+std::size_t PlaneStrain::GetStrainSize() const
 {
     return 3;
 }

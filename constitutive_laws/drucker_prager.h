@@ -94,7 +94,7 @@ public:
      * Clone function
      * @return a pointer to a new instance of this constitutive law
      */
-    virtual BaseType::Pointer Clone() const
+    BaseType::Pointer Clone() const final
     {
         BaseType::Pointer p_clone( new DruckerPrager() );
         return p_clone;
@@ -103,7 +103,7 @@ public:
     /**
      * @return the working space dimension of the current constitutive law
      */
-    virtual SizeType WorkingSpaceDimension()
+    SizeType WorkingSpaceDimension() final
     {
         return( 3 );
     }
@@ -111,7 +111,7 @@ public:
     /**
      * returns the size of the strain vector of the current constitutive law
      */
-    virtual SizeType GetStrainSize()
+    SizeType GetStrainSize() const final
     {
         return( 6 );
     }

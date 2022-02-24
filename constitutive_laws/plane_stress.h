@@ -270,7 +270,7 @@ public:
      * returns the size of the strain vector of the current constitutive law
      * NOTE: this function HAS TO BE IMPLEMENTED by any derived class
      */
-    SizeType GetStrainSize() final
+    SizeType GetStrainSize() const final
     {
         return 3;
     }

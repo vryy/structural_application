@@ -182,9 +182,9 @@ namespace Kratos
              * @param CurrentProcessInfo
              * @return
              */
-            virtual int Check( const Properties& props,
-                               const GeometryType& geom,
-                               const ProcessInfo& CurrentProcessInfo );
+            int Check( const Properties& props,
+                       const GeometryType& geom,
+                       const ProcessInfo& CurrentProcessInfo ) final;
 
             void CalculateMaterialResponse( const Vector& StrainVector,
                                             const Matrix& DeformationGradient,
@@ -203,7 +203,7 @@ namespace Kratos
              * returns the size of the strain vector of the current constitutive law
              * NOTE: this function HAS TO BE IMPLEMENTED by any derived class
              */
-            virtual SizeType GetStrainSize()
+            SizeType GetStrainSize() const final
             {
                 return mpConstitutiveLaw->GetStrainSize();
             }
@@ -243,13 +243,13 @@ namespace Kratos
 
             friend class Serializer;
 
-            virtual void save( Serializer& rSerializer ) const
+            void save( Serializer& rSerializer ) const override
             {
                 KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, ConstitutiveLaw );
                 rSerializer.save( "ConstitutiveLaw", mpConstitutiveLaw );
             }
 
-            virtual void load( Serializer& rSerializer )
+            void load( Serializer& rSerializer ) override
             {
                 KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ConstitutiveLaw );
                 rSerializer.load( "ConstitutiveLaw", mpConstitutiveLaw );

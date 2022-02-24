@@ -215,7 +215,7 @@ public:
               const GeometryType& geom,
               const ProcessInfo& CurrentProcessInfo);
 
-    std::size_t GetStrainSize();
+    std::size_t GetStrainSize() const;
 
 
 private:
