@@ -419,6 +419,33 @@ public:
     }
 
     /**
+     * Transfer of internal variables.
+     * This transfers the in-situ stress from rSource to rTarget.
+     * If the element does not exist in target, a warning will be thrown
+     * @param rSource the source model part
+     * @param rTarget the target model part
+     */
+    void TransferInternalVariablesIdenticallyWithCheck( ModelPart& rSource, ModelPart& rTarget )
+    {
+        std::vector<Vector> PreStresses;
+        for( ModelPart::ElementIterator it = rSource.ElementsBegin();
+                it != rSource.ElementsEnd(); ++it )
+        {
+            auto it_elem = rTarget.Elements().find(it->Id());
+            if (it_elem != rTarget.Elements().end())
+            {
+                it->CalculateOnIntegrationPoints(INTERNAL_VARIABLES, PreStresses, rSource.GetProcessInfo());
+                it_elem->SetValuesOnIntegrationPoints(INTERNAL_VARIABLES, PreStresses, rTarget.GetProcessInfo());
+            }
+            else
+            {
+                std::cout << "WARNING!!! Target element " << it->Id() << " is not found in the target model_part " << rTarget.Name() << std::endl;
+            }
+        }
+        std::cout << __FUNCTION__ << " from " << rSource.Name() << " to " << rTarget.Name() << " completed" << std::endl;
+    }
+
+    /**
      * Transfer of INSITU_STRESS.
      * This transfers the in-situ stress from rSource to rTarget.
      * @param rSource the source model part

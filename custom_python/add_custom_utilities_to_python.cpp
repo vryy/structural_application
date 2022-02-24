@@ -656,6 +656,7 @@ void  AddCustomUtilitiesToPython()
 
     void(VariableTransferUtility::*pointer_to_TransferPrestressIdentically)(ModelPart&, ModelPart&) = &VariableTransferUtility::TransferPrestressIdentically;
     void(VariableTransferUtility::*pointer_to_TransferPrestressIdenticallyWithCheck)(ModelPart&, ModelPart&) = &VariableTransferUtility::TransferPrestressIdenticallyWithCheck;
+    void(VariableTransferUtility::*pointer_to_TransferInternalVariablesIdenticallyWithCheck)(ModelPart&, ModelPart&) = &VariableTransferUtility::TransferInternalVariablesIdenticallyWithCheck;
     void(VariableTransferUtility::*pointer_to_TransferPrestressIdenticallyForElement)(Element&, Element&, const ProcessInfo&) = &VariableTransferUtility::TransferPrestressIdentically;
 
     class_<VariableTransferUtility, boost::noncopyable >
@@ -670,6 +671,7 @@ void  AddCustomUtilitiesToPython()
     .def( "TransferPrestressIdentically", pointer_to_TransferPrestressIdentically )
     .def( "TransferPrestressIdenticallyWithCheck", pointer_to_TransferPrestressIdenticallyWithCheck )
     .def( "TransferPrestressIdentically", pointer_to_TransferPrestressIdenticallyForElement )
+    .def( "TransferInternalVariablesIdenticallyWithCheck", pointer_to_TransferInternalVariablesIdenticallyWithCheck )
     .def( "TransferSpecificVariable", &VariableTransferUtility::TransferSpecificVariable )
     .def( "TransferSpecificVariableWithComponents", &VariableTransferUtility::TransferSpecificVariableWithComponents )
     .def( "InitializeModelPart", &VariableTransferUtility::InitializeModelPart )
