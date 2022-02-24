@@ -333,7 +333,7 @@ void Casm::InitializeMaterial( const Properties& props,
 
     isYielded = false;
 
-    phiCs = (mModelData[3])* PI / 180;
+    phiCs = (mModelData[3])* SD_MathUtils<double>::Pi() / 180;
 
     theta = (1 + mModelData[6] / (mModelData[4] - mModelData[5]));
 

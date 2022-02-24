@@ -206,7 +206,7 @@ void Modified_Morh_Coulomb_Yield_Function::ReturnMapping(const Vector& StrainVec
                     mRankine->UpdateMaterial();
                     /*
                     array_1d<double, 3> T;
-                    double sinpsi  = std::sin(PI * mMorhCoulomb->mcurrent_dilatancy_angle  / 180.00);
+                    double sinpsi  = std::sin(SD_MathUtils<double>::Pi() * mMorhCoulomb->mcurrent_dilatancy_angle  / 180.00);
                     const double a = 3.00 + sinpsi;
                     const double b = 3.00 - sinpsi;
                     T[0] =  2.00/a - 1.00/b;
@@ -364,10 +364,10 @@ bool Modified_Morh_Coulomb_Yield_Function::Return_Mapping_Intersection_Main_Plan
 
 
 
-    double sinphi             =   std::sin(PI * mMorhCoulomb->mcurrent_minternal_friction_angle  / 180.00);
-    double cosphi             =   std::cos(PI * mMorhCoulomb->mcurrent_minternal_friction_angle  / 180.00);
-    double sinpsi             =   std::sin(PI * mMorhCoulomb->mcurrent_dilatancy_angle  / 180.00);
-    double cospsi             =   std::cos(PI * mMorhCoulomb->mcurrent_dilatancy_angle  / 180.00);
+    double sinphi             =   std::sin(SD_MathUtils<double>::Pi() * mMorhCoulomb->mcurrent_minternal_friction_angle  / 180.00);
+    double cosphi             =   std::cos(SD_MathUtils<double>::Pi() * mMorhCoulomb->mcurrent_minternal_friction_angle  / 180.00);
+    double sinpsi             =   std::sin(SD_MathUtils<double>::Pi() * mMorhCoulomb->mcurrent_dilatancy_angle  / 180.00);
+    double cospsi             =   std::cos(SD_MathUtils<double>::Pi() * mMorhCoulomb->mcurrent_dilatancy_angle  / 180.00);
 
     residual[0]   = (PrincipalStress[0] - PrincipalStress[2]) + (PrincipalStress[0] + PrincipalStress[2]) * sinphi - 2.00 *  cosphi * mMorhCoulomb->mcurrent_cohesion;
     residual[1]   =  PrincipalStress[0] - mRankine->mcurrent_Ft;
@@ -431,10 +431,10 @@ bool Modified_Morh_Coulomb_Yield_Function::Return_Mapping_Intersection_Main_Plan
     Partial_Dilatancy     = (mMorhCoulomb->mpSofteningBehavior_Dilatancy)->FirstDerivateFunctionBehavior(Imput_Parameters_M);
     H                     = (mRankine->mpSofteningBehaviorFt)->FirstDerivateFunctionBehavior(Imput_Parameters_R);
 
-    sinphi                =   std::sin(PI * mMorhCoulomb->mcurrent_minternal_friction_angle  / 180.00);
-    cosphi                =   std::cos(PI * mMorhCoulomb->mcurrent_minternal_friction_angle  / 180.00);
-    sinpsi                =   std::sin(PI * mMorhCoulomb->mcurrent_dilatancy_angle  / 180.00);
-    cospsi                =   std::cos(PI * mMorhCoulomb->mcurrent_dilatancy_angle  / 180.00);
+    sinphi                =   std::sin(SD_MathUtils<double>::Pi() * mMorhCoulomb->mcurrent_minternal_friction_angle  / 180.00);
+    cosphi                =   std::cos(SD_MathUtils<double>::Pi() * mMorhCoulomb->mcurrent_minternal_friction_angle  / 180.00);
+    sinpsi                =   std::sin(SD_MathUtils<double>::Pi() * mMorhCoulomb->mcurrent_dilatancy_angle  / 180.00);
+    cospsi                =   std::cos(SD_MathUtils<double>::Pi() * mMorhCoulomb->mcurrent_dilatancy_angle  / 180.00);
 
     Vector Imput(3);
     Imput = ZeroVector(3);
@@ -562,10 +562,10 @@ bool Modified_Morh_Coulomb_Yield_Function::Return_Mapping_Intersection_Main_Plan
         Partial_Dilatancy                               = (mMorhCoulomb->mpSofteningBehavior_Dilatancy)->FirstDerivateFunctionBehavior(Imput_Parameters_M);
         H                                               = (mRankine->mpSofteningBehaviorFt)->FirstDerivateFunctionBehavior(Imput_Parameters_R);
 
-        sinphi                                          =   std::sin(PI * mMorhCoulomb->mcurrent_minternal_friction_angle  / 180.00);
-        cosphi                                          =   std::cos(PI * mMorhCoulomb->mcurrent_minternal_friction_angle  / 180.00);
-        sinpsi                                          =   std::sin(PI * mMorhCoulomb->mcurrent_dilatancy_angle  / 180.00);
-        cospsi                                          =   std::cos(PI * mMorhCoulomb->mcurrent_dilatancy_angle  / 180.00);
+        sinphi                                          =   std::sin(SD_MathUtils<double>::Pi() * mMorhCoulomb->mcurrent_minternal_friction_angle  / 180.00);
+        cosphi                                          =   std::cos(SD_MathUtils<double>::Pi() * mMorhCoulomb->mcurrent_minternal_friction_angle  / 180.00);
+        sinpsi                                          =   std::sin(SD_MathUtils<double>::Pi() * mMorhCoulomb->mcurrent_dilatancy_angle  / 180.00);
+        cospsi                                          =   std::cos(SD_MathUtils<double>::Pi() * mMorhCoulomb->mcurrent_dilatancy_angle  / 180.00);
 
         A = gama_a * (1.00 + (1.00/3.00) * sinpsi) + (2.00/3.00) * gama_b;
 //        B = -(2.00/3.00) * gama_a * sinpsi - (1.00/3.00) * gama_b;
@@ -660,10 +660,10 @@ bool Modified_Morh_Coulomb_Yield_Function::Return_Mapping_Intersection_Main_Plan
     Matrix d_inv                 = ZeroMatrix(3,3);
 
     unsigned iter                =  0;
-    double sinphi                =   std::sin(PI * mMorhCoulomb->mcurrent_minternal_friction_angle  / 180.00);
-    double cosphi                =   std::cos(PI * mMorhCoulomb->mcurrent_minternal_friction_angle  / 180.00);
-    double sinpsi                =   std::sin(PI * mMorhCoulomb->mcurrent_dilatancy_angle  / 180.00);
-    double cospsi                =   std::cos(PI * mMorhCoulomb->mcurrent_dilatancy_angle  / 180.00);
+    double sinphi                =   std::sin(SD_MathUtils<double>::Pi() * mMorhCoulomb->mcurrent_minternal_friction_angle  / 180.00);
+    double cosphi                =   std::cos(SD_MathUtils<double>::Pi() * mMorhCoulomb->mcurrent_minternal_friction_angle  / 180.00);
+    double sinpsi                =   std::sin(SD_MathUtils<double>::Pi() * mMorhCoulomb->mcurrent_dilatancy_angle  / 180.00);
+    double cospsi                =   std::cos(SD_MathUtils<double>::Pi() * mMorhCoulomb->mcurrent_dilatancy_angle  / 180.00);
 
     residual[0]   = (PrincipalStress[0] - PrincipalStress[2]) + (PrincipalStress[0] + PrincipalStress[2]) * sinphi - 2.00 *  cosphi * mMorhCoulomb->mcurrent_cohesion;
     residual[1]   = (PrincipalStress[0] - PrincipalStress[1]) + (PrincipalStress[0] + PrincipalStress[1]) * sinphi - 2.00 *  cosphi * mMorhCoulomb->mcurrent_cohesion;
@@ -748,10 +748,10 @@ bool Modified_Morh_Coulomb_Yield_Function::Return_Mapping_Intersection_Main_Plan
     Partial_Dilatancy     = (mMorhCoulomb->mpSofteningBehavior_Dilatancy)->FirstDerivateFunctionBehavior(Imput_Parameters_M);
 //    H                     = (mRankine->mpSofteningBehaviorFt)->FirstDerivateFunctionBehavior(Imput_Parameters_R);
 
-    sinphi             =   std::sin(PI * mMorhCoulomb->mcurrent_minternal_friction_angle  / 180.00);
-    cosphi             =   std::cos(PI * mMorhCoulomb->mcurrent_minternal_friction_angle  / 180.00);
-    sinpsi             =   std::sin(PI * mMorhCoulomb->mcurrent_dilatancy_angle  / 180.00);
-    cospsi             =   std::cos(PI * mMorhCoulomb->mcurrent_dilatancy_angle  / 180.00);
+    sinphi             =   std::sin(SD_MathUtils<double>::Pi() * mMorhCoulomb->mcurrent_minternal_friction_angle  / 180.00);
+    cosphi             =   std::cos(SD_MathUtils<double>::Pi() * mMorhCoulomb->mcurrent_minternal_friction_angle  / 180.00);
+    sinpsi             =   std::sin(SD_MathUtils<double>::Pi() * mMorhCoulomb->mcurrent_dilatancy_angle  / 180.00);
+    cospsi             =   std::cos(SD_MathUtils<double>::Pi() * mMorhCoulomb->mcurrent_dilatancy_angle  / 180.00);
 
     while(fabs(norma)>toler && iter++ < max )
     {
@@ -969,10 +969,10 @@ bool Modified_Morh_Coulomb_Yield_Function::Return_Mapping_Intersection_Main_Plan
         Partial_Dilatancy                 = (mMorhCoulomb->mpSofteningBehavior_Dilatancy)->FirstDerivateFunctionBehavior(Imput_Parameters_M);
 //        H                                 = (mRankine->mpSofteningBehaviorFt)->FirstDerivateFunctionBehavior(Imput_Parameters_R);
 
-        sinphi             =   std::sin(PI * mMorhCoulomb->mcurrent_minternal_friction_angle  / 180.00);
-        cosphi             =   std::cos(PI * mMorhCoulomb->mcurrent_minternal_friction_angle  / 180.00);
-        sinpsi             =   std::sin(PI * mMorhCoulomb->mcurrent_dilatancy_angle  / 180.00);
-        cospsi             =   std::cos(PI * mMorhCoulomb->mcurrent_dilatancy_angle  / 180.00);
+        sinphi             =   std::sin(SD_MathUtils<double>::Pi() * mMorhCoulomb->mcurrent_minternal_friction_angle  / 180.00);
+        cosphi             =   std::cos(SD_MathUtils<double>::Pi() * mMorhCoulomb->mcurrent_minternal_friction_angle  / 180.00);
+        sinpsi             =   std::sin(SD_MathUtils<double>::Pi() * mMorhCoulomb->mcurrent_dilatancy_angle  / 180.00);
+        cospsi             =   std::cos(SD_MathUtils<double>::Pi() * mMorhCoulomb->mcurrent_dilatancy_angle  / 180.00);
 
 
 
@@ -1071,10 +1071,10 @@ bool Modified_Morh_Coulomb_Yield_Function::Return_Mapping_Intersection_Main_Plan
     noalias(d_inv)               =   ZeroMatrix(4,4);
 
     unsigned iter                =   0;
-    double sinphi                =   std::sin(PI * mMorhCoulomb->mcurrent_minternal_friction_angle  / 180.00);
-    double cosphi                =   std::cos(PI * mMorhCoulomb->mcurrent_minternal_friction_angle  / 180.00);
-    double sinpsi                =   std::sin(PI * mMorhCoulomb->mcurrent_dilatancy_angle  / 180.00);
-    double cospsi                =   std::cos(PI * mMorhCoulomb->mcurrent_dilatancy_angle  / 180.00);
+    double sinphi                =   std::sin(SD_MathUtils<double>::Pi() * mMorhCoulomb->mcurrent_minternal_friction_angle  / 180.00);
+    double cosphi                =   std::cos(SD_MathUtils<double>::Pi() * mMorhCoulomb->mcurrent_minternal_friction_angle  / 180.00);
+    double sinpsi                =   std::sin(SD_MathUtils<double>::Pi() * mMorhCoulomb->mcurrent_dilatancy_angle  / 180.00);
+    double cospsi                =   std::cos(SD_MathUtils<double>::Pi() * mMorhCoulomb->mcurrent_dilatancy_angle  / 180.00);
 
 
     residual[0]   = (PrincipalStress[0] - PrincipalStress[2]) + (PrincipalStress[0] + PrincipalStress[2]) * sinphi - 2.00 *  cosphi * mMorhCoulomb->mcurrent_cohesion;
@@ -1157,10 +1157,10 @@ bool Modified_Morh_Coulomb_Yield_Function::Return_Mapping_Intersection_Main_Plan
     Partial_Dilatancy     = (mMorhCoulomb->mpSofteningBehavior_Dilatancy)->FirstDerivateFunctionBehavior(Imput_Parameters_M);
     H                     = (mRankine->mpSofteningBehaviorFt)->FirstDerivateFunctionBehavior(Imput_Parameters_R);
 
-    sinphi             =   std::sin(PI * mMorhCoulomb->mcurrent_minternal_friction_angle  / 180.00);
-    cosphi             =   std::cos(PI * mMorhCoulomb->mcurrent_minternal_friction_angle  / 180.00);
-    sinpsi             =   std::sin(PI * mMorhCoulomb->mcurrent_dilatancy_angle  / 180.00);
-    cospsi             =   std::cos(PI * mMorhCoulomb->mcurrent_dilatancy_angle  / 180.00);
+    sinphi             =   std::sin(SD_MathUtils<double>::Pi() * mMorhCoulomb->mcurrent_minternal_friction_angle  / 180.00);
+    cosphi             =   std::cos(SD_MathUtils<double>::Pi() * mMorhCoulomb->mcurrent_minternal_friction_angle  / 180.00);
+    sinpsi             =   std::sin(SD_MathUtils<double>::Pi() * mMorhCoulomb->mcurrent_dilatancy_angle  / 180.00);
+    cospsi             =   std::cos(SD_MathUtils<double>::Pi() * mMorhCoulomb->mcurrent_dilatancy_angle  / 180.00);
 
     Vector Imput(3);
     Imput = ZeroVector(3);
@@ -1473,10 +1473,10 @@ bool Modified_Morh_Coulomb_Yield_Function::Return_Mapping_Intersection_Main_Plan
         Partial_Dilatancy                 = (mMorhCoulomb->mpSofteningBehavior_Dilatancy)->FirstDerivateFunctionBehavior(Imput_Parameters_M);
         H                                 = (mRankine->mpSofteningBehaviorFt)->FirstDerivateFunctionBehavior(Imput_Parameters_R);
 
-        sinphi             =   std::sin(PI * mMorhCoulomb->mcurrent_minternal_friction_angle  / 180.00);
-        cosphi             =   std::cos(PI * mMorhCoulomb->mcurrent_minternal_friction_angle  / 180.00);
-        sinpsi             =   std::sin(PI * mMorhCoulomb->mcurrent_dilatancy_angle  / 180.00);
-        cospsi             =   std::cos(PI * mMorhCoulomb->mcurrent_dilatancy_angle  / 180.00);
+        sinphi             =   std::sin(SD_MathUtils<double>::Pi() * mMorhCoulomb->mcurrent_minternal_friction_angle  / 180.00);
+        cosphi             =   std::cos(SD_MathUtils<double>::Pi() * mMorhCoulomb->mcurrent_minternal_friction_angle  / 180.00);
+        sinpsi             =   std::sin(SD_MathUtils<double>::Pi() * mMorhCoulomb->mcurrent_dilatancy_angle  / 180.00);
+        cospsi             =   std::cos(SD_MathUtils<double>::Pi() * mMorhCoulomb->mcurrent_dilatancy_angle  / 180.00);
 
 
         D =   2.00  * sinpsi  * (gama_a + gama_b) + gama_c + gama_d;
@@ -1613,8 +1613,8 @@ bool Modified_Morh_Coulomb_Yield_Function::CheckPlasticAdmisibility(const Vector
     /*
     const double& friction  = mMorhCoulomb->mcurrent_minternal_friction_angle;
     const double& cohe      = mMorhCoulomb->mcurrent_cohesion;
-    const double sinphi     = std::sin(PI * friction  / 180.00);
-    const double cosphi     = std::cos(PI * friction  / 180.00);
+    const double sinphi     = std::sin(SD_MathUtils<double>::Pi() * friction  / 180.00);
+    const double cosphi     = std::cos(SD_MathUtils<double>::Pi() * friction  / 180.00);
     // Check plastic admissibility
     double sigma_ef = (Stress[0] - Stress[2]) + (Stress[0] + Stress[2]) * sinphi;
     double phia     = sigma_ef - 2.00 *  cosphi * cohe;

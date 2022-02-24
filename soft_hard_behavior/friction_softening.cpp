@@ -74,15 +74,15 @@ double  Friction_Softening::FunctionBehavior(const Vector& Imput_Parameters)
     double result      = 0.00;
     double frac        = 2.00 * std::sqrt(Ep * Ef ) /(Ep + Ef);
     double sin         = 0.00;
-    double friction    =  PI * (*mprops)[INTERNAL_FRICTION_ANGLE] / 180.00;
+    double friction    =  SD_MathUtils<double>::Pi() * (*mprops)[INTERNAL_FRICTION_ANGLE] / 180.00;
     if(Ep<Ef){
        result =  std::asin(frac *std::sin(friction));
-       result =  180.00 * result/ PI;}
+       result =  180.00 * result/ SD_MathUtils<double>::Pi();}
     else
        result = (*mprops)[INTERNAL_FRICTION_ANGLE];
     */
     const double fric = (*mprops)[INTERNAL_FRICTION_ANGLE];
-    double sinphi     =  std::sin(PI * (fric) / 180.00);
+    double sinphi     =  std::sin(SD_MathUtils<double>::Pi() * (fric) / 180.00);
     const double Kl   =  1.00;
     const double& Kp  =  Imput_Parameters[3];
     double frac       =  2.00 * std::sqrt(Kl * Kp ) /(Kl + Kp);
@@ -91,7 +91,7 @@ double  Friction_Softening::FunctionBehavior(const Vector& Imput_Parameters)
     return (*mprops)[INTERNAL_FRICTION_ANGLE];
 
     if(Kp<Kl)
-        result = std::asin(frac*sinphi) * 180/PI;
+        result = std::asin(frac*sinphi) * 180/SD_MathUtils<double>::Pi();
     else
         result   =  (*mprops)[INTERNAL_FRICTION_ANGLE];
 
@@ -121,7 +121,7 @@ double  Friction_Softening::FirstDerivateFunctionBehavior(const Vector& Imput_Pa
     double result      = 0.00;
 //		     double frac        = 2.00 * std::sqrt(Ep * Ef ) /(Ep + Ef);
 //		     double sin         = 0.00;
-//		     double friction    =  PI * (*mprops)[INTERNAL_FRICTION_ANGLE] / 180.00;
+//		     double friction    =  SD_MathUtils<double>::Pi() * (*mprops)[INTERNAL_FRICTION_ANGLE] / 180.00;
     /*
        if(Ep<Ef){
        double aux         =  2.00 * std::sin(friction) * std::sqrt(Ep * Ef ) /(Ep + Ef);

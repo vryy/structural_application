@@ -119,8 +119,8 @@ double Morh_Coulomb_Yield_Function::Toler(const Vector& Stress)
     const double tol        = 1.0E-7;
     const double& friction  = mcurrent_minternal_friction_angle;
     const double& cohe      = mcurrent_cohesion;
-    const double cosphi     = std::cos(PI * friction  / 180.00);
-    const double sinphi     = std::sin(PI * friction  / 180.00);
+    const double cosphi     = std::cos(SD_MathUtils<double>::Pi() * friction  / 180.00);
+    const double sinphi     = std::sin(SD_MathUtils<double>::Pi() * friction  / 180.00);
     double toler            = tol*((Stress[0] + Stress[2]) * sinphi + 2.00 * cohe* cosphi);
     if(toler>1.00) toler    = 1.00;
     if(toler<0.001)  toler  = 0.001;
@@ -137,8 +137,8 @@ bool Morh_Coulomb_Yield_Function::CheckPlasticAdmisibility(const Vector& Stress)
     const double tol        = 1.0E-7;
     const double& friction  = mcurrent_minternal_friction_angle;
     const double& cohe      = mcurrent_cohesion;
-    const double sinphi     = std::sin(PI * friction  / 180.00);
-    const double cosphi     = std::cos(PI * friction  / 180.00);
+    const double sinphi     = std::sin(SD_MathUtils<double>::Pi() * friction  / 180.00);
+    const double cosphi     = std::cos(SD_MathUtils<double>::Pi() * friction  / 180.00);
     double toler            = tol  * 2.00 * mcurrent_cohesion * cosphi;
     if(toler>0.10) toler    = 0.10;
     if(toler<1E-3) toler    = 1E-3;
@@ -305,10 +305,10 @@ bool Morh_Coulomb_Yield_Function::ReturnMappingToMainPlane(const array_1d<double
     unsigned iter     = 0;
     double   denom    = 0.00;
 
-    double sinphi             =   std::sin(PI * this->mcurrent_minternal_friction_angle  / 180.00);
-    double cosphi             =   std::cos(PI * this->mcurrent_minternal_friction_angle  / 180.00);
-    double sinpsi             =   std::sin(PI * this->mcurrent_dilatancy_angle  / 180.00);
-    double cospsi             =   std::cos(PI * this->mcurrent_dilatancy_angle  / 180.00);
+    double sinphi             =   std::sin(SD_MathUtils<double>::Pi() * this->mcurrent_minternal_friction_angle  / 180.00);
+    double cosphi             =   std::cos(SD_MathUtils<double>::Pi() * this->mcurrent_minternal_friction_angle  / 180.00);
+    double sinpsi             =   std::sin(SD_MathUtils<double>::Pi() * this->mcurrent_dilatancy_angle  / 180.00);
+    double cospsi             =   std::cos(SD_MathUtils<double>::Pi() * this->mcurrent_dilatancy_angle  / 180.00);
 
 
 // Start Newton-Raphson iterations for DGAMA
@@ -423,10 +423,10 @@ bool Morh_Coulomb_Yield_Function::ReturnMappingToMainPlane(const array_1d<double
 
 
         // updating cos and sin
-        sinphi             =   std::sin(PI * this->mcurrent_minternal_friction_angle  / 180.00);
-        cosphi             =   std::cos(PI * this->mcurrent_minternal_friction_angle  / 180.00);
-        sinpsi             =   std::sin(PI * this->mcurrent_dilatancy_angle  / 180.00);
-        cospsi             =   std::cos(PI * this->mcurrent_dilatancy_angle  / 180.00);
+        sinphi             =   std::sin(SD_MathUtils<double>::Pi() * this->mcurrent_minternal_friction_angle  / 180.00);
+        cosphi             =   std::cos(SD_MathUtils<double>::Pi() * this->mcurrent_minternal_friction_angle  / 180.00);
+        sinpsi             =   std::sin(SD_MathUtils<double>::Pi() * this->mcurrent_dilatancy_angle  / 180.00);
+        cospsi             =   std::cos(SD_MathUtils<double>::Pi() * this->mcurrent_dilatancy_angle  / 180.00);
 
 
         ///associated accumalated plastic strain
@@ -516,10 +516,10 @@ bool Morh_Coulomb_Yield_Function::TwoVectorReturnToEdges(const array_1d<double,3
     array_1d<double,2> residual = ZeroVector(2);
 
 
-    double sinphi  =   std::sin(PI * this->mcurrent_minternal_friction_angle  / 180.00);
-    double cosphi  =   std::cos(PI * this->mcurrent_minternal_friction_angle  / 180.00);
-    double sinpsi  =   std::sin(PI * this->mcurrent_dilatancy_angle  / 180.00);
-    double cospsi  =   std::cos(PI * this->mcurrent_dilatancy_angle  / 180.00);
+    double sinphi  =   std::sin(SD_MathUtils<double>::Pi() * this->mcurrent_minternal_friction_angle  / 180.00);
+    double cosphi  =   std::cos(SD_MathUtils<double>::Pi() * this->mcurrent_minternal_friction_angle  / 180.00);
+    double sinpsi  =   std::sin(SD_MathUtils<double>::Pi() * this->mcurrent_dilatancy_angle  / 180.00);
+    double cospsi  =   std::cos(SD_MathUtils<double>::Pi() * this->mcurrent_dilatancy_angle  / 180.00);
 
 
     double sigma_a = 0.00;
@@ -708,10 +708,10 @@ bool Morh_Coulomb_Yield_Function::TwoVectorReturnToEdges(const array_1d<double,3
         mcurrent_dilatancy_angle          =  mpSofteningBehavior_Dilatancy->FunctionBehavior(Imput_Parameters);
 
         // updating cos and sin
-        sinphi             =   std::sin(PI * this->mcurrent_minternal_friction_angle  / 180.00);
-        cosphi             =   std::cos(PI * this->mcurrent_minternal_friction_angle  / 180.00);
-        sinpsi             =   std::sin(PI * this->mcurrent_dilatancy_angle  / 180.00);
-        cospsi             =   std::cos(PI * this->mcurrent_dilatancy_angle  / 180.00);
+        sinphi             =   std::sin(SD_MathUtils<double>::Pi() * this->mcurrent_minternal_friction_angle  / 180.00);
+        cosphi             =   std::cos(SD_MathUtils<double>::Pi() * this->mcurrent_minternal_friction_angle  / 180.00);
+        sinpsi             =   std::sin(SD_MathUtils<double>::Pi() * this->mcurrent_dilatancy_angle  / 180.00);
+        cospsi             =   std::cos(SD_MathUtils<double>::Pi() * this->mcurrent_dilatancy_angle  / 180.00);
 
 
         Partial_Ep_gama_a   = (2.00/3.00) * (C[2] * (dgama[0] + dgama[1] ) + C[1] * dgama[0])/aux;
@@ -843,13 +843,13 @@ void Morh_Coulomb_Yield_Function::ReturnMappingToApex(const array_1d<double,3>& 
 //    double Partial_Dilatancy = 0.00;
     double Partial_Ep_gama_b = 0.00;
 
-    double sinphi               =   std::sin(PI * (mcurrent_minternal_friction_angle)  / 180.00);
-    double cosphi               =   std::cos(PI * (mcurrent_minternal_friction_angle)  / 180.00);
+    double sinphi               =   std::sin(SD_MathUtils<double>::Pi() * (mcurrent_minternal_friction_angle)  / 180.00);
+    double cosphi               =   std::cos(SD_MathUtils<double>::Pi() * (mcurrent_minternal_friction_angle)  / 180.00);
     double cotphi               =   cosphi/sinphi;
     const double& dil_angle     =  (*mprops)[DILATANCY_ANGLE];
     const double& int_angle     =  (*mprops)[INTERNAL_FRICTION_ANGLE];
-    const double sinpsi_o       =   std::sin(PI * (dil_angle) / 180.00);
-    const double cosphi_o       =   std::cos(PI * (int_angle) / 180.00);
+    const double sinpsi_o       =   std::sin(SD_MathUtils<double>::Pi() * (dil_angle) / 180.00);
+    const double cosphi_o       =   std::cos(SD_MathUtils<double>::Pi() * (int_angle) / 180.00);
     const double alpha          =   cosphi_o/sinpsi_o;
 
     double d           = 0.00;
@@ -939,8 +939,8 @@ void Morh_Coulomb_Yield_Function::ReturnMappingToApex(const array_1d<double,3>& 
 
 
         // updating cos and sin
-        sinphi  =   std::sin(PI * (mcurrent_minternal_friction_angle)  / 180.00);
-        cosphi  =   std::cos(PI * (mcurrent_minternal_friction_angle)  / 180.00);
+        sinphi  =   std::sin(SD_MathUtils<double>::Pi() * (mcurrent_minternal_friction_angle)  / 180.00);
+        cosphi  =   std::cos(SD_MathUtils<double>::Pi() * (mcurrent_minternal_friction_angle)  / 180.00);
         cotphi  =   cosphi/sinphi;
 
         Partial_Ep_gama_b   = alpha; //(2.00/9.00) *  dgama_b / fact;
@@ -1010,7 +1010,7 @@ bool Morh_Coulomb_Yield_Function::ReturnToEdges(const array_1d<double,3>& Princi
 {
 
     const double& dilatance =  this->mcurrent_dilatancy_angle; //(*mprops)[DILATANCY_ANGLE];
-    const double sinpsi     =   std::sin(PI * dilatance / 180.00);
+    const double sinpsi     =   std::sin(SD_MathUtils<double>::Pi() * dilatance / 180.00);
     bool  return_rigth      =   false;           // left edges
 
     //array_1d<double, 3 > T  =   ZeroVector(3);
@@ -1210,7 +1210,7 @@ void Morh_Coulomb_Yield_Function::CalculatePlasticDamage(const array_1d<double,3
 double Morh_Coulomb_Yield_Function::UniaxialTension(const Vector& Stress)
 {
     const double& friction  = (*mprops)[INTERNAL_FRICTION_ANGLE];
-    const double sinphi     = std::sin(PI * friction  / 180.00);
+    const double sinphi     = std::sin(SD_MathUtils<double>::Pi() * friction  / 180.00);
     return (Stress[0] - Stress[2]) + (Stress[0] + Stress[2]) * sinphi;
 }
 

@@ -44,11 +44,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #if !defined(SD_MATH_UTILS)
 #define SD_MATH_UTILS
-#define PI 3.14159265358979323846
 
+#include <cmath>
 #include "utilities/math_utils.h"
 #include "geometries/point.h"
-#include <cmath>
 
 namespace Kratos
 {
@@ -83,6 +82,17 @@ public:
     typedef Point<3> PointType;
     #endif
 
+    /// Return constant Pi
+    static constexpr TDataType Pi()
+    {
+        #if defined(__clang__)
+        return 3.1415926535897932384626433832795028841971693;
+        #elif defined(__GNUC__) || defined(__GNUG__)
+        return std::atan(1.0)*4;
+        #else
+        return std::atan(1.0)*4;
+        #endif
+    }
 
     /**
      * @}
@@ -136,13 +146,13 @@ public:
         }
 
         solution(0)=
-            -sqrt(-4.0/3.0*p)*cos(1.0/3.0*acos(-q/2.0*sqrt(-27.0/(p*p*p)))+PI/3.0)
+            -sqrt(-4.0/3.0*p)*cos(1.0/3.0*acos(-q/2.0*sqrt(-27.0/(p*p*p)))+Pi()/3.0)
             -b/(3*a);
         solution(1)=
             sqrt(-4.0/3.0*p)*cos(1.0/3.0*acos(-q/2.0*sqrt(-27.0/(p*p*p))))-b/(3*a)
             ;
         solution(2)=
-            -sqrt(-4.0/3.0*p)*cos(1.0/3.0*acos(-q/2.0*sqrt(-27.0/(p*p*p)))-PI/3.0)
+            -sqrt(-4.0/3.0*p)*cos(1.0/3.0*acos(-q/2.0*sqrt(-27.0/(p*p*p)))-Pi()/3.0)
             -b/(3*a);
 
 #ifdef _DEBUG
@@ -278,7 +288,7 @@ public:
             double phi;
             if (r <= -1)
             {
-                phi = PI / 3;
+                phi = Pi() / 3;
             }
             else if (r >= 1)
             {
@@ -289,7 +299,7 @@ public:
 
            // the eigenvalues satisfy eig3 <= eig2 <= eig1
            Result[0] = q + 2 * p * cos(phi);
-           Result[2] = q + 2 * p * cos(phi + (2*PI/3));
+           Result[2] = q + 2 * p * cos(phi + (2*Pi()/3));
            Result[1] = 3 * q - Result[0] - Result[2];     // since trace(A) = eig1 + eig2 + eig3
         }
 
@@ -699,7 +709,7 @@ public:
                         {
                             theta = 0.5*atan(2*A(i,j)/(A(i,i)-A(j,j)));
                         }
-                        else theta = 0.25*PI;
+                        else theta = 0.25*Pi();
                     }
                     MatrixType T = IdentityMatrix( n );
 
@@ -1041,20 +1051,31 @@ public:
     }
 
     /**
-    * Builds the norm of a gibven second order tensor
+    * Compute the Frobenius norm of a given second order tensor
     * @param Tensor the given second order tensor
     * @return the norm of the given tensor
     */
-    static double normTensor(MatrixType& Tensor)
+    static double normTensor(const MatrixType& Tensor)
     {
         double result=0.0;
-        for(unsigned int i=0; i< Tensor.size1(); i++)
-            for(unsigned int j=0; j< Tensor.size2(); j++)
-                result+= Tensor(i,j)*Tensor(i,j);
+        for(unsigned int i=0; i<Tensor.size1(); i++)
+            for(unsigned int j=0; j<Tensor.size2(); j++)
+                result += Tensor(i,j)*Tensor(i,j);
+        return sqrt(result);
+    }
 
-        result= sqrt(result);
-
-        return result;
+    /**
+    * Compute the Frobenius norm of a given fourth order tensor
+    * @param Tensor the given fourth order tensor
+    * @return the norm of the given tensor
+    */
+    static double normTensor(const Fourth_Order_Tensor& T)
+    {
+        double v = 0.0;
+        for (int i = 0; i < 3; ++i)
+            for (int j = 0; j < 3; ++j)
+                v += pow(norm_frobenius(T[i][j]), 2);
+        return sqrt(v);
     }
 
     /**
@@ -1062,7 +1083,7 @@ public:
     * @param Vector the given vector
     * @param Tensor the symmetric second order tensor
     */
-    static inline void VectorToTensor(const VectorType& Stress,MatrixType& Tensor)
+    static inline void VectorToTensor(const VectorType& Stress, MatrixType& Tensor)
     {
         if(Stress.size()==6)
         {
@@ -1182,7 +1203,7 @@ public:
 
     // THis uses the notation [o_xx o_yy o_zz o_xy o_xz o_yz]
     // Note that, this already accounts for factor 2 in [e_xx e_yy e_zz 2e_xy 2e_xz 2e_yz] (see https://en.wikiversity.org/wiki/Introduction_to_Elasticity/Constitutive_relations)
-    static inline void TensorToMatrix2(Fourth_Order_Tensor& Tensor, MatrixType& Matrix)
+    static inline void TensorToMatrix2(const Fourth_Order_Tensor& Tensor, MatrixType& Matrix)
     {
         // Simetrias seguras
         //  Cijkl = Cjilk;
@@ -1248,7 +1269,6 @@ public:
             Matrix(2,0) = Tensor[0][1](0,0);
             Matrix(2,1) = Tensor[0][1](1,1);
             Matrix(2,2) = Tensor[0][1](0,1);
-
         }
         return;
     }
@@ -1258,7 +1278,8 @@ public:
     * @param Tensor the given Matrix
     * @param Vector the Tensor
     */
-    static void MatrixToTensor(MatrixType& A,std::vector<std::vector<MatrixType> >& Tensor)
+    template<class Fourth_Order_Tensor_Type>
+    static void MatrixToTensor(const MatrixType& A, Fourth_Order_Tensor_Type& Tensor)
     {
         int help1 = 0;
         int help2 = 0;
@@ -1303,12 +1324,13 @@ public:
 
         return;
     }
+
     /**
     * Transforms a given 6*6 Matrix to a corresponing 4th order tensor
     * @param Tensor the given Matrix
     * @param Vector the Tensor
     */
-    static void MatrixToTensor(MatrixType& A,array_1d<double, 81>& Tensor)
+    static void MatrixToTensor(const MatrixType& A, array_1d<double, 81>& Tensor)
     {
         int help1 = 0;
         int help2 = 0;
@@ -1546,6 +1568,7 @@ public:
     }
 
     /// REF: Eq. (2.100) Souze de Neto, Computational Plasticity
+    /// Note that this tensor is not symmetric
     static inline void CalculateFourthOrderUnitTensor( Fourth_Order_Tensor& C )
     {
         MatrixType kronecker = IdentityMatrix(3);
@@ -1767,6 +1790,45 @@ public:
             }
         }
     }
+
+    // C += alpha A * B
+    template<int Op = 1>
+    static inline void ProductFourthOrderTensor(const double& alpha, const Fourth_Order_Tensor& A, const Fourth_Order_Tensor& B, Fourth_Order_Tensor& Result)
+    {
+        for(unsigned int i = 0; i < 3; ++i)
+        {
+            for(unsigned int j = 0; j < 3; ++j)
+            {
+                for(unsigned int k = 0; k < 3; ++k)
+                {
+                    for(unsigned int l = 0; l < 3; ++l)
+                    {
+                        for(unsigned int m = 0; m < 3; ++m)
+                        {
+                            for(unsigned int n = 0; n < 3; ++n)
+                            {
+                                if (Op == 0)
+                                    Result[i][j](m, n) = alpha * A[i][j](k, l) * B[k][l](m, n);
+                                else if (Op == 1)
+                                    Result[i][j](m, n) += alpha * A[i][j](k, l) * B[k][l](m, n);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // // inverse a fourth order tensor
+    // REMARK: this function is likely incorrect
+    // static inline void InverseFourthOrderTensor(const Fourth_Order_Tensor& A, Fourth_Order_Tensor& InvA)
+    // {
+    //     Matrix T(6, 6), InvT(6, 6);
+
+    //     TensorToMatrix(A, T);
+    //     InvertMatrix(T, InvT);
+    //     MatrixToTensor(InvT, InvA);
+    // }
 
     /**
      * Computes the derivatives of the inverse of matrix
@@ -2230,7 +2292,7 @@ public:
      * in 3D: [d^2/dx^2 d^2/dy^2 d^2/dz^2 d^2/dxdy d^2/dydz d^2/dxdz]
      */
     template<class TGeometryType>
-    static void CalculateSecondDerivatives(TGeometryType& rGeometry, std::vector<Vector>& rD2N_DX2,
+    static void CalculateSecondDerivatives(const TGeometryType& rGeometry, std::vector<Vector>& rD2N_DX2,
         const Matrix& J, const Matrix& DN_DX, const typename TGeometryType::CoordinatesArrayType& rPoint)
     {
         const unsigned int dim = rGeometry.WorkingSpaceDimension();
@@ -2367,7 +2429,7 @@ public:
      */
     template<class TGeometryType, std::size_t Configuration>
     static void CalculateSecondDerivatives(
-        TGeometryType& rGeometry,
+        const TGeometryType& rGeometry,
         std::vector<Vector>& rD2N_DX2,
         const typename TGeometryType::CoordinatesArrayType& rPoint)
     {

@@ -63,13 +63,13 @@ Dilatancy_Softening::Dilatancy_Softening():SofteningHardeningCriteria() {}
 Dilatancy_Softening::~Dilatancy_Softening() {}
 double  Dilatancy_Softening::FunctionBehavior(const Vector& Imput_Parameters)
 {
-    //const double PI    = 3.1415926535898;
+    //const double SD_MathUtils<double>::Pi()    = 3.1415926535898;
 //		     const double& he    =  Imput_Parameters[0];   /// Longituf del elemento
 //		     const double& Ep    =  Imput_Parameters[1];   /// Deformacion plastica efectiva
-    double angle        =  PI * Imput_Parameters[2]/180.00;
+    double angle        =  SD_MathUtils<double>::Pi() * Imput_Parameters[2]/180.00;
     double result       =  0.00;
-    double friction     =  PI * (*mprops)[INTERNAL_FRICTION_ANGLE] / 180.00;
-    double dilatancy    =  PI * (*mprops)[DILATANCY_ANGLE] / 180.00;
+    double friction     =  SD_MathUtils<double>::Pi() * (*mprops)[INTERNAL_FRICTION_ANGLE] / 180.00;
+    double dilatancy    =  SD_MathUtils<double>::Pi() * (*mprops)[DILATANCY_ANGLE] / 180.00;
     double sinTv        =  (sin(friction)-sin(dilatancy))/(1.00 - (sin(friction)*sin(dilatancy)));
     double sinangle     =  sin(angle);
     result              =  (sinangle-sinTv)/(1.00-sinangle*sinTv);
@@ -80,7 +80,7 @@ double  Dilatancy_Softening::FunctionBehavior(const Vector& Imput_Parameters)
     if(angle< std::asin(sinTv))
         result =  0.00;
     else
-        result =  180.00 * result/PI;
+        result =  180.00 * result/SD_MathUtils<double>::Pi();
 
     if(result!=result)
         KRATOS_THROW_ERROR(std::logic_error,  "DILATANCY" , "");

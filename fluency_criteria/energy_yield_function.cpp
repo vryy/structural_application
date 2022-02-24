@@ -225,16 +225,16 @@ void Energy_Yield_Function::CalculateDerivateFluencyCriteria(const Vector& Stres
 
     if (J_des(1)==0.00 && J_des(2)==0.00)
     {
-        tetha_Lode = PI/6.00;
+        tetha_Lode = SD_MathUtils<double>::Pi()/6.00;
     }
     else
     {
         tetha_Lode = -(3.00*sqrt(3.00)*J_des(2))/(2.00*pow(J_des(1), 1.50));
         //KRATOS_WATCH(J_des)
         tetha_Lode = asin(tetha_Lode)/3.00;
-        if(fabs(tetha_Lode) > PI/6)
+        if(fabs(tetha_Lode) > SD_MathUtils<double>::Pi()/6)
         {
-            std::cout<<"Warning: Angle must be less than PI/6"<<std::endl;
+            std::cout<<"Warning: Angle must be less than SD_MathUtils<double>::Pi()/6"<<std::endl;
         }
     }
 
@@ -261,19 +261,19 @@ void Energy_Yield_Function::CalculateDerivateFluencyCriteria(const Vector& Stres
 
 
     Vector Vector_Sin_Teta = ZeroVector(3);
-    Vector_Sin_Teta(0) =  sin(tetha_Lode + 2.00*PI/3.00);
+    Vector_Sin_Teta(0) =  sin(tetha_Lode + 2.00*SD_MathUtils<double>::Pi()/3.00);
     Vector_Sin_Teta(1) =  sin(tetha_Lode);
-    Vector_Sin_Teta(2) =  sin(tetha_Lode - 2.00*PI/3.00);
+    Vector_Sin_Teta(2) =  sin(tetha_Lode - 2.00*SD_MathUtils<double>::Pi()/3.00);
 
     Vector Vector_Cos_Teta = ZeroVector(3);
-    Vector_Cos_Teta(0) =  cos(tetha_Lode + 2.00*PI/3.00);
+    Vector_Cos_Teta(0) =  cos(tetha_Lode + 2.00*SD_MathUtils<double>::Pi()/3.00);
     Vector_Cos_Teta(1) =  cos(tetha_Lode);
-    Vector_Cos_Teta(2) =  cos(tetha_Lode - 2.00*PI/3.00);
+    Vector_Cos_Teta(2) =  cos(tetha_Lode - 2.00*SD_MathUtils<double>::Pi()/3.00);
 
     C[0] = Unit/3.00;
 
     // evitando puntos singulares
-    if (fabs(PI/6 -fabs(tetha_Lode)) < 1.00E-2)
+    if (fabs(SD_MathUtils<double>::Pi()/6 -fabs(tetha_Lode)) < 1.00E-2)
     {
         Vector Singlular(3);
         Singlular(0) = 0.500;

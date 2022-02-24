@@ -111,7 +111,7 @@ void Drucker_Prager_Yield_Function::CalculateEquivalentUniaxialStressViaInvarian
     Matrix StressTensor     = ZeroMatrix(3,3);
     Vector PrincipalStress  = ZeroVector(3);
 
-    frictional_internal = (*mprops)[INTERNAL_FRICTION_ANGLE]*PI/180.00;
+    frictional_internal = (*mprops)[INTERNAL_FRICTION_ANGLE]*SD_MathUtils<double>::Pi()/180.00;
 
     double sin_phi = sin(frictional_internal);
     double cos_phi = cos(frictional_internal);
@@ -146,7 +146,7 @@ void Drucker_Prager_Yield_Function::CalculateDerivateFluencyCriteria(const Vecto
     double Alfa   = 0.00;
 
 
-    frictional_internal = (*mprops)[INTERNAL_FRICTION_ANGLE]*PI/180.00;
+    frictional_internal = (*mprops)[INTERNAL_FRICTION_ANGLE]*SD_MathUtils<double>::Pi()/180.00;
 
 
     double sin_phi = sin(frictional_internal);

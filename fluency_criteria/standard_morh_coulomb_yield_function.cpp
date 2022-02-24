@@ -103,8 +103,8 @@ bool Standard_Morh_Coulomb_Yield_Function::CheckPlasticAdmisibility(const Vector
     const double d180       = 0.0055555555555555555555;
     const double& friction  = (*mprops)[INTERNAL_FRICTION_ANGLE];
     const double& cohe      = mcurrent_cohesion;
-    const double sinphi     = std::sin(d180 * PI * friction);
-    const double cosphi     = std::cos(d180 * PI * friction);
+    const double sinphi     = std::sin(d180 * SD_MathUtils<double>::Pi() * friction);
+    const double cosphi     = std::cos(d180 * SD_MathUtils<double>::Pi() * friction);
 
     // Check plastic admissibility
     double sigma_ef = (Stress[0] - Stress[2]) + (Stress[0] + Stress[2]) * sinphi;
@@ -207,10 +207,10 @@ bool Standard_Morh_Coulomb_Yield_Function::ReturnMappingToMainPlane(const array_
     double dgama   = 0.00;
     double ddgama  = 0.00;
     double denom   = 0.00;
-    double sinphi  =   std::sin(PI * friction * d180);
-    double cosphi  =   std::cos(PI * friction * d180);
-    double sinpsi  =   std::sin(PI * dilatancy* d180);
-//double cospsi  =   std::cos(PI * dilatancy* d180);
+    double sinphi  =   std::sin(SD_MathUtils<double>::Pi() * friction * d180);
+    double cosphi  =   std::cos(SD_MathUtils<double>::Pi() * friction * d180);
+    double sinpsi  =   std::sin(SD_MathUtils<double>::Pi() * dilatancy* d180);
+//double cospsi  =   std::cos(SD_MathUtils<double>::Pi() * dilatancy* d180);
 
 
 // Start Newton-Raphson iterations for DGAMA
@@ -337,10 +337,10 @@ bool Standard_Morh_Coulomb_Yield_Function::TwoVectorReturnToEdges(const array_1d
     array_1d<double,2> residual = ZeroVector(2);
 
 
-    double sinphi  =   std::sin(PI * friction * d180);
-    double cosphi  =   std::cos(PI * friction * d180);
-    double sinpsi  =   std::sin(PI * dilatancy* d180);
-//  double cospsi  =   std::cos(PI * dilatancy* d180);
+    double sinphi  =   std::sin(SD_MathUtils<double>::Pi() * friction * d180);
+    double cosphi  =   std::cos(SD_MathUtils<double>::Pi() * friction * d180);
+    double sinpsi  =   std::sin(SD_MathUtils<double>::Pi() * dilatancy* d180);
+//  double cospsi  =   std::cos(SD_MathUtils<double>::Pi() * dilatancy* d180);
 
 
     double sigma_a = 0.00;
@@ -534,9 +534,9 @@ void Standard_Morh_Coulomb_Yield_Function::ReturnMappingToApex(const array_1d<do
 
 
     double Partial_Cohesion =   0.00;
-    const double sinphi  =   std::sin(PI * friction * d180);
-    const double cosphi  =   std::cos(PI * friction * d180);
-    const double sinpsi  =   std::sin(PI * dilatancy * d180);
+    const double sinphi  =   std::sin(SD_MathUtils<double>::Pi() * friction * d180);
+    const double cosphi  =   std::cos(SD_MathUtils<double>::Pi() * friction * d180);
+    const double sinpsi  =   std::sin(SD_MathUtils<double>::Pi() * dilatancy * d180);
     const double cotphi  =   cosphi/sinphi;
     const double alpha   =   cosphi/sinpsi;
 
@@ -641,7 +641,7 @@ bool Standard_Morh_Coulomb_Yield_Function::CheckValidity(const array_1d<double,3
 bool Standard_Morh_Coulomb_Yield_Function::ReturnToEdges(const array_1d<double,3>& PrincipalStress)
 {
     const double& dilatance =   (*mprops)[DILATANCY_ANGLE];
-    const double sinpsi     =   std::sin(PI * dilatance / 180.00);
+    const double sinpsi     =   std::sin(SD_MathUtils<double>::Pi() * dilatance / 180.00);
     bool  return_rigth      =   false;  // left edges
     double scaprd           = (1.00 - sinpsi) * PrincipalStress[0] - 2.00 * PrincipalStress[1] + (1.00 + sinpsi) * PrincipalStress[2];
     if(scaprd > 0.00)

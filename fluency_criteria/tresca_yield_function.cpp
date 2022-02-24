@@ -360,7 +360,7 @@ void Tresca_Yield_Function::CalculateEquivalentUniaxialStressViaInvariants(
 
     if (J_des(1)==0.00 && J_des(2)==0.00)
     {
-        tetha_Lode = PI/2.00;
+        tetha_Lode = SD_MathUtils<double>::Pi()/2.00;
     }
     else
     {
@@ -408,7 +408,7 @@ void Tresca_Yield_Function::CalculateDerivateFluencyCriteria(const Vector& Stres
 
     if (J_des(1)==0.00 && J_des(2)==0.00)
     {
-        tetha_Lode = PI/2.00;
+        tetha_Lode = SD_MathUtils<double>::Pi()/2.00;
     }
     else
     {

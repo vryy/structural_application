@@ -498,9 +498,9 @@ public:
                 fact  = 2.00 / denom;
             }
 
-            c[1](0) = sin(mtetha_Lode - 3.00 * mtetha_Lode + 2.00 * PI / 3.00 );
+            c[1](0) = sin(mtetha_Lode - 3.00 * mtetha_Lode + 2.00 * SD_MathUtils<double>::Pi() / 3.00 );
             c[1](1) = sin(mtetha_Lode - 3.00 * mtetha_Lode );
-            c[1](2) = sin(mtetha_Lode - 3.00 * mtetha_Lode - 2.00 * PI / 3.00 );
+            c[1](2) = sin(mtetha_Lode - 3.00 * mtetha_Lode - 2.00 * SD_MathUtils<double>::Pi() / 3.00 );
             noalias(c[1]) =  fact * (c[1]);
 
             Matrix StressTensor;
@@ -523,17 +523,17 @@ public:
                 fact2  = 2.00 / denom2;
             }
 
-            c[2](0) = cos(mtetha_Lode  + 2.00 * PI / 3.00 );
+            c[2](0) = cos(mtetha_Lode  + 2.00 * SD_MathUtils<double>::Pi() / 3.00 );
             c[2](1) = cos(mtetha_Lode);
-            c[2](2) = cos(mtetha_Lode - 2.00 * PI / 3.00 );
+            c[2](2) = cos(mtetha_Lode - 2.00 * SD_MathUtils<double>::Pi() / 3.00 );
             noalias(c[2]) =  fact2 * (c[2]);
         }
         else
         {
             double fact  = 2.00 / sqrt(3.00);
-            c[1](0) = sin(mtetha_Lode  + 2.00 * PI / 3.00 );
+            c[1](0) = sin(mtetha_Lode  + 2.00 * SD_MathUtils<double>::Pi() / 3.00 );
             c[1](1) = sin(mtetha_Lode);
-            c[1](2) = sin(mtetha_Lode  - 2.00 * PI / 3.00 );
+            c[1](2) = sin(mtetha_Lode  - 2.00 * SD_MathUtils<double>::Pi() / 3.00 );
             noalias(c[1]) =  fact * (c[1]);
 
             c[2](0) = 0.00;

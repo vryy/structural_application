@@ -538,11 +538,11 @@ void BeamElement::CalculateTransformationMatrix(Matrix& Rotation)
 
     if (nx ==0.0)
     {
-        teta = PI/2;
+        teta = SD_MathUtils<double>::Pi()/2;
         if (ny == 0.0)
         {
             teta = 0.0;
-//            phi  = PI/2.0;
+//            phi  = SD_MathUtils<double>::Pi()/2.0;
         }
 //        else
 //        {
@@ -556,7 +556,7 @@ void BeamElement::CalculateTransformationMatrix(Matrix& Rotation)
     }
 
     if(nx < 0.0)
-        teta   = teta + PI;
+        teta   = teta + SD_MathUtils<double>::Pi();
 
     Normal_zero[3] = -sin(teta);
     Normal_zero[4] =  cos(teta);
@@ -640,7 +640,7 @@ void BeamElement::CalculateBodyForce(const Matrix& Rotation, Vector& LocalBody, 
         }
         if( norm_2(Normal_Loads)==0 || norm_2( Vector_zero)==0  )
         {
-            alpha = signo*PI/2;
+            alpha = signo*SD_MathUtils<double>::Pi()/2;
         }
         else
         {
@@ -688,7 +688,7 @@ void BeamElement::CalculateBodyForce(const Matrix& Rotation, Vector& LocalBody, 
         }
         if( norm_2(Normal_Loads)==0 || norm_2( Vector_zero)==0  )
         {
-            alpha = signo*PI/2;
+            alpha = signo*SD_MathUtils<double>::Pi()/2;
         }
         else
         {
@@ -738,7 +738,7 @@ void BeamElement::CalculateBodyForce(const Matrix& Rotation, Vector& LocalBody, 
         }
         if( norm_2(Normal_Loads)==0 || norm_2( Vector_zero)==0  )
         {
-            alpha = signo*PI/2;
+            alpha = signo*SD_MathUtils<double>::Pi()/2;
         }
         else
         {
@@ -1206,7 +1206,7 @@ void BeamElement::CalculateDistributedBodyForce(const int Direction, Vector& Loa
     }
     if( norm_2(Normal_Loads)==0 || norm_2( Vector_zero)==0  )
     {
-        alpha = signo*PI/2;
+        alpha = signo*SD_MathUtils<double>::Pi()/2;
     }
     else
     {
@@ -1238,7 +1238,7 @@ void BeamElement::CalculateDistributedBodyForce(const int Direction, Vector& Loa
         }
         if( norm_2(Normal_Loads)==0 || norm_2( Vector_zero)==0  )
         {
-            alpha = signo*PI/2;
+            alpha = signo*SD_MathUtils<double>::Pi()/2;
         }
         else
         {
@@ -1270,7 +1270,7 @@ void BeamElement::CalculateDistributedBodyForce(const int Direction, Vector& Loa
         }
         if( norm_2(Normal_Loads)==0 || norm_2( Vector_zero)==0  )
         {
-            alpha = signo*PI/2;
+            alpha = signo*SD_MathUtils<double>::Pi()/2;
         }
         else
         {

@@ -236,7 +236,7 @@ void DruckerPrager::SetValue( const Variable<double>& rThisVariable,
         mHardening = rValue;
     if ( rThisVariable == INTERNAL_FRICTION_ANGLE )
     {
-        double tan_phi = tan( rValue*PI/180 );
+        double tan_phi = tan( rValue*SD_MathUtils<double>::Pi()/180 );
         mEta = 3.0 * tan_phi / ( sqrt( 9.0 + 12.0 * tan_phi * tan_phi ) );
         mXi = 3.0 / ( sqrt( 9.0 + 12.0 * tan_phi * tan_phi ) );
     }
@@ -351,7 +351,7 @@ void DruckerPrager::InitializeMaterial( const Properties& props,
     mCohesion = props[COHESION];
     mHardening = props[ISOTROPIC_HARDENING_MODULUS];
 
-    double tan_phi = tan(( props[INTERNAL_FRICTION_ANGLE] ) * PI / 180 );
+    double tan_phi = tan(( props[INTERNAL_FRICTION_ANGLE] ) * SD_MathUtils<double>::Pi() / 180 );
     mEta = 3.0 * tan_phi / ( sqrt( 9.0 + 12.0 * tan_phi * tan_phi ) );
     mXi = 3.0 / ( sqrt( 9.0 + 12.0 * tan_phi * tan_phi ) );
 
