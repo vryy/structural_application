@@ -265,6 +265,21 @@ protected:
 
     void InitializeMaterial(const ProcessInfo& rCurrentProcessInfo);
 
+    virtual void CalculateBoperator( Matrix& B_Operator, const Vector& N, const Matrix& DN_DX );
+
+    virtual void CalculateBBaroperator( Matrix& B_Operator, const Matrix& DN_DX, const Matrix& Bdil_bar );
+
+    virtual unsigned int GetStrainSize( const unsigned int& dim ) const
+    {
+        return dim * (dim + 1) / 2;
+    }
+
+    virtual double GetIntegrationWeight( const GeometryType::IntegrationPointsArrayType& integration_points,
+            const unsigned int& PointNumber, const Matrix& Ncontainer ) const
+    {
+        return integration_points[PointNumber].Weight();
+    }
+
     ///@}
     ///@name Serialization
     ///@{
@@ -274,7 +289,7 @@ protected:
     // A private default constructor necessary for serialization
     KinematicLinear() {}
 
-    virtual void save( Serializer& rSerializer ) const
+    void save( Serializer& rSerializer ) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer,  Element );
         rSerializer.save( "mInitialDisp", mInitialDisp );
@@ -282,7 +297,7 @@ protected:
         rSerializer.save( "mConstitutiveLawVector", mConstitutiveLawVector );
     }
 
-    virtual void load( Serializer& rSerializer )
+    void load( Serializer& rSerializer ) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer,  Element );
         rSerializer.load( "mInitialDisp", mInitialDisp );
@@ -351,10 +366,6 @@ private:
     void CalculateStrain( const Matrix& B, const Matrix& Displacements, Vector& StrainVector );
 
 //     Matrix CalculateOnIntegrationPoints( const Variable<Matrix>& rVariable, int PointNumber );
-
-    void CalculateBoperator( Matrix& B_Operator, const Matrix& DN_DX );
-
-    void CalculateBBaroperator( Matrix& B_Operator, const Matrix& DN_DX, const Matrix& Bdil_bar );
 
     ///@}
     ///@name Private Operations

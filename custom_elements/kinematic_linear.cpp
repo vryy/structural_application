@@ -368,7 +368,7 @@ namespace Kratos
 
         unsigned int number_of_nodes = GetGeometry().size();
         unsigned int dim = GetGeometry().WorkingSpaceDimension();
-        unsigned int strain_size = dim * ( dim + 1 ) / 2;
+        unsigned int strain_size = this->GetStrainSize(dim);
 
         //this is the size of the elements stiffness matrix/force vector
         unsigned int mat_size = GetGeometry().size() * dim;
@@ -382,6 +382,7 @@ namespace Kratos
         Matrix CurrentDisp( number_of_nodes, dim );
         Matrix InvJ0(dim, dim);
         double DetJ0;
+        double IntToReferenceWeight;
 
         //constitutive law
         ConstitutiveLaw::Parameters const_params;
@@ -479,10 +480,10 @@ namespace Kratos
                 noalias(Bdil_bar) = ZeroMatrix(number_of_nodes, dim);
                 for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); ++PointNumber )
                 {
-                    const double& Weight = integration_points[PointNumber].Weight();
+                    IntToReferenceWeight = this->GetIntegrationWeight(integration_points, PointNumber, Ncontainer);
                     MathUtils<double>::InvertMatrix( J0[PointNumber], InvJ0, DetJ0 );
                     noalias( DN_DX ) = prod( DN_De[PointNumber], InvJ0 );
-                    noalias(Bdil_bar) += DN_DX * Weight * DetJ0;
+                    noalias(Bdil_bar) += DN_DX * IntToReferenceWeight * DetJ0;
                 }
                 Bdil_bar /= TotalDomainInitialSize;
             }
@@ -504,10 +505,10 @@ namespace Kratos
                 if(GetProperties()[IS_BBAR] == true)
                     CalculateBBaroperator( B, DN_DX, Bdil_bar );
                 else
-                    CalculateBoperator( B, DN_DX );
+                    CalculateBoperator( B, row(Ncontainer, PointNumber), DN_DX );
             }
             else
-                CalculateBoperator( B, DN_DX );
+                CalculateBoperator( B, row(Ncontainer, PointNumber), DN_DX );
 
             //calculate strain
             CalculateStrain( B, CurrentDisp, StrainVector );
@@ -530,7 +531,7 @@ namespace Kratos
             #endif
 
             //calculating weights for integration on the reference configuration
-            double IntToReferenceWeight = integration_points[PointNumber].Weight();
+            IntToReferenceWeight = this->GetIntegrationWeight(integration_points, PointNumber, Ncontainer);
 
             //modify integration weight in case of 2D
             if ( dim == 2 ) IntToReferenceWeight *= GetProperties()[THICKNESS];
@@ -966,13 +967,15 @@ namespace Kratos
         GeometryType::JacobiansType J0;
         J0 = GetGeometry().Jacobian( J0, mThisIntegrationMethod, DeltaPosition );
         double DetJ0;
+        double IntToReferenceWeight;
 
         for (unsigned int PointNumber = 0; PointNumber < integration_points.size(); ++PointNumber)
         {
             DetJ0 = MathUtils<double>::Det(J0[PointNumber]);
 
             //calculating weights for integration on the reference configuration
-            double IntToReferenceWeight = density * integration_points[PointNumber].Weight();
+            IntToReferenceWeight = this->GetIntegrationWeight(integration_points, PointNumber, Ncontainer);
+            IntToReferenceWeight *= density;
 
             //modify integration weight in case of 2D
             if ( dimension == 2 ) IntToReferenceWeight *= GetProperties()[THICKNESS];
@@ -1267,7 +1270,7 @@ namespace Kratos
         KRATOS_TRY
 
         unsigned int dim = GetGeometry().WorkingSpaceDimension();
-        unsigned int strain_size = dim * (dim + 1) / 2;
+        unsigned int strain_size = this->GetStrainSize(dim);
         Vector InternalForces(3);
 
         for ( unsigned int prim = 0; prim < GetGeometry().size(); ++prim )
@@ -1302,7 +1305,7 @@ namespace Kratos
         KRATOS_TRY
 
         unsigned int dim = GetGeometry().WorkingSpaceDimension();
-        unsigned int strain_size = dim * (dim + 1) / 2 ;
+        unsigned int strain_size = this->GetStrainSize(dim);
 
         for ( unsigned int prim = 0; prim < GetGeometry().size(); ++prim )
         {
@@ -1352,7 +1355,7 @@ namespace Kratos
     {
         KRATOS_TRY
         unsigned int Dim = GetGeometry().WorkingSpaceDimension();
-        unsigned int strain_size = Dim * (Dim + 1) / 2;
+        unsigned int strain_size = this->GetStrainSize(Dim);
         noalias( StrainVector ) = ZeroVector( strain_size );
 
         for ( unsigned int node = 0; node < GetGeometry().size(); ++node )
@@ -1370,14 +1373,14 @@ namespace Kratos
      * @param B_Operator current B-operator
      * @param DN_DX shape function values at the current integration point
      */
-    void KinematicLinear::CalculateBoperator( Matrix& B_Operator, const Matrix& DN_DX )
+    void KinematicLinear::CalculateBoperator( Matrix& B_Operator, const Vector& N, const Matrix& DN_DX )
     {
         KRATOS_TRY
 
         const unsigned int number_of_nodes = GetGeometry().PointsNumber();
 
         unsigned int dim = GetGeometry().WorkingSpaceDimension();
-        unsigned int strain_size = dim * (dim + 1) / 2;
+        unsigned int strain_size = this->GetStrainSize(dim);
 
         noalias( B_Operator ) = ZeroMatrix( strain_size, number_of_nodes * dim );
 
@@ -1421,25 +1424,25 @@ namespace Kratos
 
         if(dim == 2)
         {
-            KRATOS_THROW_ERROR(std::logic_error, "Not implemented", "")
-//            const double R1R3 = (1.0 / 3);
-//            double tmp1;
-//            double tmp2;
+            // KRATOS_THROW_ERROR(std::logic_error, "Bbar formulation for 2D is not supported", "")
+            // const double R1R3 = (1.0 / 3);
+            // double tmp1;
+            // double tmp2;
 
-//            for ( unsigned int i = 0; i < number_of_nodes; ++i )
-//            {
-//                tmp1 = R1R3 * (Bdil_bar( i, 0 ) - DN_DX( i, 0 ));
-//                tmp2 = R1R3 * (Bdil_bar( i, 1 ) - DN_DX( i, 1 ));
+            // for ( unsigned int i = 0; i < number_of_nodes; ++i )
+            // {
+            //    tmp1 = R1R3 * (Bdil_bar( i, 0 ) - DN_DX( i, 0 ));
+            //    tmp2 = R1R3 * (Bdil_bar( i, 1 ) - DN_DX( i, 1 ));
 
-//                B_Operator( 0, i*2 ) = DN_DX( i, 0 ) + tmp1;
-//                B_Operator( 1, i*2 ) = tmp1;
+            //    B_Operator( 0, i*2 ) = DN_DX( i, 0 ) + tmp1;
+            //    B_Operator( 1, i*2 ) = tmp1;
 
-//                B_Operator( 0, i*2 + 1) = tmp2;
-//                B_Operator( 1, i*2 + 1 ) = DN_DX( i, 1 ) + tmp2;
+            //    B_Operator( 0, i*2 + 1) = tmp2;
+            //    B_Operator( 1, i*2 + 1 ) = DN_DX( i, 1 ) + tmp2;
 
-//                B_Operator( 2, i*2 ) = DN_DX( i, 1 );
-//                B_Operator( 2, i*2 + 1 ) = DN_DX( i, 0 );
-//            }
+            //    B_Operator( 2, i*2 ) = DN_DX( i, 1 );
+            //    B_Operator( 2, i*2 + 1 ) = DN_DX( i, 0 );
+            // }
         }
         else if(dim == 3)
         {
@@ -1485,7 +1488,7 @@ namespace Kratos
 
         unsigned int number_of_nodes = GetGeometry().size();
         unsigned int dim = GetGeometry().WorkingSpaceDimension();;
-        unsigned int strain_size = dim * ( dim + 1 ) / 2;
+        unsigned int strain_size = this->GetStrainSize(dim);
 
         //Initialize local variables
         Matrix B( strain_size, number_of_nodes*dim );
@@ -1546,8 +1549,16 @@ namespace Kratos
         {
             MathUtils<double>::InvertMatrix( J0[PointNumber], InvJ0, DetJ0 );
             noalias( DN_DX ) = prod( DN_De[PointNumber], InvJ0 );
+
             //Initializing B_Operator at the current integration point
-            CalculateBoperator( B, DN_DX );
+            CalculateBoperator( B, row(Ncontainer, PointNumber), DN_DX );
+
+            if ( rVariable == STRAIN_INTERPOLATION_OPERATOR )
+            {
+                rValues[PointNumber].resize( B.size1(), B.size2(), false );
+                noalias(rValues[PointNumber]) = B;
+                continue;
+            }
 
             //calculate strain
             CalculateStrain( B, CurrentDisp, StrainVector );
@@ -1597,7 +1608,7 @@ namespace Kratos
             rValues.resize( mConstitutiveLawVector.size() );
 
         unsigned int dim = GetGeometry().WorkingSpaceDimension();
-        unsigned int strain_size = dim * (dim + 1) / 2;
+        unsigned int strain_size = this->GetStrainSize(dim);
         unsigned int number_of_nodes = GetGeometry().size();
         unsigned int mat_size = dim * number_of_nodes;
 
@@ -1613,7 +1624,7 @@ namespace Kratos
                 if(Type == 0)
                 {
                     // no recovery
-                    CalculateOnIntegrationPoints( STRESSES, rValues, rCurrentProcessInfo );
+                    this->CalculateOnIntegrationPoints( STRESSES, rValues, rCurrentProcessInfo );
                 }
                 else if(Type == 1)
                 {
@@ -1648,7 +1659,7 @@ namespace Kratos
             double DetJ0;
 
             const GeometryType::ShapeFunctionsGradientsType& DN_De = GetGeometry().ShapeFunctionsLocalGradients( mThisIntegrationMethod );
-            //const Matrix& Ncontainer = GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod );
+            const Matrix& Ncontainer = GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod );
 
             //initializing the Jacobian in the reference configuration
             GeometryType::JacobiansType J0;
@@ -1671,7 +1682,7 @@ namespace Kratos
                 MathUtils<double>::InvertMatrix( J0[i], InvJ0, DetJ0 );
                 noalias(DN_DX) = prod(DN_De[i], InvJ0);
                 // compute B_Operator at the current integration point
-                CalculateBoperator(B, DN_DX);
+                CalculateBoperator(B, row(Ncontainer, i), DN_DX);
 
                 // compute the strain at integration point
                 CalculateStrain(B, CurrentDisp, StrainVector);
@@ -1748,6 +1759,19 @@ namespace Kratos
             #ifdef ENABLE_BEZIER_GEOMETRY
             GetGeometry().Clean();
             #endif
+        }
+        else if ( rVariable == STRESSES )
+        {
+            if ( rValues.size() != mConstitutiveLawVector.size() )
+                rValues.resize( mConstitutiveLawVector.size() );
+
+            for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); ++i )
+            {
+                if (rValues[i].size() != strain_size)
+                    rValues[i].resize(strain_size, false);
+
+                rValues[i] = mConstitutiveLawVector[i]->GetValue( rVariable, rValues[i] );
+            }
         }
         else
         {
@@ -2157,5 +2181,6 @@ namespace Kratos
 
 } // Namespace Kratos
 
+#ifdef ENABLE_DEBUG_CONSTITUTIVE_LAW
 #undef ENABLE_DEBUG_CONSTITUTIVE_LAW
-
+#endif

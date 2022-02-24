@@ -75,6 +75,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
     #include "custom_elements/timoshenko_linear_beam_element.h"
     #include "custom_elements/beam_element.h"
     #include "custom_elements/kinematic_linear.h"
+    #include "custom_elements/kinematic_linear_axisymmetric.h"
     #include "custom_elements/total_lagrangian.h"
     #include "custom_conditions/pointforce3D.h"
     #include "custom_conditions/pointforce2D.h"
@@ -96,6 +97,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
     #include "custom_elements/timoshenko_linear_beam_element.h"
     #include "custom_elements/corotational_linear_beam_element.h"
     #include "custom_elements/kinematic_linear.h"
+    #include "custom_elements/kinematic_linear_axisymmetric.h"
     #include "custom_elements/membrane_element.h"
     #include "custom_elements/unsaturated_soils_element_2phase_small_strain.h"
     #include "custom_elements/unsaturated_soils_element_2phase_small_strain_staggered.h"
@@ -279,6 +281,12 @@ private:
     const KinematicLinear mKinematicLinear3D6N;
     const KinematicLinear mKinematicLinear3D15N;
 
+    const KinematicLinearAxisymmetric mKinematicLinearAxisymmetric3N;
+    const KinematicLinearAxisymmetric mKinematicLinearAxisymmetric4N;
+    const KinematicLinearAxisymmetric mKinematicLinearAxisymmetric6N;
+    const KinematicLinearAxisymmetric mKinematicLinearAxisymmetric8N;
+    const KinematicLinearAxisymmetric mKinematicLinearAxisymmetric9N;
+
     const PointForce2D  mPointForce2D;
     const PointForce3D  mPointForce3D;
     const PointMoment3D mPointMoment3D;
@@ -382,6 +390,11 @@ private:
     const KinematicLinear mKinematicLinear3D27N;
     const KinematicLinear mKinematicLinear3D6N;
     const KinematicLinear mKinematicLinear3D15N;
+    const KinematicLinearAxisymmetric mKinematicLinearAxisymmetric3N;
+    const KinematicLinearAxisymmetric mKinematicLinearAxisymmetric4N;
+    const KinematicLinearAxisymmetric mKinematicLinearAxisymmetric6N;
+    const KinematicLinearAxisymmetric mKinematicLinearAxisymmetric8N;
+    const KinematicLinearAxisymmetric mKinematicLinearAxisymmetric9N;
     const UnsaturatedSoilsElement_2phase_SmallStrain mUnsaturatedSoilsElement2PhaseSmallStrain3D4N;
     const UnsaturatedSoilsElement_2phase_SmallStrain mUnsaturatedSoilsElement2PhaseSmallStrain3D6N;
     const UnsaturatedSoilsElement_2phase_SmallStrain mUnsaturatedSoilsElement2PhaseSmallStrain3D8N;
