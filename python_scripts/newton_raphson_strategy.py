@@ -68,6 +68,14 @@ class SolvingStrategyPython:
         if 'list_plastic_points' not in self.Parameters:
             self.Parameters['list_plastic_points'] = False
 
+        if not('log_residuum_name' in self.Parameters):
+            self.log_residuum = open('residuum_newton_raphson.log', 'w')
+        else:
+            self.log_residuum = open(self.Parameters['log_residuum_name'], 'w')
+
+    def __del__(self):
+        self.log_residuum.close()
+
     #######################################################################
     def Initialize(self):
         if(self.time_scheme.SchemeIsInitialized() == False):
@@ -128,6 +136,7 @@ class SolvingStrategyPython:
         self.iterationCounter = 0 #hbui added this variable
         self.iterationCounter = self.iterationCounter + 1
         normDx = self.ExecuteIteration(self.echo_level,self.MoveMeshFlag,calculate_norm)
+        self.FinalizeNonLinIteration(False,self.MoveMeshFlag)
         print("normDx: " + str(normDx))
         print("newton_raphson_strategy.PerformOneIteration completed at time = " + str(self.model_part.ProcessInfo[TIME]))
 
@@ -154,7 +163,15 @@ class SolvingStrategyPython:
         self.iterationCounter = 0 #hbui added this variable
         self.iterationCounter = self.iterationCounter + 1
         normDx = self.ExecuteIteration(self.echo_level,self.MoveMeshFlag,calculate_norm)
+        self.FinalizeNonLinIteration(False,self.MoveMeshFlag)
         print("normDx at iteration 0: " + str(normDx))
+
+        er_0 = self.space_utils.TwoNorm(self.b)
+        er_n = er_0
+        self.log_residuum.write('time: ' + str(self.model_part.ProcessInfo[TIME]) + '\n')
+        self.log_residuum.write('it\tresidual\tratio\treduction\n')
+        self.log_residuum.write('0\t' + str(er_0) + '\n')
+        self.log_residuum.flush()
 
         #non linear loop
         converged = False
@@ -168,14 +185,36 @@ class SolvingStrategyPython:
             # - database is updated depending on the solution
             # - nodal coordinates are updated if required
             self.iterationCounter = self.iterationCounter + 1
-            normDx = self.ExecuteIteration(self.echo_level,self.MoveMeshFlag,calculate_norm)
+            normDx = self.ExecuteIteration(self.echo_level,calculate_norm)
             print("normDx at iteration " + str(it+1) + ": " + str(normDx))
 
             #verify convergence
             converged = self.convergence_criteria.PostCriteria(self.model_part,self.builder_and_solver.GetDofSet(),self.A,self.Dx,self.b)
 
+            #finalize the iteration
+            self.FinalizeNonLinIteration(converged,self.MoveMeshFlag)
+
             #update iteration count
             it = it + 1
+
+            # record the residuum and reduction
+            er = self.space_utils.TwoNorm(self.b)
+
+            if er_0 > 0.0:
+                er_ratio = er/er_0
+            else:
+                er_ratio = 1.0
+            if er > 0.0:
+                er_reduction = er_n/er
+            else:
+                if er_n == 0.0:
+                    er_reduction = 1.0
+                else:
+                    er_reduction = 1.0e99
+            er_n = er
+
+            self.log_residuum.write(str(it) + '\t' + str(er) + '\t' + str(er_ratio) + '\t' + str(er_reduction) + '\n')
+            self.log_residuum.flush()
 
         if( it == self.max_iter and converged == False):
             print("Iteration did not converge at time step " + str(self.model_part.ProcessInfo[TIME]))
@@ -223,7 +262,7 @@ class SolvingStrategyPython:
             proc.ExecuteInitializeSolutionStep()
 
     #######################################################################
-    def ExecuteIteration(self,echo_level,MoveMeshFlag,CalculateNormDxFlag):
+    def ExecuteIteration(self,echo_level,CalculateNormDxFlag):
         #reset system matrices and vectors prior to rebuild
         self.space_utils.SetToZeroMatrix(self.A)
         self.space_utils.SetToZeroVector(self.Dx)
@@ -304,16 +343,27 @@ class SolvingStrategyPython:
         #    print(formatted_printA)
         self.AnalyseSystemMatrix(self.A)
 
-        #perform update
-        self.time_scheme.Update(self.model_part,self.builder_and_solver.GetDofSet(),self.A,self.Dx,self.b)
-        print("newton_raphson_strategy.ExecuteIteration:Update is called")
+        #calculate the norm of the "correction" Dx
+        if(CalculateNormDxFlag == True):
+            normDx = self.space_utils.TwoNorm(self.Dx)
+        else:
+            normDx = 0.0
 
-        #move the mesh as needed
-        if(MoveMeshFlag == True):
-            self.time_scheme.MoveMesh(self.model_part.Nodes)
-#        print("b:" + str(self.b))
-#        print("Dx:" + str(self.Dx))
-#        print("A:" + str(self.A))
+        return normDx
+
+    #######################################################################
+    def FinalizeNonLinIteration(self,ConvergedFlag,MoveMeshFlag):
+        if not ConvergedFlag:
+            #perform update
+            self.time_scheme.Update(self.model_part,self.builder_and_solver.GetDofSet(),self.A,self.Dx,self.b)
+            print("newton_raphson_strategy.FinalizeNonLinIteration:Update is called")
+
+            #move the mesh as needed
+            if(MoveMeshFlag == True):
+                self.time_scheme.MoveMesh(self.model_part.Nodes)
+    #        print("b:" + str(self.b))
+    #        print("Dx:" + str(self.Dx))
+    #        print("A:" + str(self.A))
 
         #to account for prescribed displacement, the displacement at prescribed nodes need to be updated
         for node in self.model_part.Nodes:
@@ -334,15 +384,7 @@ class SolvingStrategyPython:
                 node.SetSolutionStepValue(PRESCRIBED_DELTA_DISPLACEMENT_Z, 0.0) # set the prescribed displacement to zero to avoid update in the second step
 
         self.time_scheme.FinalizeNonLinIteration(self.model_part,self.A,self.Dx,self.b)
-        print("newton_raphson_strategy.ExecuteIteration:FinalizeNonLinIteration is called")
-
-        #calculate the norm of the "correction" Dx
-        if(CalculateNormDxFlag == True):
-            normDx = self.space_utils.TwoNorm(self.Dx)
-        else:
-            normDx = 0.0
-
-        return normDx
+        print("newton_raphson_strategy.FinalizeNonLinIteration:FinalizeNonLinIteration is called")
 
     #######################################################################
     def FinalizeSolutionStep(self,CalculateReactionsFlag):

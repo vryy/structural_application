@@ -3,7 +3,10 @@ from KratosMultiphysics import *
 from KratosMultiphysics.StructuralApplication import *
 # Check that KratosMultiphysics was imported in the main script
 CheckForPreviousImport()
-import os,time
+import os,time,math
+
+# Reference:
+# Vermeer et al, Automatic Step Size Correction for Non-associated Plasticity Problems
 
 class SolvingStrategyPython:
     #######################################################################
@@ -32,10 +35,12 @@ class SolvingStrategyPython:
         self.pA = self.space_utils.CreateEmptyMatrixPointer()
         self.pDx = self.space_utils.CreateEmptyVectorPointer()
         self.pb = self.space_utils.CreateEmptyVectorPointer()
+        self.pbold = self.space_utils.CreateEmptyVectorPointer()
 
         self.A = (self.pA).GetReference()
         self.Dx = (self.pDx).GetReference()
         self.b = (self.pb).GetReference()
+        self.bold = (self.pbold).GetReference()
         ##local matrices and vectors
         #self.A = CompressedMatrix()
         #self.Dx = Vector()
@@ -49,7 +54,7 @@ class SolvingStrategyPython:
         (self.builder_and_solver).SetCalculateReactionsFlag(self.CalculateReactionsFlag)
         (self.builder_and_solver).SetReshapeMatrixFlag(self.ReformDofSetAtEachStep)
 
-        self.solveCounter = 0; #hbui added this variable
+        self.solveCounter = 0 #hbui added this variable
 
         self.system_reorderer = Process()
 #        self.system_reorderer = SystemRCMReordererProcess(self.model_part)
@@ -68,6 +73,24 @@ class SolvingStrategyPython:
         if 'list_plastic_points' not in self.Parameters:
             self.Parameters['list_plastic_points'] = False
 
+        if not('overrelaxation_factor' in self.Parameters):
+            self.omega = 1.0
+        else:
+            self.omega = self.Parameters['overrelaxation_factor']
+
+        if not('residuum_tolerance' in self.Parameters):
+            self.erbar = 1.0e-4
+        else:
+            self.erbar = self.Parameters['residuum_tolerance']
+
+        if not('log_residuum_name' in self.Parameters):
+            self.log_residuum = open('residuum_initial_stiffness.log', 'w')
+        else:
+            self.log_residuum = open(self.Parameters['log_residuum_name'], 'w')
+
+    def __del__(self):
+        self.log_residuum.close()
+
     #######################################################################
     def Initialize(self):
         if(self.time_scheme.SchemeIsInitialized() == False):
@@ -79,7 +102,7 @@ class SolvingStrategyPython:
         for proc in self.attached_processes:
             proc.ExecuteInitialize()
         self.InitializeWasPerformed = True
-        print("initial_stiffness_strategy.Initialize is called")
+        print("initial_stiffness_strategy.Initialize is called, overrelaxation factor = " + str(self.omega))
 
     #######################################################################
     def SolveOneStep(self):
@@ -128,6 +151,7 @@ class SolvingStrategyPython:
         self.iterationCounter = 0 #hbui added this variable
         self.iterationCounter = self.iterationCounter + 1
         normDx = self.ExecuteIteration(self.echo_level,self.MoveMeshFlag,calculate_norm,0)
+        self.FinalizeNonLinIteration(False,self.MoveMeshFlag)
         print("normDx: " + str(normDx))
         print("initial_stiffness_strategy.PerformOneIteration completed at time = " + str(self.model_part.ProcessInfo[TIME]))
 
@@ -150,11 +174,19 @@ class SolvingStrategyPython:
         self.Predict()
 
         #execute iteration - first iteration is ALWAYS executed
-        calculate_norm = False
+        calculate_norm = True
         self.iterationCounter = 0 #hbui added this variable
         self.iterationCounter = self.iterationCounter + 1
-        normDx = self.ExecuteIteration(self.echo_level,self.MoveMeshFlag,calculate_norm,0)
+        normDx = self.ExecuteIteration(self.echo_level,calculate_norm,0)
+        self.FinalizeNonLinIteration(False,self.MoveMeshFlag)
         print("normDx at iteration 0: " + str(normDx))
+
+        er_0 = self.space_utils.TwoNorm(self.b)
+        er_n = er_0
+        self.log_residuum.write('time: ' + str(self.model_part.ProcessInfo[TIME]) + '\n')
+        self.log_residuum.write('it\tresidual\tratio\treduction\tremaining\n')
+        self.log_residuum.write('0\t' + str(er_0) + '\n')
+        self.log_residuum.flush()
 
         #non linear loop
         converged = False
@@ -168,14 +200,55 @@ class SolvingStrategyPython:
             # - database is updated depending on the solution
             # - nodal coordinates are updated if required
             self.iterationCounter = self.iterationCounter + 1
-            normDx = self.ExecuteIteration(self.echo_level,self.MoveMeshFlag,calculate_norm,it+1)
+            normDx = self.ExecuteIteration(self.echo_level,calculate_norm,it+1)
             print("normDx at iteration " + str(it+1) + ": " + str(normDx))
 
             #verify convergence
             converged = self.convergence_criteria.PostCriteria(self.model_part,self.builder_and_solver.GetDofSet(),self.A,self.Dx,self.b)
 
+            #finalize the iteration
+            self.FinalizeNonLinIteration(converged,self.MoveMeshFlag)
+
             #update iteration count
             it = it + 1
+
+            # estimate the number of remaining iterations
+            er = self.space_utils.TwoNorm(self.b)
+            # if not(self.alpha_m == 1.0):
+            #     n = (it*math.log(er) - math.log(erbar)) / math.log(abs(self.alpha_m))
+            # else:
+            #     n = self.max_iter - it
+            # print("Residual: " + str(er))
+            # print("Estimated number of remaining iterations: " + str(n))
+            if er_0 > 0.0:
+                er_ratio = er/er_0
+            else:
+                er_ratio = 1.0
+            if er > 0.0:
+                er_reduction = er_n/er
+            else:
+                if er_n == 0.0:
+                    er_reduction = 1.0
+                else:
+                    er_reduction = 1.0e99
+            er_n = er
+
+            if not(er_reduction == 1.0):
+                # n = (it*math.log(er_ratio) - math.log(erbar)) / math.log(er_reduction)
+                n = -(math.log(self.erbar) - math.log(er_ratio)) / math.log(er_reduction)
+            else:
+                n = self.max_iter - it
+            # print("Estimated number of remaining iterations: " + str(n))
+
+            # override the convergence
+            if (converged == False)  and (er_ratio < self.erbar):
+                converged = True
+                print("initial_stiffness_strategy.PerformNewtonRaphsonIteration converged when residuum ratio (" + str(er_ratio) + ") reached tolerance " + str(self.erbar))
+
+            self.log_residuum.write(str(it) + '\t' + str(er) + '\t' + str(er_ratio) + '\t' + str(er_reduction) + '\t' + str(n) + '\n')
+            self.log_residuum.flush()
+
+        self.log_residuum.write("------------------------------------------\n")
 
         if( it == self.max_iter and converged == False):
             print("Iteration did not converge at time step " + str(self.model_part.ProcessInfo[TIME]))
@@ -223,7 +296,7 @@ class SolvingStrategyPython:
             proc.ExecuteInitializeSolutionStep()
 
     #######################################################################
-    def ExecuteIteration(self,echo_level,MoveMeshFlag,CalculateNormDxFlag,it):
+    def ExecuteIteration(self,echo_level,CalculateNormDxFlag,it):
         #reset system matrices and vectors prior to rebuild
         if (it == 0):
             self.space_utils.SetToZeroMatrix(self.A)
@@ -247,6 +320,17 @@ class SolvingStrategyPython:
             # print("normb at BuildRHS: " + str(self.space_utils.TwoNorm(self.b)))
             self.builder_and_solver.ApplyDirichletConditions(self.time_scheme,self.model_part,self.A,self.Dx,self.b)
             self.linear_solver.Solve(self.A,self.Dx,self.b)
+
+        if it > 0:
+            norm_bold = self.space_utils.TwoNorm(self.bold)
+            if (norm_bold > 1.0e-10):
+                self.alpha_m = self.space_utils.Dot(self.bold, self.b) / math.pow(norm_bold, 2)
+            else:
+                self.alpha_m = 1.0
+            print("New alpha_m: " + str(self.alpha_m))
+        # print("RHS = " + str(self.b))
+
+        self.space_utils.Copy(self.b, self.bold)
 
         # print("At solve, A = " + str(self.A))
         # print("At solve, rhs = " + str(self.b))
@@ -305,13 +389,24 @@ class SolvingStrategyPython:
         #    print(formatted_printA)
         self.AnalyseSystemMatrix(self.A)
 
-        #perform update
-        self.time_scheme.Update(self.model_part,self.builder_and_solver.GetDofSet(),self.A,self.Dx,self.b)
-        print("ExecuteIteration:Update is called")
+        #calculate the norm of the "correction" Dx
+        if(CalculateNormDxFlag == True):
+            normDx = self.space_utils.TwoNorm(self.Dx)
+        else:
+            normDx = 0.0
 
-        #move the mesh as needed
-        if(MoveMeshFlag == True):
-            self.time_scheme.MoveMesh(self.model_part.Nodes)
+        return normDx
+
+    #######################################################################
+    def FinalizeNonLinIteration(self,ConvergedFlag,MoveMeshFlag):
+        if not ConvergedFlag:
+            #perform update
+            self.time_scheme.Update(self.model_part,self.builder_and_solver.GetDofSet(),self.A,self.omega*self.Dx,self.b)
+            print("initial_stiffness_strategy.FinalizeNonLinIteration:Update is called")
+
+            #move the mesh as needed
+            if(MoveMeshFlag == True):
+                self.time_scheme.MoveMesh(self.model_part.Nodes)
 #        print("b:" + str(self.b))
 #        print("Dx:" + str(self.Dx))
 #        print("A:" + str(self.A))
@@ -335,15 +430,7 @@ class SolvingStrategyPython:
                 node.SetSolutionStepValue(PRESCRIBED_DELTA_DISPLACEMENT_Z, 0.0) # set the prescribed displacement to zero to avoid update in the second step
 
         self.time_scheme.FinalizeNonLinIteration(self.model_part,self.A,self.Dx,self.b)
-        print("initial_stiffness_strategy.ExecuteIteration:FinalizeNonLinIteration is called")
-
-        #calculate the norm of the "correction" Dx
-        if(CalculateNormDxFlag == True):
-            normDx = self.space_utils.TwoNorm(self.Dx)
-        else:
-            normDx = 0.0
-
-        return normDx
+        print("initial_stiffness_strategy.FinalizeNonLinIteration:FinalizeNonLinIteration is called")
 
     #######################################################################
     def FinalizeSolutionStep(self,CalculateReactionsFlag):
