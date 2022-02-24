@@ -274,6 +274,12 @@ class SolverAdvanced(structural_solver_static.StaticStructuralSolver):
                 elif self.analysis_parameters['solution_strategy'] == "initial_stiffness":
                     import initial_stiffness_strategy
                     self.solver = initial_stiffness_strategy.SolvingStrategyPython( self.model_part, self.time_scheme, self.structure_linear_solver, self.conv_criteria, self.CalculateReactionFlag, self.ReformDofSetAtEachStep, self.MoveMeshFlag, self.analysis_parameters, self.space_utils, builder_and_solver )
+                elif self.analysis_parameters['solution_strategy'] == "modified_thomas":
+                    import modified_thomas_strategy
+                    self.solver = modified_thomas_strategy.SolvingStrategyPython( self.model_part, self.time_scheme, self.structure_linear_solver, self.conv_criteria, self.CalculateReactionFlag, self.ReformDofSetAtEachStep, self.MoveMeshFlag, self.analysis_parameters, self.space_utils, builder_and_solver )
+                elif self.analysis_parameters['solution_strategy'] == "modified_sloan":
+                    import modified_sloan_strategy
+                    self.solver = modified_sloan_strategy.SolvingStrategyPython( self.model_part, self.time_scheme, self.structure_linear_solver, self.conv_criteria, self.CalculateReactionFlag, self.ReformDofSetAtEachStep, self.MoveMeshFlag, self.analysis_parameters, self.space_utils, builder_and_solver )
                 else:
                     raise Exception("Unknown solution_strategy " + str(self.analysis_parameters['solution_strategy']))
             else:
