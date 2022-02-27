@@ -162,7 +162,7 @@ class SolvingStrategyPython:
         calculate_norm = False
         self.iterationCounter = 0 #hbui added this variable
         self.iterationCounter = self.iterationCounter + 1
-        normDx = self.ExecuteIteration(self.echo_level,self.MoveMeshFlag,calculate_norm)
+        normDx = self.ExecuteIteration(self.echo_level,calculate_norm)
         self.FinalizeNonLinIteration(False,self.MoveMeshFlag)
         print("normDx at iteration 0: " + str(normDx))
 
