@@ -38,6 +38,7 @@ set(KRATOS_STRUCTURAL_APPLICATION_CORE
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/timoshenko_linear_beam_element.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/eas_element_q4e4.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/kinematic_linear.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/kinematic_linear_axisymmetric.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/total_lagrangian.cpp
 
     ${CMAKE_CURRENT_SOURCE_DIR}/constitutive_laws/dummy_constitutive_law.cpp
