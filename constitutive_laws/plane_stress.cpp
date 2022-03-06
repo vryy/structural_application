@@ -391,7 +391,7 @@ void PlaneStress::Calculate(const Variable<double>& rVariable,
 
 int PlaneStress::Check(const Properties& props,
                        const GeometryType& geom,
-                       const ProcessInfo& CurrentProcessInfo)
+                       const ProcessInfo& CurrentProcessInfo) const
 {
     KRATOS_TRY
 

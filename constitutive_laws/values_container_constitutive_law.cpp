@@ -273,7 +273,7 @@ void  ValuesContainerConstitutiveLaw::CalculateMaterialResponse( const Vector& S
 }
 
 //**********************************************************************
-int ValuesContainerConstitutiveLaw::Check( const Properties& props, const GeometryType& geom, const ProcessInfo& CurrentProcessInfo )
+int ValuesContainerConstitutiveLaw::Check( const Properties& props, const GeometryType& geom, const ProcessInfo& CurrentProcessInfo ) const
 {
     return mpConstitutiveLaw->Check(props, geom, CurrentProcessInfo);
 }

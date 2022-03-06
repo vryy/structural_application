@@ -477,7 +477,7 @@ void NeoHookean2D::CalculateCauchyStresses(
 }
 
 //**********************************************************************
-int NeoHookean2D::Check( const Properties& props, const GeometryType& geom, const ProcessInfo& CurrentProcessInfo )
+int NeoHookean2D::Check( const Properties& props, const GeometryType& geom, const ProcessInfo& CurrentProcessInfo ) const
 {
     KRATOS_TRY
 

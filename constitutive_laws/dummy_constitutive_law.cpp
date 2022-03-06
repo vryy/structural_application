@@ -243,7 +243,7 @@ void  DummyConstitutiveLaw::CalculateMaterialResponse( const Vector& StrainVecto
 }
 
 //**********************************************************************
-int DummyConstitutiveLaw::Check( const Properties& props, const GeometryType& geom, const ProcessInfo& CurrentProcessInfo )
+int DummyConstitutiveLaw::Check( const Properties& props, const GeometryType& geom, const ProcessInfo& CurrentProcessInfo ) const
 {
     KRATOS_TRY
 

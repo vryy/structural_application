@@ -243,7 +243,9 @@ public:
                                      int CalculateTangent = 1,
                                      bool SaveInternalVariables = true );
 
-    int Check(const Properties& props, const GeometryType& geom, const ProcessInfo& CurrentProcessInfo);
+    int Check(const Properties& props,
+              const GeometryType& geom,
+              const ProcessInfo& CurrentProcessInfo) const final;
 
     /**
      * Input and output

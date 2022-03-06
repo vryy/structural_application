@@ -172,7 +172,7 @@ public:
 
 
     std::string Info() const;
-    int Check(const Properties& props, const GeometryType& geom, const ProcessInfo& CurrentProcessInfo);
+    int Check(const Properties& props, const GeometryType& geom, const ProcessInfo& CurrentProcessInfo) const;
 
 
 

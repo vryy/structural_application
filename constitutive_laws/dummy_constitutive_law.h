@@ -183,7 +183,7 @@ public:
      */
     int Check( const Properties& props,
                const GeometryType& geom,
-               const ProcessInfo& CurrentProcessInfo ) final;
+               const ProcessInfo& CurrentProcessInfo ) const final;
 
     void CalculateMaterialResponse( const Vector& StrainVector,
                                     const Matrix& DeformationGradient,

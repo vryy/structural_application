@@ -436,7 +436,7 @@ void PlaneStrain::CalculateCauchyStresses(
 
 //**********************************************************************
 
-int PlaneStrain::Check(const Properties& props, const GeometryType& geom, const ProcessInfo& CurrentProcessInfo)
+int PlaneStrain::Check(const Properties& props, const GeometryType& geom, const ProcessInfo& CurrentProcessInfo) const
 {
     if(YOUNG_MODULUS.Key() == 0 || props[YOUNG_MODULUS]<= 0.00)
         KRATOS_THROW_ERROR(std::invalid_argument,"YOUNG_MODULUS has Key zero or invalid value ","");

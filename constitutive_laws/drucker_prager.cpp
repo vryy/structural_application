@@ -303,10 +303,16 @@ bool DruckerPrager::ValidateInput( const Kratos::Properties& props )
     return false;
 }
 
-int DruckerPrager::Check( const Properties& props, const GeometryType& geom, const ProcessInfo& CurrentProcessInfo )
+int DruckerPrager::Check( const Properties& props, const GeometryType& geom, const ProcessInfo& CurrentProcessInfo ) const
 {
-    if ( ValidateInput( props ) )
-        return 0;
+    if ( props.Has( YOUNG_MODULUS ) && props.Has( POISSON_RATIO ) && props.Has( COHESION ) && props.Has( INTERNAL_FRICTION_ANGLE ) && props.Has( ISOTROPIC_HARDENING_MODULUS ) )
+    {
+        if ( props.GetValue( YOUNG_MODULUS ) > 0.0 && props.GetValue( POISSON_RATIO ) < 0.5 &&  props.GetValue( ISOTROPIC_HARDENING_MODULUS ) >= 0.0 && props.GetValue( INTERNAL_FRICTION_ANGLE ) > 0.0 && props.GetValue( INTERNAL_FRICTION_ANGLE ) < 90.0 && props.GetValue( COHESION ) >= 0.0 )
+        {
+            return 0;
+        }
+    }
+
     return -1;
 }
 

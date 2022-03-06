@@ -218,7 +218,7 @@ public:
 
     int Check(const Properties& props,
               const GeometryType& geom,
-              const ProcessInfo& CurrentProcessInfo);
+              const ProcessInfo& CurrentProcessInfo) const final;
 
 
 

@@ -617,7 +617,7 @@ void Hyperelastic3D::CalculateCauchyStresses(
 }
 
 
-int Hyperelastic3D::Check(const Properties& props, const GeometryType& geom, const ProcessInfo& CurrentProcessInfo)
+int Hyperelastic3D::Check(const Properties& props, const GeometryType& geom, const ProcessInfo& CurrentProcessInfo) const
 {
     if(DENSITY.Key() == 0 || props[DENSITY]<0.00)
         KRATOS_THROW_ERROR(std::invalid_argument,"DENSITY has Key zero or invalid value ","");

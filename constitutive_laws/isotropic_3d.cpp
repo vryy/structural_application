@@ -451,7 +451,7 @@ void Isotropic3D::CalculateCauchyStresses(
 }
 
 //**********************************************************************
-int Isotropic3D::Check( const Properties& props, const GeometryType& geom, const ProcessInfo& CurrentProcessInfo )
+int Isotropic3D::Check( const Properties& props, const GeometryType& geom, const ProcessInfo& CurrentProcessInfo ) const
 {
     KRATOS_TRY
 

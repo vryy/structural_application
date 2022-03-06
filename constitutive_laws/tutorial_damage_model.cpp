@@ -271,7 +271,7 @@ void  TutorialDamageModel::CalculateMaterialResponse( const Vector& StrainVector
 }
 
 //**********************************************************************
-int TutorialDamageModel::Check( const Properties& props, const GeometryType& geom, const ProcessInfo& CurrentProcessInfo )
+int TutorialDamageModel::Check( const Properties& props, const GeometryType& geom, const ProcessInfo& CurrentProcessInfo ) const
 {
     KRATOS_TRY
 

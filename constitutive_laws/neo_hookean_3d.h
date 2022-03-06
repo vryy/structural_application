@@ -158,9 +158,9 @@ class NeoHookean3D : public ConstitutiveLaw
          * @param CurrentProcessInfo
          * @return
          */
-        virtual int Check( const Properties& props,
-                           const GeometryType& geom,
-                           const ProcessInfo& CurrentProcessInfo );
+        int Check( const Properties& props,
+                   const GeometryType& geom,
+                   const ProcessInfo& CurrentProcessInfo ) const final;
 
         /**
          * Computes the material response in terms of Cauchy stresses and constitutive tensor

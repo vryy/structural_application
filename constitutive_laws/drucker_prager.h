@@ -471,9 +471,9 @@ public:
      * @param CurrentProcessInfo
      * @return
      */
-    virtual int Check( const Properties& props,
-                       const GeometryType& geom,
-                       const ProcessInfo& CurrentProcessInfo );
+    int Check( const Properties& props,
+               const GeometryType& geom,
+               const ProcessInfo& CurrentProcessInfo ) const;
 
 protected:
 

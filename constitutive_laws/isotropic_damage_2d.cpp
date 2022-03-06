@@ -608,7 +608,7 @@ void Isotropic_Damage_2D::Calculate( const Variable<double>& rVariable,
 
 int Isotropic_Damage_2D::Check(const Properties& props,
                                const GeometryType& geom,
-                               const ProcessInfo& CurrentProcessInfo)
+                               const ProcessInfo& CurrentProcessInfo) const
 {
     KRATOS_TRY
 

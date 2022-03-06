@@ -283,7 +283,7 @@ std::string Isotropic2D::Info() const
 
 int Isotropic2D::Check(const Properties& props,
                        const GeometryType& geom,
-                       const ProcessInfo& CurrentProcessInfo)
+                       const ProcessInfo& CurrentProcessInfo) const
 {
     KRATOS_TRY
 
