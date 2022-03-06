@@ -120,7 +120,7 @@ namespace Kratos
         }
         else if (number_of_nodes == 3)
         {
-            mThisIntegrationMethod = GeometryData::GI_GAUSS_3;
+            mThisIntegrationMethod = IntegrationMethod::GI_GAUSS_3;
         }
 
         KRATOS_CATCH("")

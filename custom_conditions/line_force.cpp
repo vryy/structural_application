@@ -165,7 +165,7 @@ void LineForce::CalculateRightHandSide( VectorType& rRightHandSideVector,
         rRightHandSideVector.resize( MatSize, false );
     rRightHandSideVector = ZeroVector( MatSize ); //resetting RHS
 
-    IntegrationMethod ThisIntegrationMethod = GeometryData::GI_GAUSS_2;
+    IntegrationMethod ThisIntegrationMethod = IntegrationMethod::GI_GAUSS_2;
 
     //reading integration points and local gradients
     const GeometryType::IntegrationPointsArrayType& integration_points =

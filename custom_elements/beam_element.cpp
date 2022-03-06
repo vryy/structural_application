@@ -1126,7 +1126,7 @@ double BeamElement::CalculateInternalAxil(const double& Ao, const double& Load, 
 
 IntegrationMethod  BeamElement::GetIntegrationMethod() const
 {
-    return GeometryData::GI_GAUSS_3;
+    return IntegrationMethod::GI_GAUSS_3;
 }
 
 void BeamElement::CalculateLocalNodalStress(Vector& Stress)

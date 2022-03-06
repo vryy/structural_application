@@ -268,7 +268,7 @@ void TrussElement::CalculateDampingMatrix(MatrixType& rDampMatrix, const Process
 //************************************************************************************
 TrussElement::IntegrationMethod TrussElement::GetIntegrationMethod() const
 {
-    return GeometryData::GI_GAUSS_1;
+    return IntegrationMethod::GI_GAUSS_1;
 }
 
 //************************************************************************************

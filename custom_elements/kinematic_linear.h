@@ -232,7 +232,11 @@ public:
     {
         Element::PrintData(rOStream);
         rOStream << "mConstitutiveLawVector::size = " << mConstitutiveLawVector.size() << std::endl;
+        #ifdef SD_APP_FORWARD_COMPATIBILITY
+        rOStream << "IntegrationMethod: " << static_cast<std::underlying_type<IntegrationMethod>::type>(mThisIntegrationMethod);
+        #else
         rOStream << "IntegrationMethod: " << mThisIntegrationMethod;
+        #endif
     }
 
     ///@}
