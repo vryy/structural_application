@@ -718,6 +718,35 @@ public:
                 it->FinalizeNonLinearIteration(CurrentProcessInfo);
         }
 
+        // to account for prescribed displacement, the displacement at prescribed nodes need to be updated
+        double curr_disp, delta_disp;
+        for (ModelPart::NodesContainerType::iterator it_node = r_model_part.Nodes().begin(); it_node != r_model_part.Nodes().end(); ++it_node)
+        {
+            if (it_node->IsFixed(DISPLACEMENT_X))
+            {
+                curr_disp = it_node->GetSolutionStepValue(DISPLACEMENT_X);
+                delta_disp = it_node->GetSolutionStepValue(PRESCRIBED_DELTA_DISPLACEMENT_X);
+                it_node->GetSolutionStepValue(DISPLACEMENT_X) = curr_disp + delta_disp;
+                it_node->GetSolutionStepValue(PRESCRIBED_DELTA_DISPLACEMENT_X) = 0.0; // set the prescribed displacement to zero to avoid update in the second step
+            }
+
+            if (it_node->IsFixed(DISPLACEMENT_Y))
+            {
+                curr_disp = it_node->GetSolutionStepValue(DISPLACEMENT_Y);
+                delta_disp = it_node->GetSolutionStepValue(PRESCRIBED_DELTA_DISPLACEMENT_Y);
+                it_node->GetSolutionStepValue(DISPLACEMENT_Y) = curr_disp + delta_disp;
+                it_node->GetSolutionStepValue(PRESCRIBED_DELTA_DISPLACEMENT_Y) = 0.0; // set the prescribed displacement to zero to avoid update in the second step
+            }
+
+            if (it_node->IsFixed(DISPLACEMENT_Z))
+            {
+                curr_disp = it_node->GetSolutionStepValue(DISPLACEMENT_Z);
+                delta_disp = it_node->GetSolutionStepValue(PRESCRIBED_DELTA_DISPLACEMENT_Z);
+                it_node->GetSolutionStepValue(DISPLACEMENT_Z) = curr_disp + delta_disp;
+                it_node->GetSolutionStepValue(PRESCRIBED_DELTA_DISPLACEMENT_Z) = 0.0; // set the prescribed displacement to zero to avoid update in the second step
+            }
+        }
+
         KRATOS_CATCH("")
     }
 

@@ -69,6 +69,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/ublas_interface.h"
 #include "includes/variables.h"
 #include "includes/constitutive_law.h"
+#include "custom_elements/prescribed_object.h"
 
 
 namespace Kratos
@@ -97,7 +98,7 @@ namespace Kratos
 /** Detail class definition.
 Define a small strain element with strain measure as Infinitesimal strain and stress measure as Cauchy stress
  */
-class KinematicLinear : public Element
+class KinematicLinear : public Element, public PrescribedObject
 {
 
 public:
@@ -142,6 +143,8 @@ public:
     void ResetConstitutiveLaw() override;
 
     void CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo ) override;
+
+    void ApplyPrescribedDofs(const MatrixType& LHS_Contribution, VectorType& RHS_Constribution, const ProcessInfo& CurrentProcessInfo) const override;
 
     void CalculateLeftHandSide( MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo ) override;
 

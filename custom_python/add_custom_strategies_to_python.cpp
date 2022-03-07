@@ -87,7 +87,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 //schemes
 #include "solving_strategies/schemes/scheme.h"
-// #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
+#include "custom_strategies/schemes/residualbased_incrementalupdate_static_deactivation_scheme.h"
 #include "custom_strategies/schemes/residualbased_predictorcorrector_bossak_scheme.h"
 #include "custom_strategies/strategies/residualbased_central_differences_strategy.h"
 //#include "custom_strategies/schemes/residualbased_central_diferences_scheme.h"
@@ -129,20 +129,16 @@ void  AddCustomStrategiesToPython()
     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
 
     typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
-    typedef SolvingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >
-    BaseSolvingStrategyType;
+    typedef SolvingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > BaseSolvingStrategyType;
 
     //typedef ResidualBasedUzawaNewtonRaphsonStrategy< SparseSpaceType, LocalSpaceType,
     //LinearSolverType > ResidualBasedUzawaNewtonRaphsonStrategyType;
 
     typedef Scheme< SparseSpaceType, LocalSpaceType > BaseSchemeType;
-
-    typedef ResidualBasedPredictorCorrectorBossakScheme< SparseSpaceType, LocalSpaceType >
-    ResidualBasedPredictorCorrectorBossakSchemeType;
-    typedef ResidualBasedPredictorCorrectorBossakRotationScheme< SparseSpaceType, LocalSpaceType >
-    ResidualBasedPredictorCorrectorBossakRotationSchemeType;
-
-
+    typedef ResidualBasedPredictorCorrectorBossakScheme< SparseSpaceType, LocalSpaceType > ResidualBasedPredictorCorrectorBossakSchemeType;
+    typedef ResidualBasedPredictorCorrectorBossakRotationScheme< SparseSpaceType, LocalSpaceType > ResidualBasedPredictorCorrectorBossakRotationSchemeType;
+    typedef ResidualBasedPredictorCorrectorRelaxationScheme< SparseSpaceType, LocalSpaceType > ResidualBasedPredictorCorrectorRelaxationSchemeType;
+    typedef ResidualBasedIncrementalUpdateStaticDeactivationScheme< SparseSpaceType, LocalSpaceType > ResidualBasedIncrementalUpdateStaticDeactivationSchemeType;
     typedef ResidualBasedNewmarkScheme< SparseSpaceType, LocalSpaceType > ResidualBasedNewmarkSchemeType;
     typedef ResidualBasedThetaScheme< SparseSpaceType, LocalSpaceType > ResidualBasedThetaSchemeType;
     typedef ResidualBasedStateBasedThetaScheme< SparseSpaceType, LocalSpaceType > ResidualBasedStateBasedThetaSchemeType;
@@ -152,13 +148,11 @@ void  AddCustomStrategiesToPython()
 
     typedef ConvergenceCriteria< SparseSpaceType, LocalSpaceType > ConvergenceCriteriaBaseType;
 
-    typedef MultiPhaseFlowCriteria< SparseSpaceType,  LocalSpaceType >
-    MultiPhaseFlowCriteriaType;
+    typedef MultiPhaseFlowCriteria< SparseSpaceType,  LocalSpaceType > MultiPhaseFlowCriteriaType;
 
 //     typedef ResidualBasedMultiPhaseCriteria< SparseSpaceType, LocalSpaceType > ResidualBasedMultiPhaseCriteriaType;
 
-    typedef BuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType>
-    BuilderAndSolverType;
+    typedef BuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType> BuilderAndSolverType;
 
 //            typedef MultiPhaseBuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType> MultiPhaseBuilderAndSolverType;
 
@@ -200,8 +194,7 @@ void  AddCustomStrategiesToPython()
     ;
 
     class_< ResidualBasedCentralDiferencesStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType >,bases< BaseSolvingStrategyType >,  boost::noncopyable >
-    (
-        "ResidualBasedCentralDiferencesStrategy", init< ModelPart&, Constraint_Enforcement, int, double, double, double, double,  bool, bool, bool, LinearSolverType::Pointer, BaseSchemeType::Pointer, BuilderAndSolverType::Pointer>())
+    ("ResidualBasedCentralDiferencesStrategy", init< ModelPart&, Constraint_Enforcement, int, double, double, double, double,  bool, bool, bool, LinearSolverType::Pointer, BaseSchemeType::Pointer, BuilderAndSolverType::Pointer>())
     .def("Initialize", &ResidualBasedCentralDiferencesStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>::Initialize)
     .def("ComputeCriticalTime",  &ResidualBasedCentralDiferencesStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType >::ComputeCriticalTime)
     .def("SetFractionDeltaTime", &ResidualBasedCentralDiferencesStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType >::ChangeFractionDeltaTime)
@@ -209,15 +202,17 @@ void  AddCustomStrategiesToPython()
     .def("CalculateBoundaryContours", &ResidualBasedCentralDiferencesStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType >::RecalculateBoundaryContours)
     ;
 
+    class_< ResidualBasedIncrementalUpdateStaticDeactivationSchemeType,
+            bases< BaseSchemeType >,  boost::noncopyable >
+            (
+            "ResidualBasedIncrementalUpdateStaticDeactivationScheme", init< >()
+            );
 
     class_< ResidualBasedPredictorCorrectorBossakRotationSchemeType,
             bases< BaseSchemeType >,  boost::noncopyable >
             (
                 "ResidualBasedPredictorCorrectorBossakRotationScheme", init< double >()
             );
-
-    typedef ResidualBasedPredictorCorrectorRelaxationScheme< SparseSpaceType,
-            LocalSpaceType > ResidualBasedPredictorCorrectorRelaxationSchemeType;
 
     class_< ResidualBasedPredictorCorrectorRelaxationSchemeType,
             bases< BaseSchemeType >,  boost::noncopyable >

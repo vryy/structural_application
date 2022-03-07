@@ -184,7 +184,8 @@ class SolverAdvanced(structural_solver_static.StaticStructuralSolver):
         #definition of time integration scheme
         if( self.analysis_parameters['analysis_type'] == 0 ):
             print("using static scheme")
-            self.time_scheme = ResidualBasedIncrementalUpdateStaticScheme()
+            # self.time_scheme = ResidualBasedIncrementalUpdateStaticScheme()
+            self.time_scheme = ResidualBasedIncrementalUpdateStaticDeactivationScheme()
             #self.time_scheme = ParallelResidualBasedIncrementalUpdateStaticScheme()
             self.MoveMeshFlag = True
         elif( self.analysis_parameters['analysis_type'] == 1 ):

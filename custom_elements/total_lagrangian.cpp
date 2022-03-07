@@ -370,6 +370,46 @@ namespace Kratos
 //************************************************************************************
 //************************************************************************************
 
+    void TotalLagrangian::ApplyPrescribedDofs(const MatrixType& LHS_Contribution, VectorType& RHS_Constribution, const ProcessInfo& CurrentProcessInfo) const
+    {
+        // modify the right hand side to account for prescribed displacement
+        // according to the book of Bazant & Jirasek, this scheme is more stable than the total displacement scheme for prescribing displacement.
+        unsigned int dim = GetGeometry().WorkingSpaceDimension();
+        unsigned int mat_size = dim * GetGeometry().size();
+        for ( unsigned int node = 0; node < GetGeometry().size(); ++node )
+        {
+            if(GetGeometry()[node].IsFixed(DISPLACEMENT_X))
+            {
+                double temp = GetGeometry()[node].GetSolutionStepValue(PRESCRIBED_DELTA_DISPLACEMENT_X);
+                if (temp != 0.0)
+                    for( unsigned int i = 0; i < mat_size; ++i )
+                        RHS_Constribution[i] -= LHS_Contribution(i, node * dim) * temp;
+            }
+
+            if(GetGeometry()[node].IsFixed(DISPLACEMENT_Y))
+            {
+                double temp = GetGeometry()[node].GetSolutionStepValue(PRESCRIBED_DELTA_DISPLACEMENT_Y);
+                if (temp != 0.0)
+                    for( unsigned int i = 0; i < mat_size; ++i )
+                        RHS_Constribution[i] -= LHS_Contribution(i, node * dim + 1) * temp;
+            }
+
+            if (dim > 2)
+            {
+                if(GetGeometry()[node].IsFixed(DISPLACEMENT_Z))
+                {
+                    double temp = GetGeometry()[node].GetSolutionStepValue(PRESCRIBED_DELTA_DISPLACEMENT_Z);
+                    if (temp != 0.0)
+                        for( unsigned int i = 0; i < mat_size; ++i )
+                            RHS_Constribution[i] -= LHS_Contribution(i, node * dim + 2) * temp;
+                }
+            }
+        }
+    }
+
+//************************************************************************************
+//************************************************************************************
+
     void TotalLagrangian::CalculateRightHandSide( VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo )
     {
         //calculation flags

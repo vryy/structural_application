@@ -455,24 +455,6 @@ class SolvingStrategyPython:
 #        print("Dx:" + str(self.Dx))
 #        print("A:" + str(self.A))
 
-        #to account for prescribed displacement, the displacement at prescribed nodes need to be updated
-        for node in self.model_part.Nodes:
-            if node.IsFixed(DISPLACEMENT_X):
-                curr_disp = node.GetSolutionStepValue(DISPLACEMENT_X)
-                delta_disp = node.GetSolutionStepValue(PRESCRIBED_DELTA_DISPLACEMENT_X)
-                node.SetSolutionStepValue(DISPLACEMENT_X, curr_disp + delta_disp)
-                node.SetSolutionStepValue(PRESCRIBED_DELTA_DISPLACEMENT_X, 0.0) # set the prescribed displacement to zero to avoid update in the second step
-            if node.IsFixed(DISPLACEMENT_Y):
-                curr_disp = node.GetSolutionStepValue(DISPLACEMENT_Y)
-                delta_disp = node.GetSolutionStepValue(PRESCRIBED_DELTA_DISPLACEMENT_Y)
-                node.SetSolutionStepValue(DISPLACEMENT_Y, curr_disp + delta_disp)
-                node.SetSolutionStepValue(PRESCRIBED_DELTA_DISPLACEMENT_Y, 0.0) # set the prescribed displacement to zero to avoid update in the second step
-            if node.IsFixed(DISPLACEMENT_Z):
-                curr_disp = node.GetSolutionStepValue(DISPLACEMENT_Z)
-                delta_disp = node.GetSolutionStepValue(PRESCRIBED_DELTA_DISPLACEMENT_Z)
-                node.SetSolutionStepValue(DISPLACEMENT_Z, curr_disp + delta_disp)
-                node.SetSolutionStepValue(PRESCRIBED_DELTA_DISPLACEMENT_Z, 0.0) # set the prescribed displacement to zero to avoid update in the second step
-
         self.time_scheme.FinalizeNonLinIteration(self.model_part,self.A,self.Dx,self.b)
         print("ExecuteIteration:FinalizeNonLinIteration is called")
 
