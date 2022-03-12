@@ -62,6 +62,14 @@ class SolvingStrategyPython:
         # turn off the calculate reaction flag
         self.model_part.ProcessInfo[SET_CALCULATE_REACTION] = False
 
+        if 'calculate_strain_energy' not in self.Parameters:
+            self.Parameters['calculate_strain_energy'] = False
+        if self.Parameters['calculate_strain_energy'] == True:
+            self.calculate_strain_energy_process = CalculateStrainEnergyProcess(self.model_part)
+            self.attached_processes.append(self.calculate_strain_energy_process)
+            self.log_energy = open('strain_energy_newton_raphson.log', 'w')
+            self.log_energy.write("time\tenergy\n")
+
         if 'stop_Newton_Raphson_if_not_converge' in self.Parameters:
             self.Parameters['stop_Newton_Raphson_if_not_converged'] = self.Parameters['stop_Newton_Raphson_if_not_converge']
 
@@ -75,6 +83,9 @@ class SolvingStrategyPython:
 
     def __del__(self):
         self.log_residuum.close()
+
+        if self.Parameters['calculate_strain_energy'] == True:
+            self.log_energy.close()
 
     #######################################################################
     def Initialize(self):
@@ -213,7 +224,8 @@ class SolvingStrategyPython:
                     er_reduction = 1.0e99
             er_n = er
 
-            self.log_residuum.write(str(it) + '\t' + str(er) + '\t' + str(er_ratio) + '\t' + str(er_reduction) + '\n')
+            # self.log_residuum.write(str(it) + '\t' + str(er) + '\t' + str(er_ratio) + '\t' + str(er_reduction) + '\n')
+            self.log_residuum.write('%d\t%.6e\t%.6e\t%.6e\n' % (it, er, er_ratio, er_reduction))
             self.log_residuum.flush()
 
         if( it == self.max_iter and converged == False):
@@ -385,6 +397,13 @@ class SolvingStrategyPython:
 
         for proc in self.attached_processes:
             proc.ExecuteFinalizeSolutionStep()
+
+        if self.Parameters['calculate_strain_energy'] == True:
+            self.log_energy.write('%.6e\t%.6e\n' % (self.model_part.ProcessInfo[TIME], self.calculate_strain_energy_process.GetEnergy()))
+
+        self.log_residuum.write("----------------------------------------------------\n")
+        self.log_residuum.flush()
+
         print("newton_raphson_strategy.FinalizeSolutionStep is called")
 
     #######################################################################
