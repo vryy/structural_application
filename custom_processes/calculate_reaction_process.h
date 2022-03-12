@@ -45,8 +45,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
 
-#if !defined(KRATOS_CALCULATE_REACTION_PROCESS_H_INCLUDED )
-#define  KRATOS_CALCULATE_REACTION_PROCESS_H_INCLUDED
+#if !defined(KRATOS_STRUCTURAL_APP_CALCULATE_REACTION_PROCESS_H_INCLUDED )
+#define  KRATOS_STRUCTURAL_APP_CALCULATE_REACTION_PROCESS_H_INCLUDED
 
 
 
@@ -60,13 +60,11 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 // Project includes
 #include "includes/define.h"
-#include "solving_strategies/schemes/scheme.h"
-#include "processes/process.h"
 #include "includes/node.h"
 #include "includes/element.h"
 #include "includes/model_part.h"
-//#include "spatial_containers/bins_static.h"
-#include "spatial_containers/bins_dynamic.h"
+#include "solving_strategies/schemes/scheme.h"
+#include "processes/process.h"
 #include "structural_application_variables.h"
 
 namespace Kratos
@@ -120,7 +118,7 @@ public:
     ///@{
 
     /// Default constructor.
-    /// This constructor will take all elements of the model_part for topology optimization
+    /// This constructor will take all elements of the model_part for reaction calculation
     CalculateReactionProcess(ModelPart& r_model_part, SchemeType& r_scheme)
     : mr_model_part(r_model_part), mr_scheme(r_scheme)
     {
@@ -130,17 +128,6 @@ public:
     virtual ~CalculateReactionProcess()
     {
     }
-
-
-    ///@}
-    ///@name Operators
-    ///@{
-
-    void operator()()
-    {
-        Execute();
-    }
-
 
     ///@}
     ///@name Operations
@@ -226,20 +213,21 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    std::string Info() const override
     {
         return "CalculateReactionProcess";
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "CalculateReactionProcess";
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const
+    void PrintData(std::ostream& rOStream) const override
     {
+        rOStream << " ModelPart: " << mr_model_part.Name();
     }
 
 
@@ -344,24 +332,6 @@ private:
 ///@name Input and output
 ///@{
 
-
-/// input stream function
-inline std::istream& operator >> (std::istream& rIStream,
-                                  CalculateReactionProcess& rThis);
-
-/// output stream function
-inline std::ostream& operator << (std::ostream& rOStream,
-                                  const CalculateReactionProcess& rThis)
-{
-    rThis.PrintInfo(rOStream);
-    rOStream << std::endl;
-    rThis.PrintData(rOStream);
-
-    return rOStream;
-}
-///@}
-
-
 }  // namespace Kratos.
 
-#endif // KRATOS_CALCULATE_REACTION_PROCESS_H_INCLUDED  defined
+#endif // KRATOS_STRUCTURAL_APP_CALCULATE_REACTION_PROCESS_H_INCLUDED  defined

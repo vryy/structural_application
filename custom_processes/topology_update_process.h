@@ -102,7 +102,7 @@ namespace Kratos
 ///@{
 
 /// Short class definition.
-/** Detail class definition.
+/** A process to update the topology based 88-lines matlab code by Ole Sigmund
 */
 class TopologyUpdateProcess : public Process
 {
@@ -266,12 +266,12 @@ public:
     }
 
     /// this function will be executed at every time step BEFORE performing the solve phase
-    virtual void ExecuteInitializeSolutionStep()
+    void ExecuteInitializeSolutionStep() override
     {
     }
 
     /// this function will be executed at every time step AFTER performing the solve phase
-    virtual void ExecuteFinalizeSolutionStep()
+    void ExecuteFinalizeSolutionStep() override
     {
         std::cout << "At TopologyUpdateProcess::" << __FUNCTION__ << std::endl;
 
@@ -583,19 +583,19 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    std::string Info() const override
     {
         return "TopologyUpdateProcess";
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "TopologyUpdateProcess";
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const
+    void PrintData(std::ostream& rOStream) const override
     {
     }
 
@@ -745,26 +745,10 @@ private:
 ///@name Input and output
 ///@{
 
-
-/// input stream function
-inline std::istream& operator >> (std::istream& rIStream,
-                                  TopologyUpdateProcess& rThis);
-
-/// output stream function
-inline std::ostream& operator << (std::ostream& rOStream,
-                                  const TopologyUpdateProcess& rThis)
-{
-    rThis.PrintInfo(rOStream);
-    rOStream << std::endl;
-    rThis.PrintData(rOStream);
-
-    return rOStream;
-}
-///@}
-
-
 }  // namespace Kratos.
 
+#ifdef DEBUG_WITH_MPI
 #undef DEBUG_WITH_MPI
+#endif
 
 #endif // KRATOS_STRUCTURAL_APPLICATION_TOPOLOGY_UPDATE_PROCESS_H_INCLUDED  defined
