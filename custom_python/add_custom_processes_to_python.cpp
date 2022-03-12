@@ -39,8 +39,15 @@
 #include "processes/process.h"
 #include "spaces/ublas_space.h"
 #include "linear_solvers/linear_solver.h"
+#include "solving_strategies/builder_and_solvers/builder_and_solver.h"
 #include "custom_processes/topology_update_process.h"
 #include "custom_processes/calculate_reaction_process.h"
+#include "custom_processes/calculate_strain_energy_process.h"
+#include "custom_processes/arc_length_control_process.h"
+#include "custom_processes/arc_length_sphere_control_process.h"
+#include "custom_processes/arc_length_cylinder_control_process.h"
+#include "custom_processes/arc_length_cylinder_scalar_control_process.h"
+#include "custom_processes/arc_length_cylinder_displacement_control_process.h"
 #include "add_custom_processes_to_python.h"
 
 namespace Kratos
@@ -53,17 +60,75 @@ void AddCustomProcessesToPython()
 {
     using namespace boost::python;
 
+    typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
+    typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
+    typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
+    typedef BuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType> BuilderAndSolverType;
+
+    typedef typename SparseSpaceType::MatrixType SparseMatrixType;
+    typedef typename SparseSpaceType::VectorType SparseVectorType;
+
     class_<TopologyUpdateProcess, bases<Process>, boost::noncopyable >
     ("TopologyUpdateProcess", init<ModelPart&, double, double, double>())
     .def("SetBinSize", &TopologyUpdateProcess::SetBinSize)
     .def("GetTopologyChange", &TopologyUpdateProcess::GetTopologyChange)
     .def("GetObjective", &TopologyUpdateProcess::GetObjective)
-    .def(self_ns::str(self))
     ;
 
     class_<CalculateReactionProcess, bases<Process>, boost::noncopyable >
     ("CalculateReactionProcess", init<ModelPart&, CalculateReactionProcess::SchemeType&>())
-    .def(self_ns::str(self))
+    ;
+
+    class_<CalculateStrainEnergyProcess, bases<Process>, boost::noncopyable >
+    ("CalculateStrainEnergyProcess", init<const ModelPart&>())
+    .def("GetEnergy", &CalculateStrainEnergyProcess::GetEnergy)
+    ;
+
+    typedef ArcLengthControlProcess<BuilderAndSolverType> ArcLengthControlProcessType;
+    void(ArcLengthControlProcessType::*ArcLengthControlProcess_Execute)(SparseVectorType&, const SparseVectorType&) = &ArcLengthControlProcessType::Execute;
+    class_<ArcLengthControlProcessType, ArcLengthControlProcessType::Pointer, bases<Process>, boost::noncopyable >
+    ( "ArcLengthControlProcess", init<>() )
+    .def("SetPredictor", &ArcLengthControlProcessType::SetPredictor)
+    .def("SetForcedReverse", &ArcLengthControlProcessType::SetForcedReverse)
+    .def("SetForcedForward", &ArcLengthControlProcessType::SetForcedForward)
+    .def("SetModelPart", &ArcLengthControlProcessType::SetModelPart)
+    .def("SetBuilderAndSolver", &ArcLengthControlProcessType::SetBuilderAndSolver)
+    .def("Update", &ArcLengthControlProcessType::Update)
+    .def("GetLambda", &ArcLengthControlProcessType::GetLambda)
+    .def("GetDeltaLambda", &ArcLengthControlProcessType::GetDeltaLambda)
+    .def("GetDeltaLambdaOld", &ArcLengthControlProcessType::GetDeltaLambdaOld)
+    .def("Reset", &ArcLengthControlProcessType::Reset)
+    // .def("GetValue", &ArcLengthControlProcessType::GetValue)
+    // .def("GetDerivativesDU", &ArcLengthControlProcessType::GetDerivativesDU)
+    // .def("GetDerivativesDLambda", &ArcLengthControlProcessType::GetDerivativesDLambda)
+    // .def("Predict", &ArcLengthControlProcessType::Predict)
+    .def("Execute", ArcLengthControlProcess_Execute)
+    .def("Copy", &ArcLengthControlProcessType::Copy)
+    ;
+
+    typedef ArcLengthSphereControlProcess<BuilderAndSolverType> ArcLengthSphereControlProcessType;
+    class_<ArcLengthSphereControlProcessType, ArcLengthSphereControlProcessType::Pointer, bases<ArcLengthControlProcessType>, boost::noncopyable >
+    ( "ArcLengthSphereControlProcess", init<const double&, const double&>() )
+    .def("SetScale", &ArcLengthSphereControlProcessType::SetScale)
+    .def("SetRadius", &ArcLengthSphereControlProcessType::SetRadius)
+    ;
+
+    typedef ArcLengthCylinderControlProcess<BuilderAndSolverType> ArcLengthCylinderControlProcessType;
+    class_<ArcLengthCylinderControlProcessType, ArcLengthCylinderControlProcessType::Pointer, bases<ArcLengthControlProcessType>, boost::noncopyable >
+    ( "ArcLengthCylinderControlProcess", init<const double&>() )
+    .def("SetRadius", &ArcLengthCylinderControlProcessType::SetRadius)
+    ;
+
+    typedef ArcLengthCylinderScalarControlProcess<BuilderAndSolverType> ArcLengthCylinderScalarControlProcessType;
+    class_<ArcLengthCylinderScalarControlProcessType, ArcLengthCylinderScalarControlProcessType::Pointer, bases<ArcLengthControlProcessType>, boost::noncopyable >
+    ( "ArcLengthCylinderScalarControlProcess", init<const Variable<double>&, const double&>() )
+    .def("SetRadius", &ArcLengthCylinderScalarControlProcessType::SetRadius)
+    ;
+
+    typedef ArcLengthCylinderDisplacementControlProcess<BuilderAndSolverType> ArcLengthCylinderDisplacementControlProcessType;
+    class_<ArcLengthCylinderDisplacementControlProcessType, ArcLengthCylinderDisplacementControlProcessType::Pointer, bases<ArcLengthControlProcessType>, boost::noncopyable >
+    ( "ArcLengthCylinderDisplacementControlProcess", init<const double&>() )
+    .def("SetRadius", &ArcLengthCylinderDisplacementControlProcessType::SetRadius)
     ;
 
 }
@@ -71,4 +136,3 @@ void AddCustomProcessesToPython()
 }  // namespace Python.
 
 } // Namespace Kratos
-
