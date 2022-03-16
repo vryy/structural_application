@@ -5,8 +5,8 @@
 //
 
 
-#if !defined(KRATOS_ARC_LENGTH_CYLINDER_DISPLACEMENT_CONTROL_PROCESS_H_INCLUDED )
-#define  KRATOS_ARC_LENGTH_CYLINDER_DISPLACEMENT_CONTROL_PROCESS_H_INCLUDED
+#if !defined(KRATOS_ARC_LENGTH_CYLINDER_UX_UY_UZ_CONTROL_PROCESS_H_INCLUDED )
+#define  KRATOS_ARC_LENGTH_CYLINDER_UX_UY_UZ_CONTROL_PROCESS_H_INCLUDED
 
 
 #include "custom_processes/arc_length_control_process.h"
@@ -23,13 +23,13 @@ namespace Kratos
  * +    Souza Neto, Computational Plasticity
  */
 template<class TBuilderAndSolveType>
-class ArcLengthCylinderDisplacementControlProcess : public ArcLengthControlProcess<TBuilderAndSolveType>
+class ArcLengthCylinderUxUyUzControlProcess : public ArcLengthControlProcess<TBuilderAndSolveType>
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    KRATOS_CLASS_POINTER_DEFINITION( ArcLengthCylinderDisplacementControlProcess );
+    KRATOS_CLASS_POINTER_DEFINITION( ArcLengthCylinderUxUyUzControlProcess );
 
     typedef ArcLengthControlProcess<TBuilderAndSolveType> BaseType;
 
@@ -42,10 +42,10 @@ public:
     ///@name Life Cycle
     ///@{
 
-    ArcLengthCylinderDisplacementControlProcess(const double& Radius)
+    ArcLengthCylinderUxUyUzControlProcess(const double& Radius)
     : BaseType(), mRadius(Radius)
     {
-        std::cout << "ArcLengthCylinderDisplacementControlProcess is used, radius = " << mRadius << std::endl;
+        std::cout << "ArcLengthCylinderUxUyUzControlProcess is used, radius = " << mRadius << std::endl;
     }
 
     ///@}
@@ -154,12 +154,12 @@ public:
             if (this->IsForcedReverse())
             {
                 s0 *= -1.0;
-                std::cout << "ArcLengthCylinderDisplacementControlProcess: forward sign is forced to be reversed" << std::endl;
+                std::cout << "ArcLengthCylinderUxUyUzControlProcess: forward sign is forced to be reversed" << std::endl;
             }
 
             if (this->IsForcedForward())
             {
-                std::cout << "ArcLengthCylinderDisplacementControlProcess: forward sign is forced to remain" << std::endl;
+                std::cout << "ArcLengthCylinderUxUyUzControlProcess: forward sign is forced to remain" << std::endl;
             }
         }
         else
@@ -174,11 +174,11 @@ public:
             if (forward_criteria < -1.0e-10)
             {
                 s0 *= -1.0;
-                std::cout << "ArcLengthCylinderDisplacementControlProcess: forward sign is reversed" << std::endl;
+                std::cout << "ArcLengthCylinderUxUyUzControlProcess: forward sign is reversed" << std::endl;
             }
             else
             {
-                std::cout << "ArcLengthCylinderDisplacementControlProcess: forward sign remains" << std::endl;
+                std::cout << "ArcLengthCylinderUxUyUzControlProcess: forward sign remains" << std::endl;
             }
         }
 
@@ -194,13 +194,13 @@ public:
     /// Turn back information as a string.
     std::string Info() const override
     {
-        return "ArcLengthCylinderDisplacementControlProcess";
+        return "ArcLengthCylinderUxUyUzControlProcess";
     }
 
     /// Print information about this object.
     void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "ArcLengthCylinderDisplacementControlProcess";
+        rOStream << "ArcLengthCylinderUxUyUzControlProcess";
     }
 
     /// Print object's data.
@@ -214,8 +214,8 @@ private:
 
     double mRadius;
 
-}; // Class ArcLengthCylinderDisplacementControlProcess
+}; // Class ArcLengthCylinderUxUyUzControlProcess
 
 }  // namespace Kratos.
 
-#endif // KRATOS_ARC_LENGTH_CYLINDER_DISPLACEMENT_CONTROL_PROCESS_H_INCLUDED defined
+#endif // KRATOS_ARC_LENGTH_CYLINDER_UX_UY_UZ_CONTROL_PROCESS_H_INCLUDED defined

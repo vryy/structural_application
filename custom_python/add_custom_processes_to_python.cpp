@@ -45,9 +45,11 @@
 #include "custom_processes/calculate_strain_energy_process.h"
 #include "custom_processes/arc_length_control_process.h"
 #include "custom_processes/arc_length_sphere_control_process.h"
+#include "custom_processes/arc_length_sphere_ux_uy_uz_control_process.h"
 #include "custom_processes/arc_length_cylinder_control_process.h"
 #include "custom_processes/arc_length_cylinder_scalar_control_process.h"
-#include "custom_processes/arc_length_cylinder_displacement_control_process.h"
+#include "custom_processes/arc_length_cylinder_ux_uy_uz_control_process.h"
+#include "custom_processes/arc_length_energy_release_control_process.h"
 #include "add_custom_processes_to_python.h"
 
 namespace Kratos
@@ -93,8 +95,10 @@ void AddCustomProcessesToPython()
     .def("SetForcedForward", &ArcLengthControlProcessType::SetForcedForward)
     .def("SetModelPart", &ArcLengthControlProcessType::SetModelPart)
     .def("SetBuilderAndSolver", &ArcLengthControlProcessType::SetBuilderAndSolver)
+    .def("SetForceVector", &ArcLengthControlProcessType::SetForceVector)
     .def("Update", &ArcLengthControlProcessType::Update)
     .def("GetLambda", &ArcLengthControlProcessType::GetLambda)
+    .def("GetLambdaOld", &ArcLengthControlProcessType::GetLambdaOld)
     .def("GetDeltaLambda", &ArcLengthControlProcessType::GetDeltaLambda)
     .def("GetDeltaLambdaOld", &ArcLengthControlProcessType::GetDeltaLambdaOld)
     .def("Reset", &ArcLengthControlProcessType::Reset)
@@ -113,6 +117,13 @@ void AddCustomProcessesToPython()
     .def("SetRadius", &ArcLengthSphereControlProcessType::SetRadius)
     ;
 
+    typedef ArcLengthSphereUxUyUzControlProcess<BuilderAndSolverType> ArcLengthSphereUxUyUzControlProcessType;
+    class_<ArcLengthSphereUxUyUzControlProcessType, ArcLengthSphereUxUyUzControlProcessType::Pointer, bases<ArcLengthControlProcessType>, boost::noncopyable >
+    ( "ArcLengthSphereUxUyUzControlProcess", init<const double&, const double&>() )
+    .def("SetScale", &ArcLengthSphereUxUyUzControlProcessType::SetScale)
+    .def("SetRadius", &ArcLengthSphereUxUyUzControlProcessType::SetRadius)
+    ;
+
     typedef ArcLengthCylinderControlProcess<BuilderAndSolverType> ArcLengthCylinderControlProcessType;
     class_<ArcLengthCylinderControlProcessType, ArcLengthCylinderControlProcessType::Pointer, bases<ArcLengthControlProcessType>, boost::noncopyable >
     ( "ArcLengthCylinderControlProcess", init<const double&>() )
@@ -125,10 +136,16 @@ void AddCustomProcessesToPython()
     .def("SetRadius", &ArcLengthCylinderScalarControlProcessType::SetRadius)
     ;
 
-    typedef ArcLengthCylinderDisplacementControlProcess<BuilderAndSolverType> ArcLengthCylinderDisplacementControlProcessType;
-    class_<ArcLengthCylinderDisplacementControlProcessType, ArcLengthCylinderDisplacementControlProcessType::Pointer, bases<ArcLengthControlProcessType>, boost::noncopyable >
-    ( "ArcLengthCylinderDisplacementControlProcess", init<const double&>() )
-    .def("SetRadius", &ArcLengthCylinderDisplacementControlProcessType::SetRadius)
+    typedef ArcLengthCylinderUxUyUzControlProcess<BuilderAndSolverType> ArcLengthCylinderUxUyUzControlProcessType;
+    class_<ArcLengthCylinderUxUyUzControlProcessType, ArcLengthCylinderUxUyUzControlProcessType::Pointer, bases<ArcLengthControlProcessType>, boost::noncopyable >
+    ( "ArcLengthCylinderUxUyUzControlProcess", init<const double&>() )
+    .def("SetRadius", &ArcLengthCylinderUxUyUzControlProcessType::SetRadius)
+    ;
+
+    typedef ArcLengthEnergyReleaseControlProcess<BuilderAndSolverType> ArcLengthEnergyReleaseControlProcessType;
+    class_<ArcLengthEnergyReleaseControlProcessType, ArcLengthEnergyReleaseControlProcessType::Pointer, bases<ArcLengthControlProcessType>, boost::noncopyable >
+    ( "ArcLengthEnergyReleaseControlProcess", init<const double&>() )
+    .def("SetRadius", &ArcLengthEnergyReleaseControlProcessType::SetRadius)
     ;
 
 }
