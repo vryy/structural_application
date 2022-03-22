@@ -5,8 +5,8 @@
 //
 
 
-#if !defined(KRATOS_ARC_LENGTH_SPHERE_CONTROL_PROCESS_H_INCLUDED )
-#define  KRATOS_ARC_LENGTH_SPHERE_CONTROL_PROCESS_H_INCLUDED
+#if !defined(KRATOS_ARC_LENGTH_SPHERE_CONSTRAINT_H_INCLUDED )
+#define  KRATOS_ARC_LENGTH_SPHERE_CONSTRAINT_H_INCLUDED
 
 
 #include "custom_processes/arc_length_control_process.h"
@@ -23,15 +23,15 @@ namespace Kratos
  * +    Crisfield 1981
  */
 template<class TBuilderAndSolverType>
-class ArcLengthSphereControlProcess : public ArcLengthControlProcess<TBuilderAndSolverType>
+class ArcLengthSphereConstraint : public ArcLengthConstraint<TBuilderAndSolverType>
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    KRATOS_CLASS_POINTER_DEFINITION( ArcLengthSphereControlProcess );
+    KRATOS_CLASS_POINTER_DEFINITION( ArcLengthSphereConstraint );
 
-    typedef ArcLengthControlProcess<TBuilderAndSolverType> BaseType;
+    typedef ArcLengthConstraint<TBuilderAndSolverType> BaseType;
 
     typedef typename BaseType::TSparseSpaceType TSparseSpaceType;
     typedef typename BaseType::TSystemMatrixType TSystemMatrixType;
@@ -42,10 +42,10 @@ public:
     ///@name Life Cycle
     ///@{
 
-    ArcLengthSphereControlProcess(const double& Psi, const double& Radius)
+    ArcLengthSphereConstraint(const double& Psi, const double& Radius)
     : BaseType(), mPsi(Psi), mRadius(Radius)
     {
-        std::cout << "ArcLengthCylinderControlProcess is used, radius = " << mRadius << ", load scale factor = " << mPsi << std::endl;
+        std::cout << "ArcLengthSphereConstraint is used, radius = " << mRadius << ", load scale factor = " << mPsi << std::endl;
     }
 
     ///@}
@@ -67,7 +67,7 @@ public:
     ///@{
 
     /// Assignment operator
-    ArcLengthSphereControlProcess& operator=(const ArcLengthSphereControlProcess& rOther)
+    ArcLengthSphereConstraint& operator=(const ArcLengthSphereConstraint& rOther)
     {
         BaseType::operator=(rOther);
         mPsi = rOther.mPsi;
@@ -128,7 +128,7 @@ public:
         return mPsi*mPsi*(this->Lambda() - this->LambdaOld()) / f;
     }
 
-    double Predict(const TSystemVectorType& rDeltaUl) const override
+    double Predict(const TSystemVectorType& rDeltaUl, const int& rMode) const override
     {
         const auto EquationSystemSize = this->GetBuilderAndSolver().GetEquationSystemSize();
         const DofsArrayType& rDofSet = this->GetBuilderAndSolver().GetDofSet();
@@ -150,17 +150,42 @@ public:
                 TSparseSpaceType::SetValue(Du, row, dof_iterator->GetSolutionStepValue(1) - dof_iterator->GetSolutionStepValue(2));
         }
 
-        if (this->IsForcedReverse() || this->IsForcedForward())
+        if (rMode != 0)
         {
-            if (this->IsForcedReverse())
+            if (rMode == -1)
             {
                 s0 *= -1.0;
-                std::cout << "ArcLengthSphereControlProcess: forward sign is forced to be reversed" << std::endl;
+                std::cout << "ArcLengthSphereConstraint: forward sign is forced to be reversed" << std::endl;
             }
 
-            if (this->IsForcedForward())
+            if (rMode == 1)
             {
-                std::cout << "ArcLengthSphereControlProcess: forward sign is forced to remain" << std::endl;
+                std::cout << "ArcLengthSphereConstraint: forward sign is forced to remain" << std::endl;
+            }
+
+            if (rMode == 2)
+            {
+                // compute the forward criteria
+                double forward_criteria = TSparseSpaceType::Dot(Du, rDeltaUl) + mPsi*mPsi*(this->LambdaOld() - this->LambdaOldOld());
+
+                if (forward_criteria < -1.0e-10)
+                {
+                    std::cout << "ArcLengthSphereConstraint: forward sign is checked to be reversed. Proceed? (y/n)" << std::endl;
+
+                    char c;
+                    std::cin >> c;
+
+                    if (c == 'y')
+                    {
+                        s0 *= -1.0;
+                       std::cout << "ArcLengthSphereConstraint: forward sign is proceeded to be reversed" << std::endl;
+                    }
+                    else
+                    {
+                       std::cout << "ArcLengthSphereConstraint: forward sign is not proceeded to be reversed" << std::endl;
+                    }
+                }
+
             }
         }
         else
@@ -177,11 +202,11 @@ public:
             if (forward_criteria < -1.0e-10)
             {
                 s0 *= -1.0;
-                std::cout << "ArcLengthSphereControlProcess: forward sign is reversed" << std::endl;
+                std::cout << "ArcLengthSphereConstraint: forward sign is reversed" << std::endl;
             }
             else
             {
-                std::cout << "ArcLengthSphereControlProcess: forward sign remains" << std::endl;
+                std::cout << "ArcLengthSphereConstraint: forward sign remains" << std::endl;
             }
         }
 
@@ -197,13 +222,13 @@ public:
     /// Turn back information as a string.
     std::string Info() const override
     {
-        return "ArcLengthSphereControlProcess";
+        return "ArcLengthSphereConstraint";
     }
 
     /// Print information about this object.
     void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "ArcLengthSphereControlProcess";
+        rOStream << "ArcLengthSphereConstraint";
     }
 
     /// Print object's data.
@@ -219,8 +244,8 @@ private:
     double mPsi;
     double mRadius;
 
-}; // Class ArcLengthSphereControlProcess
+}; // Class ArcLengthSphereConstraint
 
 }  // namespace Kratos.
 
-#endif // KRATOS_ARC_LENGTH_SPHERE_CONTROL_PROCESS_H_INCLUDED defined
+#endif // KRATOS_ARC_LENGTH_SPHERE_CONSTRAINT_H_INCLUDED defined

@@ -12,6 +12,7 @@
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "processes/process.h"
+#include "custom_utilities/arc_length_constraint.h"
 
 
 namespace Kratos
@@ -19,7 +20,7 @@ namespace Kratos
 
 
 /**
- * Abstract class for arc-length control
+ * Arc-length control process using the consistent scheme to enforce the constraint
  */
 template<class TBuilderAndSolverType>
 class ArcLengthControlProcess : public Process
@@ -33,32 +34,43 @@ public:
     typedef typename TBuilderAndSolverType::TSparseSpaceType TSparseSpaceType;
     typedef typename TBuilderAndSolverType::TSystemMatrixType TSystemMatrixType;
     typedef typename TBuilderAndSolverType::TSystemVectorType TSystemVectorType;
-
-    typedef typename TBuilderAndSolverType::TSchemeType TSchemeType;
-    typedef typename TSchemeType::DofsArrayType DofsArrayType;
+    typedef ArcLengthConstraint<TBuilderAndSolverType> ArcLengthConstraintType;
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor
-    ArcLengthControlProcess()
+    ArcLengthControlProcess(typename ArcLengthConstraintType::Pointer pConstraint)
     : mLambda(0.0), mLambdaOld(0.0), mLambdaOldOld(0.0)
-    , mIsPredictor(false), mIsForcedReverse(false), mIsForcedForward(false)
+    , mIsPredictor(false), mForcedFlag(0)
     , mp_delta_u_r(NULL), mp_delta_u_l(NULL)
-    , mp_model_part(NULL), mp_builder_and_solver(NULL)
-    , mp_ext_f(NULL)
-    {}
+    , mpConstraint(pConstraint)
+    {
+        mpConstraint->SetLambda(mLambda);
+        mpConstraint->SetLambdaOld(mLambdaOld);
+        mpConstraint->SetLambdaOldOld(mLambdaOldOld);
+    }
 
     /// Copy constructor
     ArcLengthControlProcess(const ArcLengthControlProcess& rOther)
     : mLambda(rOther.mLambda), mLambdaOld(rOther.mLambdaOld), mLambdaOldOld(rOther.mLambdaOldOld)
-    , mp_model_part(rOther.mp_model_part), mp_builder_and_solver(rOther.mp_builder_and_solver)
-    {}
+    , mpConstraint(rOther.mpConstraint)
+    {
+        mpConstraint->SetLambda(mLambda);
+        mpConstraint->SetLambdaOld(mLambdaOld);
+        mpConstraint->SetLambdaOldOld(mLambdaOldOld);
+    }
 
     ///@}
     ///@name Access
     ///@{
+
+    /// Get the constraint
+    typename ArcLengthConstraintType::Pointer pGetConstraint() const
+    {
+        return mpConstraint;
+    }
 
     /// Get the multiplier
     double GetLambda() const
@@ -102,40 +114,22 @@ public:
         mIsPredictor = rValue;
     }
 
-    /// Set the force reverse flag
-    void SetForcedReverse(const bool& rValue)
+    /// Set the force flag
+    void SetForcedMode(const int& rValue)
     {
-        mIsForcedReverse = rValue;
-    }
-
-    /// Set the force forward flag
-    void SetForcedForward(const bool& rValue)
-    {
-        mIsForcedForward = rValue;
+        mForcedFlag = rValue;
     }
 
     /// Set the model_part
     void SetModelPart(const ModelPart& r_model_part)
     {
-        mp_model_part = &r_model_part;
+        mpConstraint->SetModelPart(r_model_part);
     }
 
     /// Set the builder_and_solver
     void SetBuilderAndSolver(const TBuilderAndSolverType& r_builder_and_solver)
     {
-        mp_builder_and_solver = &r_builder_and_solver;
-    }
-
-    /// Set the external force vector
-    void SetForceVector(const TSystemVectorType& rValue)
-    {
-        mp_ext_f = &rValue;
-    }
-
-    /// Set the stiffness matrix
-    void SetTangentMatrix(const TSystemMatrixType& rValue)
-    {
-        mp_Kt = &rValue;
+        mpConstraint->SetBuilderAndSolver(r_builder_and_solver);
     }
 
     ///@}
@@ -154,9 +148,7 @@ public:
         mLambda = rOther.mLambda;
         mLambdaOld = rOther.mLambdaOld;
         mLambdaOldOld = rOther.mLambdaOldOld;
-        mp_model_part = rOther.mp_model_part;
-        mp_builder_and_solver = rOther.mp_builder_and_solver;
-        mp_ext_f = rOther.mp_ext_f;
+        mpConstraint->Copy(*rOther.mpConstraint);
     }
 
     ///@}
@@ -177,30 +169,6 @@ public:
         mLambda += DeltaLambda;
     }
 
-    /// Get the value of the constraint
-    virtual double GetValue() const
-    {
-        KRATOS_THROW_ERROR(std::logic_error, "Error calling base class function", __FUNCTION__)
-    }
-
-    /// Get the derivatives of the constraint
-    virtual TSystemVectorType GetDerivativesDU() const
-    {
-        KRATOS_THROW_ERROR(std::logic_error, "Error calling base class function", __FUNCTION__)
-    }
-
-    /// Get the derivatives of the constraint
-    virtual double GetDerivativesDLambda() const
-    {
-        KRATOS_THROW_ERROR(std::logic_error, "Error calling base class function", __FUNCTION__)
-    }
-
-    /// Compute a trial solution at the predictor state
-    virtual double Predict(const TSystemVectorType& rDeltaUl) const
-    {
-        KRATOS_THROW_ERROR(std::logic_error, "Error calling base class function", __FUNCTION__)
-    }
-
     /// To be called at the beginning of the solution step
     void ExecuteInitializeSolutionStep() override
     {}
@@ -211,10 +179,10 @@ public:
     {
         double delta_lambda;
 
-        if (mIsPredictor)
+        if (this->IsPredictor())
         {
             // compute initial value of delta lambda
-            delta_lambda = this->Predict(rDeltaUl);
+            delta_lambda = this->GetConstraint().Predict(rDeltaUl, this->ForcedMode());
 
             // reset delta u
             TSparseSpaceType::SetToZero(rDeltaUr);
@@ -222,9 +190,9 @@ public:
         else
         {
             // compute delta lambda
-            double f = this->GetValue();
-            TSystemVectorType dfdu = this->GetDerivativesDU();
-            double dfdl = this->GetDerivativesDLambda();
+            double f = this->GetConstraint().GetValue();
+            TSystemVectorType dfdu = this->GetConstraint().GetDerivativesDU();
+            double dfdl = this->GetConstraint().GetDerivativesDLambda();
             delta_lambda = -(f + TSparseSpaceType::Dot(dfdu, rDeltaUr)) / (dfdl + TSparseSpaceType::Dot(dfdu, rDeltaUl));
         }
 
@@ -272,7 +240,8 @@ public:
     /// Print information about this object.
     void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "ArcLengthControlProcess";
+        rOStream << this->Info() << ", Constraint: ";
+        mpConstraint->PrintInfo(rOStream);
     }
 
     /// Print object's data.
@@ -281,32 +250,30 @@ public:
         rOStream << " Lambda: " << mLambda
                  << ", Lambda_old: " << mLambdaOld
                  << ", Lambda_old_old: " << mLambdaOldOld;
+        rOStream << " Constraint Data:";
+        mpConstraint->PrintData(rOStream);
     }
 
 protected:
 
-    const ModelPart& GetModelPart() const
+    ArcLengthConstraintType& GetConstraint()
     {
-        if (mp_model_part == NULL)
-            KRATOS_THROW_ERROR(std::logic_error, "ModelPart is not set", "")
-        return *mp_model_part;
+        return *mpConstraint;
     }
 
-    const TBuilderAndSolverType& GetBuilderAndSolver() const
+    const ArcLengthConstraintType& GetConstraint() const
     {
-        if (mp_builder_and_solver == NULL)
-            KRATOS_THROW_ERROR(std::logic_error, "BuilderAndSolver is not set", "")
-        return *mp_builder_and_solver;
+        return *mpConstraint;
     }
 
-    const bool& IsForcedReverse() const
+    const bool& IsPredictor() const
     {
-        return mIsForcedReverse;
+        return mIsPredictor;
     }
 
-    const bool& IsForcedForward() const
+    const int& ForcedMode() const
     {
-        return mIsForcedForward;
+        return mForcedFlag;
     }
 
     const double& Lambda() const
@@ -324,40 +291,43 @@ protected:
         return mLambdaOldOld;
     }
 
-    const TSystemVectorType& GetForceVector() const
-    {
-        if (mp_ext_f == NULL)
-            KRATOS_THROW_ERROR(std::logic_error, "Force vector is not set", "")
-        return *mp_ext_f;
-    }
-
-    const TSystemMatrixType& GetTangentMatrix() const
-    {
-        if (mp_Kt == NULL)
-            KRATOS_THROW_ERROR(std::logic_error, "Force vector is not set", "")
-        return *mp_Kt;
-    }
-
 private:
-
-    const ModelPart* mp_model_part;
-    const TBuilderAndSolverType* mp_builder_and_solver;
 
     double mLambda;
     double mLambdaOld;
     double mLambdaOldOld;
 
     bool mIsPredictor;
-    bool mIsForcedReverse; // this flag is to allow user to intervene the arc-length control by forcing the reverse of loading. Use it with care.
-    bool mIsForcedForward;
+    int mForcedFlag; // this flag is to allow user to intervene the arc-length control by forcing the reverse of loading. Use it with care.
+                     // 0: no forcing; -1: force reverse; 1: force forward
 
     TSystemVectorType* mp_delta_u_r;
     TSystemVectorType* mp_delta_u_l;
 
-    const TSystemVectorType* mp_ext_f;  // pointer to hold external force vector if necessary
-    const TSystemMatrixType* mp_Kt;     // pointer to hold the system stiffness/tangent matrix
+    typename ArcLengthConstraintType::Pointer mpConstraint;
 
 }; // Class ArcLengthControlProcess
+
+///@}
+///@name Input and output
+///@{
+
+/// input stream function
+/*  inline std::istream& operator >> (std::istream& rIStream,
+                   TrussElement& rThis);
+*/
+
+/// output stream function
+template<class TBuilderAndSolverType>
+inline std::ostream& operator << (std::ostream& rOStream, const ArcLengthControlProcess<TBuilderAndSolverType>& rThis)
+{
+    rThis.PrintInfo(rOStream);
+    rOStream << std::endl;
+    rThis.PrintData(rOStream);
+
+    return rOStream;
+}
+///@}
 
 }  // namespace Kratos.
 

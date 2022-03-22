@@ -44,12 +44,13 @@
 #include "custom_processes/calculate_reaction_process.h"
 #include "custom_processes/calculate_strain_energy_process.h"
 #include "custom_processes/arc_length_control_process.h"
-#include "custom_processes/arc_length_sphere_control_process.h"
-#include "custom_processes/arc_length_sphere_ux_uy_uz_control_process.h"
-#include "custom_processes/arc_length_cylinder_control_process.h"
-#include "custom_processes/arc_length_cylinder_scalar_control_process.h"
-#include "custom_processes/arc_length_cylinder_ux_uy_uz_control_process.h"
-#include "custom_processes/arc_length_energy_release_control_process.h"
+#include "custom_utilities/arc_length_constraint.h"
+#include "custom_utilities/arc_length_cylinder_constraint.h"
+#include "custom_utilities/arc_length_cylinder_scalar_constraint.h"
+#include "custom_utilities/arc_length_cylinder_ux_uy_uz_constraint.h"
+#include "custom_utilities/arc_length_sphere_constraint.h"
+#include "custom_utilities/arc_length_sphere_ux_uy_uz_constraint.h"
+#include "custom_utilities/arc_length_energy_release_constraint.h"
 #include "add_custom_processes_to_python.h"
 
 namespace Kratos
@@ -70,37 +71,81 @@ void AddCustomProcessesToPython()
     typedef typename SparseSpaceType::MatrixType SparseMatrixType;
     typedef typename SparseSpaceType::VectorType SparseVectorType;
 
-    class_<TopologyUpdateProcess, bases<Process>, boost::noncopyable >
+    class_<TopologyUpdateProcess, bases<Process>, boost::noncopyable>
     ("TopologyUpdateProcess", init<ModelPart&, double, double, double>())
     .def("SetBinSize", &TopologyUpdateProcess::SetBinSize)
     .def("GetTopologyChange", &TopologyUpdateProcess::GetTopologyChange)
     .def("GetObjective", &TopologyUpdateProcess::GetObjective)
     ;
 
-    class_<CalculateReactionProcess, bases<Process>, boost::noncopyable >
+    class_<CalculateReactionProcess, bases<Process>, boost::noncopyable>
     ("CalculateReactionProcess", init<ModelPart&, CalculateReactionProcess::SchemeType&>())
     ;
 
-    class_<CalculateStrainEnergyProcess, bases<Process>, boost::noncopyable >
+    class_<CalculateStrainEnergyProcess, bases<Process>, boost::noncopyable>
     ("CalculateStrainEnergyProcess", init<const ModelPart&>())
     .def("GetEnergy", &CalculateStrainEnergyProcess::GetEnergy)
     ;
 
+    typedef ArcLengthConstraint<BuilderAndSolverType> ArcLengthConstraintType;
+    class_<ArcLengthConstraintType, ArcLengthConstraintType::Pointer, boost::noncopyable>
+    ( "ArcLengthConstraint", init<>() )
+    .def("NeedForceVector", &ArcLengthConstraintType::NeedForceVector)
+    .def("SetForceVector", &ArcLengthConstraintType::SetForceVector)
+    ;
+
+    typedef ArcLengthCylinderConstraint<BuilderAndSolverType> ArcLengthCylinderConstraintType;
+    class_<ArcLengthCylinderConstraintType, ArcLengthCylinderConstraintType::Pointer, bases<ArcLengthConstraintType>, boost::noncopyable>
+    ( "ArcLengthCylinderConstraint", init<const double&>() )
+    .def("SetRadius", &ArcLengthCylinderConstraintType::SetRadius)
+    ;
+
+    typedef ArcLengthCylinderScalarConstraint<BuilderAndSolverType> ArcLengthCylinderScalarConstraintType;
+    class_<ArcLengthCylinderScalarConstraintType, ArcLengthCylinderScalarConstraintType::Pointer, bases<ArcLengthConstraintType>, boost::noncopyable>
+    ( "ArcLengthCylinderScalarConstraint", init<const Variable<double>&, const double&>() )
+    .def("SetRadius", &ArcLengthCylinderScalarConstraintType::SetRadius)
+    ;
+
+    typedef ArcLengthCylinderUxUyUzConstraint<BuilderAndSolverType> ArcLengthCylinderUxUyUzConstraintType;
+    class_<ArcLengthCylinderUxUyUzConstraintType, ArcLengthCylinderUxUyUzConstraintType::Pointer, bases<ArcLengthConstraintType>, boost::noncopyable>
+    ( "ArcLengthCylinderUxUyUzConstraint", init<const double&>() )
+    .def("SetRadius", &ArcLengthCylinderUxUyUzConstraintType::SetRadius)
+    ;
+
+    typedef ArcLengthSphereConstraint<BuilderAndSolverType> ArcLengthSphereConstraintType;
+    class_<ArcLengthSphereConstraintType, ArcLengthSphereConstraintType::Pointer, bases<ArcLengthConstraintType>, boost::noncopyable>
+    ( "ArcLengthSphereConstraint", init<const double&, const double&>() )
+    .def("SetScale", &ArcLengthSphereConstraintType::SetScale)
+    .def("SetRadius", &ArcLengthSphereConstraintType::SetRadius)
+    ;
+
+    typedef ArcLengthSphereUxUyUzConstraint<BuilderAndSolverType> ArcLengthSphereUxUyUzConstraintType;
+    class_<ArcLengthSphereUxUyUzConstraintType, ArcLengthSphereUxUyUzConstraintType::Pointer, bases<ArcLengthConstraintType>, boost::noncopyable>
+    ( "ArcLengthSphereUxUyUzConstraint", init<const double&, const double&>() )
+    .def("SetScale", &ArcLengthSphereUxUyUzConstraintType::SetScale)
+    .def("SetRadius", &ArcLengthSphereUxUyUzConstraintType::SetRadius)
+    ;
+
+    typedef ArcLengthEnergyReleaseConstraint<BuilderAndSolverType> ArcLengthEnergyReleaseConstraintType;
+    class_<ArcLengthEnergyReleaseConstraintType, ArcLengthEnergyReleaseConstraintType::Pointer, bases<ArcLengthConstraintType>, boost::noncopyable>
+    ( "ArcLengthEnergyReleaseConstraint", init<const double&>() )
+    .def("SetRadius", &ArcLengthEnergyReleaseConstraintType::SetRadius)
+    ;
+
     typedef ArcLengthControlProcess<BuilderAndSolverType> ArcLengthControlProcessType;
     void(ArcLengthControlProcessType::*ArcLengthControlProcess_Execute)(SparseVectorType&, const SparseVectorType&) = &ArcLengthControlProcessType::Execute;
-    class_<ArcLengthControlProcessType, ArcLengthControlProcessType::Pointer, bases<Process>, boost::noncopyable >
-    ( "ArcLengthControlProcess", init<>() )
+    class_<ArcLengthControlProcessType, ArcLengthControlProcessType::Pointer, bases<Process>, boost::noncopyable>
+    ( "ArcLengthControlProcess", init<ArcLengthConstraintType::Pointer>() )
     .def("SetPredictor", &ArcLengthControlProcessType::SetPredictor)
-    .def("SetForcedReverse", &ArcLengthControlProcessType::SetForcedReverse)
-    .def("SetForcedForward", &ArcLengthControlProcessType::SetForcedForward)
+    .def("SetForcedMode", &ArcLengthControlProcessType::SetForcedMode)
     .def("SetModelPart", &ArcLengthControlProcessType::SetModelPart)
     .def("SetBuilderAndSolver", &ArcLengthControlProcessType::SetBuilderAndSolver)
-    .def("SetForceVector", &ArcLengthControlProcessType::SetForceVector)
     .def("Update", &ArcLengthControlProcessType::Update)
     .def("GetLambda", &ArcLengthControlProcessType::GetLambda)
     .def("GetLambdaOld", &ArcLengthControlProcessType::GetLambdaOld)
     .def("GetDeltaLambda", &ArcLengthControlProcessType::GetDeltaLambda)
     .def("GetDeltaLambdaOld", &ArcLengthControlProcessType::GetDeltaLambdaOld)
+    .def("GetConstraint", &ArcLengthControlProcessType::pGetConstraint)
     .def("Reset", &ArcLengthControlProcessType::Reset)
     // .def("GetValue", &ArcLengthControlProcessType::GetValue)
     // .def("GetDerivativesDU", &ArcLengthControlProcessType::GetDerivativesDU)
@@ -108,44 +153,7 @@ void AddCustomProcessesToPython()
     // .def("Predict", &ArcLengthControlProcessType::Predict)
     .def("Execute", ArcLengthControlProcess_Execute)
     .def("Copy", &ArcLengthControlProcessType::Copy)
-    ;
-
-    typedef ArcLengthSphereControlProcess<BuilderAndSolverType> ArcLengthSphereControlProcessType;
-    class_<ArcLengthSphereControlProcessType, ArcLengthSphereControlProcessType::Pointer, bases<ArcLengthControlProcessType>, boost::noncopyable >
-    ( "ArcLengthSphereControlProcess", init<const double&, const double&>() )
-    .def("SetScale", &ArcLengthSphereControlProcessType::SetScale)
-    .def("SetRadius", &ArcLengthSphereControlProcessType::SetRadius)
-    ;
-
-    typedef ArcLengthSphereUxUyUzControlProcess<BuilderAndSolverType> ArcLengthSphereUxUyUzControlProcessType;
-    class_<ArcLengthSphereUxUyUzControlProcessType, ArcLengthSphereUxUyUzControlProcessType::Pointer, bases<ArcLengthControlProcessType>, boost::noncopyable >
-    ( "ArcLengthSphereUxUyUzControlProcess", init<const double&, const double&>() )
-    .def("SetScale", &ArcLengthSphereUxUyUzControlProcessType::SetScale)
-    .def("SetRadius", &ArcLengthSphereUxUyUzControlProcessType::SetRadius)
-    ;
-
-    typedef ArcLengthCylinderControlProcess<BuilderAndSolverType> ArcLengthCylinderControlProcessType;
-    class_<ArcLengthCylinderControlProcessType, ArcLengthCylinderControlProcessType::Pointer, bases<ArcLengthControlProcessType>, boost::noncopyable >
-    ( "ArcLengthCylinderControlProcess", init<const double&>() )
-    .def("SetRadius", &ArcLengthCylinderControlProcessType::SetRadius)
-    ;
-
-    typedef ArcLengthCylinderScalarControlProcess<BuilderAndSolverType> ArcLengthCylinderScalarControlProcessType;
-    class_<ArcLengthCylinderScalarControlProcessType, ArcLengthCylinderScalarControlProcessType::Pointer, bases<ArcLengthControlProcessType>, boost::noncopyable >
-    ( "ArcLengthCylinderScalarControlProcess", init<const Variable<double>&, const double&>() )
-    .def("SetRadius", &ArcLengthCylinderScalarControlProcessType::SetRadius)
-    ;
-
-    typedef ArcLengthCylinderUxUyUzControlProcess<BuilderAndSolverType> ArcLengthCylinderUxUyUzControlProcessType;
-    class_<ArcLengthCylinderUxUyUzControlProcessType, ArcLengthCylinderUxUyUzControlProcessType::Pointer, bases<ArcLengthControlProcessType>, boost::noncopyable >
-    ( "ArcLengthCylinderUxUyUzControlProcess", init<const double&>() )
-    .def("SetRadius", &ArcLengthCylinderUxUyUzControlProcessType::SetRadius)
-    ;
-
-    typedef ArcLengthEnergyReleaseControlProcess<BuilderAndSolverType> ArcLengthEnergyReleaseControlProcessType;
-    class_<ArcLengthEnergyReleaseControlProcessType, ArcLengthEnergyReleaseControlProcessType::Pointer, bases<ArcLengthControlProcessType>, boost::noncopyable >
-    ( "ArcLengthEnergyReleaseControlProcess", init<const double&>() )
-    .def("SetRadius", &ArcLengthEnergyReleaseControlProcessType::SetRadius)
+    .def(self_ns::str(self))
     ;
 
 }

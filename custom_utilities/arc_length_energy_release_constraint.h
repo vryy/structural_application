@@ -1,12 +1,12 @@
 //   Project Name:        Kratos
 //   Modified by:         $Author: hbui $
-//   Date:                $Date: 14/3/2022 $
+//   Date:                $Date: 13/3/2022 $
 //
 //
 
 
-#if !defined(KRATOS_ARC_LENGTH_SPHERE_UX_UY_UZ_CONTROL_PROCESS_H_INCLUDED )
-#define  KRATOS_ARC_LENGTH_SPHERE_UX_UY_UZ_CONTROL_PROCESS_H_INCLUDED
+#if !defined(KRATOS_ARC_LENGTH_ENERGY_RELEASE_CONSTRAINT_H_INCLUDED )
+#define  KRATOS_ARC_LENGTH_ENERGY_RELEASE_CONSTRAINT_H_INCLUDED
 
 
 #include "custom_processes/arc_length_control_process.h"
@@ -17,21 +17,21 @@ namespace Kratos
 
 
 /**
- * Arc-length sphere control
+ * Arc-length energy release control
  * In this constraint, all the free d.o.fs are accounted
  * Reference:
- * +    Crisfield 1981
+ * +    Gutierrez et al, Energy release control for numerical simulations of failure in quasi-brittle solids
  */
 template<class TBuilderAndSolverType>
-class ArcLengthSphereUxUyUzControlProcess : public ArcLengthControlProcess<TBuilderAndSolverType>
+class ArcLengthEnergyReleaseConstraint : public ArcLengthConstraint<TBuilderAndSolverType>
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    KRATOS_CLASS_POINTER_DEFINITION( ArcLengthSphereUxUyUzControlProcess );
+    KRATOS_CLASS_POINTER_DEFINITION( ArcLengthEnergyReleaseConstraint );
 
-    typedef ArcLengthControlProcess<TBuilderAndSolverType> BaseType;
+    typedef ArcLengthConstraint<TBuilderAndSolverType> BaseType;
 
     typedef typename BaseType::TSparseSpaceType TSparseSpaceType;
     typedef typename BaseType::TSystemMatrixType TSystemMatrixType;
@@ -42,36 +42,55 @@ public:
     ///@name Life Cycle
     ///@{
 
-    ArcLengthSphereUxUyUzControlProcess(const double& Psi, const double& Radius)
-    : BaseType(), mPsi(Psi), mRadius(Radius)
+    ArcLengthEnergyReleaseConstraint(const double& Radius)
+    : BaseType(), mRadius(Radius), mp_ext_f(NULL)
     {
-        std::cout << "ArcLengthCylinderControlProcess is used, radius = " << mRadius << ", load scale factor = " << mPsi << std::endl;
+        std::cout << "ArcLengthEnergyReleaseConstraint is used, radius = " << mRadius << std::endl;
     }
 
     ///@}
     ///@name Access
     ///@{
 
-    void SetScale(const double& Psi)
-    {
-        mPsi = Psi;
-    }
-
     void SetRadius(const double& Radius)
     {
         mRadius = Radius;
+    }
+
+    /// Check if the force vector is required
+    bool NeedForceVector() const override
+    {
+        return true;
+    }
+
+    /// Set the external force vector
+    void SetForceVector(const TSystemVectorType& rValue) override
+    {
+        mp_ext_f = &rValue;
+    }
+
+    /// Get the external force vector
+    const TSystemVectorType& GetForceVector() const override
+    {
+        if (mp_ext_f == NULL)
+            KRATOS_THROW_ERROR(std::logic_error, "Force vector is not set", "")
+        return *mp_ext_f;
     }
 
     ///@}
     ///@name Operators
     ///@{
 
-    /// Assignment operator
-    ArcLengthSphereUxUyUzControlProcess& operator=(const ArcLengthSphereUxUyUzControlProcess& rOther)
+    void Copy(const BaseType& rOther) override
     {
-        BaseType::operator=(rOther);
-        mPsi = rOther.mPsi;
-        mRadius = rOther.mRadius;
+        BaseType::Copy(rOther);
+        try
+        {
+            const ArcLengthEnergyReleaseConstraint& thisValue = dynamic_cast<const ArcLengthEnergyReleaseConstraint&>(rOther);
+            this->mp_ext_f = &thisValue.GetForceVector();
+        }
+        catch(std::bad_cast& bc)
+        {}
     }
 
     ///@}
@@ -85,6 +104,7 @@ public:
         const DofsArrayType& rDofSet = this->GetBuilderAndSolver().GetDofSet();
 
         double f = 0.0;
+        const TSystemVectorType& fhat = this->GetForceVector();
 
         for (typename DofsArrayType::const_iterator dof_iterator = rDofSet.begin(); dof_iterator != rDofSet.end(); ++dof_iterator)
         {
@@ -94,13 +114,15 @@ public:
             {
                 const auto row = dof_iterator->EquationId();
                 if (row < EquationSystemSize)
-                    f += pow(dof_iterator->GetSolutionStepValue() - dof_iterator->GetSolutionStepValue(1), 2);
+                {
+                    double fv = TSparseSpaceType::GetValue(fhat, row);
+                    f += 0.5 * ( this->LambdaOld() * (dof_iterator->GetSolutionStepValue() - dof_iterator->GetSolutionStepValue(1))
+                               - (this->Lambda() - this->LambdaOld()) * dof_iterator->GetSolutionStepValue(1) ) * fv;
+                }
             }
         }
 
-        f += pow(mPsi * (this->Lambda() - this->LambdaOld()), 2);
-
-        return sqrt(f) - mRadius;
+        return f - mRadius;
     }
 
     /// Get the derivatives of the constraint
@@ -112,8 +134,7 @@ public:
         TSystemVectorType dfdu;
         TSparseSpaceType::Resize(dfdu, EquationSystemSize);
         TSparseSpaceType::SetToZero(dfdu);
-
-        double f = this->GetValue() + mRadius;
+        const TSystemVectorType& fhat = this->GetForceVector();
 
         for (typename DofsArrayType::const_iterator dof_iterator = rDofSet.begin(); dof_iterator != rDofSet.end(); ++dof_iterator)
         {
@@ -123,22 +144,44 @@ public:
             {
                 const auto row = dof_iterator->EquationId();
                 if (row < EquationSystemSize)
-                    TSparseSpaceType::SetValue(dfdu, row, dof_iterator->GetSolutionStepValue() - dof_iterator->GetSolutionStepValue(1));
+                {
+                    double fv = TSparseSpaceType::GetValue(fhat, row);
+                    TSparseSpaceType::SetValue(dfdu, row, 0.5 * this->LambdaOld() * fv);
+                }
             }
         }
 
-        TSparseSpaceType::InplaceMult(dfdu, 1.0/f);
         return dfdu;
     }
 
     /// Get the derivatives of the constraint
     double GetDerivativesDLambda() const override
     {
-        double f = this->GetValue() + mRadius;
-        return mPsi*mPsi*(this->Lambda() - this->LambdaOld()) / f;
+        const auto EquationSystemSize = this->GetBuilderAndSolver().GetEquationSystemSize();
+        const DofsArrayType& rDofSet = this->GetBuilderAndSolver().GetDofSet();
+
+        double df = 0.0;
+        const TSystemVectorType& fhat = this->GetForceVector();
+
+        for (typename DofsArrayType::const_iterator dof_iterator = rDofSet.begin(); dof_iterator != rDofSet.end(); ++dof_iterator)
+        {
+            if ( dof_iterator->GetVariable() == DISPLACEMENT_X
+              || dof_iterator->GetVariable() == DISPLACEMENT_Y
+              || dof_iterator->GetVariable() == DISPLACEMENT_Z )
+            {
+                const auto row = dof_iterator->EquationId();
+                if (row < EquationSystemSize)
+                {
+                    double fv = TSparseSpaceType::GetValue(fhat, row);
+                    df -= 0.5 * dof_iterator->GetSolutionStepValue(1) * fv;
+                }
+            }
+        }
+
+        return df;
     }
 
-    double Predict(const TSystemVectorType& rDeltaUl) const override
+    double Predict(const TSystemVectorType& rDeltaUl, const int& rMode) const override
     {
         const auto EquationSystemSize = this->GetBuilderAndSolver().GetEquationSystemSize();
         const DofsArrayType& rDofSet = this->GetBuilderAndSolver().GetDofSet();
@@ -156,6 +199,7 @@ public:
               || dof_iterator->GetVariable() == DISPLACEMENT_Z )
             {
                 const auto row = dof_iterator->EquationId();
+                // KRATOS_WATCH(dof_iterator->GetVariable().Name())
                 if (row < EquationSystemSize)
                 {
                     TSparseSpaceType::SetValue(Du, row, dof_iterator->GetSolutionStepValue(1) - dof_iterator->GetSolutionStepValue(2));
@@ -166,45 +210,45 @@ public:
             }
         }
 
-        double s0 = sqrt(mPsi*mPsi + norm_p2_dul*norm_p2_dul);
+        double s0 = sqrt(norm_p2_dul);
+        // KRATOS_WATCH(__LINE__)
+        // KRATOS_WATCH(s0)
 
-        if (this->IsForcedReverse() || this->IsForcedForward())
+        if (rMode != 0)
         {
-            if (this->IsForcedReverse())
+            if (rMode == -1)
             {
                 s0 *= -1.0;
-                std::cout << "ArcLengthSphereUxUyUzControlProcess: forward sign is forced to be reversed" << std::endl;
+                std::cout << "ArcLengthEnergyReleaseConstraint: forward sign is forced to be reversed" << std::endl;
             }
 
-            if (this->IsForcedForward())
+            if (rMode == 1)
             {
-                std::cout << "ArcLengthSphereUxUyUzControlProcess: forward sign is forced to remain" << std::endl;
+                std::cout << "ArcLengthEnergyReleaseConstraint: forward sign is forced to remain" << std::endl;
             }
         }
         else
         {
             // compute the forward criteria
-            double forward_criteria = TSparseSpaceType::Dot(Du, rDeltaUl) + mPsi*mPsi*(this->LambdaOld() - this->LambdaOldOld());
+            double forward_criteria = TSparseSpaceType::Dot(Du, rDeltaUl);
             // KRATOS_WATCH(Du)
-            // KRATOS_WATCH(Dx)
-            // KRATOS_WATCH(TSparseSpaceType::Dot(Du, Dx))
-            // KRATOS_WATCH(this->LambdaOld())
-            // KRATOS_WATCH(this->LambdaOldOld())
+            // KRATOS_WATCH(*mp_delta_u_l)
+            // KRATOS_WATCH(TSparseSpaceType::Dot(Du, *mp_delta_u_l))
             // KRATOS_WATCH(forward_criteria)
 
             if (forward_criteria < -1.0e-10)
             {
                 s0 *= -1.0;
-                std::cout << "ArcLengthSphereUxUyUzControlProcess: forward sign is reversed" << std::endl;
+                std::cout << "ArcLengthEnergyReleaseConstraint: forward sign is reversed" << std::endl;
             }
             else
             {
-                std::cout << "ArcLengthSphereUxUyUzControlProcess: forward sign remains" << std::endl;
+                std::cout << "ArcLengthEnergyReleaseConstraint: forward sign remains" << std::endl;
             }
         }
 
         // compute delta lambda
-        double delta_lambda = mPsi/s0 * mRadius;
+        double delta_lambda = 1.0/s0 * mRadius;
         return delta_lambda;
     }
 
@@ -215,30 +259,30 @@ public:
     /// Turn back information as a string.
     std::string Info() const override
     {
-        return "ArcLengthSphereUxUyUzControlProcess";
+        return "ArcLengthEnergyReleaseConstraint";
     }
 
     /// Print information about this object.
     void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "ArcLengthSphereUxUyUzControlProcess";
+        rOStream << "ArcLengthEnergyReleaseConstraint";
     }
 
     /// Print object's data.
     void PrintData(std::ostream& rOStream) const override
     {
-        rOStream << " Radius: " << mRadius
-                 << ", Psi: " << mPsi << std::endl;
+        rOStream << " Radius: " << mRadius << std::endl;
         BaseType::PrintData(rOStream);
     }
 
 private:
 
-    double mPsi;
     double mRadius;
 
-}; // Class ArcLengthSphereUxUyUzControlProcess
+    const TSystemVectorType* mp_ext_f;  // pointer to hold external force vector
+
+}; // Class ArcLengthEnergyReleaseConstraint
 
 }  // namespace Kratos.
 
-#endif // KRATOS_ARC_LENGTH_SPHERE_UX_UY_UZ_CONTROL_PROCESS_H_INCLUDED defined
+#endif // KRATOS_ARC_LENGTH_ENERGY_RELEASE_CONSTRAINT_H_INCLUDED defined
