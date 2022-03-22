@@ -39,6 +39,12 @@ public:
         KRATOS_THROW_ERROR(std::logic_error, "Error calling base class function", __FUNCTION__)
     }
 
+    /// Compute the forces induces by prescribed dofs
+    virtual void ComputePrescribedForces(const Matrix& LHS_Contribution, Vector& Force, const ProcessInfo& CurrentProcessInfo) const
+    {
+        KRATOS_THROW_ERROR(std::logic_error, "Error calling base class function", __FUNCTION__)
+    }
+
 }; // Class PrescribedObject
 
 }  // namespace Kratos.

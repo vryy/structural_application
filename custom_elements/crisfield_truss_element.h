@@ -59,6 +59,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/element.h"
 #include "includes/ublas_interface.h"
 #include "includes/variables.h"
+#include "custom_elements/prescribed_object.h"
 
 namespace Kratos
 {
@@ -87,7 +88,7 @@ namespace Kratos
  * Reference:
  *  Kuhl and Crisfield, Energy-Conserving and Decaying Algorithms in Nonlinear Structural Dynamics, IJNME, 1999.
  */
-class CrisfieldTrussElement : public Element
+class CrisfieldTrussElement : public Element, public PrescribedObject
 {
 public:
     ///@name Type Definitions
@@ -139,13 +140,13 @@ public:
     * @param ThisNodes array of nodes
     * @param pProperties properties pointer
     */
-    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const final;
+    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const override;
 
     /**
     * Initialization of the Crisfield truss element.
     * This initializes the cross-section, length, position vector and matrix A for the element
     */
-    void Initialize(const ProcessInfo& rCurrentProcessInfo) final;
+    void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
     * Calculation of the local system.
@@ -156,7 +157,7 @@ public:
     * @see CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo)
     * @see CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
     */
-    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) final;
+    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
     * Calculation of the left hand side.
@@ -166,7 +167,7 @@ public:
     * @see CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
     * @see CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
     */
-    void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo) final;
+    void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
     * Calculation of the right hand side.
@@ -176,35 +177,35 @@ public:
     * @see CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
     * @see CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo)
     */
-    void CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) final;
+    void CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
     * Get the equation ID vector of the element.
     * @param rResult equation ID vector
     * @param rCurrentProcessInfo process info
     */
-    void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const final;
+    void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const override;
 
     /**
     * Get the DOF list of the element.
     * @param ElementalDofList elemental DOF vector
     * @param rCurrentProcessInfo process info
     */
-    void GetDofList(DofsVectorType& ElementalDofList, const ProcessInfo& CurrentProcessInfo) const final;
+    void GetDofList(DofsVectorType& ElementalDofList, const ProcessInfo& CurrentProcessInfo) const override;
 
     /**
     * Get the mass matrix of the element.
     * @param rMassMatrix mass matrix
     * @param rCurrentProcessInfo process info
     */
-    void CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo) final;
+    void CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
     * Get the damping matrix of the element.
     * @param rDampingMatrix mass matrix
     * @param rCurrentProcessInfo process info
     */
-    void CalculateDampingMatrix(MatrixType& rDampingMatrix, const ProcessInfo& rCurrentProcessInfo) final;
+    void CalculateDampingMatrix(MatrixType& rDampingMatrix, const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
     * Get the displacement vector of the element
@@ -213,7 +214,7 @@ public:
     * @see GetFirstDerivativesVector(Vector& values, int Step)
     * @see GetSecondDerivativesVector(Vector& values, int Step)
     */
-    void GetValuesVector(Vector& values, int Step = 0) const final;
+    void GetValuesVector(Vector& values, int Step = 0) const override;
 
     /**
     * Get the velocity vector of the element
@@ -222,7 +223,7 @@ public:
     * @see GetValuesVector(Vector& values, int Step)
     * @see GetSecondDerivativesVector(Vector& values, int Step)
     */
-    void GetFirstDerivativesVector(Vector& values, int Step = 0) const final;
+    void GetFirstDerivativesVector(Vector& values, int Step = 0) const override;
 
     /**
     * Get the acceleration vector of the element
@@ -231,11 +232,15 @@ public:
     * @see GetValuesVector(Vector& values, int Step)
     * @see GetFirstDerivativesVector(Vector& values, int Step)
     */
-    void GetSecondDerivativesVector(Vector& values, int Step = 0) const final;
+    void GetSecondDerivativesVector(Vector& values, int Step = 0) const override;
 
 //    void CalculateOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& Output, const ProcessInfo& rCurrentProcessInfo);
 
-    int Check( const ProcessInfo& rCurrentProcessInfo ) const;
+    int Check( const ProcessInfo& rCurrentProcessInfo ) const override;
+
+    void ApplyPrescribedDofs(const MatrixType& LHS_Contribution, VectorType& RHS_Constribution, const ProcessInfo& CurrentProcessInfo) const override;
+
+    void ComputePrescribedForces(const MatrixType& LHS_Contribution, VectorType& Force, const ProcessInfo& CurrentProcessInfo) const override;
 
     ///@}
     ///@name Access
@@ -252,13 +257,13 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    std::string Info() const final
+    std::string Info() const override
     {
         return "CrisfieldTrussElement";
     }
 
     /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const final
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << Info();
     }
@@ -452,12 +457,12 @@ private:
     // A private default constructor necessary for serialization
     CrisfieldTrussElement() {};
 
-    void save(Serializer& rSerializer) const final
+    void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element );
     }
 
-    void load(Serializer& rSerializer) final
+    void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element );
     }

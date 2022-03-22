@@ -607,6 +607,41 @@ namespace Kratos
         }
     }
 
+    void KinematicLinear::ComputePrescribedForces(const MatrixType& LHS_Contribution, VectorType& Force, const ProcessInfo& CurrentProcessInfo) const
+    {
+        unsigned int dim = GetGeometry().WorkingSpaceDimension();
+        unsigned int mat_size = dim * GetGeometry().size();
+        for ( unsigned int node = 0; node < GetGeometry().size(); ++node )
+        {
+            if(GetGeometry()[node].IsFixed(DISPLACEMENT_X))
+            {
+                double temp = GetGeometry()[node].GetSolutionStepValue(PRESCRIBED_DISPLACEMENT_X);
+                if (temp != 0.0)
+                    for( unsigned int i = 0; i < mat_size; ++i )
+                        Force[i] -= LHS_Contribution(i, node * dim) * temp;
+            }
+
+            if(GetGeometry()[node].IsFixed(DISPLACEMENT_Y))
+            {
+                double temp = GetGeometry()[node].GetSolutionStepValue(PRESCRIBED_DISPLACEMENT_Y);
+                if (temp != 0.0)
+                    for( unsigned int i = 0; i < mat_size; ++i )
+                        Force[i] -= LHS_Contribution(i, node * dim + 1) * temp;
+            }
+
+            if (dim > 2)
+            {
+                if(GetGeometry()[node].IsFixed(DISPLACEMENT_Z))
+                {
+                    double temp = GetGeometry()[node].GetSolutionStepValue(PRESCRIBED_DISPLACEMENT_Z);
+                    if (temp != 0.0)
+                        for( unsigned int i = 0; i < mat_size; ++i )
+                            Force[i] -= LHS_Contribution(i, node * dim + 2) * temp;
+                }
+            }
+        }
+    }
+
     /**
      * THIS method is called from the scheme during the iteration loop, it calls the CalculateAll()
      * method with CalculateStiffnessMatrixFlag = true and CalculateResidualVectorFlag = false
