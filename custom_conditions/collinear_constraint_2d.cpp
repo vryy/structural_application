@@ -256,14 +256,13 @@ void CollinearConstraint2D::EquationIdVector( EquationIdVectorType& rResult,
 {
     //determining size of DOF list
     //dimension of space
-    unsigned int dim = GetGeometry().WorkingSpaceDimension();
-    rResult.resize(GetGeometry().size()*dim+1, false);
+    rResult.resize(GetGeometry().size()*2+1, false);
     for( unsigned int i = 0; i < GetGeometry().size(); ++i )
     {
-        rResult[dim*i] = GetGeometry()[i].GetDof(DISPLACEMENT_X).EquationId();
-        rResult[dim*i+1] = GetGeometry()[i].GetDof(DISPLACEMENT_Y).EquationId();
+        rResult[2*i] = GetGeometry()[i].GetDof(DISPLACEMENT_X).EquationId();
+        rResult[2*i+1] = GetGeometry()[i].GetDof(DISPLACEMENT_Y).EquationId();
     }
-    rResult[GetGeometry().size()*dim] = GetGeometry()[1].GetDof(LAGRANGE_MULTIPLIER_CONSTRAINT).EquationId();
+    rResult[GetGeometry().size()*2] = GetGeometry()[1].GetDof(LAGRANGE_MULTIPLIER_CONSTRAINT).EquationId();
 }
 
 //************************************************************************************
@@ -274,14 +273,13 @@ void CollinearConstraint2D::GetDofList( DofsVectorType& ConditionalDofList,
 {
     //determining size of DOF list
     //dimension of space
-    unsigned int dim = GetGeometry().WorkingSpaceDimension();
-    ConditionalDofList.resize(GetGeometry().size()*dim+1);
+    ConditionalDofList.resize(GetGeometry().size()*2+1);
     for( unsigned int i = 0; i < GetGeometry().size(); ++i )
     {
-        ConditionalDofList[dim*i] = GetGeometry()[i].pGetDof(DISPLACEMENT_X);
-        ConditionalDofList[dim*i+1] = GetGeometry()[i].pGetDof(DISPLACEMENT_Y);
+        ConditionalDofList[2*i] = GetGeometry()[i].pGetDof(DISPLACEMENT_X);
+        ConditionalDofList[2*i+1] = GetGeometry()[i].pGetDof(DISPLACEMENT_Y);
     }
-    ConditionalDofList[GetGeometry().size()*dim] = GetGeometry()[1].pGetDof(LAGRANGE_MULTIPLIER_CONSTRAINT);
+    ConditionalDofList[GetGeometry().size()*2] = GetGeometry()[1].pGetDof(LAGRANGE_MULTIPLIER_CONSTRAINT);
 }
 
 } // Namespace Kratos
