@@ -110,6 +110,9 @@ public:
 
     typedef Scheme<TSparseSpace,TDenseSpace> BaseType;
 
+    typedef TSparseSpace SparseSpaceType;
+    typedef TDenseSpace DenseSpaceType;
+
     typedef typename BaseType::TDataType TDataType;
 
     typedef typename BaseType::DofsArrayType DofsArrayType;
@@ -171,6 +174,19 @@ public:
     /** Destructor.*/
     virtual ~ResidualBasedStateBasedThetaScheme()
     {}
+
+    /*@} */
+    /**@name Operators */
+    /*@{ */
+
+    ResidualBasedStateBasedThetaScheme& operator=(const ResidualBasedStateBasedThetaScheme& rOther)
+    {
+        this->mTheta = rOther.mTheta;
+        this->mIntegrateRotation = rOther.mIntegrateRotation;
+        this->mIntegrateMultiplier = mIntegrateMultiplier;
+        this->mIntegrateLoad = mIntegrateLoad;
+        return *this;
+    }
 
     /*@} */
     /**@name Operations */
@@ -316,7 +332,7 @@ public:
         DofsArrayType& rDofSet,
         TSystemMatrixType& A,
         TSystemVectorType& Dx,
-        TSystemVectorType& b ) final
+        TSystemVectorType& b ) override
     {
         KRATOS_TRY
 
@@ -432,7 +448,7 @@ public:
     void InitializeNonLinIteration(ModelPart& r_model_part,
                                    TSystemMatrixType& A,
                                    TSystemVectorType& Dx,
-                                   TSystemVectorType& b ) final
+                                   TSystemVectorType& b ) override
     {
         KRATOS_TRY
 
@@ -714,7 +730,7 @@ public:
         ModelPart& r_model_part,
         TSystemMatrixType& A,
         TSystemVectorType& Dx,
-        TSystemVectorType& b) final
+        TSystemVectorType& b) override
     {
         KRATOS_TRY
 
@@ -791,7 +807,7 @@ public:
         ModelPart& r_model_part,
         TSystemMatrixType& A,
         TSystemVectorType& Dx,
-        TSystemVectorType& b) final
+        TSystemVectorType& b) override
     {
         KRATOS_TRY
 
@@ -921,7 +937,7 @@ public:
         ModelPart& r_model_part,
         TSystemMatrixType& A,
         TSystemVectorType& Dx,
-        TSystemVectorType& b) final
+        TSystemVectorType& b) override
     {
         const ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
 
@@ -1188,7 +1204,7 @@ public:
         LocalSystemMatrixType& LHS_Contribution,
         LocalSystemVectorType& RHS_Contribution,
         Element::EquationIdVectorType& EquationId,
-        const ProcessInfo& CurrentProcessInfo) final
+        const ProcessInfo& CurrentProcessInfo) override
     {
         KRATOS_TRY
 
@@ -1264,7 +1280,7 @@ public:
         Element& rCurrentElement,
         LocalSystemVectorType& RHS_Contribution,
         Element::EquationIdVectorType& EquationId,
-        const ProcessInfo& CurrentProcessInfo) final
+        const ProcessInfo& CurrentProcessInfo) override
     {
         KRATOS_TRY
 
@@ -1282,7 +1298,7 @@ public:
         LocalSystemMatrixType& LHS_Contribution,
         LocalSystemVectorType& RHS_Contribution,
         Element::EquationIdVectorType& EquationId,
-        const ProcessInfo& CurrentProcessInfo) final
+        const ProcessInfo& CurrentProcessInfo) override
     {
         KRATOS_TRY
 
@@ -1307,7 +1323,7 @@ public:
         Condition& rCurrentCondition,
         LocalSystemVectorType& RHS_Contribution,
         Element::EquationIdVectorType& EquationId,
-        const ProcessInfo& CurrentProcessInfo) final
+        const ProcessInfo& CurrentProcessInfo) override
     {
         KRATOS_TRY
 
@@ -1356,6 +1372,21 @@ public:
     /**@name Inquiry */
     /*@{ */
 
+    ///@}
+    ///@name Input and output
+    ///@{
+
+    /// Turn back information as a string.
+    std::string Info() const override
+    {
+        return "ResidualBasedStateBasedThetaScheme";
+    }
+
+    /// Print object's data.
+    void PrintData(std::ostream& rOStream) const override
+    {
+        rOStream << " Theta: " << mTheta;
+    }
 
     /*@} */
     /**@name Friends */

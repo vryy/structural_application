@@ -130,6 +130,9 @@ public:
 
     typedef Scheme<TSparseSpace,TDenseSpace> BaseType;
 
+    typedef TSparseSpace SparseSpaceType;
+    typedef TDenseSpace DenseSpaceType;
+
     typedef typename BaseType::TDataType TDataType;
 
     typedef typename BaseType::DofsArrayType DofsArrayType;
@@ -165,6 +168,16 @@ public:
     */
     /*@{ */
 
+    /// Copy assignment
+    ResidualBasedIncrementalUpdateStaticDeactivationScheme& operator=(const ResidualBasedIncrementalUpdateStaticDeactivationScheme& rOther)
+    {
+        return *this;
+    }
+
+    /*@} */
+    /**@name Operations */
+    /*@{ */
+
     /**
     Performing the update of the solution.
     */
@@ -175,7 +188,7 @@ public:
         TSystemMatrixType& A,
         TSystemVectorType& Dx,
         TSystemVectorType& b
-    ) final
+    ) override
     {
         KRATOS_TRY
 
@@ -201,7 +214,7 @@ public:
         TSystemMatrixType& A,
         TSystemVectorType& Dx,
         TSystemVectorType& b
-    ) final
+    ) override
     {
         KRATOS_TRY
         //initialize solution step for all of the elements
@@ -245,7 +258,7 @@ public:
         TSystemMatrixType& A,
         TSystemVectorType& Dx,
         TSystemVectorType& b
-    ) final
+    ) override
     {
         KRATOS_TRY
         ElementsArrayType& pElements = r_model_part.Elements();
@@ -286,7 +299,7 @@ public:
         TSystemMatrixType& A,
         TSystemVectorType& Dx,
         TSystemVectorType& b
-    ) final
+    ) override
     {
         KRATOS_TRY
 
@@ -357,7 +370,7 @@ public:
         TSystemMatrixType& A,
         TSystemVectorType& Dx,
         TSystemVectorType& b
-    ) final
+    ) override
     {
         KRATOS_TRY
         //finalizes solution step for all of the elements
@@ -427,7 +440,7 @@ public:
         LocalSystemVectorType& RHS_Contribution,
         Element::EquationIdVectorType& EquationId,
         const ProcessInfo& CurrentProcessInfo
-    ) final
+    ) override
     {
         KRATOS_TRY
 
@@ -455,7 +468,7 @@ public:
         LocalSystemVectorType& RHS_Contribution,
         Element::EquationIdVectorType& EquationId,
         const ProcessInfo& CurrentProcessInfo
-    ) final
+    ) override
     {
         KRATOS_TRY
 
@@ -472,7 +485,7 @@ public:
         LocalSystemMatrixType& LHS_Contribution,
         Element::EquationIdVectorType& EquationId,
         const ProcessInfo& CurrentProcessInfo
-    ) final
+    ) override
     {
         KRATOS_TRY
 
@@ -492,7 +505,7 @@ public:
         LocalSystemVectorType& RHS_Contribution,
         Element::EquationIdVectorType& EquationId,
         const ProcessInfo& CurrentProcessInfo
-    ) final
+    ) override
     {
         KRATOS_TRY
 
@@ -507,7 +520,7 @@ public:
         LocalSystemVectorType& RHS_Contribution,
         Element::EquationIdVectorType& EquationId,
         const ProcessInfo& CurrentProcessInfo
-    ) final
+    ) override
     {
         KRATOS_TRY
 
@@ -516,12 +529,6 @@ public:
 
         KRATOS_CATCH("")
     }
-
-
-    /*@} */
-    /**@name Operations */
-    /*@{ */
-
 
     /*@} */
     /**@name Access */
@@ -532,6 +539,15 @@ public:
     /**@name Inquiry */
     /*@{ */
 
+    ///@}
+    ///@name Input and output
+    ///@{
+
+    /// Turn back information as a string.
+    std::string Info() const override
+    {
+        return "ResidualBasedIncrementalUpdateStaticDeactivationScheme";
+    }
 
     /*@} */
     /**@name Friends */

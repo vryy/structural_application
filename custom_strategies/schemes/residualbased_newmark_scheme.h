@@ -122,6 +122,9 @@ public:
 
     typedef Scheme<TSparseSpace,TDenseSpace> BaseType;
 
+    typedef TSparseSpace SparseSpaceType;
+    typedef TDenseSpace DenseSpaceType;
+
     typedef typename BaseType::TDataType TDataType;
 
     typedef typename BaseType::DofsArrayType DofsArrayType;
@@ -249,6 +252,19 @@ public:
     {}
 
     /**@name Operators */
+
+    /// Copy assignment
+    ResidualBasedNewmarkScheme& operator=(const ResidualBasedNewmarkScheme& rOther)
+    {
+        this->mAlpha_f = rOther.mAlpha_f;
+        this->mAlpha_m = rOther.mAlpha_m;
+        this->mBeta = rOther.mBeta;
+        this->mGamma = rOther.mGamma;
+        this->mIntegrateRotation = rOther.mIntegrateRotation;
+        this->mIntegrateMultiplier = mIntegrateMultiplier;
+        this->mIntegrateLoad = mIntegrateLoad;
+        return *this;
+    }
 
     /*@} */
     /**@name Operations */
@@ -1655,6 +1671,25 @@ public:
     /**@name Inquiry */
     /*@{ */
 
+
+    ///@}
+    ///@name Input and output
+    ///@{
+
+    /// Turn back information as a string.
+    std::string Info() const override
+    {
+        return "ResidualBasedNewmarkScheme";
+    }
+
+    /// Print object's data.
+    void PrintData(std::ostream& rOStream) const override
+    {
+        rOStream << " alpha_f: " << mAlpha_f
+                 << " alpha_m: " << mAlpha_m
+                 << " beta: " << mBeta
+                 << " gamma: " << mGamma;
+    }
 
     /*@} */
     /**@name Friends */
