@@ -58,6 +58,7 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(EXCESS_PORE_WATER_PRESSURE)
     model_part.AddNodalSolutionStepVariable(VISCOSITY)
     model_part.AddNodalSolutionStepVariable(PRESCRIBED_DELTA_DISPLACEMENT)
+    model_part.AddNodalSolutionStepVariable(PRESCRIBED_DISPLACEMENT)
     model_part.AddNodalSolutionStepVariable(ELASTIC_STRAIN_VECTOR)
     #auxiliary variables misused for mesh rezoning ;-)
     model_part.AddNodalSolutionStepVariable(IS_VISITED)
@@ -284,6 +285,13 @@ class SolverAdvanced(structural_solver_static.StaticStructuralSolver):
                 elif self.analysis_parameters['solution_strategy'] == "arc_length_load_control":
                     import arc_length_load_control_strategy
                     self.solver = arc_length_load_control_strategy.SolvingStrategyPython( self.model_part, self.time_scheme, self.structure_linear_solver, self.conv_criteria, self.CalculateReactionFlag, self.ReformDofSetAtEachStep, self.MoveMeshFlag, self.analysis_parameters, self.space_utils, builder_and_solver )
+                elif self.analysis_parameters['solution_strategy'] == "arc_length_displacement_control":
+                    if( self.analysis_parameters['analysis_type'] == 0 ):
+                        self.time_scheme = ArcLengthDisplacementControlResidualBasedIncrementalUpdateStaticDeactivationScheme(self.time_scheme)
+                    else:
+                        raise Exception("analysis_type > 0 is not yet supported for arc-length displacement control")
+                    import arc_length_displacement_control_strategy
+                    self.solver = arc_length_displacement_control_strategy.SolvingStrategyPython( self.model_part, self.time_scheme, self.structure_linear_solver, self.conv_criteria, self.CalculateReactionFlag, self.ReformDofSetAtEachStep, self.MoveMeshFlag, self.analysis_parameters, self.space_utils, builder_and_solver )
                 else:
                     raise Exception("Unknown solution_strategy " + str(self.analysis_parameters['solution_strategy']))
             else:

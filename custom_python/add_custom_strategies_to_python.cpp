@@ -99,9 +99,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_strategies/schemes/residualbased_state_based_theta_scheme.h"
 #include "custom_strategies/schemes/composit_scheme.h"
 #include "custom_strategies/schemes/volumetric_scheme.h"
-
 #include "custom_strategies/schemes/inner_volumetric_scheme.h"
 #include "custom_strategies/schemes/inner_volumetric_dynamic_scheme.h"
+#include "custom_strategies/schemes/arc_length_displacement_control_support_scheme.h"
 //#include "custom_strategies/schemes/residualbased_predictorcorrector_velocity_bossak_scheme.h"
 
 //#include "structural_application/custom_strategies/schemes/residualbased_galerkin_scheme.h"
@@ -118,10 +118,21 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 namespace Kratos
 {
 
-
 namespace Python
 {
+
 using namespace boost::python;
+
+template<class TSchemeType>
+void AddArcLengthDisplacementControlSupportScheme(const std::string& rName)
+{
+    typedef ArcLengthDisplacementControlSupportScheme<TSchemeType> ArcLengthDisplacementControlSupportSchemeType;
+
+    class_< ArcLengthDisplacementControlSupportSchemeType, bases< TSchemeType >,  boost::noncopyable >
+    ( rName.c_str(), init<typename TSchemeType::Pointer>() )
+    .def("GetForceVector", &ArcLengthDisplacementControlSupportSchemeType::GetForceVector, return_internal_reference<>())
+    ;
+}
 
 void  AddCustomStrategiesToPython()
 {
@@ -156,7 +167,7 @@ void  AddCustomStrategiesToPython()
 
 //            typedef MultiPhaseBuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType> MultiPhaseBuilderAndSolverType;
 
-//	typedef ResidualBasedPredictorCorrectorVelocityBossakScheme< SparseSpaceType, LocalSpaceType > //ResidualBasedPredictorCorrectorVelocityBossakSchemeType;
+//  typedef ResidualBasedPredictorCorrectorVelocityBossakScheme< SparseSpaceType, LocalSpaceType > //ResidualBasedPredictorCorrectorVelocityBossakSchemeType;
 
     typedef ModalAnalysisBuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType> ModalAnalysisBuilderAndSolverType;
     typedef CompositScheme< SparseSpaceType, LocalSpaceType > CompositSchemeType;
@@ -175,8 +186,6 @@ void  AddCustomStrategiesToPython()
     //typedef ResidualCriteria < SparseSpaceType, LocalSpaceType >::Pointer TResidual;
     //typedef DisplacementCriteria < SparseSpaceType, LocalSpaceType>::Pointer TDisplacement;
 
-
-// 					;
     //********************************************************************
     //********************************************************************
     class_< ResidualBasedPredictorCorrectorBossakSchemeType,
@@ -257,11 +266,13 @@ void  AddCustomStrategiesToPython()
             .def("UpdateForces", &ResidualBasedStateBasedThetaSchemeType::UpdateForces)
             ;
 
-// 			class_< TestingSchemeType,
-// 			bases< BaseSchemeType >,  boost::noncopyable >
-// 					(
-// 					"TestingScheme", init< >()
-// 					);
+    AddArcLengthDisplacementControlSupportScheme<ResidualBasedIncrementalUpdateStaticDeactivationSchemeType>("ArcLengthDisplacementControlResidualBasedIncrementalUpdateStaticDeactivationScheme");
+
+//          class_< TestingSchemeType,
+//          bases< BaseSchemeType >,  boost::noncopyable >
+//                  (
+//                  "TestingScheme", init< >()
+//                  );
 
     class_< MultiPhaseFlowCriteriaType,
             bases< ConvergenceCriteriaBaseType >, boost::noncopyable >
@@ -291,11 +302,11 @@ void  AddCustomStrategiesToPython()
 
 
 
-//	class_< ResidualBasedPredictorCorrectorVelocityBossakSchemeType,
-//			bases< BaseSchemeType >,  boost::noncopyable >
-//					(
-//					"ResidualBasedPredictorCorrectorVelocityBossakScheme", init< double >()
-//					);
+//  class_< ResidualBasedPredictorCorrectorVelocityBossakSchemeType,
+//          bases< BaseSchemeType >,  boost::noncopyable >
+//                  (
+//                  "ResidualBasedPredictorCorrectorVelocityBossakScheme", init< double >()
+//                  );
 
     class_< VolumetricSchemeType2D,
             bases< BaseSchemeType >,  boost::noncopyable >
@@ -341,15 +352,15 @@ void  AddCustomStrategiesToPython()
 
 
 
-// 			class_<Residual_Displacement_Criteria<SparseSpaceType, LocalSpaceType >,
-// 			         bases<ConvergenceCriteria< SparseSpaceType, LocalSpaceType > >,
-// 			         boost::noncopyable >
-// 			        ("ResidualDisplacementCriteria", init< double, double>() );
+//          class_<Residual_Displacement_Criteria<SparseSpaceType, LocalSpaceType >,
+//                   bases<ConvergenceCriteria< SparseSpaceType, LocalSpaceType > >,
+//                   boost::noncopyable >
+//                  ("ResidualDisplacementCriteria", init< double, double>() );
 //
-// 			class_<ResDisCriteria<SparseSpaceType, LocalSpaceType >,
-// 			         bases<ConvergenceCriteria< SparseSpaceType, LocalSpaceType > >,
-// 			         boost::noncopyable >
-// 			        ("ResDisCriteria", init< TResidual,TDisplacement >());
+//          class_<ResDisCriteria<SparseSpaceType, LocalSpaceType >,
+//                   bases<ConvergenceCriteria< SparseSpaceType, LocalSpaceType > >,
+//                   boost::noncopyable >
+//                  ("ResDisCriteria", init< TResidual,TDisplacement >());
 
     /*
     class_< ModalAnalysisBuilderAndSolverType, bases<BuilderAndSolverType>, boost::noncopyable >
