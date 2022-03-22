@@ -60,6 +60,8 @@ public:
      */
     typedef Matrix MatrixType;
 
+    typedef SymmetricMatrix SymmetricMatrixType;
+
     typedef Vector VectorType;
 
     typedef unsigned int IndexType;
@@ -915,7 +917,8 @@ public:
         KRATOS_CATCH("")
     }
 
-    static inline void StrainVectorToTensor(const VectorType& StrainVector, MatrixType& StrainTensor)
+    template<typename TVectorType, typename TMatrixType>
+    static inline void StrainVectorToTensor(const TVectorType& StrainVector, TMatrixType& StrainTensor)
     {
         if(StrainVector.size() == 3) // plane strain
         {
@@ -970,7 +973,8 @@ public:
         KRATOS_CATCH("")
     }
 
-    static inline void StrainTensorToVector(const MatrixType& StrainTensor, VectorType& StrainVector)
+    template<typename TVectorType, typename TMatrixType>
+    static inline void StrainTensorToVector(const TMatrixType& StrainTensor, TVectorType& StrainVector)
     {
         if(StrainVector.size() == 3)
         {
@@ -989,7 +993,8 @@ public:
         }
     }
 
-    static inline void StressVectorToTensor(const VectorType& StressVector, MatrixType& StressTensor)
+    template<typename TVectorType, typename TMatrixType>
+    static inline void StressVectorToTensor(const TVectorType& StressVector, TMatrixType& StressTensor)
     {
         if(StressVector.size() == 3) // plane strain
         {
@@ -1013,7 +1018,8 @@ public:
         }
     }
 
-    static inline void StressTensorToVector(const MatrixType& StressTensor, VectorType& StressVector)
+    template<typename TVectorType, typename TMatrixType>
+    static inline void StressTensorToVector(const TMatrixType& StressTensor, TVectorType& StressVector)
     {
         if(StressVector.size() == 3)
         {
@@ -1055,7 +1061,8 @@ public:
     * @param Tensor the given second order tensor
     * @return the norm of the given tensor
     */
-    static double normTensor(const MatrixType& Tensor)
+    template<typename TMatrixType>
+    static double normTensor(const TMatrixType& Tensor)
     {
         double result=0.0;
         for(unsigned int i=0; i<Tensor.size1(); i++)
@@ -1083,7 +1090,8 @@ public:
     * @param Vector the given vector
     * @param Tensor the symmetric second order tensor
     */
-    static inline void VectorToTensor(const VectorType& Stress, MatrixType& Tensor)
+    template<typename TVectorType, typename TMatrixType>
+    static inline void VectorToTensor(const TVectorType& Stress, TMatrixType& Tensor)
     {
         if(Stress.size()==6)
         {
@@ -1114,7 +1122,8 @@ public:
     * @param Tensor the given symmetric second order tensor
     * @param Vector the vector
     */
-    static void TensorToVector( const MatrixType& Tensor, VectorType& Vector)
+    template<typename TVectorType, typename TMatrixType>
+    static void TensorToVector( const TMatrixType& Tensor, TVectorType& Vector)
     {
         //if(Vector.size()!= 6)
         unsigned int  dim  =  Tensor.size1();
@@ -1140,7 +1149,8 @@ public:
 
     // THis uses the notation [o_xx o_yy o_zz o_xy o_yz o_xz]
     // Note that, this already accounts for factor 2 in [e_xx e_yy e_zz 2e_xy 2e_yz 2e_xz] (see https://en.wikiversity.org/wiki/Introduction_to_Elasticity/Constitutive_relations)
-    static inline void TensorToMatrix(const Fourth_Order_Tensor& Tensor, MatrixType& Matrix)
+    template<typename TMatrixType>
+    static inline void TensorToMatrix(const Fourth_Order_Tensor& Tensor, TMatrixType& Matrix)
     {
         if (Matrix.size1() == 6)
         {
@@ -1203,7 +1213,8 @@ public:
 
     // THis uses the notation [o_xx o_yy o_zz o_xy o_xz o_yz]
     // Note that, this already accounts for factor 2 in [e_xx e_yy e_zz 2e_xy 2e_xz 2e_yz] (see https://en.wikiversity.org/wiki/Introduction_to_Elasticity/Constitutive_relations)
-    static inline void TensorToMatrix2(const Fourth_Order_Tensor& Tensor, MatrixType& Matrix)
+    template<typename TMatrixType>
+    static inline void TensorToMatrix2(const Fourth_Order_Tensor& Tensor, TMatrixType& Matrix)
     {
         // Simetrias seguras
         //  Cijkl = Cjilk;
@@ -1274,12 +1285,12 @@ public:
     }
 
     /**
-    * Transforms a given 6*6 Matrix to a corresponing 4th order tensor
+    * Transforms a given 6*6 Matrix to a corresponding 4th order tensor
     * @param Tensor the given Matrix
     * @param Vector the Tensor
     */
-    template<class Fourth_Order_Tensor_Type>
-    static void MatrixToTensor(const MatrixType& A, Fourth_Order_Tensor_Type& Tensor)
+    template<typename TMatrixType, typename Fourth_Order_Tensor_Type>
+    static void MatrixToTensor(const TMatrixType& A, Fourth_Order_Tensor_Type& Tensor)
     {
         int help1 = 0;
         int help2 = 0;
@@ -1330,7 +1341,8 @@ public:
     * @param Tensor the given Matrix
     * @param Vector the Tensor
     */
-    static void MatrixToTensor(const MatrixType& A, array_1d<double, 81>& Tensor)
+    template<typename TMatrixType>
+    static void MatrixToTensor(const TMatrixType& A, array_1d<double, 81>& Tensor)
     {
         int help1 = 0;
         int help2 = 0;
@@ -1375,7 +1387,8 @@ public:
     * @param Tensor the given Tensor
     * @param Vector the Matrix
     */
-    static void TensorToMatrix(std::vector<std::vector<MatrixType> >& Tensor,MatrixType& Matrix)
+    template<typename TMatrixType>
+    static void TensorToMatrix(const std::vector<std::vector<MatrixType> >& Tensor, TMatrixType& Matrix)
     {
         int help1 = 0;
         int help2 = 0;
@@ -1450,7 +1463,8 @@ public:
      * @param Tensor the given Tensor
      * @param Vector the Matrix
      */
-    static void TensorToMatrix( const array_1d<double, 81>& Tensor, MatrixType& Matrix )
+    template<typename TMatrixType>
+    static void TensorToMatrix( const array_1d<double, 81>& Tensor, TMatrixType& Matrix )
     {
         if(Matrix.size1()!=6 || Matrix.size2()!=6)
             Matrix.resize(6,6,false);
@@ -1500,7 +1514,8 @@ public:
         return;
     }
 
-    static inline void ExtractVolumetricDeviatoricTensor( const MatrixType& C, MatrixType& dev, double& vol )
+    template<typename TMatrixType1, typename TMatrixType2>
+    static void ExtractVolumetricDeviatoricTensor( const TMatrixType1& C, TMatrixType2& dev, double& vol )
     {
         vol = C(0, 0) + C(1, 1) + C(2, 2);
         noalias(dev) = C;
@@ -1653,14 +1668,35 @@ public:
      * @param AA the fourth order Tensor
      * @param B the second order Tensor
      */
-    template<int Op = 1>
     static void ContractFourthOrderTensor(const double& alpha, const Fourth_Order_Tensor& A, const MatrixType& B, MatrixType& Result)
     {
         for(unsigned int i = 0; i < 3; ++i)
         {
             for(unsigned int j = 0; j < 3; ++j)
             {
-                if (Op == 0) Result(i, j) = 0.0;
+                for(unsigned int k = 0; k < 3; ++k)
+                {
+                    for(unsigned int l = 0; l < 3; ++l)
+                    {
+                        Result(i, j) += alpha * A[i][j](k, l) * B(k, l);
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Computes contraction of a fourth order tensor and matrix and add to a second order tensor (Result += alpha * (AA : B))
+     * @param alpha
+     * @param AA the fourth order Tensor
+     * @param B the second order Tensor
+     */
+    static void ContractFourthOrderTensor(const double& alpha, const Fourth_Order_Tensor& A, const SymmetricMatrixType& B, SymmetricMatrixType& Result)
+    {
+        for(unsigned int i = 0; i < 3; ++i)
+        {
+            for(unsigned int j = i; j < 3; ++j)
+            {
                 for(unsigned int k = 0; k < 3; ++k)
                 {
                     for(unsigned int l = 0; l < 3; ++l)
@@ -1678,13 +1714,8 @@ public:
      * @param A the second order Tensor
      * @param BB the fourth order Tensor
      */
-    template<int Op = 1>
     static void ContractFourthOrderTensor(const double& alpha, const MatrixType& A, const Fourth_Order_Tensor& BB, MatrixType& Result)
     {
-        if (Op == 0)
-            for(unsigned int i = 0; i < 3; ++i)
-                for(unsigned int j = 0; j < 3; ++j)
-                    Result(i, j) = 0.0;
         for(unsigned int i = 0; i < 3; ++i)
         {
             for(unsigned int j = 0; j < 3; ++j)
@@ -1701,19 +1732,41 @@ public:
     }
 
     /**
-     * Computes outer product of two 2nd order tensors (Matrix) and add to a given 4th order tensor (Result += alpha * (A \odot B))
-     * In the indices notation: Result(i,j,k,l) += alpha * A(i, j) * B(k, l)
-     * @param C the given Tensor
+     * Computes contraction of a fourth order tensor and symmetric matrix and add to a second order tensor (Result += alpha * (A : B))
      * @param alpha
+     * @param A the second order Tensor
+     * @param BB the fourth order Tensor
      */
-    template<int Op = 1>
-    static void OuterProductFourthOrderTensor(const double& alpha, const MatrixType& A, const MatrixType& B, Fourth_Order_Tensor& Result)
+    static void ContractFourthOrderTensor(const double& alpha, const SymmetricMatrixType& A, const Fourth_Order_Tensor& BB, SymmetricMatrixType& Result)
     {
         for(unsigned int i = 0; i < 3; ++i)
         {
             for(unsigned int j = 0; j < 3; ++j)
             {
-                if (Op == 0) noalias(Result[i][j]) = ZeroMatrix(3, 3);
+                for(unsigned int k = 0; k < 3; ++k)
+                {
+                    for(unsigned int l = k; l < 3; ++l)
+                    {
+                        Result(k, l) += alpha * A(i, j) * BB[i][j](k, l);
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Computes outer product of two 2nd order tensors (Matrix) and add to a given 4th order tensor (Result += alpha * (A \odot B))
+     * In the indices notation: Result(i,j,k,l) += alpha * A(i, j) * B(k, l)
+     * @param C the given Tensor
+     * @param alpha
+     */
+    template<typename TMatrixType1, typename TMatrixType2>
+    static void OuterProductFourthOrderTensor(const double& alpha, const TMatrixType1& A, const TMatrixType2& B, Fourth_Order_Tensor& Result)
+    {
+        for(unsigned int i = 0; i < 3; ++i)
+        {
+            for(unsigned int j = 0; j < 3; ++j)
+            {
                 for(unsigned int k = 0; k < 3; ++k)
                 {
                     for(unsigned int l = 0; l < 3; ++l)
@@ -1731,14 +1784,13 @@ public:
      * @param alpha
      * TODO make a better name
      */
-    template<int Op = 1>
-    static void SpecialProduct1FourthOrderTensor(const double& alpha, const MatrixType& A, const MatrixType& B, Fourth_Order_Tensor& Result)
+    template<typename TMatrixType1, typename TMatrixType2>
+    static void SpecialProduct1FourthOrderTensor(const double& alpha, const TMatrixType1& A, const TMatrixType2& B, Fourth_Order_Tensor& Result)
     {
         for(unsigned int i = 0; i < 3; ++i)
         {
             for(unsigned int j = 0; j < 3; ++j)
             {
-                if (Op == 0) noalias(Result[i][j]) = ZeroMatrix(3, 3);
                 for(unsigned int k = 0; k < 3; ++k)
                 {
                     for(unsigned int l = 0; l < 3; ++l)
@@ -1756,14 +1808,13 @@ public:
      * @param alpha
      * TODO make a better name
      */
-    template<int Op = 1>
-    static void SpecialProduct2FourthOrderTensor(const double& alpha, const MatrixType& A, const MatrixType& B, Fourth_Order_Tensor& Result)
+    template<typename TMatrixType1, typename TMatrixType2>
+    static void SpecialProduct2FourthOrderTensor(const double& alpha, const TMatrixType1& A, const TMatrixType2& B, Fourth_Order_Tensor& Result)
     {
         for(unsigned int i = 0; i < 3; ++i)
         {
             for(unsigned int j = 0; j < 3; ++j)
             {
-                if (Op == 0) noalias(Result[i][j]) = ZeroMatrix(3, 3);
                 for(unsigned int k = 0; k < 3; ++k)
                 {
                     for(unsigned int l = 0; l < 3; ++l)
@@ -1776,23 +1827,18 @@ public:
     }
 
     // C += alpha A
-    template<int Op = 1>
     static inline void AddFourthOrderTensor(const double& alpha, const Fourth_Order_Tensor& A, Fourth_Order_Tensor& Result)
     {
         for(unsigned int i = 0; i < 3; ++i)
         {
             for(unsigned int j = 0; j < 3; ++j)
             {
-                if (Op == 0)
-                    noalias(Result[i][j]) = alpha * A[i][j];
-                else if (Op == 1)
-                    noalias(Result[i][j]) += alpha * A[i][j];
+                noalias(Result[i][j]) += alpha * A[i][j];
             }
         }
     }
 
     // C += alpha A * B
-    template<int Op = 1>
     static inline void ProductFourthOrderTensor(const double& alpha, const Fourth_Order_Tensor& A, const Fourth_Order_Tensor& B, Fourth_Order_Tensor& Result)
     {
         for(unsigned int i = 0; i < 3; ++i)
@@ -1807,10 +1853,7 @@ public:
                         {
                             for(unsigned int n = 0; n < 3; ++n)
                             {
-                                if (Op == 0)
-                                    Result[i][j](m, n) = alpha * A[i][j](k, l) * B[k][l](m, n);
-                                else if (Op == 1)
-                                    Result[i][j](m, n) += alpha * A[i][j](k, l) * B[k][l](m, n);
+                                Result[i][j](m, n) += alpha * A[i][j](k, l) * B[k][l](m, n);
                             }
                         }
                     }
@@ -1837,7 +1880,8 @@ public:
      * + Le Khanh Chau's lecture note
      * + https://www.quora.com/What-is-the-derivative-of-inverse-matrix
      */
-    static void InverseDerivatives(const MatrixType& InvA, Fourth_Order_Tensor& Result)
+    template<typename TMatrixType>
+    static void InverseDerivatives(const TMatrixType& InvA, Fourth_Order_Tensor& Result)
     {
         for(unsigned int i = 0; i < 3; ++i)
         {
@@ -1861,7 +1905,8 @@ public:
      * + Le Khanh Chau's lecture note
      * + https://www.quora.com/What-is-the-derivative-of-inverse-matrix
      */
-    static void AddInverseDerivatives(const double& alpha, const MatrixType& InvA, Fourth_Order_Tensor& Result)
+    template<typename TMatrixType>
+    static void AddInverseDerivatives(const double& alpha, const TMatrixType& InvA, Fourth_Order_Tensor& Result)
     {
         for(unsigned int i = 0; i < 3; ++i)
         {
@@ -1970,7 +2015,8 @@ public:
     }
 
     // return A:B
-    static inline double mat_inner_prod(const MatrixType& A, const MatrixType& B)
+    template<typename TMatrixType1, typename TMatrixType2>
+    static double mat_inner_prod(const TMatrixType1& A, const TMatrixType2& B)
     {
         double res = 0.0;
         unsigned int m = A.size1();
@@ -1981,7 +2027,8 @@ public:
         return res;
     }
 
-    static inline double Trace(const MatrixType& A)
+    template<typename TMatrixType>
+    static inline double Trace(const TMatrixType& A)
     {
         double tr = 0.0;
         for(unsigned int i = 0; i < A.size1(); ++i)
@@ -2208,8 +2255,8 @@ public:
      *       a2 * x + b2 * y = c2
      */
     static void Solve2Unknowns(
-        TDataType a1, TDataType b1, TDataType c1,
-        TDataType a2, TDataType b2, TDataType c2,
+        const TDataType& a1, const TDataType& b1, const TDataType& c1,
+        const TDataType& a2, const TDataType& b2, const TDataType& c2,
         TDataType& x, TDataType& y
     )
     {
@@ -2223,9 +2270,9 @@ public:
      *       a3 * x + b3 * y + c3 * z = d3
      */
     static void Solve3Unknowns(
-        TDataType a1, TDataType b1, TDataType c1, TDataType d1,
-        TDataType a2, TDataType b2, TDataType c2, TDataType d2,
-        TDataType a3, TDataType b3, TDataType c3, TDataType d3,
+        const TDataType& a1, const TDataType& b1, const TDataType& c1, const TDataType& d1,
+        const TDataType& a2, const TDataType& b2, const TDataType& c2, const TDataType& d2,
+        const TDataType& a3, const TDataType& b3, const TDataType& c3, const TDataType& d3,
         TDataType& x, TDataType& y, TDataType& z
     )
     {
@@ -2242,7 +2289,7 @@ public:
      *              2: two solutions
      */
     static int SolveQuadratic(
-        TDataType a, TDataType b, TDataType c,
+        const TDataType& a, const TDataType& b, const TDataType& c,
         TDataType x[2]
     )
     {
