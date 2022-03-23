@@ -102,6 +102,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_strategies/schemes/inner_volumetric_scheme.h"
 #include "custom_strategies/schemes/inner_volumetric_dynamic_scheme.h"
 #include "custom_strategies/schemes/arc_length_displacement_control_support_scheme.h"
+#include "custom_strategies/schemes/arc_length_displacement_control_energy_release_support_scheme.h"
 //#include "custom_strategies/schemes/residualbased_predictorcorrector_velocity_bossak_scheme.h"
 
 //#include "structural_application/custom_strategies/schemes/residualbased_galerkin_scheme.h"
@@ -124,13 +125,24 @@ namespace Python
 using namespace boost::python;
 
 template<class TSchemeType>
-void AddArcLengthDisplacementControlSupportScheme(const std::string& rName)
+void AddArcLengthDisplacementControlSupportScheme(const std::string& PostFix)
 {
     typedef ArcLengthDisplacementControlSupportScheme<TSchemeType> ArcLengthDisplacementControlSupportSchemeType;
 
+    std::stringstream Name1;
+    Name1 << "ArcLengthDisplacementControl" << PostFix;
     class_< ArcLengthDisplacementControlSupportSchemeType, bases< TSchemeType >,  boost::noncopyable >
-    ( rName.c_str(), init<typename TSchemeType::Pointer>() )
+    ( Name1.str().c_str(), init<typename TSchemeType::Pointer>() )
     .def("GetForceVector", &ArcLengthDisplacementControlSupportSchemeType::GetForceVector, return_internal_reference<>())
+    ;
+
+    typedef ArcLengthDisplacementControlEnergyReleaseSupportScheme<TSchemeType> ArcLengthDisplacementControlEnergyReleaseSupportSchemeType;
+
+    std::stringstream Name2;
+    Name2 << "ArcLengthDisplacementControlEnergyRelease" << PostFix;
+    class_< ArcLengthDisplacementControlEnergyReleaseSupportSchemeType, bases< ArcLengthDisplacementControlSupportSchemeType >,  boost::noncopyable >
+    ( Name2.str().c_str(), init<typename TSchemeType::Pointer>() )
+    .def("GetForceVector2", &ArcLengthDisplacementControlEnergyReleaseSupportSchemeType::GetForceVector2, return_internal_reference<>())
     ;
 }
 
@@ -266,7 +278,7 @@ void  AddCustomStrategiesToPython()
             .def("UpdateForces", &ResidualBasedStateBasedThetaSchemeType::UpdateForces)
             ;
 
-    AddArcLengthDisplacementControlSupportScheme<ResidualBasedIncrementalUpdateStaticDeactivationSchemeType>("ArcLengthDisplacementControlResidualBasedIncrementalUpdateStaticDeactivationScheme");
+    AddArcLengthDisplacementControlSupportScheme<ResidualBasedIncrementalUpdateStaticDeactivationSchemeType>("ResidualBasedIncrementalUpdateStaticDeactivationScheme");
 
 //          class_< TestingSchemeType,
 //          bases< BaseSchemeType >,  boost::noncopyable >
