@@ -21,6 +21,9 @@ namespace Kratos
 
 /**
  * Arc-length control process using the consistent scheme to enforce the constraint
+ * Reference:
+ * +    [1] GM lecture note on solution method
+ * +    [2] Souza de Neto, Computational Plasticity
  */
 template<class TBuilderAndSolverType>
 class ArcLengthControlProcess : public Process
@@ -43,7 +46,7 @@ public:
     /// Default constructor
     ArcLengthControlProcess(typename ArcLengthConstraintType::Pointer pConstraint)
     : mLambda(0.0), mLambdaOld(0.0), mLambdaOldOld(0.0)
-    , mIsPredictor(false), mForcedFlag(0)
+    , mIsPredictor(false), mForcedFlag(0), mSolveMode(0)
     , mp_delta_u_r(NULL), mp_delta_u_l(NULL)
     , mpConstraint(pConstraint)
     {
@@ -120,6 +123,18 @@ public:
         mForcedFlag = rValue;
     }
 
+    /// Set the solve option
+    void SetSolveMode(const int& rValue)
+    {
+        mSolveMode = rValue;
+    }
+
+    /// Get the solve option
+    int GetSolveMode() const
+    {
+        return mSolveMode;
+    }
+
     /// Set the model_part
     void SetModelPart(const ModelPart& r_model_part)
     {
@@ -190,10 +205,7 @@ public:
         else
         {
             // compute delta lambda
-            double f = this->GetConstraint().GetValue();
-            TSystemVectorType dfdu = this->GetConstraint().GetDerivativesDU();
-            double dfdl = this->GetConstraint().GetDerivativesDLambda();
-            delta_lambda = -(f + TSparseSpaceType::Dot(dfdu, rDeltaUr)) / (dfdl + TSparseSpaceType::Dot(dfdu, rDeltaUl));
+            delta_lambda = this->GetConstraint().Solve(rDeltaUr, rDeltaUl, mSolveMode);
         }
 
         // update delta u
@@ -300,6 +312,7 @@ private:
     bool mIsPredictor;
     int mForcedFlag; // this flag is to allow user to intervene the arc-length control by forcing the reverse of loading. Use it with care.
                      // 0: no forcing; -1: force reverse; 1: force forward
+    int mSolveMode;  // solve option for delta_lambda; 0: consistent scheme; 1: non-consistent scheme (2)
 
     TSystemVectorType* mp_delta_u_r;
     TSystemVectorType* mp_delta_u_l;

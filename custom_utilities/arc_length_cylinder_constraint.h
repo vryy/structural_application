@@ -10,6 +10,7 @@
 
 
 #include "custom_utilities/arc_length_constraint.h"
+#include "custom_utilities/sd_math_utils.h"
 
 
 namespace Kratos
@@ -43,19 +44,14 @@ public:
     ///@{
 
     ArcLengthCylinderConstraint(const double& Radius)
-    : BaseType(), mRadius(Radius)
+    : BaseType(Radius)
     {
-        std::cout << "ArcLengthCylinderConstraint is used, radius = " << mRadius << std::endl;
+        std::cout << "ArcLengthCylinderConstraint is used, radius = " << BaseType::Radius() << std::endl;
     }
 
     ///@}
     ///@name Access
     ///@{
-
-    void SetRadius(const double& Radius)
-    {
-        mRadius = Radius;
-    }
 
     ///@}
     ///@name Operations
@@ -76,7 +72,7 @@ public:
                 f += pow(dof_iterator->GetSolutionStepValue() - dof_iterator->GetSolutionStepValue(1), 2);
         }
 
-        return sqrt(f) - mRadius;
+        return sqrt(f) - BaseType::Radius();
     }
 
     /// Get the derivatives of the constraint
@@ -89,7 +85,7 @@ public:
         TSparseSpaceType::Resize(dfdu, EquationSystemSize);
         TSparseSpaceType::SetToZero(dfdu);
 
-        double f = this->GetValue() + mRadius;
+        double f = this->GetValue() + BaseType::Radius();
 
         for (typename DofsArrayType::const_iterator dof_iterator = rDofSet.begin(); dof_iterator != rDofSet.end(); ++dof_iterator)
         {
@@ -108,6 +104,7 @@ public:
         return 0.0;
     }
 
+    /// Compute a trial solution at the predictor stage
     double Predict(const TSystemVectorType& rDeltaUl, const int& rMode) const override
     {
         const auto EquationSystemSize = this->GetBuilderAndSolver().GetEquationSystemSize();
@@ -164,8 +161,71 @@ public:
         }
 
         // compute delta lambda
-        double delta_lambda = 1.0/s0 * mRadius;
+        double delta_lambda = 1.0/s0 * BaseType::Radius();
         return delta_lambda;
+    }
+
+    /// Solve for delta_lambda for the non-consistent scheme
+    /// It is noted that the input taking in the incremental solution (u_(k+1)-u_k), not the delta solution (u_(k+1)-u_0)
+    double SolveNonConsistent(const TSystemVectorType& r_d_ur, const TSystemVectorType& r_d_ul) const override
+    {
+        const auto EquationSystemSize = this->GetBuilderAndSolver().GetEquationSystemSize();
+        const DofsArrayType& rDofSet = this->GetBuilderAndSolver().GetDofSet();
+
+        // assemble current delta u
+        TSystemVectorType Du0;
+        TSystemVectorType Du1;
+        TSparseSpaceType::Resize(Du0, EquationSystemSize);
+        TSparseSpaceType::Resize(Du1, EquationSystemSize);
+        TSparseSpaceType::SetToZero(Du0);
+        for (typename DofsArrayType::const_iterator dof_iterator = rDofSet.begin(); dof_iterator != rDofSet.end(); ++dof_iterator)
+        {
+            const auto row = dof_iterator->EquationId();
+            if (row < EquationSystemSize)
+                TSparseSpaceType::SetValue(Du0, row, dof_iterator->GetSolutionStepValue() - dof_iterator->GetSolutionStepValue(1));
+        }
+        TSparseSpaceType::ScaleAndAdd(1.0, Du0, 1.0, r_d_ur, Du1);
+
+        // compute current delta_lambda
+        double delta_lambda = this->Lambda() - this->LambdaOld();
+
+        double a = TSparseSpaceType::Dot(r_d_ul, r_d_ul);
+        double b = 2.0 * TSparseSpaceType::Dot(Du1, r_d_ul);
+        double c = TSparseSpaceType::Dot(Du1, Du1) - BaseType::Radius()*BaseType::Radius();
+
+        double x[2];
+        int solve_flag = SD_MathUtils<double>::SolveQuadratic(a, b, c, x);
+        if (solve_flag == 0)
+        {
+            KRATOS_WATCH(a)
+            KRATOS_WATCH(b)
+            KRATOS_WATCH(c)
+            KRATOS_THROW_ERROR(std::logic_error, "The arc-length non-consistent scheme encounters complex solution", "")
+        }
+        else
+        {
+            if (solve_flag == 1)
+            {
+                return x[0];
+            }
+            else if (solve_flag == 2)
+            {
+                // select the appropriate root
+                TSystemVectorType Du21, Du22;
+                TSparseSpaceType::Resize(Du21, EquationSystemSize);
+                TSparseSpaceType::Resize(Du22, EquationSystemSize);
+                TSparseSpaceType::ScaleAndAdd(1.0, Du1, x[0], r_d_ul, Du21);
+                TSparseSpaceType::ScaleAndAdd(1.0, Du1, x[1], r_d_ul, Du22);
+
+                double v1 = TSparseSpaceType::Dot(Du21, Du0);
+                double v2 = TSparseSpaceType::Dot(Du22, Du0);
+
+                if (v1 > v2)
+                    return x[0];
+                else
+                    return x[1];
+            }
+        }
     }
 
     ///@}
@@ -187,13 +247,9 @@ public:
     /// Print object's data.
     void PrintData(std::ostream& rOStream) const override
     {
-        rOStream << " Radius: " << mRadius << std::endl;
+        rOStream << " Radius: " << BaseType::Radius() << std::endl;
         BaseType::PrintData(rOStream);
     }
-
-private:
-
-    double mRadius;
 
 }; // Class ArcLengthCylinderConstraint
 

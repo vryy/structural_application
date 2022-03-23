@@ -50,7 +50,8 @@
 #include "custom_utilities/arc_length_cylinder_ux_uy_uz_constraint.h"
 #include "custom_utilities/arc_length_sphere_constraint.h"
 #include "custom_utilities/arc_length_sphere_ux_uy_uz_constraint.h"
-#include "custom_utilities/arc_length_energy_release_constraint.h"
+#include "custom_utilities/arc_length_load_control_energy_release_constraint.h"
+#include "custom_utilities/arc_length_displacement_control_energy_release_constraint.h"
 #include "add_custom_processes_to_python.h"
 
 namespace Kratos
@@ -89,7 +90,8 @@ void AddCustomProcessesToPython()
 
     typedef ArcLengthConstraint<BuilderAndSolverType> ArcLengthConstraintType;
     class_<ArcLengthConstraintType, ArcLengthConstraintType::Pointer, boost::noncopyable>
-    ( "ArcLengthConstraint", init<>() )
+    ( "ArcLengthConstraint", init<const double&>() )
+    .def("SetRadius", &ArcLengthConstraintType::SetRadius)
     .def("NeedForceVector", &ArcLengthConstraintType::NeedForceVector)
     .def("SetForceVector", &ArcLengthConstraintType::SetForceVector)
     ;
@@ -97,39 +99,38 @@ void AddCustomProcessesToPython()
     typedef ArcLengthCylinderConstraint<BuilderAndSolverType> ArcLengthCylinderConstraintType;
     class_<ArcLengthCylinderConstraintType, ArcLengthCylinderConstraintType::Pointer, bases<ArcLengthConstraintType>, boost::noncopyable>
     ( "ArcLengthCylinderConstraint", init<const double&>() )
-    .def("SetRadius", &ArcLengthCylinderConstraintType::SetRadius)
     ;
 
     typedef ArcLengthCylinderScalarConstraint<BuilderAndSolverType> ArcLengthCylinderScalarConstraintType;
     class_<ArcLengthCylinderScalarConstraintType, ArcLengthCylinderScalarConstraintType::Pointer, bases<ArcLengthConstraintType>, boost::noncopyable>
     ( "ArcLengthCylinderScalarConstraint", init<const Variable<double>&, const double&>() )
-    .def("SetRadius", &ArcLengthCylinderScalarConstraintType::SetRadius)
     ;
 
     typedef ArcLengthCylinderUxUyUzConstraint<BuilderAndSolverType> ArcLengthCylinderUxUyUzConstraintType;
     class_<ArcLengthCylinderUxUyUzConstraintType, ArcLengthCylinderUxUyUzConstraintType::Pointer, bases<ArcLengthConstraintType>, boost::noncopyable>
     ( "ArcLengthCylinderUxUyUzConstraint", init<const double&>() )
-    .def("SetRadius", &ArcLengthCylinderUxUyUzConstraintType::SetRadius)
     ;
 
     typedef ArcLengthSphereConstraint<BuilderAndSolverType> ArcLengthSphereConstraintType;
     class_<ArcLengthSphereConstraintType, ArcLengthSphereConstraintType::Pointer, bases<ArcLengthConstraintType>, boost::noncopyable>
     ( "ArcLengthSphereConstraint", init<const double&, const double&>() )
     .def("SetScale", &ArcLengthSphereConstraintType::SetScale)
-    .def("SetRadius", &ArcLengthSphereConstraintType::SetRadius)
     ;
 
     typedef ArcLengthSphereUxUyUzConstraint<BuilderAndSolverType> ArcLengthSphereUxUyUzConstraintType;
     class_<ArcLengthSphereUxUyUzConstraintType, ArcLengthSphereUxUyUzConstraintType::Pointer, bases<ArcLengthConstraintType>, boost::noncopyable>
     ( "ArcLengthSphereUxUyUzConstraint", init<const double&, const double&>() )
     .def("SetScale", &ArcLengthSphereUxUyUzConstraintType::SetScale)
-    .def("SetRadius", &ArcLengthSphereUxUyUzConstraintType::SetRadius)
     ;
 
-    typedef ArcLengthEnergyReleaseConstraint<BuilderAndSolverType> ArcLengthEnergyReleaseConstraintType;
-    class_<ArcLengthEnergyReleaseConstraintType, ArcLengthEnergyReleaseConstraintType::Pointer, bases<ArcLengthConstraintType>, boost::noncopyable>
-    ( "ArcLengthEnergyReleaseConstraint", init<const double&>() )
-    .def("SetRadius", &ArcLengthEnergyReleaseConstraintType::SetRadius)
+    typedef ArcLengthLoadControlEnergyReleaseConstraint<BuilderAndSolverType> ArcLengthLoadControlEnergyReleaseConstraintType;
+    class_<ArcLengthLoadControlEnergyReleaseConstraintType, ArcLengthLoadControlEnergyReleaseConstraintType::Pointer, bases<ArcLengthConstraintType>, boost::noncopyable>
+    ( "ArcLengthLoadControlEnergyReleaseConstraint", init<const double&>() )
+    ;
+
+    typedef ArcLengthDisplacementControlEnergyReleaseConstraint<BuilderAndSolverType> ArcLengthDisplacementControlEnergyReleaseConstraintType;
+    class_<ArcLengthDisplacementControlEnergyReleaseConstraintType, ArcLengthDisplacementControlEnergyReleaseConstraintType::Pointer, bases<ArcLengthConstraintType>, boost::noncopyable>
+    ( "ArcLengthDisplacementControlEnergyReleaseConstraint", init<const double&>() )
     ;
 
     typedef ArcLengthControlProcess<BuilderAndSolverType> ArcLengthControlProcessType;
@@ -138,6 +139,8 @@ void AddCustomProcessesToPython()
     ( "ArcLengthControlProcess", init<ArcLengthConstraintType::Pointer>() )
     .def("SetPredictor", &ArcLengthControlProcessType::SetPredictor)
     .def("SetForcedMode", &ArcLengthControlProcessType::SetForcedMode)
+    .def("SetSolveMode", &ArcLengthControlProcessType::SetSolveMode)
+    .def("GetSolveMode", &ArcLengthControlProcessType::GetSolveMode)
     .def("SetModelPart", &ArcLengthControlProcessType::SetModelPart)
     .def("SetBuilderAndSolver", &ArcLengthControlProcessType::SetBuilderAndSolver)
     .def("Update", &ArcLengthControlProcessType::Update)

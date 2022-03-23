@@ -41,20 +41,26 @@ public:
     ///@{
 
     /// Default constructor
-    ArcLengthConstraint()
-    : mpLambda(NULL), mpLambdaOld(NULL), mpLambdaOldOld(NULL)
+    ArcLengthConstraint(const double& Radius)
+    : mRadius(Radius), mpLambda(NULL), mpLambdaOld(NULL), mpLambdaOldOld(NULL)
     , mp_model_part(NULL), mp_builder_and_solver(NULL)
     {}
 
     /// Copy constructor
     ArcLengthConstraint(ArcLengthConstraint& rOther)
-    : mpLambda(rOther.mpLambda), mpLambdaOld(rOther.mpLambdaOld), mpLambdaOldOld(rOther.mpLambdaOldOld)
+    : mRadius(rOther.mRadius), mpLambda(rOther.mpLambda), mpLambdaOld(rOther.mpLambdaOld), mpLambdaOldOld(rOther.mpLambdaOldOld)
     , mp_model_part(rOther.mp_model_part), mp_builder_and_solver(rOther.mp_builder_and_solver)
     {}
 
     ///@}
     ///@name Access
     ///@{
+
+    /// Set the arc length
+    void SetRadius(const double& Radius)
+    {
+        mRadius = Radius;
+    }
 
     /// Set the multiplier
     void SetLambda(const double& Lambda)
@@ -102,10 +108,10 @@ public:
         mp_builder_and_solver = &r_builder_and_solver;
     }
 
-    /// Check if the force vector is required
-    virtual bool NeedForceVector() const
+    /// Get the type of required force vector
+    virtual int NeedForceVector() const
     {
-        return false;
+        return 0;
     }
 
     /// Set the external force vector
@@ -135,6 +141,27 @@ public:
     ///@name Operations
     ///@{
 
+    /// Solve for delta_lambda, given the incremental solutions
+    double Solve(const TSystemVectorType& rDeltaUr, const TSystemVectorType& rDeltaUl, const int& rMode) const
+    {
+        if (rMode == 0)
+        {
+            return this->SolveConsistent(rDeltaUr, rDeltaUl);
+        }
+        else if (rMode == 1)
+        {
+            return this->SolveNonConsistent(rDeltaUr, rDeltaUl);
+        }
+        else
+            KRATOS_THROW_ERROR(std::logic_error, "Invalid arc-length solve option", rMode)
+    }
+
+    /// Solve for delta_lambda for the non-consistent scheme
+    virtual double SolveNonConsistent(const TSystemVectorType& rDeltaUr, const TSystemVectorType& rDeltaUl) const
+    {
+        KRATOS_THROW_ERROR(std::logic_error, "Error calling unsupported function", __FUNCTION__)
+    }
+
     /// Get the value of the constraint
     virtual double GetValue() const
     {
@@ -153,7 +180,7 @@ public:
         KRATOS_THROW_ERROR(std::logic_error, "Error calling base class function", __FUNCTION__)
     }
 
-    /// Compute a trial solution at the predictor state
+    /// Compute a trial solution at the predictor stage
     virtual double Predict(const TSystemVectorType& rDeltaUl, const int& rMode) const
     {
         KRATOS_THROW_ERROR(std::logic_error, "Error calling base class function", __FUNCTION__)
@@ -181,6 +208,11 @@ public:
 
 protected:
 
+    const double& Radius() const
+    {
+        return mRadius;
+    }
+
     const double& Lambda() const
     {
         return *mpLambda;
@@ -198,6 +230,8 @@ protected:
 
 private:
 
+    double mRadius;
+
     // pointer to the multiplier
     const double* mpLambda;
     const double* mpLambdaOld;
@@ -208,6 +242,16 @@ private:
 
     // pointer to builder_and_solver
     const TBuilderAndSolverType* mp_builder_and_solver;
+
+    /// Solve for delta_lambda for the consistent scheme
+    double SolveConsistent(const TSystemVectorType& rDeltaUr, const TSystemVectorType& rDeltaUl) const
+    {
+        double f = this->GetValue();
+        TSystemVectorType dfdu = this->GetDerivativesDU();
+        double dfdl = this->GetDerivativesDLambda();
+        double delta_lambda = -(f + TSparseSpaceType::Dot(dfdu, rDeltaUr)) / (dfdl + TSparseSpaceType::Dot(dfdu, rDeltaUl));
+        return delta_lambda;
+    }
 
 }; // Class ArcLengthConstraint
 

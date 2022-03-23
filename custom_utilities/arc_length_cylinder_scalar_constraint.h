@@ -44,19 +44,14 @@ public:
     ///@{
 
     ArcLengthCylinderScalarConstraint(const Variable<double>& rVariable, const double& Radius)
-    : BaseType(), mrVariable(rVariable), mRadius(Radius)
+    : BaseType(Radius), mrVariable(rVariable)
     {
-        std::cout << "ArcLengthCylinderScalarConstraint is used, variable = " << mrVariable.Name() << ", radius = " << mRadius << std::endl;
+        std::cout << "ArcLengthCylinderScalarConstraint is used, variable = " << mrVariable.Name() << ", radius = " << BaseType::Radius() << std::endl;
     }
 
     ///@}
     ///@name Access
     ///@{
-
-    void SetRadius(const double& Radius)
-    {
-        mRadius = Radius;
-    }
 
     ///@}
     ///@name Operations
@@ -80,7 +75,7 @@ public:
             }
         }
 
-        return sqrt(f) - mRadius;
+        return sqrt(f) - BaseType::Radius();
     }
 
     /// Get the derivatives of the constraint
@@ -93,7 +88,7 @@ public:
         TSparseSpaceType::Resize(dfdu, EquationSystemSize);
         TSparseSpaceType::SetToZero(dfdu);
 
-        double f = this->GetValue() + mRadius;
+        double f = this->GetValue() + BaseType::Radius();
 
         for (typename DofsArrayType::const_iterator dof_iterator = rDofSet.begin(); dof_iterator != rDofSet.end(); ++dof_iterator)
         {
@@ -115,6 +110,7 @@ public:
         return 0.0;
     }
 
+    /// Compute a trial solution at the predictor stage
     double Predict(const TSystemVectorType& rDeltaUl, const int& rMode) const override
     {
         const auto EquationSystemSize = this->GetBuilderAndSolver().GetEquationSystemSize();
@@ -180,7 +176,7 @@ public:
         }
 
         // compute delta lambda
-        double delta_lambda = 1.0/s0 * mRadius;
+        double delta_lambda = 1.0/s0 * BaseType::Radius();
         return delta_lambda;
     }
 
@@ -204,14 +200,13 @@ public:
     void PrintData(std::ostream& rOStream) const override
     {
         rOStream << " Variable: " << mrVariable.Name();
-        rOStream << ", Radius: " << mRadius << std::endl;
+        rOStream << ", Radius: " << BaseType::Radius() << std::endl;
         BaseType::PrintData(rOStream);
     }
 
 private:
 
     const Variable<double>& mrVariable;
-    double mRadius;
 
 }; // Class ArcLengthCylinderScalarConstraint
 
