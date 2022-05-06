@@ -42,6 +42,7 @@
 #include "solving_strategies/builder_and_solvers/builder_and_solver.h"
 #include "custom_processes/topology_update_process.h"
 #include "custom_processes/calculate_reaction_process.h"
+#include "custom_processes/calculate_reaction_on_boundary_process.h"
 #include "custom_processes/calculate_strain_energy_process.h"
 #include "custom_processes/arc_length_control_process.h"
 #include "custom_utilities/arc_length_constraint.h"
@@ -83,6 +84,11 @@ void AddCustomProcessesToPython()
     ("CalculateReactionProcess", init<ModelPart&, CalculateReactionProcess::SchemeType&>())
     ;
 
+    class_<CalculateReactionOnBoundaryProcess, bases<Process>, boost::noncopyable>
+    ("CalculateReactionOnBoundaryProcess", init<const ModelPart::ConditionsContainerType&>())
+    .def("GetReactionForces", &CalculateReactionOnBoundaryProcess::GetReactionForces)
+    ;
+
     class_<CalculateStrainEnergyProcess, bases<Process>, boost::noncopyable>
     ("CalculateStrainEnergyProcess", init<const ModelPart&>())
     .def("GetEnergy", &CalculateStrainEnergyProcess::GetEnergy)
@@ -92,6 +98,7 @@ void AddCustomProcessesToPython()
     class_<ArcLengthConstraintType, ArcLengthConstraintType::Pointer, boost::noncopyable>
     ( "ArcLengthConstraint", init<const double&>() )
     .def("SetRadius", &ArcLengthConstraintType::SetRadius)
+    .def("GetRadius", &ArcLengthConstraintType::GetRadius)
     .def("NeedForceVector", &ArcLengthConstraintType::NeedForceVector)
     .def("SetForceVector", &ArcLengthConstraintType::SetForceVector)
     ;

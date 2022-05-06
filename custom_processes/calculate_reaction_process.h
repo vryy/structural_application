@@ -119,7 +119,7 @@ public:
 
     /// Default constructor.
     /// This constructor will take all elements of the model_part for reaction calculation
-    CalculateReactionProcess(ModelPart& r_model_part, SchemeType& r_scheme)
+    CalculateReactionProcess(const ModelPart& r_model_part, const SchemeType& r_scheme)
     : mr_model_part(r_model_part), mr_scheme(r_scheme)
     {
     }
@@ -137,12 +137,12 @@ public:
     {
         Element::MatrixType LHS_Contribution = Element::MatrixType(0, 0);
         Element::VectorType RHS_Contribution = Element::VectorType(0);
-        ProcessInfo& CurrentProcessInfo = mr_model_part.GetProcessInfo();
+        const ProcessInfo& CurrentProcessInfo = mr_model_part.GetProcessInfo();
         Element::EquationIdVectorType EquationId;
         Element::DofsVectorType ElementalDofList;
         std::size_t i;
 
-        for(ElementsContainerType::iterator i_element = mr_model_part.Elements().begin();
+        for(ElementsContainerType::const_iterator i_element = mr_model_part.Elements().begin();
                 i_element != mr_model_part.Elements().end(); ++i_element)
         {
             if( i_element->GetValue(IS_MARKED_FOR_REACTION) )
@@ -163,14 +163,14 @@ public:
 
                 // std::cout << "element " << i_element->Id() << " reaction is computed, RHS_Contribution = " << RHS_Contribution << std::endl;
 
-                #ifndef SD_APP_FORWARD_COMPATIBILITY
-                // clean local elemental memory
-                mr_scheme.CleanMemory(*i_element);
-                #endif
+                // #ifndef SD_APP_FORWARD_COMPATIBILITY
+                // // clean local elemental memory
+                // mr_scheme.CleanMemory(*i_element);
+                // #endif
             }
         }
 
-        for(ConditionsContainerType::iterator i_condition = mr_model_part.Conditions().begin();
+        for(ConditionsContainerType::const_iterator i_condition = mr_model_part.Conditions().begin();
                 i_condition != mr_model_part.Conditions().end(); ++i_condition)
         {
             if( i_condition->GetValue(IS_MARKED_FOR_REACTION) )
@@ -190,10 +190,10 @@ public:
 
                 // std::cout << "condition " << i_condition->Id() << " reaction is computed, RHS_Contribution = " << RHS_Contribution << std::endl;
 
-                #ifndef SD_APP_FORWARD_COMPATIBILITY
-                // clean local elemental memory
-                mr_scheme.CleanMemory(*i_condition);
-                #endif
+                // #ifndef SD_APP_FORWARD_COMPATIBILITY
+                // // clean local elemental memory
+                // mr_scheme.CleanMemory(*i_condition);
+                // #endif
             }
         }
     }
@@ -284,8 +284,8 @@ private:
     ///@name Member Variables
     ///@{
 
-    ModelPart& mr_model_part;
-    SchemeType& mr_scheme;
+    const ModelPart& mr_model_part;
+    const SchemeType& mr_scheme;
 
     ///@}
     ///@name Private Operators
