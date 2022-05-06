@@ -533,6 +533,23 @@ void SetAssociatedElement(DeactivationUtility& rDummy, Condition::Pointer pCond,
     pCond->SetValue(ASSOCIATED_ELEMENT, pElem);
 }
 
+void VariableUtility_GetSolutionVector1(VariableUtility& rDummy,
+    VariableUtility::SparseSpaceType::VectorType& X,
+    const VariableUtility::DofsArrayType& rDofSet,
+    const VariableUtility::IndexType& EquationSystemSize)
+{
+    rDummy.GetSolutionVector(X, rDofSet, EquationSystemSize);
+}
+
+template<typename TDataType>
+void VariableUtility_GetSolutionVector2(VariableUtility& rDummy,
+    VariableUtility::SparseSpaceType::VectorType& X,
+    const Variable<TDataType>& rThisVariable,
+    const ModelPart& r_model_part)
+{
+    rDummy.GetSolutionVector(X, rThisVariable, r_model_part);
+}
+
 ///////////////////////////////////////////////////////////////////////
 // Auxilliary Utilities for connection of the pile to the ground //
 ///////////////////////////////////////////////////////////////////////
@@ -719,8 +736,12 @@ void  AddCustomUtilitiesToPython()
     ;
 
     class_<VariableUtility, boost::noncopyable >
-    ( "VariableUtility", init<ModelPart::ElementsContainerType&>() )
-    .add_property("EchoLevel", &VariableProjectionUtility::GetEchoLevel, &VariableProjectionUtility::SetEchoLevel)
+    ( "VariableUtility", init<>() )
+    .def(init<ModelPart::ElementsContainerType&>())
+    .add_property("EchoLevel", &VariableUtility::GetEchoLevel, &VariableUtility::SetEchoLevel)
+    .def("GetSolutionVector", &VariableUtility_GetSolutionVector1)
+    .def("GetSolutionVector", &VariableUtility_GetSolutionVector2<double>)
+    .def("GetSolutionVector", &VariableUtility_GetSolutionVector2<array_1d<double, 3> >)
     ;
 
     class_<VariableProjectionUtility, bases<VariableUtility>, boost::noncopyable >

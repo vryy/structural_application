@@ -60,6 +60,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //Project includes
 #include "includes/define.h"
 #include "includes/model_part.h"
+#include "spaces/ublas_space.h"
 
 namespace Kratos
 {
@@ -73,8 +74,14 @@ public:
 
     KRATOS_CLASS_POINTER_DEFINITION( VariableUtility );
 
+    typedef ModelPart::IndexType IndexType;
     typedef ModelPart::NodesContainerType NodesContainerType;
     typedef ModelPart::ElementsContainerType ElementsContainerType;
+    typedef ModelPart::DofsArrayType DofsArrayType;
+
+    typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
+    typedef UblasSpace<double, Matrix, Vector> DenseSpaceType;
+    typedef LinearSolver<SparseSpaceType, DenseSpaceType> LinearSolverType;
 
     struct DoubleVariableInitializer
     {
@@ -150,10 +157,85 @@ public:
     /**
      * Constructor.
      */
+    VariableUtility()
+    : mEchoLevel(0)
+    {
+        std::cout << "VariableUtility created" << std::endl;
+    }
+
     VariableUtility(ElementsContainerType& pElements)
     : mEchoLevel(0), mpElements(pElements)
     {
-        std::cout << "VariableUtility created" << std::endl;
+        std::cout << "VariableUtility created, number of elements = " << mpElements.size() << std::endl;
+    }
+
+    /// Extract the solution vector from list of dofs
+    void GetSolutionVector(SparseSpaceType::VectorType& X, const DofsArrayType& rDofSet,
+        const IndexType& EquationSystemSize, const IndexType& SolutionStepIndex = 0) const
+    {
+        if (SparseSpaceType::Size(X) != EquationSystemSize)
+            SparseSpaceType::Resize(X, EquationSystemSize);
+        SparseSpaceType::SetToZero(X);
+
+        for (DofsArrayType::const_iterator i_dof = rDofSet.begin(); i_dof != rDofSet.end(); ++i_dof)
+        {
+            if (i_dof->EquationId() < EquationSystemSize)
+            {
+                SparseSpaceType::SetValue(X, i_dof->EquationId(), i_dof->GetSolutionStepValue(SolutionStepIndex));
+            }
+        }
+    }
+
+    /// Extract the solution vector from double variable
+    /// The output vector is contiguous. The node id is arranged in the ascending order.
+    void GetSolutionVector(SparseSpaceType::VectorType& X, const Variable<double>& rVariable,
+        const ModelPart& r_model_part, const IndexType& SolutionStepIndex = 0) const
+    {
+        // collect the number of nodes and assign unique row number
+        const NodesContainerType& nodes = r_model_part.Nodes();
+        std::map<IndexType, IndexType> row_indices;
+        IndexType cnt = 0;
+        for (NodesContainerType::const_iterator i_node = nodes.begin(); i_node != nodes.end(); ++i_node)
+            row_indices[i_node->Id()] = cnt++;
+
+        // extract the solution vector
+        if (SparseSpaceType::Size(X) != cnt)
+            SparseSpaceType::Resize(X, cnt);
+        SparseSpaceType::SetToZero(X);
+
+        std::size_t row;
+        for (NodesContainerType::const_iterator i_node = nodes.begin(); i_node != nodes.end(); ++i_node)
+        {
+            row = row_indices[i_node->Id()];
+            SparseSpaceType::SetValue(X, row, i_node->GetSolutionStepValue(rVariable, SolutionStepIndex));
+        }
+    }
+
+    /// Extract the solution vector from double variable
+    /// The output vector is contiguous. The node id is arranged in the ascending order.
+    void GetSolutionVector(SparseSpaceType::VectorType& X, const Variable<array_1d<double, 3> >& rVariable,
+        const ModelPart& r_model_part, const IndexType& SolutionStepIndex = 0) const
+    {
+        // collect the number of nodes and assign unique row number
+        const NodesContainerType& nodes = r_model_part.Nodes();
+        std::map<IndexType, IndexType> row_indices;
+        IndexType cnt = 0;
+        for (NodesContainerType::const_iterator i_node = nodes.begin(); i_node != nodes.end(); ++i_node)
+            row_indices[i_node->Id()] = cnt++;
+
+        // extract the solution vector
+        if (SparseSpaceType::Size(X) != 3*cnt)
+            SparseSpaceType::Resize(X, 3*cnt);
+        SparseSpaceType::SetToZero(X);
+
+        std::size_t row;
+        for (NodesContainerType::const_iterator i_node = nodes.begin(); i_node != nodes.end(); ++i_node)
+        {
+            row = row_indices[i_node->Id()];
+            const array_1d<double, 3>& values = i_node->GetSolutionStepValue(rVariable, SolutionStepIndex);
+            for (int i = 0; i < 3; ++i)
+                SparseSpaceType::SetValue(X, 3*row+i, values[i]);
+        }
     }
 
     /**
