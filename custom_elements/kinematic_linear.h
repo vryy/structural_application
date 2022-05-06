@@ -274,9 +274,9 @@ protected:
 
     void InitializeMaterial(const ProcessInfo& rCurrentProcessInfo);
 
-    virtual void CalculateBoperator( Matrix& B_Operator, const Vector& N, const Matrix& DN_DX );
+    virtual void CalculateBoperator( Matrix& B_Operator, const Vector& N, const Matrix& DN_DX ) const;
 
-    virtual void CalculateBBaroperator( Matrix& B_Operator, const Matrix& DN_DX, const Matrix& Bdil_bar );
+    virtual void CalculateBBaroperator( Matrix& B_Operator, const Matrix& DN_DX, const Matrix& Bdil_bar ) const;
 
     virtual unsigned int GetStrainSize( const unsigned int& dim ) const
     {
@@ -349,8 +349,6 @@ private:
                        bool CalculateStiffnessMatrixFlag,
                        bool CalculateResidualVectorFlag );
 
-    void CalculateBodyForces( Vector& BodyForce, const ProcessInfo& CurrentProcessInfo );
-
     //************************************************************************************
     //************************************************************************************
     //************************************************************************************
@@ -358,23 +356,21 @@ private:
 
     //CALCULATE FORCEVECTORS DISPLACEMENT
 
-    void AddBodyForcesToRHS( Vector& R, const Vector& N_DISP, double Weight, double detJ );
+    void AddBodyForcesToRHS( Vector& R, const Vector& N_DISP, double Weight, double detJ ) const;
 
     void CalculateAndAdd_ExtForceContribution( const Vector& N, const ProcessInfo& CurrentProcessInfo,
                                                const Vector& BodyForce, VectorType& rRightHandSideVector,
-                                               double weight, double detJ);
+                                               double weight, double detJ) const;
 
-    void AddInternalForcesToRHS( Vector& R, const Matrix& B_Operator, Vector& StressVector, double Weight, double detJ );
+    void AddInternalForcesToRHS( Vector& R, const Matrix& B_Operator, Vector& StressVector, double Weight, double detJ ) const;
 
-    void CalculateStiffnesMatrix( Matrix& K, const Matrix& tan_C, const Matrix& B_Operator, double Weight, double detJ );
+    void CalculateStiffnesMatrix( Matrix& K, const Matrix& tan_C, const Matrix& B_Operator, double Weight, double detJ ) const;
 
     void CalculateStressAndTangentialStiffness( Vector& StressVector, Matrix& tanC_U,
                                                 Vector& StrainVector, const Matrix& B_Operator,
-                                                int PointNumber, const ProcessInfo& CurrentProcessInfo );
+                                                int PointNumber, const ProcessInfo& CurrentProcessInfo ) const;
 
-    void CalculateStrain( const Matrix& B, const Matrix& Displacements, Vector& StrainVector );
-
-//     Matrix CalculateOnIntegrationPoints( const Variable<Matrix>& rVariable, int PointNumber );
+    void CalculateStrain( const Matrix& B, const Matrix& Displacements, Vector& StrainVector ) const;
 
     ///@}
     ///@name Private Operations

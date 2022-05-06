@@ -98,7 +98,7 @@ namespace Kratos
     {
     }
 
-    void KinematicLinearAxisymmetric::CalculateBoperator( Matrix& B_Operator, const Vector& N, const Matrix& DN_DX )
+    void KinematicLinearAxisymmetric::CalculateBoperator( Matrix& B_Operator, const Vector& N, const Matrix& DN_DX ) const
     {
         const unsigned int number_of_nodes = GetGeometry().PointsNumber();
 
@@ -124,7 +124,7 @@ namespace Kratos
         }
     }
 
-    void KinematicLinearAxisymmetric::CalculateBBaroperator( Matrix& B_Operator, const Matrix& DN_DX, const Matrix& Bdil_bar )
+    void KinematicLinearAxisymmetric::CalculateBBaroperator( Matrix& B_Operator, const Matrix& DN_DX, const Matrix& Bdil_bar ) const
     {
         KRATOS_THROW_ERROR(std::logic_error, "Not yet implemented", "")
     }

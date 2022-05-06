@@ -172,9 +172,9 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    void CalculateBoperator( Matrix& B_Operator, const Vector& N, const Matrix& DN_DX ) override;
+    void CalculateBoperator( Matrix& B_Operator, const Vector& N, const Matrix& DN_DX ) const override;
 
-    void CalculateBBaroperator( Matrix& B_Operator, const Matrix& DN_DX, const Matrix& Bdil_bar ) override;
+    void CalculateBBaroperator( Matrix& B_Operator, const Matrix& DN_DX, const Matrix& Bdil_bar ) const override;
 
     unsigned int GetStrainSize( const unsigned int& dim ) const override
     {

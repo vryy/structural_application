@@ -1225,7 +1225,7 @@ namespace Kratos
      * @param Weight current integration weight
      * @param detJ current Determinant of the Jacobian
      */
-    inline void KinematicLinear::AddBodyForcesToRHS( Vector& R, const Vector& N_DISP, double Weight, double detJ )
+    inline void KinematicLinear::AddBodyForcesToRHS( Vector& R, const Vector& N_DISP, double Weight, double detJ ) const
     {
         KRATOS_TRY
 
@@ -1261,8 +1261,7 @@ namespace Kratos
             const Vector& BodyForce,
             VectorType& rRightHandSideVector,
             double weight,
-            double detJ
-            )
+            double detJ) const
     {
         KRATOS_TRY
         unsigned int number_of_nodes = GetGeometry().size();
@@ -1309,7 +1308,7 @@ namespace Kratos
 //        KRATOS_CATCH( "" )
 //    }
 
-    void KinematicLinear::AddInternalForcesToRHS( Vector& R, const Matrix& B_Operator, Vector& StressVector, double Weight, double detJ )
+    void KinematicLinear::AddInternalForcesToRHS( Vector& R, const Matrix& B_Operator, Vector& StressVector, double Weight, double detJ ) const
     {
         KRATOS_TRY
 
@@ -1344,7 +1343,7 @@ namespace Kratos
      * @param Weight current integration weight
      * @param detJ current Determinant of the Jacobian
      */
-    void KinematicLinear::CalculateStiffnesMatrix( Matrix& K, const Matrix& tan_C, const Matrix& B_Operator, double Weight, double detJ )
+    void KinematicLinear::CalculateStiffnesMatrix( Matrix& K, const Matrix& tan_C, const Matrix& B_Operator, double Weight, double detJ ) const
     {
         KRATOS_TRY
 
@@ -1385,7 +1384,7 @@ namespace Kratos
      */
     void KinematicLinear::CalculateStressAndTangentialStiffness( Vector& StressVector, Matrix& tanC_U,
             Vector& StrainVector, const Matrix& B_Operator, int PointNumber,
-            const ProcessInfo& CurrentProcessInfo )
+            const ProcessInfo& CurrentProcessInfo ) const
     {
         KRATOS_TRY
 
@@ -1395,7 +1394,7 @@ namespace Kratos
     /**
      * Computes the strain vector
      */
-    void KinematicLinear::CalculateStrain( const Matrix& B, const Matrix& Displacements, Vector& StrainVector )
+    void KinematicLinear::CalculateStrain( const Matrix& B, const Matrix& Displacements, Vector& StrainVector ) const
     {
         KRATOS_TRY
         unsigned int Dim = GetGeometry().WorkingSpaceDimension();
@@ -1417,7 +1416,7 @@ namespace Kratos
      * @param B_Operator current B-operator
      * @param DN_DX shape function values at the current integration point
      */
-    void KinematicLinear::CalculateBoperator( Matrix& B_Operator, const Vector& N, const Matrix& DN_DX )
+    void KinematicLinear::CalculateBoperator( Matrix& B_Operator, const Vector& N, const Matrix& DN_DX ) const
     {
         KRATOS_TRY
 
@@ -1457,7 +1456,7 @@ namespace Kratos
         KRATOS_CATCH( "" )
     }
 
-    void KinematicLinear::CalculateBBaroperator( Matrix& B_Operator, const Matrix& DN_DX, const Matrix& Bdil_bar )
+    void KinematicLinear::CalculateBBaroperator( Matrix& B_Operator, const Matrix& DN_DX, const Matrix& Bdil_bar ) const
     {
         KRATOS_TRY
 
