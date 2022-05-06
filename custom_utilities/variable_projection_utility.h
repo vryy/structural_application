@@ -67,7 +67,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/variables.h"
 #include "includes/element.h"
 #include "geometries/geometry.h"
-#include "spaces/ublas_space.h"
 #include "utilities/openmp_utils.h"
 #include "custom_utilities/variable_utility.h"
 
@@ -88,9 +87,9 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION( VariableProjectionUtility );
 
     typedef VariableUtility BaseType;
-    typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
-    typedef UblasSpace<double, Matrix, Vector> DenseSpaceType;
-    typedef LinearSolver<SparseSpaceType, DenseSpaceType> LinearSolverType;
+    typedef BaseType::SparseSpaceType SparseSpaceType;
+    typedef BaseType::DenseSpaceType DenseSpaceType;
+    typedef BaseType::LinearSolverType LinearSolverType;
     typedef Element::GeometryType GeometryType;
     typedef GeometryType::IntegrationPointsArrayType IntegrationPointsArrayType;
     typedef GeometryType::JacobiansType JacobiansType;

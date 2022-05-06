@@ -92,9 +92,9 @@ public:
     typedef NodeType::PointType PointType;
     typedef GeometryType::IntegrationPointsArrayType IntegrationPointsArrayType;
     typedef GeometryType::CoordinatesArrayType CoordinatesArrayType;
-    typedef UblasSpace<double, CompressedMatrix, Vector> SpaceType;
+    typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
     typedef UblasSpace<double, Matrix, Vector> DenseSpaceType;
-    typedef LinearSolver<SpaceType, DenseSpaceType> LinearSolverType;
+    typedef LinearSolver<SparseSpaceType, DenseSpaceType> LinearSolverType;
 
     KRATOS_CLASS_POINTER_DEFINITION( VariableTransferUtility );
 
@@ -103,7 +103,7 @@ public:
      */
     VariableTransferUtility()
     {
-        mpLinearSolver = LinearSolverType::Pointer(new SkylineLUFactorizationSolver<SpaceType, DenseSpaceType>());
+        mpLinearSolver = LinearSolverType::Pointer(new SkylineLUFactorizationSolver<SparseSpaceType, DenseSpaceType>());
         std::cout << "VariableTransferUtility created" << std::endl;
         mEchoLevel = 0;
     }
@@ -1606,9 +1606,9 @@ public:
             = ZeroMatrix(3,3);
         }
         //SetUpEquationSystem
-        SpaceType::MatrixType M(model_part.NumberOfNodes(),model_part.NumberOfNodes());
-        SpaceType::VectorType g(model_part.NumberOfNodes());
-        SpaceType::VectorType b(model_part.NumberOfNodes());
+        SparseSpaceType::MatrixType M(model_part.NumberOfNodes(),model_part.NumberOfNodes());
+        SparseSpaceType::VectorType g(model_part.NumberOfNodes());
+        SparseSpaceType::VectorType b(model_part.NumberOfNodes());
         noalias(M)= ZeroMatrix(model_part.NumberOfNodes(),model_part.NumberOfNodes());
 
         for( ElementsArrayType::ptr_iterator it = ElementsArray.ptr_begin();
@@ -1724,9 +1724,9 @@ public:
 //        }
 
 //        //SetUpEquationSystem
-//        SpaceType::MatrixType M(model_part.NumberOfNodes(),model_part.NumberOfNodes());
-//        SpaceType::VectorType g(model_part.NumberOfNodes());
-//        SpaceType::VectorType b(model_part.NumberOfNodes());
+//        SparseSpaceType::MatrixType M(model_part.NumberOfNodes(),model_part.NumberOfNodes());
+//        SparseSpaceType::VectorType g(model_part.NumberOfNodes());
+//        SparseSpaceType::VectorType b(model_part.NumberOfNodes());
 //        noalias(M)= ZeroMatrix(model_part.NumberOfNodes(),model_part.NumberOfNodes());
 
 //        for( ElementsArrayType::ptr_iterator it = ElementsArray.ptr_begin();
@@ -1826,9 +1826,9 @@ public:
         }
 
         //SetUpEquationSystem
-        SpaceType::MatrixType M(model_part.NumberOfNodes(), model_part.NumberOfNodes());
-        SpaceType::VectorType g(model_part.NumberOfNodes());
-        SpaceType::VectorType b(model_part.NumberOfNodes());
+        SparseSpaceType::MatrixType M(model_part.NumberOfNodes(), model_part.NumberOfNodes());
+        SparseSpaceType::VectorType g(model_part.NumberOfNodes());
+        SparseSpaceType::VectorType b(model_part.NumberOfNodes());
         noalias(M)= ZeroMatrix(model_part.NumberOfNodes(), model_part.NumberOfNodes());
 
         int number_of_threads = 1;
@@ -2025,9 +2025,9 @@ public:
         }
 
         //SetUpEquationSystem
-        SpaceType::MatrixType M(active_nodes.size(), active_nodes.size());
-        SpaceType::VectorType g(active_nodes.size());
-        SpaceType::VectorType b(active_nodes.size());
+        SparseSpaceType::MatrixType M(active_nodes.size(), active_nodes.size());
+        SparseSpaceType::VectorType g(active_nodes.size());
+        SparseSpaceType::VectorType b(active_nodes.size());
         noalias(M)= ZeroMatrix(active_nodes.size(), active_nodes.size());
 
         int number_of_threads = 1;
@@ -2208,11 +2208,11 @@ public:
 //        }
 //
 //        //SetUpEquationSystem
-//        SpaceType::MatrixType M(model_part.NumberOfNodes(),model_part.NumberOfNodes());
+//        SparseSpaceType::MatrixType M(model_part.NumberOfNodes(),model_part.NumberOfNodes());
 //        noalias(M)= ZeroMatrix(model_part.NumberOfNodes(),model_part.NumberOfNodes());
-//        SpaceType::VectorType g(model_part.NumberOfNodes());
+//        SparseSpaceType::VectorType g(model_part.NumberOfNodes());
 //        noalias(g)= ZeroVector(model_part.NumberOfNodes());
-//        SpaceType::VectorType b(model_part.NumberOfNodes());
+//        SparseSpaceType::VectorType b(model_part.NumberOfNodes());
 //        noalias(b)= ZeroVector(model_part.NumberOfNodes());
 //        //Transfer of GaussianVariables to Nodal Variablias via L_2-Minimization
 //        // see Jiao + Heath "Common-refinement-based data tranfer ..."
@@ -2277,9 +2277,9 @@ public:
 ////        }
 
 //        //SetUpEquationSystem
-//        SpaceType::MatrixType M(model_part.NumberOfNodes(), model_part.NumberOfNodes());
-//        SpaceType::VectorType g(model_part.NumberOfNodes());
-//        SpaceType::VectorType b(model_part.NumberOfNodes());
+//        SparseSpaceType::MatrixType M(model_part.NumberOfNodes(), model_part.NumberOfNodes());
+//        SparseSpaceType::VectorType g(model_part.NumberOfNodes());
+//        SparseSpaceType::VectorType b(model_part.NumberOfNodes());
 //        noalias(M)= ZeroMatrix(model_part.NumberOfNodes(), model_part.NumberOfNodes());
 
 //        int number_of_threads = 1;
@@ -2467,9 +2467,9 @@ public:
         }
 
         //SetUpEquationSystem
-        SpaceType::MatrixType M(active_nodes.size(), active_nodes.size());
-        SpaceType::VectorType g(active_nodes.size());
-        SpaceType::VectorType b(active_nodes.size());
+        SparseSpaceType::MatrixType M(active_nodes.size(), active_nodes.size());
+        SparseSpaceType::VectorType g(active_nodes.size());
+        SparseSpaceType::VectorType b(active_nodes.size());
         noalias(M)= ZeroMatrix(active_nodes.size(), active_nodes.size());
 
         int number_of_threads = 1;
@@ -2679,9 +2679,9 @@ public:
         }
 
         //SetUpEquationSystem
-        SpaceType::MatrixType M(active_nodes.size(), active_nodes.size());
-        SpaceType::VectorType g(active_nodes.size());
-        SpaceType::VectorType b(active_nodes.size());
+        SparseSpaceType::MatrixType M(active_nodes.size(), active_nodes.size());
+        SparseSpaceType::VectorType g(active_nodes.size());
+        SparseSpaceType::VectorType b(active_nodes.size());
         noalias(M)= ZeroMatrix(active_nodes.size(), active_nodes.size());
 
         int number_of_threads = 1;
@@ -2915,10 +2915,10 @@ public:
             = ZeroMatrix(3,3);
         }
         //SetUpEquationSystem
-        SpaceType::MatrixType M(rTarget.NumberOfNodes(),rTarget.NumberOfNodes());
+        SparseSpaceType::MatrixType M(rTarget.NumberOfNodes(),rTarget.NumberOfNodes());
         noalias(M)= ZeroMatrix(rTarget.NumberOfNodes(),rTarget.NumberOfNodes());
-        SpaceType::VectorType g(rTarget.NumberOfNodes());
-        SpaceType::VectorType b(rTarget.NumberOfNodes());
+        SparseSpaceType::VectorType g(rTarget.NumberOfNodes());
+        SparseSpaceType::VectorType b(rTarget.NumberOfNodes());
         for( ElementsArrayType::ptr_iterator it = TargetMeshElementsArray.ptr_begin();
                 it != TargetMeshElementsArray.ptr_end();
                 ++it )
@@ -3051,10 +3051,10 @@ public:
             = ZeroVector(6);
         }
         //SetUpEquationSystem
-        SpaceType::MatrixType M(rTarget.NumberOfNodes(),rTarget.NumberOfNodes());
+        SparseSpaceType::MatrixType M(rTarget.NumberOfNodes(),rTarget.NumberOfNodes());
         noalias(M)= ZeroMatrix(rTarget.NumberOfNodes(),rTarget.NumberOfNodes());
-        SpaceType::VectorType g(rTarget.NumberOfNodes());
-        SpaceType::VectorType b(rTarget.NumberOfNodes());
+        SparseSpaceType::VectorType g(rTarget.NumberOfNodes());
+        SparseSpaceType::VectorType b(rTarget.NumberOfNodes());
 
         for( ElementsArrayType::ptr_iterator it = TargetMeshElementsArray.ptr_begin();
                 it != TargetMeshElementsArray.ptr_end();
@@ -3233,11 +3233,11 @@ public:
             = 0.0;
         }
         //SetUpEquationSystem
-        SpaceType::MatrixType M(rTarget.NumberOfNodes(),rTarget.NumberOfNodes());
+        SparseSpaceType::MatrixType M(rTarget.NumberOfNodes(),rTarget.NumberOfNodes());
         noalias(M)= ZeroMatrix(rTarget.NumberOfNodes(),rTarget.NumberOfNodes());
-        SpaceType::VectorType g(rTarget.NumberOfNodes());
+        SparseSpaceType::VectorType g(rTarget.NumberOfNodes());
         noalias(g)= ZeroVector(rTarget.NumberOfNodes());
-        SpaceType::VectorType b(rTarget.NumberOfNodes());
+        SparseSpaceType::VectorType b(rTarget.NumberOfNodes());
         noalias(b)= ZeroVector(rTarget.NumberOfNodes());
         //Transfer of GaussianVariables to Nodal Variablias via L_2-Minimization
         // see Jiao + Heath "Common-refinement-based data tranfer ..."
@@ -3653,7 +3653,7 @@ protected:
     //**********AUXILIARY FUNCTION**************************************************************
     //******************************************************************************************
     void ConstructMatrixStructure (
-        SpaceType::MatrixType& A,
+        SparseSpaceType::MatrixType& A,
         ElementsArrayType& rElements,
         ProcessInfo& CurrentProcessInfo
     )
@@ -3737,7 +3737,7 @@ protected:
 
     template<typename TElementsArrayType>
     static void ConstructMatrixStructure (
-        SpaceType::MatrixType& A,
+        SparseSpaceType::MatrixType& A,
         TElementsArrayType& rElements,
         std::map<std::size_t, std::size_t>& NodeRowId,
         ProcessInfo& CurrentProcessInfo
