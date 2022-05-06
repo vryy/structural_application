@@ -147,6 +147,8 @@ class SolverAdvanced(structural_solver_static.StaticStructuralSolver):
         if( type( analysis_parameters ) == dict ):
             if 'builder_and_solver_type' not in analysis_parameters:
                 analysis_parameters['builder_and_solver_type'] = "residual-based elimination deactivation"
+            if 'convergence_criteria' not in analysis_parameters:
+                analysis_parameters['convergence_criteria'] = "multiphase"
             return analysis_parameters
         elif( type( analysis_parameters ) == list ):
             new_analysis_parameters = {}
@@ -228,7 +230,10 @@ class SolverAdvanced(structural_solver_static.StaticStructuralSolver):
             print("   'using newmark dynamic scheme': dynamic analysis")
             sys.exit(0)
         #definition of the convergence criteria
-        self.conv_criteria = MultiPhaseFlowCriteria(self.toll,self.absolute_tol)
+        if(self.analysis_parameters['convergence_criteria'] == "multiphase"):
+            self.conv_criteria = MultiPhaseFlowCriteria(self.toll,self.absolute_tol)
+        elif(self.analysis_parameters['convergence_criteria'] == "displacement"):
+            self.conv_criteria = DisplacementCriteria(self.toll,self.absolute_tol)
         #self.conv_criteria = MultiPhaseFlowCriteria(1.0e-13,1.0e-13)
         #self.conv_criteria = ResidualBasedMultiPhaseCriteria(self.toll,self.absolute_tol)
         #self.conv_criteria = ResidualCriteria(1.0e-9,1.0e-9)
