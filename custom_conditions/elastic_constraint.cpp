@@ -157,15 +157,27 @@ void ElasticConstraint::CalculateAll( MatrixType& rLeftHandSideMatrix, VectorTyp
         rRightHandSideVector.resize(number_of_nodes*dim,false);
     noalias(rRightHandSideVector) = ZeroVector(number_of_nodes*dim);
 
-    if( number_of_nodes == 1 )
+    if( number_of_nodes == 1 ) // elastic point
     {
-        array_1d<double,3>& bedding = GetGeometry()[0].GetSolutionStepValue(ELASTIC_BEDDING_STIFFNESS);
+        array_1d<double,3>* bedding;
+        if (GetGeometry()[0].Has(ELASTIC_BEDDING_STIFFNESS))
+        {
+            bedding = &(GetGeometry()[0].GetValue(ELASTIC_BEDDING_STIFFNESS));
+        }
+        else if (GetGeometry()[0].SolutionStepsDataHas(ELASTIC_BEDDING_STIFFNESS))
+        {
+            bedding = &(GetGeometry()[0].GetSolutionStepValue(ELASTIC_BEDDING_STIFFNESS));
+        }
+        else
+            KRATOS_THROW_ERROR(std::logic_error, "ELASTIC_BEDDING_STIFFNESS is not defined at node", "")
         array_1d<double,3>& displacement = GetGeometry()[0].GetSolutionStepValue(DISPLACEMENT);
         for( unsigned int i=0; i<3; i++ )
         {
-            rLeftHandSideMatrix(i, i) = bedding[i];
-            rRightHandSideVector[i] = -displacement[i]*bedding[i];
+            rLeftHandSideMatrix(i, i) = (*bedding)[i];
+            rRightHandSideVector[i] = -displacement[i]*(*bedding)[i];
         }
+        // KRATOS_WATCH(rLeftHandSideMatrix)
+        // KRATOS_WATCH(rRightHandSideVector)
     }
     else
     {
