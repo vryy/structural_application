@@ -62,6 +62,12 @@ public:
         mRadius = Radius;
     }
 
+    /// Set the arc length
+    double GetRadius() const
+    {
+        return mRadius;
+    }
+
     /// Set the multiplier
     void SetLambda(const double& Lambda)
     {
