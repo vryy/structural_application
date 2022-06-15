@@ -89,6 +89,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_utilities/tip_utility.h"
 #include "custom_utilities/pile_utility.h"
 #include "custom_utilities/foundation_utility.h"
+#include "custom_utilities/surface_utility.h"
 
 #include "custom_utilities/embedded_node_tying_utility.h"
 #include "custom_conditions/embedded_node_lagrange_tying_condition.h"
@@ -910,6 +911,12 @@ void  AddCustomUtilitiesToPython()
     class_<FoundationUtility, boost::noncopyable >
     ( "FoundationUtility", init<>() )
     .def( "InitializeFoundationUtility", &InitializeFoundationUtility )
+    ;
+
+    class_<SurfaceUtility, boost::noncopyable >
+    ( "SurfaceUtility", init<int>() )
+    .def( "CalculateStrain2DInReferenceConfiguration", &SurfaceUtility::CalculateStrain<2, 0> )
+    .def( "CalculateStrain3DInReferenceConfiguration", &SurfaceUtility::CalculateStrain<3, 0> )
     ;
 
 }
