@@ -261,8 +261,11 @@ namespace Kratos
     {
         KRATOS_TRY
 
-        for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); ++i )
-            mConstitutiveLawVector[i] = GetProperties()[CONSTITUTIVE_LAW]->Clone();
+        #pragma omp critical
+        {
+            for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); ++i )
+                mConstitutiveLawVector[i] = GetProperties()[CONSTITUTIVE_LAW]->Clone();
+        }
 
         int need_shape_function = 0, tmp;
         for ( unsigned int Point = 0; Point < mConstitutiveLawVector.size(); ++Point )
