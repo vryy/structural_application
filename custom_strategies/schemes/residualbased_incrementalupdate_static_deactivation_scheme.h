@@ -303,32 +303,6 @@ public:
     {
         KRATOS_TRY
 
-        ElementsArrayType& pElements = r_model_part.Elements();
-        ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
-
-        bool element_is_active;
-        for (typename ElementsArrayType::iterator it = pElements.begin(); it != pElements.end(); ++it)
-        {
-            element_is_active = true;
-            if(it->IsDefined(ACTIVE))
-                element_is_active = it->Is(ACTIVE);
-
-            if (element_is_active)
-                (it)->FinalizeNonLinearIteration(CurrentProcessInfo);
-        }
-
-        bool condition_is_active;
-        ConditionsArrayType& pConditions = r_model_part.Conditions();
-        for (typename ConditionsArrayType::iterator it = pConditions.begin(); it != pConditions.end(); ++it)
-        {
-            condition_is_active = true;
-            if(it->IsDefined(ACTIVE))
-                condition_is_active = it->Is(ACTIVE);
-
-            if (condition_is_active)
-                (it)->FinalizeNonLinearIteration(CurrentProcessInfo);
-        }
-
         // to account for prescribed displacement, the displacement at prescribed nodes need to be updated
         double curr_disp, delta_disp;
         for (ModelPart::NodesContainerType::iterator it_node = r_model_part.Nodes().begin(); it_node != r_model_part.Nodes().end(); ++it_node)
@@ -356,6 +330,34 @@ public:
                 it_node->GetSolutionStepValue(DISPLACEMENT_Z) = curr_disp + delta_disp;
                 it_node->GetSolutionStepValue(PRESCRIBED_DELTA_DISPLACEMENT_Z) = 0.0; // set the prescribed displacement to zero to avoid update in the second step
             }
+        }
+
+        // invoking the element and condition finalization after an iteration
+
+        ElementsArrayType& pElements = r_model_part.Elements();
+        ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
+
+        bool element_is_active;
+        for (typename ElementsArrayType::iterator it = pElements.begin(); it != pElements.end(); ++it)
+        {
+            element_is_active = true;
+            if(it->IsDefined(ACTIVE))
+                element_is_active = it->Is(ACTIVE);
+
+            if (element_is_active)
+                (it)->FinalizeNonLinearIteration(CurrentProcessInfo);
+        }
+
+        bool condition_is_active;
+        ConditionsArrayType& pConditions = r_model_part.Conditions();
+        for (typename ConditionsArrayType::iterator it = pConditions.begin(); it != pConditions.end(); ++it)
+        {
+            condition_is_active = true;
+            if(it->IsDefined(ACTIVE))
+                condition_is_active = it->Is(ACTIVE);
+
+            if (condition_is_active)
+                (it)->FinalizeNonLinearIteration(CurrentProcessInfo);
         }
 
         KRATOS_CATCH("")
