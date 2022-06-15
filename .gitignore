@@ -1,5 +1,5 @@
 z_legacy
-test_examples
+test_examples*
 *.bak
 *.pyc
 *.orig
