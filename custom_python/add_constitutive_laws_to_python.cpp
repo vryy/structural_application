@@ -157,9 +157,11 @@ void  AddConstitutiveLawsToPython()
     // .def("Clone",              &Isotropic2D::Clone)
     ;
 
+    void(PlaneStrain::*PlaneStrain_CalculateStress)(const double&, const double&, const Vector&, Vector&) const = &PlaneStrain::CalculateStress;
     class_< PlaneStrain, bases< ConstitutiveLawBaseType >, boost::noncopyable >
     ( "PlaneStrain",
       init<>() )
+    .def("CalculateStress", PlaneStrain_CalculateStress)
     ;
 
     class_< PlaneStress, bases< ConstitutiveLawBaseType >, boost::noncopyable >
@@ -178,9 +180,11 @@ void  AddConstitutiveLawsToPython()
       init<>() )
     ;
 
+    void(Isotropic3D::*Isotropic3D_CalculateStress)(const double&, const double&, const Vector&, Vector&) const = &Isotropic3D::CalculateStress;
     class_< Isotropic3D, bases< ConstitutiveLawBaseType >,  boost::noncopyable >
     ( "Isotropic3D",
       init<>() )
+    .def("CalculateStress", Isotropic3D_CalculateStress)
     ;
 
     class_< DruckerPrager, bases< ConstitutiveLawBaseType >, boost::noncopyable >
