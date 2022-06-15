@@ -175,7 +175,7 @@ public:
      * matrix is to be generated for
      * @param rResult Matrix the result will be stored in
      */
-    void CalculateConstitutiveMatrix(Matrix& rResult);
+    void CalculateConstitutiveMatrix(Matrix& rResult) const;
 
     /**
      * Calculates the stresses for given strain state
@@ -183,6 +183,13 @@ public:
      * @param rResult the stress vector corresponding to the given strains
      */
     void CalculateStress(const Vector& StrainVector, Vector& rResult);
+
+    /**
+     * Calculates the stresses for given strain state
+     * @param StrainVector the current vector of strains
+     * @param rResult the stress vector corresponding to the given strains
+     */
+    void CalculateStress(const double& E, const double& NU, const Vector& StrainVector, Vector& rResult) const;
 
     /**
      * As this constitutive law describes only linear elastic material properties
@@ -312,7 +319,7 @@ private:
      * @param NU the Poisson ratio
      * @return the linear elastic constitutive matrix
      */
-    void CalculateElasticMatrix(Matrix& C, const double E, const double NU);
+    void CalculateElasticMatrix(Matrix& C, const double& E, const double& NU) const;
 
     double mE, mNU, mDE;
     Vector mCurrentStress;

@@ -240,6 +240,13 @@ class Isotropic3D : public ConstitutiveLaw
         }
 
         /**
+         * Calculates the stresses for given strain state
+         * @param StrainVector the current vector of strains
+         * @param rResult the stress vector corresponding to the given strains
+         */
+        void CalculateStress(const double& E, const double& NU, const Vector& StrainVector, Vector& rResult) const;
+
+        /**
          * converts a strain vector styled variable into its form, which the
          * deviatoric parts are no longer multiplied by 2
          */
@@ -322,7 +329,7 @@ class Isotropic3D : public ConstitutiveLaw
          * @param NU the Poisson ratio
          * @return the linear elastic constitutive matrix
          */
-        void CalculateElasticMatrix( Matrix& C, const double E, const double NU );
+        void CalculateElasticMatrix( Matrix& C, const double& E, const double& NU ) const;
 
         Vector mPrestress;
         double mPrestressFactor;

@@ -378,7 +378,7 @@ void Isotropic3D::CalculateMaterialResponse( const Vector& StrainVector,
 /**
  * TO BE TESTED!!!
  */
-void Isotropic3D::CalculateElasticMatrix( Matrix& C, const double E, const double NU )
+void Isotropic3D::CalculateElasticMatrix( Matrix& C, const double& E, const double& NU ) const
 {
     //setting up material matrix
     double c1 = E / (( 1.00 + NU ) * ( 1 - 2 * NU ) );
@@ -414,6 +414,23 @@ void Isotropic3D::CalculateStress( const Vector& StrainVector, Matrix& Algorithm
     noalias( StressVector ) = prod( AlgorithmicTangent, StrainVector ) - mPrestressFactor * mPrestress;
 
     noalias(mCurrentStress) = StressVector;
+}
+
+/**
+ * TO BE TESTED!!!
+ */
+void Isotropic3D::CalculateStress( const double& E, const double& NU, const Vector& StrainVector, Vector& StressVector ) const
+{
+    if ( StressVector.size() != 6 )
+    {
+        StressVector.resize( 6 );
+    }
+
+    Matrix Ce( 6, 6 );
+
+    this->CalculateElasticMatrix( Ce, E, NU );
+
+    noalias( StressVector ) = prod( Ce, StrainVector );
 }
 
 

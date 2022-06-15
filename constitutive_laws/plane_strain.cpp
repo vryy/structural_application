@@ -191,10 +191,11 @@ Vector& PlaneStrain::GetValue( const Variable<Vector>& rThisVariable, Vector& rV
     {
         if(rValue.size() != 6)
             rValue.resize(6, false);
-        rValue(0) = (1.0+mNU) * ((1.0-mNU)*mCurrentStress(0) - mNU*mCurrentStress(1)) / mE;
-        rValue(1) = (1.0+mNU) * ((1.0-mNU)*mCurrentStress(1) - mNU*mCurrentStress(0)) / mE;
+        double aux = (1.0+mNU)/mE;
+        rValue(0) = aux * ((1.0-mNU)*mCurrentStress(0) - mNU*mCurrentStress(1));
+        rValue(1) = aux * ((1.0-mNU)*mCurrentStress(1) - mNU*mCurrentStress(0));
         rValue(2) = 0.0;
-        rValue(3) = 2.0*(1.0+mNU)*mCurrentStress(2) / mE;
+        rValue(3) = 2.0*aux*mCurrentStress(2);
         rValue(4) = 0.0;
         rValue(5) = 0.0;
     }
@@ -353,7 +354,7 @@ void PlaneStrain::FinalizeNonLinearIteration( const Properties& rMaterialPropert
 /**
  * TO BE TESTED!!!
  */
-void PlaneStrain::CalculateElasticMatrix( Matrix& C, const double E, const double NU )
+void PlaneStrain::CalculateElasticMatrix( Matrix& C, const double& E, const double& NU ) const
 {
     double c1 = E * ( 1.00 - NU ) / (( 1.00 + NU ) * ( 1.00 - 2 * NU ) );
     double c2 = E * NU / (( 1.00 + NU ) * ( 1.00 - 2 * NU ) );
@@ -389,11 +390,26 @@ void PlaneStrain::CalculateStress( const Vector& StrainVector, Vector& StressVec
     noalias( mCurrentStress ) = StressVector;
 }
 
+/**
+ * TO BE TESTED!!!
+ */
+void PlaneStrain::CalculateStress( const double& E, const double& NU, const Vector& StrainVector, Vector& StressVector ) const
+{
+    double c1 = E * ( 1.00 - NU ) / (( 1.00 + NU ) * ( 1.00 - 2 * NU ) );
+    double c2 = E * NU / (( 1.00 + NU ) * ( 1.00 - 2 * NU ) );
+    double c3 = 0.5 * E / ( 1 + NU );
+
+    // compute the stress based on strain
+    StressVector[0] = c1 * StrainVector[0] + c2 * StrainVector[1];
+    StressVector[1] = c1 * StrainVector[1] + c2 * StrainVector[0];
+    StressVector[2] = c3 * StrainVector[2];
+}
+
 
 /**
  * TO BE REVIEWED!!!
  */
-void PlaneStrain::CalculateConstitutiveMatrix( Matrix& rResult )
+void PlaneStrain::CalculateConstitutiveMatrix( Matrix& rResult ) const
 {
     CalculateElasticMatrix( rResult, mE, mNU );
 }
