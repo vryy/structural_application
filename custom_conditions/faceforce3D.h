@@ -72,6 +72,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 namespace Kratos
 {
 
+/// Define a distributed load condition on face in 3D. The load will be interpolated by nodal load, defined via FACE_LOAD.
 class FaceForce3D
     : public Condition
 {

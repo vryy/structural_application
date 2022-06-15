@@ -72,6 +72,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 namespace Kratos
 {
 
+/// Define a distributed load condition on line in 2D. The load is computed by pressure multiplying with the normal vector.
 class LinePressure
     : public Condition
 {
