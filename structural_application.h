@@ -119,9 +119,11 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
     #include "custom_conditions/face3D.h"
     #include "custom_conditions/face_pressure3D.h"
     #include "custom_conditions/face_pressure3D_total_lagrangian.h"
+    #include "custom_conditions/face_traction3D.h"
     #include "custom_conditions/faceforce3D.h"
     #include "custom_conditions/line_force.h"
     #include "custom_conditions/line_pressure.h"
+    #include "custom_conditions/line_traction.h"
     #include "custom_conditions/contact_link_3D.h"
     #include "custom_conditions/contact_link_3D_newmark.h"
     #include "custom_conditions/master_contact_face_3D.h"
@@ -306,12 +308,19 @@ private:
     const FacePressure3DTotalLagrangian  mFacePressureTotalLagrangian3D4N;
     const FacePressure3DTotalLagrangian  mFacePressureTotalLagrangian3D8N;
     const FacePressure3DTotalLagrangian  mFacePressureTotalLagrangian3D9N;
+    const FaceTraction3D  mFaceTraction3D3N;
+    const FaceTraction3D  mFaceTraction3D6N;
+    const FaceTraction3D  mFaceTraction3D4N;
+    const FaceTraction3D  mFaceTraction3D8N;
+    const FaceTraction3D  mFaceTraction3D9N;
     const LineForce mLineForce2D2N;
     const LineForce mLineForce2D3N;
     const LineForce mLineForce3D2N;
     const LineForce mLineForce3D3N;
     const LinePressure mLinePressure2D2N;
     const LinePressure mLinePressure2D3N;
+    const LineTraction mLineTraction2D2N;
+    const LineTraction mLineTraction2D3N;
     const FaceForce3D mFaceForce3D3N;
     const FaceForce3D mFaceForce3D6N;
     const FaceForce3D mFaceForce3D4N;
@@ -430,12 +439,19 @@ private:
     const FacePressure3DTotalLagrangian  mFacePressureTotalLagrangian3D4N;
     const FacePressure3DTotalLagrangian  mFacePressureTotalLagrangian3D8N;
     const FacePressure3DTotalLagrangian  mFacePressureTotalLagrangian3D9N;
+    const FaceTraction3D  mFaceTraction3D3N;
+    const FaceTraction3D  mFaceTraction3D6N;
+    const FaceTraction3D  mFaceTraction3D4N;
+    const FaceTraction3D  mFaceTraction3D8N;
+    const FaceTraction3D  mFaceTraction3D9N;
     const LineForce mLineForce2D2N;
     const LineForce mLineForce2D3N;
     const LineForce mLineForce3D2N;
     const LineForce mLineForce3D3N;
     const LinePressure mLinePressure2D2N;
     const LinePressure mLinePressure2D3N;
+    const LineTraction mLineTraction2D2N;
+    const LineTraction mLineTraction2D3N;
     const FaceForce3D mFaceForce3D3N;
     const FaceForce3D mFaceForce3D6N;
     const FaceForce3D mFaceForce3D4N;

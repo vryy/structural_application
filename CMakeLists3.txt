@@ -23,9 +23,11 @@ set(KRATOS_STRUCTURAL_APPLICATION_CORE
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/face3D.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/face_pressure3D.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/face_pressure3D_total_lagrangian.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/face_traction3D.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/faceforce3D.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/line_force.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/line_pressure.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/line_traction.cpp
 
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/pile_kinematic_linear.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/tip_condition.cpp
