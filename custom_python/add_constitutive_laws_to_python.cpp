@@ -97,6 +97,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "constitutive_laws/plane_stress_J2.h"
 #include "constitutive_laws/brittle_material_2d.h"
 #include "constitutive_laws/orthotropic_3d.h"
+#include "constitutive_laws/multiplicative_finite_strain_bridging_constitutive_law.h"
 #include "includes/node.h"
 #include "includes/variables.h"
 #include "includes/mesh.h"
@@ -304,6 +305,11 @@ void  AddConstitutiveLawsToPython()
 
     class_< ValuesContainerConstitutiveLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
     ( "ValuesContainerConstitutiveLaw", init<>() )
+    .def(init<ConstitutiveLawBaseType::Pointer>())
+    ;
+
+    class_< MultiplicativeFiniteStrainBridgingConstitutiveLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
+    ( "MultiplicativeFiniteStrainBridgingConstitutiveLaw", init<>() )
     .def(init<ConstitutiveLawBaseType::Pointer>())
     ;
 
