@@ -1517,12 +1517,13 @@ namespace Kratos
         }
 
         // verify the strain measure
-        auto strain_mearure = this->GetProperties().GetValue( CONSTITUTIVE_LAW )->GetStrainMeasure();
-        if ( strain_mearure != ConstitutiveLaw::StrainMeasure_Infinitesimal
-          && strain_mearure != ConstitutiveLaw::StrainMeasure_GreenLagrange )
+        ConstitutiveLaw::Features features;
+        this->GetProperties().GetValue( CONSTITUTIVE_LAW )->GetLawFeatures(features);
+        if ( std::find(features.GetStrainMeasures().begin(), features.GetStrainMeasures().end(), ConstitutiveLaw::StrainMeasure_Infinitesimal) == features.GetStrainMeasures().end()
+          && std::find(features.GetStrainMeasures().begin(), features.GetStrainMeasures().end(), ConstitutiveLaw::StrainMeasure_GreenLagrange) == features.GetStrainMeasures().end() )
         {
             std::stringstream ss;
-            ss << "The strain measure " << strain_mearure << " is not supported by this element";
+            ss << "The constitutive law strain measures are not supported by this element";
             KRATOS_THROW_ERROR( std::logic_error, ss.str(), "" )
         }
 
@@ -1532,20 +1533,7 @@ namespace Kratos
             KRATOS_THROW_ERROR( std::logic_error, "BODY_FORCE not provided for property ", this->GetProperties().Id() )
         }
 
-        //verify that the constitutive law has the correct dimension
-        if ( dimension == 2 )
-        {
-            if ( this->GetProperties().Has( THICKNESS ) == false )
-                KRATOS_THROW_ERROR( std::logic_error, "THICKNESS not provided for element ", this->Id() );
 
-            if ( this->GetProperties().GetValue( CONSTITUTIVE_LAW )->GetStrainSize() != 3 )
-                KRATOS_THROW_ERROR( std::logic_error, "wrong constitutive law used. This is a 2D element! expected strain size is 3 (el id = ) ", this->Id() );
-        }
-        else
-        {
-            if ( this->GetProperties().GetValue( CONSTITUTIVE_LAW )->GetStrainSize() != 6 )
-                KRATOS_THROW_ERROR( std::logic_error, "wrong constitutive law used. This is a 3D element! expected strain size is 6 (el id = ) ", this->Id() );
-        }
 
         //check constitutive law
         for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); i++ )

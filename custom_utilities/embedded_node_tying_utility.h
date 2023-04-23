@@ -1,9 +1,9 @@
 /*
 see license.txt
 */
- 
-//   
-//   Project Name:        Kratos       
+
+//
+//   Project Name:        Kratos
 //   Last Modified by:    $Author: hbui $
 //   Date:                $Date: 6 Jul 2016 $
 //   Revision:            $Revision: 1.0 $
@@ -16,7 +16,7 @@ see license.txt
 
 // System includes
 
-// External includes 
+// External includes
 #include "boost/progress.hpp"
 
 // Project includes
@@ -167,7 +167,7 @@ namespace Kratos
                 {
                     Element::Pointer pElem = r_model_part.pGetElement(id);
                     pTrusses.push_back(pElem);
-                    if(pElem->GetGeometry().GetGeometryType() != GeometryData::Kratos_Line3D2)
+                    if(pElem->GetGeometry().GetGeometryType() != GeometryData::KratosGeometryType::Kratos_Line3D2)
                         KRATOS_THROW_ERROR(std::runtime_error, "The truss element is invalid, its Id is", pElem->Id())
                 }
 
@@ -188,18 +188,18 @@ namespace Kratos
             ModelPart::ConditionsContainerType SetUpTyingLinks4( ModelPart& r_model_part, ModelPart::ElementsContainerType& rpTrusses,
                     ModelPart::ElementsContainerType& rpElements )
             {
-                
+
                 std::cout << "Initializing EmbeddedNodeTyingUtility..." << std::endl;
             }
 
-            
+
             /********************************************************************************
             UTILITY FUNCTION
             ********************************************************************************/
             ModelPart::ConditionsContainerType Combine(ModelPart::ConditionsContainerType& List1, ModelPart::ConditionsContainerType& List2)
             {
                 ModelPart::ConditionsContainerType Conds;
-                
+
                 for(ModelPart::ConditionsContainerType::ptr_iterator it = List1.ptr_begin(); it != List1.ptr_end(); ++it)
                 {
                     Conds.push_back(*it);

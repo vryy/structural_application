@@ -96,7 +96,7 @@ UnsaturatedSoilsElement_3phase_SmallStrain_Liakopolous::UnsaturatedSoilsElement_
             mpPressureGeometry = Geometry< Node<3> >::Pointer( new Hexahedra3D8 <Node<3> >(
                                      GetGeometry()( 0 ), GetGeometry()( 1 ), GetGeometry()( 2 ), GetGeometry()( 3 ),
                                      GetGeometry()( 4 ), GetGeometry()( 5 ), GetGeometry()( 6 ), GetGeometry()( 7 ) ) );
-            mThisIntegrationMethod = GeometryData::GI_GAUSS_3;
+            mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_3;
         }
 
         if ( GetGeometry().size() == 20 )
@@ -108,7 +108,7 @@ UnsaturatedSoilsElement_3phase_SmallStrain_Liakopolous::UnsaturatedSoilsElement_
             mpPressureGeometry = Geometry< Node<3> >::Pointer( new Hexahedra3D8 <Node<3> >(
                                      GetGeometry()( 0 ), GetGeometry()( 1 ), GetGeometry()( 2 ), GetGeometry()( 3 ),
                                      GetGeometry()( 4 ), GetGeometry()( 5 ), GetGeometry()( 6 ), GetGeometry()( 7 ) ) );
-            mThisIntegrationMethod = GeometryData::GI_GAUSS_3;
+            mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_3;
         }
 
         if ( GetGeometry().size() == 10 )
@@ -119,7 +119,7 @@ UnsaturatedSoilsElement_3phase_SmallStrain_Liakopolous::UnsaturatedSoilsElement_
             mNodesDispMax = 10;
             mpPressureGeometry = Geometry< Node<3> >::Pointer( new Tetrahedra3D4 <Node<3> >(
                                      GetGeometry()( 0 ), GetGeometry()( 1 ), GetGeometry()( 2 ), GetGeometry()( 3 ) ) );
-            mThisIntegrationMethod = GeometryData::GI_GAUSS_5;
+            mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_5;
         }
 
         if ( GetGeometry().size() == 15 )
@@ -130,7 +130,7 @@ UnsaturatedSoilsElement_3phase_SmallStrain_Liakopolous::UnsaturatedSoilsElement_
             mNodesDispMax = 15;
             mpPressureGeometry = Geometry< Node<3> >::Pointer( new Prism3D6 <Node<3> >(
                                      GetGeometry()( 0 ), GetGeometry()( 1 ), GetGeometry()( 2 ), GetGeometry()( 3 ), GetGeometry()( 4 ), GetGeometry()( 5 ) ) );
-            mThisIntegrationMethod = GeometryData::GI_GAUSS_3;
+            mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_3;
         }
 
         // Attention this version does not fulfill the Babuska Brezzi Stability constraint and is therefore not an appropriate choice if consolidation under initially undrained conditions is analysed
@@ -143,7 +143,7 @@ UnsaturatedSoilsElement_3phase_SmallStrain_Liakopolous::UnsaturatedSoilsElement_
             mpPressureGeometry = Geometry< Node<3> >::Pointer( new Hexahedra3D8 <Node<3> >(
                                      GetGeometry()( 0 ), GetGeometry()( 1 ), GetGeometry()( 2 ), GetGeometry()( 3 ),
                                      GetGeometry()( 4 ), GetGeometry()( 5 ), GetGeometry()( 6 ), GetGeometry()( 7 ) ) );
-            mThisIntegrationMethod = GeometryData::GI_GAUSS_2;
+            mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_2;
         }
     }
     else

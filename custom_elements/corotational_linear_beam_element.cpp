@@ -30,8 +30,8 @@ CorotationalLinearBeamElement::CorotationalLinearBeamElement( IndexType NewId,
                               GeometryType::Pointer pGeometry)
 : Element( NewId, pGeometry )
 {
-    if( pGeometry->GetGeometryType() != GeometryData::Kratos_Line2D2
-     && pGeometry->GetGeometryType() != GeometryData::Kratos_Line3D2 )
+    if( pGeometry->GetGeometryType() != GeometryData::KratosGeometryType::Kratos_Line2D2
+     && pGeometry->GetGeometryType() != GeometryData::KratosGeometryType::Kratos_Line3D2 )
         KRATOS_THROW_ERROR(std::logic_error, "This element only works with 2-node line geometry", "")
 }
 
@@ -40,8 +40,8 @@ CorotationalLinearBeamElement::CorotationalLinearBeamElement( IndexType NewId,
                               PropertiesType::Pointer pProperties)
 : Element( NewId, pGeometry, pProperties )
 {
-    if( pGeometry->GetGeometryType() != GeometryData::Kratos_Line2D2
-     && pGeometry->GetGeometryType() != GeometryData::Kratos_Line3D2 )
+    if( pGeometry->GetGeometryType() != GeometryData::KratosGeometryType::Kratos_Line2D2
+     && pGeometry->GetGeometryType() != GeometryData::KratosGeometryType::Kratos_Line3D2 )
         KRATOS_THROW_ERROR(std::logic_error, "This element only works with 2-node line geometry", "")
 }
 

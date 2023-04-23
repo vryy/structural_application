@@ -188,23 +188,23 @@ void ElasticConstraint::CalculateAll( MatrixType& rLeftHandSideMatrix, VectorTyp
         {
             if(this->GetValue(INTEGRATION_ORDER) == 1)
             {
-                ThisIntegrationMethod = GeometryData::GI_GAUSS_1;
+                ThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_1;
             }
             else if(this->GetValue(INTEGRATION_ORDER) == 2)
             {
-                ThisIntegrationMethod = GeometryData::GI_GAUSS_2;
+                ThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_2;
             }
             else if(this->GetValue(INTEGRATION_ORDER) == 3)
             {
-                ThisIntegrationMethod = GeometryData::GI_GAUSS_3;
+                ThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_3;
             }
             else if(this->GetValue(INTEGRATION_ORDER) == 4)
             {
-                ThisIntegrationMethod = GeometryData::GI_GAUSS_4;
+                ThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_4;
             }
             else if(this->GetValue(INTEGRATION_ORDER) == 5)
             {
-                ThisIntegrationMethod = GeometryData::GI_GAUSS_5;
+                ThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_5;
             }
             else
                 KRATOS_THROW_ERROR(std::logic_error, "ElasticConstraint element does not support for integration rule", this->GetValue(INTEGRATION_ORDER))
@@ -213,23 +213,23 @@ void ElasticConstraint::CalculateAll( MatrixType& rLeftHandSideMatrix, VectorTyp
         {
             if(GetProperties()[INTEGRATION_ORDER] == 1)
             {
-                ThisIntegrationMethod = GeometryData::GI_GAUSS_1;
+                ThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_1;
             }
             else if(GetProperties()[INTEGRATION_ORDER] == 2)
             {
-                ThisIntegrationMethod = GeometryData::GI_GAUSS_2;
+                ThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_2;
             }
             else if(GetProperties()[INTEGRATION_ORDER] == 3)
             {
-                ThisIntegrationMethod = GeometryData::GI_GAUSS_3;
+                ThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_3;
             }
             else if(GetProperties()[INTEGRATION_ORDER] == 4)
             {
-                ThisIntegrationMethod = GeometryData::GI_GAUSS_4;
+                ThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_4;
             }
             else if(GetProperties()[INTEGRATION_ORDER] == 5)
             {
-                ThisIntegrationMethod = GeometryData::GI_GAUSS_5;
+                ThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_5;
             }
             else
                 KRATOS_THROW_ERROR(std::logic_error, "KinematicLinear element does not support for integration points", GetProperties()[INTEGRATION_ORDER])

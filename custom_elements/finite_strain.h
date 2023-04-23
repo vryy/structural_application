@@ -112,6 +112,7 @@ namespace Kratos
  * the constitutive law supporting Infinitesimal strain (i.e. linear elastic) can
  * also be used
  * Reference: A. Bower, Applier Mechanics of Solids
+ * TODO: this element is incomplete
  */
 class FiniteStrain : public Element
 {

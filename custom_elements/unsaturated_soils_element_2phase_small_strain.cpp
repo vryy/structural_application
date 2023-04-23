@@ -94,9 +94,9 @@ UnsaturatedSoilsElement_2phase_SmallStrain::UnsaturatedSoilsElement_2phase_Small
         mNodesDispMin = 1;
         mNodesDispMax = GetGeometry().size();
         mpPressureGeometry = this->pGetGeometry();
-        mThisIntegrationMethod = GeometryData::GI_GAUSS_1;
-//        mThisIntegrationMethod = GeometryData::GI_GAUSS_2;
-//        mThisIntegrationMethod = GeometryData::GI_GAUSS_3;
+        mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_1;
+//        mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_2;
+//        mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_3;
 //        mThisIntegrationMethod = GetGeometry().GetDefaultIntegrationMethod();//default method
         mIsStabilised = true;
         mIsInitialized = false;
@@ -108,7 +108,7 @@ UnsaturatedSoilsElement_2phase_SmallStrain::UnsaturatedSoilsElement_2phase_Small
     //DOFs at the end of time step
     //All calculations are made on the general midpoint alpha
     // Variables DOF_ALPHA are updated in the scheme
-    if ( GetGeometry().GetGeometryType() == GeometryData::Kratos_Hexahedra3D27 )
+    if ( GetGeometry().GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Hexahedra3D27 )
     {
         mNodesPressMin = 1;
         mNodesPressMax = 8;
@@ -117,10 +117,10 @@ UnsaturatedSoilsElement_2phase_SmallStrain::UnsaturatedSoilsElement_2phase_Small
         mpPressureGeometry = Geometry< Node<3> >::Pointer( new Hexahedra3D8 <Node<3> >(
                                  GetGeometry()( 0 ), GetGeometry()( 1 ), GetGeometry()( 2 ), GetGeometry()( 3 ),
                                  GetGeometry()( 4 ), GetGeometry()( 5 ), GetGeometry()( 6 ), GetGeometry()( 7 ) ) );
-        mThisIntegrationMethod = GeometryData::GI_GAUSS_3;
+        mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_3;
         mIsStabilised = false;
     }
-    else if ( GetGeometry().GetGeometryType() == GeometryData::Kratos_Hexahedra3D20 ) //remarks: this element does not work correctly with the 20 nodes discretisation. See the cube consolidation test
+    else if ( GetGeometry().GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Hexahedra3D20 ) //remarks: this element does not work correctly with the 20 nodes discretisation. See the cube consolidation test
     {
         mNodesPressMin = 1;
         mNodesPressMax = 8;
@@ -129,33 +129,33 @@ UnsaturatedSoilsElement_2phase_SmallStrain::UnsaturatedSoilsElement_2phase_Small
         mpPressureGeometry = Geometry< Node<3> >::Pointer( new Hexahedra3D8 <Node<3> >(
                                  GetGeometry()( 0 ), GetGeometry()( 1 ), GetGeometry()( 2 ), GetGeometry()( 3 ),
                                  GetGeometry()( 4 ), GetGeometry()( 5 ), GetGeometry()( 6 ), GetGeometry()( 7 ) ) );
-        mThisIntegrationMethod = GeometryData::GI_GAUSS_3;
+        mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_3;
         mIsStabilised = false;
     }
-    else if ( GetGeometry().GetGeometryType() == GeometryData::Kratos_Tetrahedra3D10 )
+    else if ( GetGeometry().GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Tetrahedra3D10 )
     {
         mNodesPressMin = 1;
         mNodesPressMax = 4;
         mNodesDispMin = 1;
         mNodesDispMax = 10;
         mpPressureGeometry = Geometry< Node<3> >::Pointer( new Tetrahedra3D4 <Node<3> >( GetGeometry()( 0 ), GetGeometry()( 1 ), GetGeometry()( 2 ), GetGeometry()( 3 ) ) );
-//            mThisIntegrationMethod = GeometryData::GI_GAUSS_5; //???
-//        mThisIntegrationMethod = GeometryData::GI_GAUSS_3; //??? // using this integration rule, GiD will not be able to display
-        mThisIntegrationMethod = GeometryData::GI_GAUSS_2;
+//            mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_5; //???
+//        mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_3; //??? // using this integration rule, GiD will not be able to display
+        mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_2;
         mIsStabilised = false;
     }
-    else if ( GetGeometry().GetGeometryType() == GeometryData::Kratos_Prism3D15 )
+    else if ( GetGeometry().GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Prism3D15 )
     {
         mNodesPressMin = 1;
         mNodesPressMax = 6;
         mNodesDispMin = 1;
         mNodesDispMax = 15;
         mpPressureGeometry = Geometry< Node<3> >::Pointer( new Prism3D6 <Node<3> >( GetGeometry()( 0 ), GetGeometry()( 1 ), GetGeometry()( 2 ), GetGeometry()( 3 ), GetGeometry()( 4 ), GetGeometry()( 5 ) ) );
-        mThisIntegrationMethod = GeometryData::GI_GAUSS_2;
+        mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_2;
         mIsStabilised = false;
     }
         // low order element, stabilisation activated
-    else if ( GetGeometry().GetGeometryType() == GeometryData::Kratos_Hexahedra3D8 )
+    else if ( GetGeometry().GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Hexahedra3D8 )
     {
         mNodesPressMin = 1;
         mNodesPressMax = 8;
@@ -164,10 +164,10 @@ UnsaturatedSoilsElement_2phase_SmallStrain::UnsaturatedSoilsElement_2phase_Small
         mpPressureGeometry = Geometry< Node<3> >::Pointer( new Hexahedra3D8 <Node<3> >(
                                  GetGeometry()( 0 ), GetGeometry()( 1 ), GetGeometry()( 2 ), GetGeometry()( 3 ),
                                  GetGeometry()( 4 ), GetGeometry()( 5 ), GetGeometry()( 6 ), GetGeometry()( 7 ) ) );
-        mThisIntegrationMethod = GeometryData::GI_GAUSS_2; //remarks: GI_GAUSS_2 gives better result than GI_GAUSS_3 for tunnel problem
+        mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_2; //remarks: GI_GAUSS_2 gives better result than GI_GAUSS_3 for tunnel problem
         mIsStabilised = true;
     }
-    else if ( GetGeometry().GetGeometryType() == GeometryData::Kratos_Tetrahedra3D4 )
+    else if ( GetGeometry().GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4 )
     {
         mNodesPressMin = 1;
         mNodesPressMax = 4;
@@ -175,17 +175,17 @@ UnsaturatedSoilsElement_2phase_SmallStrain::UnsaturatedSoilsElement_2phase_Small
         mNodesDispMax = 4;
         mpPressureGeometry = Geometry< Node<3> >::Pointer( new Tetrahedra3D4 <Node<3> >(
                                  GetGeometry()( 0 ), GetGeometry()( 1 ), GetGeometry()( 2 ), GetGeometry()( 3 ) ) );
-        mThisIntegrationMethod = GeometryData::GI_GAUSS_2;
+        mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_2;
         mIsStabilised = true;
     }
-    else if ( GetGeometry().GetGeometryType() == GeometryData::Kratos_Prism3D6 )
+    else if ( GetGeometry().GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Prism3D6 )
     {
         mNodesPressMin = 1;
         mNodesPressMax = 6;
         mNodesDispMin = 1;
         mNodesDispMax = 6;
         mpPressureGeometry = Geometry< Node<3> >::Pointer( new Prism3D6 <Node<3> >( GetGeometry()( 0 ), GetGeometry()( 1 ), GetGeometry()( 2 ), GetGeometry()( 3 ), GetGeometry()( 4 ), GetGeometry()( 5 ) ) );
-        mThisIntegrationMethod = GeometryData::GI_GAUSS_2;
+        mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_2;
         mIsStabilised = true;
     }
     else
@@ -234,23 +234,23 @@ void UnsaturatedSoilsElement_2phase_SmallStrain::Initialize(const ProcessInfo& r
     {
         if(GetProperties()[INTEGRATION_ORDER] == 1)
         {
-            mThisIntegrationMethod = GeometryData::GI_GAUSS_1;
+            mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_1;
         }
         else if(GetProperties()[INTEGRATION_ORDER] == 2)
         {
-            mThisIntegrationMethod = GeometryData::GI_GAUSS_2;
+            mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_2;
         }
         else if(GetProperties()[INTEGRATION_ORDER] == 3)
         {
-            mThisIntegrationMethod = GeometryData::GI_GAUSS_3;
+            mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_3;
         }
         else if(GetProperties()[INTEGRATION_ORDER] == 4)
         {
-            mThisIntegrationMethod = GeometryData::GI_GAUSS_4;
+            mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_4;
         }
         else if(GetProperties()[INTEGRATION_ORDER] == 5)
         {
-            mThisIntegrationMethod = GeometryData::GI_GAUSS_5;
+            mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_5;
         }
         else
             KRATOS_THROW_ERROR(std::logic_error, "Does not support for more integration points", *this)

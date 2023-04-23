@@ -123,23 +123,23 @@ void FaceFaceJointCondition::Initialize(const ProcessInfo& rCurrentProcessInfo)
     {
         if(this->GetValue(INTEGRATION_ORDER) == 1)
         {
-            mThisIntegrationMethod = GeometryData::GI_GAUSS_1;
+            mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_1;
         }
         else if(this->GetValue(INTEGRATION_ORDER) == 2)
         {
-            mThisIntegrationMethod = GeometryData::GI_GAUSS_2;
+            mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_2;
         }
         else if(this->GetValue(INTEGRATION_ORDER) == 3)
         {
-            mThisIntegrationMethod = GeometryData::GI_GAUSS_3;
+            mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_3;
         }
         else if(this->GetValue(INTEGRATION_ORDER) == 4)
         {
-            mThisIntegrationMethod = GeometryData::GI_GAUSS_4;
+            mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_4;
         }
         else if(this->GetValue(INTEGRATION_ORDER) == 5)
         {
-            mThisIntegrationMethod = GeometryData::GI_GAUSS_5;
+            mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_5;
         }
         else
             KRATOS_THROW_ERROR(std::logic_error, "KinematicLinear element does not support for integration rule", this->GetValue(INTEGRATION_ORDER))
@@ -148,23 +148,23 @@ void FaceFaceJointCondition::Initialize(const ProcessInfo& rCurrentProcessInfo)
     {
         if(GetProperties()[INTEGRATION_ORDER] == 1)
         {
-            mThisIntegrationMethod = GeometryData::GI_GAUSS_1;
+            mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_1;
         }
         else if(GetProperties()[INTEGRATION_ORDER] == 2)
         {
-            mThisIntegrationMethod = GeometryData::GI_GAUSS_2;
+            mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_2;
         }
         else if(GetProperties()[INTEGRATION_ORDER] == 3)
         {
-            mThisIntegrationMethod = GeometryData::GI_GAUSS_3;
+            mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_3;
         }
         else if(GetProperties()[INTEGRATION_ORDER] == 4)
         {
-            mThisIntegrationMethod = GeometryData::GI_GAUSS_4;
+            mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_4;
         }
         else if(GetProperties()[INTEGRATION_ORDER] == 5)
         {
-            mThisIntegrationMethod = GeometryData::GI_GAUSS_5;
+            mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_5;
         }
         else
             KRATOS_THROW_ERROR(std::logic_error, "KinematicLinear element does not support for integration points", GetProperties()[INTEGRATION_ORDER])

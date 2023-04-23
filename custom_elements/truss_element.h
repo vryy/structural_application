@@ -66,6 +66,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/serializer.h"
 #include "includes/ublas_interface.h"
 #include "includes/variables.h"
+#include "custom_elements/prescribed_object.h"
 
 
 namespace Kratos
@@ -93,8 +94,7 @@ namespace Kratos
 /// Short class definition.
 /** Detail class definition.
  */
-class TrussElement
-    : public Element
+class TrussElement : public Element, public PrescribedObject
 {
 public:
     ///@name Type Definitions
@@ -125,29 +125,35 @@ public:
     ///@name Operations
     ///@{
 
-    IntegrationMethod GetIntegrationMethod() const;
+    IntegrationMethod GetIntegrationMethod() const override;
 
-    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const;
+    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const override;
 
-    void Initialize(const ProcessInfo& rCurrentProcessInfo);
+    void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
-    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo);
+    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
 
-    void CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo);
+    void CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
 
-    void CalculateMassMatrix( MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo );
+    void CalculateMassMatrix( MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo ) override;
 
-    void CalculateDampingMatrix( MatrixType& rDampMatrix, const ProcessInfo& rCurrentProcessInfo );
+    void CalculateDampingMatrix( MatrixType& rDampMatrix, const ProcessInfo& rCurrentProcessInfo ) override;
 
-    void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const;
+    void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const override;
 
-    void GetDofList(DofsVectorType& ElementalDofList, const ProcessInfo& CurrentProcessInfo) const;
+    void GetDofList(DofsVectorType& ElementalDofList, const ProcessInfo& CurrentProcessInfo) const override;
 
-    void GetValuesVector(Vector& values, int Step) const;
+    void GetValuesVector(Vector& values, int Step) const override;
 
-    void GetFirstDerivativesVector(Vector& values, int Step) const;
+    void GetFirstDerivativesVector(Vector& values, int Step) const override;
 
-    void GetSecondDerivativesVector(Vector& values, int Step) const;
+    void GetSecondDerivativesVector(Vector& values, int Step) const override;
+
+    int Check( const ProcessInfo& rCurrentProcessInfo ) const override;
+
+    void ApplyPrescribedDofs(const MatrixType& LHS_Contribution, VectorType& RHS_Constribution, const ProcessInfo& CurrentProcessInfo) const override;
+
+    void ComputePrescribedForces(const MatrixType& LHS_Contribution, VectorType& Force, const ProcessInfo& CurrentProcessInfo) const override;
 
     ///@}
     ///@name Access
@@ -253,12 +259,12 @@ private:
 
     TrussElement() {}
 
-    virtual void save(Serializer& rSerializer) const
+    void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer,  Element );
     }
 
-    virtual void load(Serializer& rSerializer)
+    void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer,  Element );
     }

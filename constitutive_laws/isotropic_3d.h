@@ -122,6 +122,11 @@ class Isotropic3D : public ConstitutiveLaw
             return StressMeasure_Cauchy;
         }
 
+        void GetLawFeatures(Features& rFeatures) final
+        {
+            rFeatures.SetStrainMeasure(ConstitutiveLaw::StrainMeasure_Infinitesimal);
+        }
+
         bool Has( const Variable<int>& rThisVariable );
         bool Has( const Variable<double>& rThisVariable );
         bool Has( const Variable<Vector>& rThisVariable );

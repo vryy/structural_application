@@ -370,7 +370,7 @@ void  Face2D::CalculateDampingMatrix( MatrixType& rDampingMatrix, const ProcessI
     KRATOS_CATCH( "" )
 }
 
-int Face2D::Check( const ProcessInfo& rCurrentProcessInfo )
+int Face2D::Check( const ProcessInfo& rCurrentProcessInfo ) const
 {
     return 0;
 }

@@ -126,22 +126,22 @@ public:
     ///@name Operations
     ///@{
 
-    Condition::Pointer Create( IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties ) const;
+    Condition::Pointer Create( IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties ) const override;
 
-    Condition::Pointer Create( IndexType NewId, GeometryType::Pointer pGeom,  PropertiesType::Pointer pProperties ) const;
+    Condition::Pointer Create( IndexType NewId, GeometryType::Pointer pGeom,  PropertiesType::Pointer pProperties ) const override;
 
-    void CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo );
+    void CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo ) override;
 
-    void CalculateRightHandSide( VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo );
+    void CalculateRightHandSide( VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo ) override;
     //virtual void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo);
 
-    void EquationIdVector( EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo ) const;
+    void EquationIdVector( EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo ) const override;
 
-    void GetDofList( DofsVectorType& ConditionalDofList, const ProcessInfo& CurrentProcessInfo ) const;
+    void GetDofList( DofsVectorType& ConditionalDofList, const ProcessInfo& CurrentProcessInfo ) const override;
 
-    void CalculateMassMatrix( MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo );
+    void CalculateMassMatrix( MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo ) override;
 
-    void CalculateDampingMatrix( MatrixType& rDampingMatrix, const ProcessInfo& rCurrentProcessInfo );
+    void CalculateDampingMatrix( MatrixType& rDampingMatrix, const ProcessInfo& rCurrentProcessInfo ) override;
 
     /**
      * This function provides the place to perform checks on the completeness of the input.
@@ -150,7 +150,7 @@ public:
      * or that no common error is found.
      * @param rCurrentProcessInfo
      */
-    virtual int Check( const ProcessInfo& rCurrentProcessInfo );
+    int Check( const ProcessInfo& rCurrentProcessInfo ) const override;
     ///@}
     ///@name Access
     ///@{

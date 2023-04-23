@@ -84,9 +84,11 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
     #include "custom_conditions/face3D.h"
     #include "custom_conditions/face_pressure3D.h"
     #include "custom_conditions/face_pressure3D_total_lagrangian.h"
+    #include "custom_conditions/face_traction3D.h"
     #include "custom_conditions/faceforce3D.h"
     #include "custom_conditions/line_force.h"
     #include "custom_conditions/line_pressure.h"
+    #include "custom_conditions/line_traction.h"
 #else
     #include "custom_elements/total_lagrangian.h"
     //#include "custom_elements/linear_incompresible_element.h"

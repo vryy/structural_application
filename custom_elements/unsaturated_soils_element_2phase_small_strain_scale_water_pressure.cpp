@@ -95,7 +95,7 @@ UnsaturatedSoilsElement_2phase_SmallStrain_Scale_WaterPressure::UnsaturatedSoils
         mNodesDispMin = 1;
         mNodesDispMax = GetGeometry().size();
         mpPressureGeometry = this->pGetGeometry();
-//        mThisIntegrationMethod = GeometryData::GI_GAUSS_1;
+//        mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_1;
         mThisIntegrationMethod = GetGeometry().GetDefaultIntegrationMethod();//default method
         mIsStabilised = true;
         mIsInitialized = false;
@@ -118,7 +118,7 @@ UnsaturatedSoilsElement_2phase_SmallStrain_Scale_WaterPressure::UnsaturatedSoils
             mpPressureGeometry = Geometry< Node<3> >::Pointer( new Hexahedra3D8 <Node<3> >(
                                      GetGeometry()( 0 ), GetGeometry()( 1 ), GetGeometry()( 2 ), GetGeometry()( 3 ),
                                      GetGeometry()( 4 ), GetGeometry()( 5 ), GetGeometry()( 6 ), GetGeometry()( 7 ) ) );
-            mThisIntegrationMethod = GeometryData::GI_GAUSS_3;
+            mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_3;
             mIsStabilised = false;
         }
 
@@ -131,7 +131,7 @@ UnsaturatedSoilsElement_2phase_SmallStrain_Scale_WaterPressure::UnsaturatedSoils
             mpPressureGeometry = Geometry< Node<3> >::Pointer( new Hexahedra3D8 <Node<3> >(
                                      GetGeometry()( 0 ), GetGeometry()( 1 ), GetGeometry()( 2 ), GetGeometry()( 3 ),
                                      GetGeometry()( 4 ), GetGeometry()( 5 ), GetGeometry()( 6 ), GetGeometry()( 7 ) ) );
-            mThisIntegrationMethod = GeometryData::GI_GAUSS_3;
+            mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_3;
             mIsStabilised = false;
         }
 
@@ -142,8 +142,8 @@ UnsaturatedSoilsElement_2phase_SmallStrain_Scale_WaterPressure::UnsaturatedSoils
             mNodesDispMin = 1;
             mNodesDispMax = 10;
             mpPressureGeometry = Geometry< Node<3> >::Pointer( new Tetrahedra3D4 <Node<3> >( GetGeometry()( 0 ), GetGeometry()( 1 ), GetGeometry()( 2 ), GetGeometry()( 3 ) ) );
-//            mThisIntegrationMethod = GeometryData::GI_GAUSS_5; //???
-            mThisIntegrationMethod = GeometryData::GI_GAUSS_3; //???
+//            mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_5; //???
+            mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_3; //???
             mIsStabilised = false;
         }
 
@@ -154,7 +154,7 @@ UnsaturatedSoilsElement_2phase_SmallStrain_Scale_WaterPressure::UnsaturatedSoils
             mNodesDispMin = 1;
             mNodesDispMax = 15;
             mpPressureGeometry = Geometry< Node<3> >::Pointer( new Prism3D6 <Node<3> >( GetGeometry()( 0 ), GetGeometry()( 1 ), GetGeometry()( 2 ), GetGeometry()( 3 ), GetGeometry()( 4 ), GetGeometry()( 5 ) ) );
-            mThisIntegrationMethod = GeometryData::GI_GAUSS_2;
+            mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_2;
             mIsStabilised = false;
         }
 
@@ -168,7 +168,7 @@ UnsaturatedSoilsElement_2phase_SmallStrain_Scale_WaterPressure::UnsaturatedSoils
             mpPressureGeometry = Geometry< Node<3> >::Pointer( new Hexahedra3D8 <Node<3> >(
                                      GetGeometry()( 0 ), GetGeometry()( 1 ), GetGeometry()( 2 ), GetGeometry()( 3 ),
                                      GetGeometry()( 4 ), GetGeometry()( 5 ), GetGeometry()( 6 ), GetGeometry()( 7 ) ) );
-            mThisIntegrationMethod = GeometryData::GI_GAUSS_2; //remarks: GI_GAUSS_2 gives better result than GI_GAUSS_3 for tunnel problem
+            mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_2; //remarks: GI_GAUSS_2 gives better result than GI_GAUSS_3 for tunnel problem
             mIsStabilised = true;
         }
 
@@ -180,7 +180,7 @@ UnsaturatedSoilsElement_2phase_SmallStrain_Scale_WaterPressure::UnsaturatedSoils
             mNodesDispMax = 4;
             mpPressureGeometry = Geometry< Node<3> >::Pointer( new Tetrahedra3D4 <Node<3> >(
                                      GetGeometry()( 0 ), GetGeometry()( 1 ), GetGeometry()( 2 ), GetGeometry()( 3 ) ) );
-            mThisIntegrationMethod = GeometryData::GI_GAUSS_1;
+            mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_1;
             mIsStabilised = true;
         }
     }
@@ -230,23 +230,23 @@ void UnsaturatedSoilsElement_2phase_SmallStrain_Scale_WaterPressure::Initialize(
     {
         if(GetProperties()[INTEGRATION_ORDER] == 1)
         {
-            mThisIntegrationMethod = GeometryData::GI_GAUSS_1;
+            mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_1;
         }
         else if(GetProperties()[INTEGRATION_ORDER] == 2)
         {
-            mThisIntegrationMethod = GeometryData::GI_GAUSS_2;
+            mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_2;
         }
         else if(GetProperties()[INTEGRATION_ORDER] == 3)
         {
-            mThisIntegrationMethod = GeometryData::GI_GAUSS_3;
+            mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_3;
         }
         else if(GetProperties()[INTEGRATION_ORDER] == 4)
         {
-            mThisIntegrationMethod = GeometryData::GI_GAUSS_4;
+            mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_4;
         }
         else if(GetProperties()[INTEGRATION_ORDER] == 5)
         {
-            mThisIntegrationMethod = GeometryData::GI_GAUSS_5;
+            mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_5;
         }
         else
             KRATOS_THROW_ERROR(std::logic_error, "Does not support for more integration points", *this)

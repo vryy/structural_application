@@ -99,49 +99,49 @@ public:
     Condition::Pointer Create(
         IndexType NewId,
         NodesArrayType const& ThisNodes,
-        PropertiesType::Pointer pProperties ) const;
+        PropertiesType::Pointer pProperties ) const override;
 
     Condition::Pointer Create(
         IndexType NewId,
         GeometryType::Pointer pGeom,
-        PropertiesType::Pointer pProperties ) const;
+        PropertiesType::Pointer pProperties ) const override;
 
     void EquationIdVector(
         EquationIdVectorType& rResult,
-        const ProcessInfo& rCurrentProcessInfo ) const;
+        const ProcessInfo& rCurrentProcessInfo ) const override;
 
     void GetDofList(
         DofsVectorType& ElementalDofList,
-        const ProcessInfo& rCurrentProcessInfo ) const;
+        const ProcessInfo& rCurrentProcessInfo ) const override;
 
     void CalculateRightHandSide(
         VectorType& rRightHandSideVector,
-        const ProcessInfo& rCurrentProcessInfo );
+        const ProcessInfo& rCurrentProcessInfo ) override;
 
     void CalculateLocalSystem(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        const ProcessInfo& rCurrentProcessInfo );
+        const ProcessInfo& rCurrentProcessInfo ) override;
 
     void CalculateMassMatrix(
         MatrixType& rMassMatrix,
-        const ProcessInfo& rCurrentProcessInfo );
+        const ProcessInfo& rCurrentProcessInfo ) override;
 
     void CalculateDampingMatrix(
         MatrixType& rDampingMatrix,
-        const ProcessInfo& rCurrentProcessInfo );
+        const ProcessInfo& rCurrentProcessInfo ) override;
 
     void GetValuesVector(
         Vector& values,
-        int Step = 0 ) const;
+        int Step = 0 ) const override;
 
     void GetFirstDerivativesVector(
         Vector& values,
-        int Step = 0 ) const;
+        int Step = 0 ) const override;
 
     void GetSecondDerivativesVector(
         Vector& values,
-        int Step = 0 ) const;
+        int Step = 0 ) const override;
 
     /**
      * This function provides the place to perform checks on the completeness of the input.
@@ -150,7 +150,7 @@ public:
      * or that no common error is found.
      * @param rCurrentProcessInfo
      */
-    int Check( const ProcessInfo& rCurrentProcessInfo ) const;
+    int Check( const ProcessInfo& rCurrentProcessInfo ) const override;
 
 
 protected:
@@ -214,12 +214,12 @@ private:
 
     friend class Serializer;
 
-    virtual void save( Serializer& rSerializer ) const
+    void save( Serializer& rSerializer ) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, Condition );
     }
 
-    virtual void load( Serializer& rSerializer )
+    void load( Serializer& rSerializer ) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Condition );
     }

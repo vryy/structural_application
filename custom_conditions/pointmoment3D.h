@@ -81,18 +81,18 @@ public:
     ///@name Operations
     ///@{
 
-    Condition::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const;
+    Condition::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const override;
 
-    Condition::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom,  PropertiesType::Pointer pProperties) const;
+    Condition::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom,  PropertiesType::Pointer pProperties) const override;
 
-    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo);
+    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
 
-    void CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo);
+    void CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
     //virtual void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo);
 
-    void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const;
+    void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const override;
 
-    void GetDofList(DofsVectorType& ConditionalDofList, const ProcessInfo& CurrentProcessInfo) const;
+    void GetDofList(DofsVectorType& ConditionalDofList, const ProcessInfo& CurrentProcessInfo) const override;
 
     ///@}
     ///@name Access
@@ -109,19 +109,19 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    std::string Info() const final
+    std::string Info() const  override
     {
         return "PointMoment";
     }
 
     /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const final
+    void PrintInfo(std::ostream& rOStream) const  override
     {
         rOStream << "PointMoment3D #" << Id();
     }
 
     /// Print object's data.
-    void PrintData(std::ostream& rOStream) const final
+    void PrintData(std::ostream& rOStream) const  override
     {
         Condition::PrintData(rOStream);
     }
@@ -184,12 +184,12 @@ private:
     // A private default constructor necessary for serialization
     PointMoment3D() {};
 
-    virtual void save(Serializer& rSerializer) const
+    void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Condition );
     }
 
-    virtual void load(Serializer& rSerializer)
+    void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Condition );
     }

@@ -132,7 +132,7 @@ public:
     ///@}
     ///@name Operations
     ///@{
-    IntegrationMethod GetIntegrationMethod() const;
+    IntegrationMethod GetIntegrationMethod() const override;
 
     Element::Pointer Create( IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties ) const override;
 
@@ -237,11 +237,7 @@ public:
     {
         Element::PrintData(rOStream);
         rOStream << "mConstitutiveLawVector::size = " << mConstitutiveLawVector.size() << std::endl;
-        #ifdef SD_APP_FORWARD_COMPATIBILITY
         rOStream << "IntegrationMethod: " << static_cast<std::underlying_type<IntegrationMethod>::type>(mThisIntegrationMethod);
-        #else
-        rOStream << "IntegrationMethod: " << mThisIntegrationMethod;
-        #endif
     }
 
     ///@}

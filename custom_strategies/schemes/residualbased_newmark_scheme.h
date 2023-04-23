@@ -89,31 +89,9 @@ namespace Kratos
 /*@} */
 /**@name Kratos Classes */
 /*@{ */
-/** Short class definition.
-
-This class provides the implementation of the basic tasks that are needed by the solution strategy.
-It is intended to be the place for tailoring the solution strategies to problem specific tasks.
-
-Detail class definition.
-
-\URL[Example of use html]{ extended_documentation/no_ex_of_use.html}
-
-\URL[Example of use pdf]{ extended_documentation/no_ex_of_use.pdf}
-
-\URL[Example of use doc]{ extended_documentation/no_ex_of_use.doc}
-
-\URL[Example of use ps]{ extended_documentation/no_ex_of_use.ps}
-
-
-\URL[Extended documentation html]{ extended_documentation/no_ext_doc.html}
-
-\URL[Extended documentation pdf]{ extended_documentation/no_ext_doc.pdf}
-
-\URL[Extended documentation doc]{ extended_documentation/no_ext_doc.doc}
-
-\URL[Extended documentation ps]{ extended_documentation/no_ext_doc.ps}*/
-
-template<class TSparseSpace,  class TDenseSpace >
+/** Implementation of Time Integration scheme based on Generalized-Alpha Method
+ * */
+template<class TSparseSpace,  class TDenseSpace>
 class ResidualBasedNewmarkScheme: public Scheme<TSparseSpace,TDenseSpace>
 {
 public:

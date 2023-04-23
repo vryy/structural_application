@@ -366,7 +366,9 @@ KratosStructuralApplication::KratosStructuralApplication()
 void KratosStructuralApplication::Register()
 {
     // calling base class register to register Kratos components
+    #ifndef SD_APP_FORWARD_COMPATIBILITY
     KratosApplication::Register();
+    #endif
     std::cout << "Initializing KratosStructuralApplication... " << std::endl;
 
     KRATOS_REGISTER_VARIABLE( DAMAGE_E0 )

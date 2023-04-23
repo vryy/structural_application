@@ -53,38 +53,38 @@ public:
      * Operations.
      */
 
-    virtual Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,
-                            PropertiesType::Pointer pProperties) const;
+    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,
+                            PropertiesType::Pointer pProperties) const override;
 
-    virtual Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom,
-                            PropertiesType::Pointer pProperties) const;
+    Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom,
+                            PropertiesType::Pointer pProperties) const override;
 
-    void Initialize(const ProcessInfo& rCurrentProcessInfo);
+    void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateLocalSystem( MatrixType& rLeftHandSideMatrix,
                                VectorType& rRightHandSideVector,
-                               const ProcessInfo& rCurrentProcessInfo);
+                               const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateMassMatrix( MatrixType& rMassMatrix,
-                              const ProcessInfo& rCurrentProcessInfo);
+                              const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateDampingMatrix( MatrixType& rDampMatrix,
-                                 const ProcessInfo& rCurrentProcessInfo);
+                                 const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateRightHandSide( VectorType& rRightHandSideVector,
-                                 const ProcessInfo& rCurrentProcessInfo);
+                                 const ProcessInfo& rCurrentProcessInfo) override;
 
     void EquationIdVector( EquationIdVectorType& rResult,
-                           const ProcessInfo& rCurrentProcessInfo) const;
+                           const ProcessInfo& rCurrentProcessInfo) const override;
 
     void GetDofList( DofsVectorType& ElementalDofList,
-                     const ProcessInfo& CurrentProcessInfo) const;
+                     const ProcessInfo& CurrentProcessInfo) const override;
 
-    void CalculateOnIntegrationPoints( const Variable<Vector>& rVariable, std::vector<Vector>& Output, const ProcessInfo& rCurrentProcessInfo );
+    void CalculateOnIntegrationPoints( const Variable<Vector>& rVariable, std::vector<Vector>& Output, const ProcessInfo& rCurrentProcessInfo ) override;
 
-    void CalculateOnIntegrationPoints( const Variable<array_1d<double, 3> >& rVariable, std::vector<array_1d<double, 3> >& Output, const ProcessInfo& rCurrentProcessInfo );
+    void CalculateOnIntegrationPoints( const Variable<array_1d<double, 3> >& rVariable, std::vector<array_1d<double, 3> >& Output, const ProcessInfo& rCurrentProcessInfo ) override;
 
-    int Check(const ProcessInfo& rCurrentProcessInfo) const;
+    int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
     /**
      * Turn back information as a string.
@@ -116,12 +116,12 @@ private:
 
     friend class Serializer;
 
-    virtual void save ( Serializer& rSerializer ) const
+    void save ( Serializer& rSerializer ) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS ( rSerializer, Element )
     }
 
-    virtual void load ( Serializer& rSerializer )
+    void load ( Serializer& rSerializer ) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS ( rSerializer, Element )
     }

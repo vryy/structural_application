@@ -89,7 +89,7 @@ Overview of the interpolation:
     ud = (u_(n+1) - u_n) / dt
     udd = (u_(n+1) - u_n)/dt^2 - ud_n/dt
  */
-template<class TSparseSpace,  class TDenseSpace >
+template<class TSparseSpace,  class TDenseSpace>
 class ResidualBasedThetaScheme: public Scheme<TSparseSpace,TDenseSpace>
 {
 public:

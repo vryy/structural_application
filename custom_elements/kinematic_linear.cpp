@@ -2205,12 +2205,14 @@ namespace Kratos
         }
 
         // verify the strain measure
-        auto strain_mearure = this->GetProperties().GetValue( CONSTITUTIVE_LAW )->GetStrainMeasure();
-        if ( strain_mearure != ConstitutiveLaw::StrainMeasure_Infinitesimal
-          && strain_mearure != ConstitutiveLaw::StrainMeasure_GreenLagrange )
+        ConstitutiveLaw::Features features;
+        this->GetProperties().GetValue( CONSTITUTIVE_LAW )->GetLawFeatures(features);
+        if ( std::find(features.GetStrainMeasures().begin(), features.GetStrainMeasures().end(), ConstitutiveLaw::StrainMeasure_Infinitesimal) == features.GetStrainMeasures().end()
+          // && std::find(features.GetStrainMeasures().begin(), features.GetStrainMeasures().end(), ConstitutiveLaw::StrainMeasure_GreenLagrange) == features.GetStrainMeasures().end()
+           )
         {
             std::stringstream ss;
-            ss << "The strain measure " << strain_mearure << " is not supported by this element";
+            ss << "The constitutive law strain measures are not supported by this element";
             KRATOS_THROW_ERROR( std::logic_error, ss.str(), "" )
         }
 

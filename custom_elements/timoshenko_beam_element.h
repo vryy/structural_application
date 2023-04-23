@@ -133,20 +133,20 @@ public:
     ///@name Operations
     ///@{
 
-    virtual Element::Pointer Create( IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties ) const;
+    Element::Pointer Create( IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties ) const override;
 
-    virtual Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,
-                           PropertiesType::Pointer pProperties) const;
+    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,
+                           PropertiesType::Pointer pProperties) const override;
 
-    void Initialize(const ProcessInfo& rCurrentProcessInfo);
+    void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
-    virtual void InitializeSolutionStep(const ProcessInfo& CurrentProcessInfo);
+    void InitializeSolutionStep(const ProcessInfo& CurrentProcessInfo) override;
 
-    virtual void FinalizeSolutionStep(const ProcessInfo& CurrentProcessInfo);
+    void FinalizeSolutionStep(const ProcessInfo& CurrentProcessInfo) override;
 
-    virtual void GetDofList(DofsVectorType& ElementalDofList, const ProcessInfo& CurrntProcessInfo) const;
+    void GetDofList(DofsVectorType& ElementalDofList, const ProcessInfo& CurrntProcessInfo) const override;
 
-    virtual void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const;
+    void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const override;
 
     void CalculateExternalLoadVector(Matrix& Rotation,  Vector& LocalBody, Vector& GlobalBody);
 
@@ -154,9 +154,9 @@ public:
 
     void CalculateLocalMatrix(Matrix& LocalMatrix);
 
-    virtual void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo);
+    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
 
-    virtual int Check(const ProcessInfo& rCurrentProcessInfo) const;
+    int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
     ///@}
     ///@name Access
@@ -176,10 +176,10 @@ public:
 //      virtual String Info() const;
 
     /// Print information about this object.
-      virtual void PrintInfo(std::ostream& rOStream) const
-      {
-          rOStream << "TimoshenkoBeamElement #" << Id();
-      }
+    void PrintInfo(std::ostream& rOStream) const override
+    {
+        rOStream << "TimoshenkoBeamElement #" << Id();
+    }
 
     /// Print object's data.
 //      virtual void PrintData(std::ostream& rOStream) const;
@@ -219,12 +219,12 @@ protected:
 
     friend class Serializer;
 
-    virtual void save( Serializer& rSerializer ) const
+    void save( Serializer& rSerializer ) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer,  Element );
     }
 
-    virtual void load( Serializer& rSerializer )
+    void load( Serializer& rSerializer ) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer,  Element );
     }
