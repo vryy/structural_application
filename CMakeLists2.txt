@@ -131,8 +131,10 @@ set( KRATOS_STRUCTURAL_APPLICATION_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/nitsche_isotropic_constraint.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/foundation_condition.cpp
 
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/structural_application_variables2.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/eig/eig3.cpp
+
     ${CMAKE_CURRENT_SOURCE_DIR}/structural_application.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/structural_application_variables2.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_elements_to_python.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_conditions_to_python.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_strategies_to_python.cpp

@@ -47,6 +47,8 @@ set(KRATOS_STRUCTURAL_APPLICATION_CORE
     ${CMAKE_CURRENT_SOURCE_DIR}/constitutive_laws/plane_strain.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/constitutive_laws/plane_stress.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/constitutive_laws/isotropic_3d.cpp
+
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/eig/eig3.cpp
 )
 
 ## Structural testing sources
