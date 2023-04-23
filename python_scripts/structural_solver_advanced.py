@@ -9,6 +9,9 @@ import sys
 
 import structural_solver_static
 
+def AddVariable(model_part, variable_name):
+    model_part.AddNodalSolutionStepVariable(variable_name)
+
 def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
     model_part.AddNodalSolutionStepVariable(ELASTIC_BEDDING_STIFFNESS)
@@ -149,6 +152,8 @@ class SolverAdvanced(structural_solver_static.StaticStructuralSolver):
                 analysis_parameters['builder_and_solver_type'] = "residual-based elimination deactivation"
             if 'convergence_criteria' not in analysis_parameters:
                 analysis_parameters['convergence_criteria'] = "multiphase"
+            if 'use_lumped_mass' not in analysis_parameters:
+                analysis_parameters['use_lumped_mass'] = False
             return analysis_parameters
         elif( type( analysis_parameters ) == list ):
             new_analysis_parameters = {}
@@ -184,51 +189,80 @@ class SolverAdvanced(structural_solver_static.StaticStructuralSolver):
 
     #######################################################################
     def Initialize(self):
-        #definition of time integration scheme
-        if( self.analysis_parameters['analysis_type'] == 0 ):
-            print("using static scheme")
-            # self.time_scheme = ResidualBasedIncrementalUpdateStaticScheme()
-            self.time_scheme = ResidualBasedIncrementalUpdateStaticDeactivationScheme()
-            #self.time_scheme = ParallelResidualBasedIncrementalUpdateStaticScheme()
-            self.MoveMeshFlag = True
-        elif( self.analysis_parameters['analysis_type'] == 1 ):
-            print("using newmark quasi-static scheme, dissipation_radius=" + str(self.dissipation_radius))
-            self.model_part.ProcessInfo.SetValue( QUASI_STATIC_ANALYSIS, True )
-            if(self.dissipation_radius >= 0.0 and self.dissipation_radius <= 1.0): # generalized Newmark-alpha
-                self.time_scheme = ResidualBasedNewmarkScheme(self.dissipation_radius)
-            elif(self.dissipation_radius >= 2.0 and self.dissipation_radius <= 3.0): # Bossak-alpha
-                self.time_scheme = ResidualBasedNewmarkScheme(2, self.dissipation_radius-2.0)
-            elif(self.dissipation_radius >= 4.0 and self.dissipation_radius <= 5.0): # Hilber-alpha
-                self.time_scheme = ResidualBasedNewmarkScheme(3, self.dissipation_radius-4.0)
+        if 'solution_strategy' not in self.analysis_parameters:
+            self.analysis_parameters['solution_strategy'] = "implicit_Newton_Raphson"
+
+        if self.analysis_parameters['solution_strategy'] == "implicit_Newton_Raphson":
+            #definition of time integration scheme
+            if( self.analysis_parameters['analysis_type'] == 0 ):
+                print("using static scheme")
+                # self.time_scheme = ResidualBasedIncrementalUpdateStaticScheme()
+                self.time_scheme = ResidualBasedIncrementalUpdateStaticDeactivationScheme()
+                #self.time_scheme = ParallelResidualBasedIncrementalUpdateStaticScheme()
+                self.MoveMeshFlag = True
+            elif( self.analysis_parameters['analysis_type'] == 1 ):
+                print("using newmark quasi-static scheme, dissipation_radius=" + str(self.dissipation_radius))
+                self.model_part.ProcessInfo.SetValue( QUASI_STATIC_ANALYSIS, True )
+                if(self.dissipation_radius >= 0.0 and self.dissipation_radius <= 1.0): # generalized Newmark-alpha
+                    self.time_scheme = ResidualBasedNewmarkScheme(self.dissipation_radius)
+                elif(self.dissipation_radius >= 2.0 and self.dissipation_radius <= 3.0): # Bossak-alpha
+                    self.time_scheme = ResidualBasedNewmarkScheme(2, self.dissipation_radius-2.0)
+                elif(self.dissipation_radius >= 4.0 and self.dissipation_radius <= 5.0): # Hilber-alpha
+                    self.time_scheme = ResidualBasedNewmarkScheme(3, self.dissipation_radius-4.0)
+                else:
+                    self.time_scheme = ResidualBasedNewmarkScheme() # pure Newmarkscheme
+                self.MoveMeshFlag = True
+            elif( self.analysis_parameters['analysis_type'] == 2 ):
+                print("using newmark dynamic scheme, dissipation_radius=" + str(self.dissipation_radius))
+                self.model_part.ProcessInfo.SetValue( QUASI_STATIC_ANALYSIS, False )
+                if(self.dissipation_radius >= 0.0 and self.dissipation_radius <= 1.0): # generalized Newmark-alpha
+                    self.time_scheme = ResidualBasedNewmarkScheme(self.dissipation_radius)
+                elif(self.dissipation_radius >= 2.0 and self.dissipation_radius <= 3.0): # Bossak-alpha
+                    self.time_scheme = ResidualBasedNewmarkScheme(2, self.dissipation_radius-2.0)
+                elif(self.dissipation_radius >= 4.0 and self.dissipation_radius <= 5.0): # Hilber-alpha
+                    self.time_scheme = ResidualBasedNewmarkScheme(3, self.dissipation_radius-4.0)
+                else:
+                    self.time_scheme = ResidualBasedNewmarkScheme() # pure Newmarkscheme
+                #self.time_scheme.Check(self.model_part)
+            elif( self.analysis_parameters['analysis_type'] == 3 ):
+                self.model_part.ProcessInfo.SetValue( QUASI_STATIC_ANALYSIS, True )
+                print("using theta quasi-static scheme, theta=" + str(self.dissipation_radius))
+                self.time_scheme = ResidualBasedThetaScheme(self.dissipation_radius)
+            elif( self.analysis_parameters['analysis_type'] == 4 ):
+                self.model_part.ProcessInfo.SetValue( QUASI_STATIC_ANALYSIS, False )
+                print("using theta dynamics scheme, theta=" + str(self.dissipation_radius))
+                self.time_scheme = ResidualBasedThetaScheme(self.dissipation_radius)
             else:
-                self.time_scheme = ResidualBasedNewmarkScheme() # pure Newmarkscheme
-            self.MoveMeshFlag = True
-        elif( self.analysis_parameters['analysis_type'] == 2 ):
-            print("using newmark dynamic scheme, dissipation_radius=" + str(self.dissipation_radius))
-            self.model_part.ProcessInfo.SetValue( QUASI_STATIC_ANALYSIS, False )
-            if(self.dissipation_radius >= 0.0 and self.dissipation_radius <= 1.0): # generalized Newmark-alpha
-                self.time_scheme = ResidualBasedNewmarkScheme(self.dissipation_radius)
-            elif(self.dissipation_radius >= 2.0 and self.dissipation_radius <= 3.0): # Bossak-alpha
-                self.time_scheme = ResidualBasedNewmarkScheme(2, self.dissipation_radius-2.0)
-            elif(self.dissipation_radius >= 4.0 and self.dissipation_radius <= 5.0): # Hilber-alpha
-                self.time_scheme = ResidualBasedNewmarkScheme(3, self.dissipation_radius-4.0)
+                print("analysis type is not defined! Define in analysis_parameters['analysis_type']:")
+                print("   'using static scheme': static analysis")
+                print("   'using newmark quasi-static scheme': quasi-static analysis")
+                print("   'using newmark dynamic scheme': dynamic analysis")
+                sys.exit(0)
+        elif self.analysis_parameters['solution_strategy'] == "explicit":
+            if( self.analysis_parameters['analysis_type'] == 0 ):
+                print("using static scheme")
+                # self.time_scheme = ResidualBasedIncrementalUpdateStaticScheme()
+                self.time_scheme = ResidualBasedIncrementalUpdateStaticDeactivationScheme()
+                #self.time_scheme = ParallelResidualBasedIncrementalUpdateStaticScheme()
+                self.MoveMeshFlag = True
+            elif( self.analysis_parameters['analysis_type'] == 1 ):
+                print("using acceleration-based forward Euler scheme")
+                self.time_scheme = ResidualBasedAccBasedForwardEulerScheme(self.analysis_parameters['use_lumped_mass'])
+                self.MoveMeshFlag = True
+            elif( self.analysis_parameters['analysis_type'] == 2 ):
+                print("using central difference scheme")
+                self.time_scheme = ResidualBasedCentralDifferenceScheme()
+                self.MoveMeshFlag = True
+            elif( self.analysis_parameters['analysis_type'] == 3 ):
+                print("using acceleration-based central difference scheme")
+                self.time_scheme = ResidualBasedAccBasedCentralDifferenceScheme(self.analysis_parameters['use_lumped_mass'])
+                self.MoveMeshFlag = True
             else:
-                self.time_scheme = ResidualBasedNewmarkScheme() # pure Newmarkscheme
-            #self.time_scheme.Check(self.model_part)
-        elif( self.analysis_parameters['analysis_type'] == 3 ):
-            self.model_part.ProcessInfo.SetValue( QUASI_STATIC_ANALYSIS, True )
-            print("using theta quasi-static scheme, theta=" + str(self.dissipation_radius))
-            self.time_scheme = ResidualBasedThetaScheme(self.dissipation_radius)
-        elif( self.analysis_parameters['analysis_type'] == 4 ):
-            self.model_part.ProcessInfo.SetValue( QUASI_STATIC_ANALYSIS, False )
-            print("using theta dynamics scheme, theta=" + str(self.dissipation_radius))
-            self.time_scheme = ResidualBasedThetaScheme(self.dissipation_radius)
+                print("analysis type is not defined or unknown! Define in analysis_parameters['analysis_type']:")
+                sys.exit(0)
         else:
-            print("analysis type is not defined! Define in analysis_parameters['analysis_type']:")
-            print("   'using static scheme': static analysis")
-            print("   'using newmark quasi-static scheme': quasi-static analysis")
-            print("   'using newmark dynamic scheme': dynamic analysis")
-            sys.exit(0)
+            self.time_scheme = ResidualBasedIncrementalUpdateStaticDeactivationScheme()
+
         #definition of the convergence criteria
         if(self.analysis_parameters['convergence_criteria'] == "multiphase"):
             self.conv_criteria = MultiPhaseFlowCriteria(self.toll,self.absolute_tol)
@@ -238,6 +272,8 @@ class SolverAdvanced(structural_solver_static.StaticStructuralSolver):
         #self.conv_criteria = ResidualBasedMultiPhaseCriteria(self.toll,self.absolute_tol)
         #self.conv_criteria = ResidualCriteria(1.0e-9,1.0e-9)
 #        self.conv_criteria = DisplacementCriteria(self.toll,self.absolute_tol)
+
+        # builder and solver
         if(self.analysis_parameters['decouple_build_and_solve'] == False):
             if(self.analysis_parameters['builder_and_solver_type'] == "residual-based elimination deactivation"):
                 builder_and_solver = ResidualBasedEliminationBuilderAndSolverDeactivation(self.structure_linear_solver)

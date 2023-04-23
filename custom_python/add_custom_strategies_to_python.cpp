@@ -97,6 +97,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_strategies/schemes/residualbased_newmark_scheme.h"
 #include "custom_strategies/schemes/residualbased_theta_scheme.h"
 #include "custom_strategies/schemes/residualbased_state_based_theta_scheme.h"
+#include "custom_strategies/schemes/residualbased_central_difference_scheme.h"
+#include "custom_strategies/schemes/residualbased_acc_based_forward_euler_scheme.h"
+#include "custom_strategies/schemes/residualbased_acc_based_central_difference_scheme.h"
 #include "custom_strategies/schemes/composit_scheme.h"
 #include "custom_strategies/schemes/volumetric_scheme.h"
 #include "custom_strategies/schemes/inner_volumetric_scheme.h"
@@ -165,6 +168,9 @@ void  AddCustomStrategiesToPython()
     typedef ResidualBasedNewmarkScheme< SparseSpaceType, LocalSpaceType > ResidualBasedNewmarkSchemeType;
     typedef ResidualBasedThetaScheme< SparseSpaceType, LocalSpaceType > ResidualBasedThetaSchemeType;
     typedef ResidualBasedStateBasedThetaScheme< SparseSpaceType, LocalSpaceType > ResidualBasedStateBasedThetaSchemeType;
+    typedef ResidualBasedCentralDifferenceScheme< SparseSpaceType, LocalSpaceType > ResidualBasedCentralDifferenceSchemeType;
+    typedef ResidualBasedAccBasedForwardEulerScheme< SparseSpaceType, LocalSpaceType > ResidualBasedAccBasedForwardEulerSchemeType;
+    typedef ResidualBasedAccBasedCentralDifferenceScheme< SparseSpaceType, LocalSpaceType > ResidualBasedAccBasedCentralDifferenceSchemeType;
 
 //             typedef TestingScheme< SparseSpaceType, LocalSpaceType >
 //                     TestingSchemeType;
@@ -276,6 +282,29 @@ void  AddCustomStrategiesToPython()
             .def("SetIntegrateMultiplier", &ResidualBasedStateBasedThetaSchemeType::SetIntegrateMultiplier)
             .def("SetIntegrateLoad", &ResidualBasedStateBasedThetaSchemeType::SetIntegrateLoad)
             .def("UpdateForces", &ResidualBasedStateBasedThetaSchemeType::UpdateForces)
+            ;
+
+    class_< ResidualBasedCentralDifferenceSchemeType,
+            bases< BaseSchemeType >, boost::noncopyable >
+            (
+                "ResidualBasedCentralDifferenceScheme", init<>()
+            )
+            ;
+
+    class_< ResidualBasedAccBasedForwardEulerSchemeType,
+            bases< BaseSchemeType >, boost::noncopyable >
+            (
+                "ResidualBasedAccBasedForwardEulerScheme", init<>()
+            )
+            .def(init<const bool>())
+            ;
+
+    class_< ResidualBasedAccBasedCentralDifferenceSchemeType,
+            bases< BaseSchemeType >, boost::noncopyable >
+            (
+                "ResidualBasedAccBasedCentralDifferenceScheme", init<>()
+            )
+            .def(init<const bool>())
             ;
 
     AddArcLengthDisplacementControlSupportScheme<ResidualBasedIncrementalUpdateStaticDeactivationSchemeType>("ResidualBasedIncrementalUpdateStaticDeactivationScheme");
