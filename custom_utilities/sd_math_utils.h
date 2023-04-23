@@ -78,6 +78,8 @@ public:
 
     typedef matrix<Second_Order_Tensor> Matrix_Second_Tensor; // Acumulo un tensor de 2 orden en una matriz.
 
+    typedef double (*unitary_func_t)(double);
+
     #ifdef SD_APP_FORWARD_COMPATIBILITY
     typedef Point PointType;
     #else
@@ -1035,6 +1037,26 @@ public:
             StressVector[3] = StressTensor(0, 1);
             StressVector[4] = StressTensor(1, 2);
             StressVector[5] = StressTensor(0, 2);
+        }
+    }
+
+    template<typename TVectorType, typename TMatrixType>
+    static inline void AddStressTensorToVector(const double& c, const TMatrixType& StressTensor, TVectorType& StressVector)
+    {
+        if(StressVector.size() == 3)
+        {
+            StressVector[0] += c*StressTensor(0, 0);
+            StressVector[1] += c*StressTensor(1, 1);
+            StressVector[2] += c*StressTensor(0, 1);
+        }
+        else if(StressVector.size() == 6)
+        {
+            StressVector[0] += c*StressTensor(0, 0);
+            StressVector[1] += c*StressTensor(1, 1);
+            StressVector[2] += c*StressTensor(2, 2);
+            StressVector[3] += c*StressTensor(0, 1);
+            StressVector[4] += c*StressTensor(1, 2);
+            StressVector[5] += c*StressTensor(0, 2);
         }
     }
 
@@ -2027,6 +2049,27 @@ public:
         return res;
     }
 
+    // perform the Fortran vector product, i.e. element-by-element product (C[i] = A[i]*B[i])
+    template<typename TVectorType1, typename TVectorType2>
+    static TVectorType1 vec_fortran_prod(const TVectorType1& A, const TVectorType2& B)
+    {
+        TVectorType1 C = A;
+        for (std::size_t i = 0; i < A.size(); ++i)
+            C[i] *= B[i];
+        return C;
+    }
+
+    // perform the Fortran matrix product, i.e. element-by-element product (C[i] = A[i]*B[i])
+    template<typename TMatrixType1, typename TMatrixType2>
+    static TMatrixType1 mat_fortran_prod(const TMatrixType1& A, const TMatrixType2& B)
+    {
+        TMatrixType1 C = A;
+        for (std::size_t i = 0; i < A.size1(); ++i)
+            for (std::size_t j = 0; j < A.size2(); ++j)
+                C(i, j) *= B(i, j);
+        return C;
+    }
+
     template<typename TMatrixType>
     static inline double Trace(const TMatrixType& A)
     {
@@ -2036,13 +2079,157 @@ public:
         return tr;
     }
 
-    static inline void ComputeDerivativeIsochoricTensorFunction(
+    /*
+    * Compute the isotropic function of the type
+    *       Y(X) = sum{ y(x_i) E_i }
+    * WHERE Y AND X ARE SYMMETRIC TENSORS, x_i AND E_i ARE, RESPECTIVELY
+    * THE EIGENVALUES AND EIGENPROJECTIONS OF X, AND y(.) IS A SCALAR
+    * FUNCTION.
+    * X must be 3 x 3 matrix
+    * Y will be resized accordingly
+    * e must be sorted
+    * Rererence: Section A.5.2, Computational Plasticity, de Souza Neto.
+    */
+    template<typename TMatrixType>
+    static void ComputeIsotropicTensorFunction(
+        unitary_func_t func,
+        TMatrixType& Y,
+        const std::vector<double>& e,
+        const std::vector<Matrix>& eigprj,
+        const double& TOL = 1.0e-10
+    )
+    {
+        if ((Y.size1() != 3) || (Y.size2() != 3))
+            Y.resize(3, 3, false);
+
+        Y.clear();
+        if (fabs(e[0] - e[1]) > TOL && fabs(e[1] - e[2]) > TOL)
+        {
+            for (int d = 0; d < 3; ++d)
+                noalias(Y) += func(e[d]) * eigprj[d];
+        }
+        else
+        {
+            const Matrix eye = IdentityMatrix(3);
+
+            if (fabs(e[0] - e[1]) < TOL && fabs(e[1] - e[2]) < TOL)
+            {
+                noalias(Y) = func(e[0]) * eye;
+            }
+            else
+            {
+                if (fabs(e[0] - e[1]) < TOL)
+                {
+                    noalias(Y) = func(e[2]) * eigprj[2]
+                               + func(e[0]) * (eye - eigprj[0]);
+                }
+                else // (fabs(e[1] - e[2]) < TOL)
+                {
+                    noalias(Y) = func(e[0]) * eigprj[0]
+                               + func(e[2]) * (eye - eigprj[2]);
+                }
+            }
+        }
+    }
+
+    /*
+    * Compute the derivative of the isotropic function of the type
+    *       Y(X) = sum{ y(x_i) E_i }
+    * WHERE Y AND X ARE SYMMETRIC TENSORS, x_i AND E_i ARE, RESPECTIVELY
+    * THE EIGENVALUES AND EIGENPROJECTIONS OF X, AND y(.) IS A SCALAR
+    * FUNCTION.
+    * X must be 3 x 3 matrix
+    * e and eigprj are the principle values and eigenprojections of X
+    * dYdX will be resized accordingly
+    * Rererence: Section A.5.2, Computational Plasticity, de Souza Neto.
+    */
+    template<typename TMatrixType>
+    static void ComputeDerivativeIsotropicTensorFunction(
+        unitary_func_t func,
+        unitary_func_t dfunc,
+        Fourth_Order_Tensor& dYdX,
+        const TMatrixType& X,
+        const std::vector<double>& e,
+        const std::vector<TMatrixType>& eigprj,
+        const double& TOL = 1.0e-10
+    )
+    {
+        Fourth_Order_Tensor dX2dX;
+        CalculateFourthOrderZeroTensor(dX2dX);
+        TMatrixType I = IdentityMatrix(3);
+        for(int i = 0; i < 3; ++i)
+            for(int j = 0; j < 3; ++j)
+                for(int k = 0; k < 3; ++k)
+                    for(int l = 0; l < 3; ++l)
+                        dX2dX[i][j](k, l) = 0.5 * (I(i, k) * X(l, j)
+                                                 + I(i, l) * X(k, j)
+                                                 + X(i, k) * I(j, l)
+                                                 + X(i, l) * I(k, j));
+
+        Fourth_Order_Tensor Is;
+        CalculateFourthOrderSymmetricTensor(Is);
+
+        CalculateFourthOrderZeroTensor(dYdX);
+
+        if (fabs(e[0] - e[1]) > TOL && fabs(e[1] - e[2]) > TOL)
+        {
+            constexpr int a = 0, b = 1, c = 2;
+
+            double aux1 = func(e[a]) / ((e[a] - e[b]) * (e[a] - e[c]));
+            double aux2 = -aux1 * (e[b] + e[c]);
+            double aux3 = -aux1 * (e[a] - e[b] + e[a] - e[c]);
+            double aux4 = -aux1 * (e[b] - e[c]);
+
+            AddFourthOrderTensor(aux1, dX2dX, dYdX);
+            AddFourthOrderTensor(aux2, Is, dYdX);
+            OuterProductFourthOrderTensor(aux3, eigprj[a], eigprj[a], dYdX);
+            OuterProductFourthOrderTensor(aux4, eigprj[b], eigprj[b], dYdX);
+            OuterProductFourthOrderTensor(-aux4, eigprj[c], eigprj[c], dYdX);
+            OuterProductFourthOrderTensor(dfunc(e[a]), eigprj[a], eigprj[a], dYdX);
+        }
+        else
+        {
+            const Matrix eye = IdentityMatrix(3);
+                int a, c;
+
+                if (fabs(e[0] - e[1]) < TOL)
+                {
+                    a = 2;
+                    c = 0;
+                }
+                else // (fabs(e[1] - e[2]) < TOL)
+                {
+                    a = 0;
+                    c = 2;
+                }
+
+                const double s1 = (func(e[a]) - func(e[c])) / pow(e[a] - e[c], 2) - dfunc(e[c]) / (e[a] - e[c]);
+                const double s2 = 2.0 * e[c] * (func(e[a]) - func(e[c])) / pow(e[a] - e[c], 2) - dfunc(e[c]) * (e[a] + e[c]) / (e[a] - e[c]);
+                const double s3 = 2.0 * (func(e[a]) - func(e[c])) / pow(e[a] - e[c], 3) - (dfunc(e[a]) + dfunc(e[c])) / pow(e[a] - e[c], 2);
+                const double s4 = e[c] * s3;
+                const double s5 = s4;
+                const double s6 = e[c]*e[c] * s3;
+
+                AddFourthOrderTensor(s1, dX2dX, dYdX);
+                AddFourthOrderTensor(-s2, Is, dYdX);
+                OuterProductFourthOrderTensor(-s3, X, X, dYdX);
+                OuterProductFourthOrderTensor(s4, X, eye, dYdX);
+                OuterProductFourthOrderTensor(s5, eye, X, dYdX);
+                OuterProductFourthOrderTensor(-s6, eye, eye, dYdX);
+        }
+    }
+
+    /// Computation of the derivative of a general isotropic tensor function in three dimensions.
+    /// Ref: Box A.6, Computational Plasticity, de Souza Neto.
+    /// {ii, mm, jj} are the indices of the sorted pstress
+    static inline void ComputeDerivativeGeneralIsotropicTensorFunction(
         int ii, int mm, int jj,
         const std::vector<double>& pstress,
         const std::vector<double>& pstrain,
         const MatrixType& dpstrs,
         const std::vector<MatrixType>& E,
-        Fourth_Order_Tensor& Dep
+        Fourth_Order_Tensor& Dep,
+        const double& TOL = 1.0e-10
     )
     {
         MatrixType X = pstrain[0] * E[0] + pstrain[1] * E[1] + pstrain[2] * E[2];
@@ -2068,9 +2255,9 @@ public:
         Fourth_Order_Tensor Is;
         CalculateFourthOrderSymmetricTensor(Is);
         CalculateFourthOrderZeroTensor(Dep);
-        if( ( fabs(pstrain[ii] - pstrain[mm]) > 1.0e-10 )
-         && ( fabs(pstrain[mm] - pstrain[jj]) > 1.0e-10 )
-         && ( fabs(pstrain[ii] - pstrain[jj]) > 1.0e-10 ) )
+        if( ( fabs(pstrain[ii] - pstrain[mm]) > TOL )
+         && ( fabs(pstrain[mm] - pstrain[jj]) > TOL )
+         && ( fabs(pstrain[ii] - pstrain[jj]) > TOL ) )
         {
             #ifdef DEBUG_MOHR_COULOMB_WARNING_BOX_A6
             std::cout << "Box A.6 first case" << std::endl;
@@ -2108,11 +2295,11 @@ public:
         {
             int a, b, c;
             bool isSame = false;
-            if( ( fabs(pstrain[jj] - pstrain[mm]) < 1.0e-10 ) && ( fabs(pstrain[ii] - pstrain[jj]) > 1.0e-10 ))
+            if( ( fabs(pstrain[jj] - pstrain[mm]) < TOL ) && ( fabs(pstrain[ii] - pstrain[jj]) > TOL ))
             { a = ii; b = mm; c = jj; }
-            else if( ( fabs(pstrain[jj] - pstrain[ii]) < 1.0e-10 ) && ( fabs(pstrain[ii] - pstrain[mm]) > 1.0e-10 ))
+            else if( ( fabs(pstrain[jj] - pstrain[ii]) < TOL ) && ( fabs(pstrain[ii] - pstrain[mm]) > TOL ))
             { a = mm; b = ii; c = jj; }
-            else if( ( fabs(pstrain[ii] - pstrain[mm]) < 1.0e-10 ) && ( fabs(pstrain[jj] - pstrain[mm]) > 1.0e-10 ))
+            else if( ( fabs(pstrain[ii] - pstrain[mm]) < TOL ) && ( fabs(pstrain[jj] - pstrain[mm]) > TOL ))
             { a = jj; b = ii; c = mm; }
             else isSame = true;
 
