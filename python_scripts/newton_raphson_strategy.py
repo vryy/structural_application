@@ -399,7 +399,7 @@ class SolvingStrategyPython:
             proc.ExecuteFinalizeSolutionStep()
 
         if self.Parameters['calculate_strain_energy'] == True:
-            self.log_energy.write('%.6e\t%.6e\n' % (self.model_part.ProcessInfo[TIME], self.calculate_strain_energy_process.GetEnergy()))
+            self.log_energy.write('%.6e\t%.10e\n' % (self.model_part.ProcessInfo[TIME], self.calculate_strain_energy_process.GetEnergy()))
 
         self.log_residuum.write("----------------------------------------------------\n")
         self.log_residuum.flush()
@@ -489,7 +489,14 @@ class SolvingStrategyPython:
         g("set pm3d map")
         g("splot 'matrix.dat' matrix with dots")
 
+    #######################################################################
+    def GetStrainEnergy(self):
+        if self.Parameters['calculate_strain_energy'] == True:
+            return self.calculate_strain_energy_process.GetEnergy()
+        else:
+            return 0.0
 
+    #######################################################################
     def wait(self,str=None, prompt='Press return to show results...\n'):
         if str is not None:
             print(str)
