@@ -108,6 +108,8 @@ M*udd_{n+1} = r_ext - r_i(u_{n+1}) - D*ud_{n+1/2}     [2]
 The end-step velocity is updated as:
 
 ud_{n+1} = ud_{n+1/2} + 1/2 * dt * udd_{n+1}
+
+This scheme is second order accurate.
 */
 template<class TSparseSpace,  class TDenseSpace>
 class ResidualBasedAccBasedCentralDifferenceScheme: public Scheme<TSparseSpace,TDenseSpace>

@@ -105,7 +105,7 @@ M*udd_{n+1} = r_ext - r_i(u_{n+1}) - D*ud_{n+1}     [2]
 
 [2] can be solved trivially if M is lumped mass matrix.
 This scheme is also called modified Forward Euler scheme and is more accurate than the
-standard Forward Euler scheme. This scheme is first order accurate.
+standard Forward Euler scheme. This scheme is second order accurate.
 */
 template<class TSparseSpace,  class TDenseSpace>
 class ResidualBasedAccBasedForwardEulerScheme: public Scheme<TSparseSpace,TDenseSpace>
