@@ -1,10 +1,10 @@
-//    |  /           | 
-//    ' /   __| _` | __|  _ \   __| 
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ \.
-//   _|\_\_|  \__,_|\__|\___/ ____/ 
-//                   Multi-Physics  
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
@@ -148,6 +148,12 @@ namespace Kratos
 
     KRATOS_CREATE_VARIABLE( double, TEMPERATURE_DT )
     KRATOS_CREATE_VARIABLE( double, TEMPERATURE_DT_DT )
+    KRATOS_CREATE_VARIABLE( double, TEMPERATURE_NULL )
+    KRATOS_CREATE_VARIABLE( double, TEMPERATURE_NULL_DT )
+    KRATOS_CREATE_VARIABLE( double, TEMPERATURE_NULL_DT_DT )
+    KRATOS_CREATE_VARIABLE( double, TEMPERATURE_EINS )
+    KRATOS_CREATE_VARIABLE( double, TEMPERATURE_EINS_DT )
+    KRATOS_CREATE_VARIABLE( double, TEMPERATURE_EINS_DT_DT )
 //    KRATOS_CREATE_VARIABLE( double, TEMPERATURE_OLD_IT )
 //    KRATOS_CREATE_VARIABLE( double, EFFECTIVE_VISCOSITY )
 //    KRATOS_CREATE_VARIABLE( double, KINEMATIC_VISCOSITY)
@@ -168,7 +174,7 @@ namespace Kratos
     KRATOS_CREATE_VARIABLE( int, IS_SHAPE_FUNCTION_REQUIRED )
     KRATOS_CREATE_VARIABLE( int, RESET_CONFIGURATION )
 
-    KRATOS_CREATE_VARIABLE( Node<3>::Pointer, ASSOCIATED_NODE )
+    KRATOS_CREATE_VARIABLE( Node::Pointer, ASSOCIATED_NODE )
     KRATOS_CREATE_VARIABLE( Element::Pointer, ASSOCIATED_ELEMENT )
     KRATOS_CREATE_VARIABLE( Condition::Pointer, ASSOCIATED_CONDITION )
 
