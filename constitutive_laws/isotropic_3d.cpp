@@ -369,8 +369,10 @@ void Isotropic3D::CalculateMaterialResponse( const Vector& StrainVector,
     ConstitutiveLaw::Parameters const_params;
     Vector ThisStrainVector = StrainVector;
     const_params.SetStrainVector(ThisStrainVector);
-    const_params.SetStressVector(StressVector);
-    const_params.SetConstitutiveMatrix(AlgorithmicTangent);
+    if (CalculateStresses)
+        const_params.SetStressVector(StressVector);
+    if (CalculateTangent)
+        const_params.SetConstitutiveMatrix(AlgorithmicTangent);
 
     this->CalculateMaterialResponseCauchy(const_params);
 }
