@@ -1,7 +1,5 @@
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
-message("**** configuring KratosStructuralApplication ****")
-
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 
 ##include cotire (CMake module to hep generating precompiled header to speed-up the build process)

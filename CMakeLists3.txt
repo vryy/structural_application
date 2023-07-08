@@ -1,7 +1,5 @@
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
-message("**** CMakeLists3.txt: configuring KratosStructuralApplication ****")
-
 ################### PYBIND11
 include(pybind11Tools)
 
