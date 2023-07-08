@@ -244,6 +244,9 @@ public:
                 // (*it)->Initialize(); // conditions shall not be initialized here. They should be initialized by the nonlinear solver.
             }
         }
+
+        if(mEchoLevel > 0)
+            std::cout << "deactivation utility (multithreaded) initialized" << std::endl;
     }
 
     /**

@@ -3422,17 +3422,17 @@ public:
     {
         double newValue = 0.0;
 
-        Geometry<Node<3> >::Pointer pPressureGeometry;
+        GeometryType::Pointer pPressureGeometry;
 
         if(sourceElement.GetGeometry().size()==20 || sourceElement.GetGeometry().size()==27)
-            pPressureGeometry= Geometry<Node<3> >::Pointer(new Hexahedra3D8 <Node<3> >(
+            pPressureGeometry= GeometryType::Pointer(new Hexahedra3D8 <NodeType>(
                                    sourceElement.GetGeometry()(0),sourceElement.GetGeometry()(1),
                                    sourceElement.GetGeometry()(2),sourceElement.GetGeometry()(3),
                                    sourceElement.GetGeometry()(4),sourceElement.GetGeometry()(5),
                                    sourceElement.GetGeometry()(6),sourceElement.GetGeometry()(7)));
 
         if(sourceElement.GetGeometry().size()==10 )
-            pPressureGeometry= Geometry<Node<3> >::Pointer(new Tetrahedra3D4 <Node<3> >(
+            pPressureGeometry= GeometryType::Pointer(new Tetrahedra3D4 <NodeType>(
                                    sourceElement.GetGeometry()(0),sourceElement.GetGeometry()(1),
                                    sourceElement.GetGeometry()(2),sourceElement.GetGeometry()(3)));
 

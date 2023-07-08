@@ -87,7 +87,7 @@ namespace Kratos
             GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties )
         : Element( NewId, pGeometry, pProperties )
     {
-        mThisIntegrationMethod = GetGeometry().GetDefaultIntegrationMethod();//default method
+        mThisIntegrationMethod = GetGeometry().GetDefaultIntegrationMethod(); //default method
     }
 
     Element::Pointer KinematicLinear::Create( IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties ) const
