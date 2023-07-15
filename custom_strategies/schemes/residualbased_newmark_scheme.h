@@ -554,26 +554,27 @@ public:
                 it->InitializeNonLinearIteration(CurrentProcessInfo);
         }
 
+        const double Dt = CurrentProcessInfo[DELTA_TIME];
+
         //Update nodal values and nodal velocities at mAlpha_f
         for(ModelPart::NodeIterator i = r_model_part.NodesBegin() ; i != r_model_part.NodesEnd() ; i++)
         {
             if( i->HasDofFor(DISPLACEMENT_X) )
             {
                 i->GetSolutionStepValue(ACCELERATION_EINS_X)
-                = 1.0/(mBeta*CurrentProcessInfo[DELTA_TIME]
-                       *CurrentProcessInfo[DELTA_TIME])
+                = 1.0/(mBeta*Dt*Dt)
                   * (i->GetSolutionStepValue(DISPLACEMENT_EINS_X)
                      -i->GetSolutionStepValue(DISPLACEMENT_NULL_X))
-                  -1.0/(mBeta*CurrentProcessInfo[DELTA_TIME])
+                  -1.0/(mBeta*Dt)
                   *i->GetSolutionStepValue(DISPLACEMENT_NULL_DT_X)
                   -(1.0-2.0*mBeta)/(2.0*mBeta)*i->GetSolutionStepValue(ACCELERATION_NULL_X);
 
                 i->GetSolutionStepValue(DISPLACEMENT_EINS_DT_X)
                 = (i->GetSolutionStepValue(DISPLACEMENT_EINS_X)
                    -i->GetSolutionStepValue(DISPLACEMENT_NULL_X))
-                  *mGamma/(mBeta*CurrentProcessInfo[DELTA_TIME])
+                  *mGamma/(mBeta*Dt)
                   -(mGamma-mBeta)/mBeta*(i->GetSolutionStepValue(DISPLACEMENT_NULL_DT_X))
-                  -(mGamma-2.0*mBeta)/(2.0*mBeta)*CurrentProcessInfo[DELTA_TIME]
+                  -(mGamma-2.0*mBeta)/(2.0*mBeta)*Dt
                   *(i->GetSolutionStepValue(ACCELERATION_NULL_X));
 
                 i->GetSolutionStepValue(ACCELERATION_X)
@@ -591,11 +592,10 @@ public:
             if( i->HasDofFor(DISPLACEMENT_Y) )
             {
                 i->GetSolutionStepValue(ACCELERATION_EINS_Y)
-                = 1.0/(mBeta*CurrentProcessInfo[DELTA_TIME]
-                       *CurrentProcessInfo[DELTA_TIME])
+                = 1.0/(mBeta*Dt*Dt)
                   * (i->GetSolutionStepValue(DISPLACEMENT_EINS_Y)
                     -i->GetSolutionStepValue(DISPLACEMENT_NULL_Y))
-                 -1.0/(mBeta*CurrentProcessInfo[DELTA_TIME])
+                 -1.0/(mBeta*Dt)
                  *i->GetSolutionStepValue(DISPLACEMENT_NULL_DT_Y)
                  -(1.0-2.0*mBeta)/(2.0*mBeta)*
                  i->GetSolutionStepValue(ACCELERATION_NULL_Y);
@@ -603,9 +603,9 @@ public:
                 i->GetSolutionStepValue(DISPLACEMENT_EINS_DT_Y)
                 =(i->GetSolutionStepValue(DISPLACEMENT_EINS_Y)
                   -i->GetSolutionStepValue(DISPLACEMENT_NULL_Y))
-                 *mGamma/(mBeta*CurrentProcessInfo[DELTA_TIME])
+                 *mGamma/(mBeta*Dt)
                  -(mGamma-mBeta)/mBeta*(i->GetSolutionStepValue(DISPLACEMENT_NULL_DT_Y))
-                 -(mGamma-2.0*mBeta)/(2.0*mBeta)*CurrentProcessInfo[DELTA_TIME]
+                 -(mGamma-2.0*mBeta)/(2.0*mBeta)*Dt
                  *(i->GetSolutionStepValue(ACCELERATION_NULL_Y));
 
                 i->GetSolutionStepValue(ACCELERATION_Y)
@@ -623,20 +623,19 @@ public:
             if( i->HasDofFor(DISPLACEMENT_Z) )
             {
                 i->GetSolutionStepValue(ACCELERATION_EINS_Z)
-                = 1.0/(mBeta*CurrentProcessInfo[DELTA_TIME]
-                       *CurrentProcessInfo[DELTA_TIME])
+                = 1.0/(mBeta*Dt*Dt)
                   * (i->GetSolutionStepValue(DISPLACEMENT_EINS_Z)
                      -i->GetSolutionStepValue(DISPLACEMENT_NULL_Z))
-                  -1.0/(mBeta*CurrentProcessInfo[DELTA_TIME])
+                  -1.0/(mBeta*Dt)
                   *i->GetSolutionStepValue(DISPLACEMENT_NULL_DT_Z)
                   -(1.0-2.0*mBeta)/(2.0*mBeta)*i->GetSolutionStepValue(ACCELERATION_NULL_Z);
 
                 i->GetSolutionStepValue(DISPLACEMENT_EINS_DT_Z)
                 = (i->GetSolutionStepValue(DISPLACEMENT_EINS_Z)
                    -i->GetSolutionStepValue(DISPLACEMENT_NULL_Z))
-                  *mGamma/(mBeta*CurrentProcessInfo[DELTA_TIME])-(mGamma-mBeta)/mBeta*
+                  *mGamma/(mBeta*Dt)-(mGamma-mBeta)/mBeta*
                   (i->GetSolutionStepValue(DISPLACEMENT_NULL_DT_Z))
-                  -(mGamma-2.0*mBeta)/(2.0*mBeta)*CurrentProcessInfo[DELTA_TIME]
+                  -(mGamma-2.0*mBeta)/(2.0*mBeta)*Dt
                   *(i->GetSolutionStepValue(ACCELERATION_NULL_Z));
 
                 i->GetSolutionStepValue(ACCELERATION_Z)
@@ -654,19 +653,19 @@ public:
             if( i->HasDofFor(WATER_PRESSURE) )
             {
                 i->GetSolutionStepValue(WATER_PRESSURE_EINS_ACCELERATION)
-                = 1.0/(mBeta*CurrentProcessInfo[DELTA_TIME]*CurrentProcessInfo[DELTA_TIME])
+                = 1.0/(mBeta*Dt*Dt)
                   * (i->GetSolutionStepValue(WATER_PRESSURE_EINS)
                      -i->GetSolutionStepValue(WATER_PRESSURE_NULL))
-                  -1.0/(mBeta*CurrentProcessInfo[DELTA_TIME])
+                  -1.0/(mBeta*Dt)
                   *i->GetSolutionStepValue(WATER_PRESSURE_NULL_DT)
                   -(1.0-2.0*mBeta)/(2.0*mBeta)*i->GetSolutionStepValue(WATER_PRESSURE_NULL_ACCELERATION);
 
                 i->GetSolutionStepValue(WATER_PRESSURE_EINS_DT)
                 = (i->GetSolutionStepValue(WATER_PRESSURE_EINS)
                    -i->GetSolutionStepValue(WATER_PRESSURE_NULL))
-                  *mGamma/(mBeta*CurrentProcessInfo[DELTA_TIME])
+                  *mGamma/(mBeta*Dt)
                   -(mGamma-mBeta)/mBeta*(i->GetSolutionStepValue(WATER_PRESSURE_NULL_DT))
-                  -(mGamma-2.0*mBeta)/(2.0*mBeta)*CurrentProcessInfo[DELTA_TIME]
+                  -(mGamma-2.0*mBeta)/(2.0*mBeta)*Dt
                   *(i->GetSolutionStepValue(WATER_PRESSURE_NULL_ACCELERATION));
 
                 i->GetSolutionStepValue(WATER_PRESSURE_ACCELERATION)
@@ -684,20 +683,20 @@ public:
             if( i->HasDofFor(AIR_PRESSURE) )
             {
                 i->GetSolutionStepValue(AIR_PRESSURE_EINS_ACCELERATION)
-                = 1.0/(mBeta*CurrentProcessInfo[DELTA_TIME]*CurrentProcessInfo[DELTA_TIME])
+                = 1.0/(mBeta*Dt*Dt)
                   * (i->GetSolutionStepValue(AIR_PRESSURE_EINS)
                      -i->GetSolutionStepValue(AIR_PRESSURE_NULL))
-                  -1.0/(mBeta*CurrentProcessInfo[DELTA_TIME])
+                  -1.0/(mBeta*Dt)
                   *i->GetSolutionStepValue(AIR_PRESSURE_NULL_DT)
                   -(1.0-2.0*mBeta)/(2.0*mBeta)*i->GetSolutionStepValue(AIR_PRESSURE_NULL_ACCELERATION);
 
                 i->GetSolutionStepValue(AIR_PRESSURE_EINS_DT)
                 = (i->GetSolutionStepValue(AIR_PRESSURE_EINS)
                    -i->GetSolutionStepValue(AIR_PRESSURE_NULL))
-                  *mGamma/(mBeta*CurrentProcessInfo[DELTA_TIME])
+                  *mGamma/(mBeta*Dt)
                   -(mGamma-mBeta)/mBeta*
                   (i->GetSolutionStepValue(AIR_PRESSURE_NULL_DT))
-                  -(mGamma-2.0*mBeta)/(2.0*mBeta)*CurrentProcessInfo[DELTA_TIME]
+                  -(mGamma-2.0*mBeta)/(2.0*mBeta)*Dt
                   *(i->GetSolutionStepValue(AIR_PRESSURE_NULL_ACCELERATION));
 
                 i->GetSolutionStepValue(AIR_PRESSURE_ACCELERATION)
@@ -715,21 +714,24 @@ public:
             if( i->HasDofFor(TEMPERATURE) )
             {
                 i->GetSolutionStepValue(TEMPERATURE_EINS_DT_DT)
-                = 1.0/(mBeta*CurrentProcessInfo[DELTA_TIME]*CurrentProcessInfo[DELTA_TIME])
+                = 1.0/(mBeta*Dt*Dt)
                   * (i->GetSolutionStepValue(TEMPERATURE_EINS)
                      -i->GetSolutionStepValue(TEMPERATURE_NULL))
-                  -1.0/(mBeta*CurrentProcessInfo[DELTA_TIME])
+                  -1.0/(mBeta*Dt)
                   *i->GetSolutionStepValue(TEMPERATURE_NULL_DT)
                   -(1.0-2.0*mBeta)/(2.0*mBeta)*i->GetSolutionStepValue(TEMPERATURE_NULL_DT_DT);
 
                 i->GetSolutionStepValue(TEMPERATURE_EINS_DT)
                 = (i->GetSolutionStepValue(TEMPERATURE_EINS)
                    -i->GetSolutionStepValue(TEMPERATURE_NULL))
-                  *mGamma/(mBeta*CurrentProcessInfo[DELTA_TIME])
+                  *mGamma/(mBeta*Dt)
                   -(mGamma-mBeta)/mBeta*
-                  (i->GetSolutionStepValue(TEMPERATURE_NULL_DT))
-                  -(mGamma-2.0*mBeta)/(2.0*mBeta)*CurrentProcessInfo[DELTA_TIME]
-                  *(i->GetSolutionStepValue(TEMPERATURE_NULL_DT_DT));
+                  (i->GetSolutionStepValue(TEMPERATURE_NULL_DT));
+                // temperature equation is a parabolic equation. Therefore we
+                // don't need to add the inertial term to the approximation of
+                // the rate of temperature
+                  // -(mGamma-2.0*mBeta)/(2.0*mBeta)*Dt
+                  // *(i->GetSolutionStepValue(TEMPERATURE_NULL_DT_DT));
 
                 i->GetSolutionStepValue(TEMPERATURE_DT_DT)
                 = mAlpha_m*i->GetSolutionStepValue(TEMPERATURE_NULL_DT_DT)
@@ -749,20 +751,19 @@ public:
                 if( i->HasDofFor(ROTATION_X) )
                 {
                     i->GetSolutionStepValue(ANGULAR_ACCELERATION_EINS_X)
-                    = 1.0/(mBeta*CurrentProcessInfo[DELTA_TIME]
-                           *CurrentProcessInfo[DELTA_TIME])
+                    = 1.0/(mBeta*Dt*Dt)
                       * (i->GetSolutionStepValue(ROTATION_EINS_X)
                          -i->GetSolutionStepValue(ROTATION_NULL_X))
-                      -1.0/(mBeta*CurrentProcessInfo[DELTA_TIME])
+                      -1.0/(mBeta*Dt)
                       *i->GetSolutionStepValue(ROTATION_NULL_DT_X)
                       -(1.0-2.0*mBeta)/(2.0*mBeta)*i->GetSolutionStepValue(ANGULAR_ACCELERATION_NULL_X);
 
                     i->GetSolutionStepValue(ROTATION_EINS_DT_X)
                     = (i->GetSolutionStepValue(ROTATION_EINS_X)
                        -i->GetSolutionStepValue(ROTATION_NULL_X))
-                      *mGamma/(mBeta*CurrentProcessInfo[DELTA_TIME])
+                      *mGamma/(mBeta*Dt)
                       -(mGamma-mBeta)/mBeta*(i->GetSolutionStepValue(ROTATION_NULL_DT_X))
-                      -(mGamma-2.0*mBeta)/(2.0*mBeta)*CurrentProcessInfo[DELTA_TIME]
+                      -(mGamma-2.0*mBeta)/(2.0*mBeta)*Dt
                       *(i->GetSolutionStepValue(ANGULAR_ACCELERATION_NULL_X));
 
                     i->GetSolutionStepValue(ANGULAR_ACCELERATION_X)
@@ -781,10 +782,10 @@ public:
                 if( i->HasDofFor(ROTATION_Y) )
                 {
                     i->GetSolutionStepValue(ANGULAR_ACCELERATION_EINS_Y)
-                    =1.0/(mBeta*CurrentProcessInfo[DELTA_TIME]*CurrentProcessInfo[DELTA_TIME])
+                    =1.0/(mBeta*Dt*Dt)
                      * (i->GetSolutionStepValue(ROTATION_EINS_Y)
                         -i->GetSolutionStepValue(ROTATION_NULL_Y))
-                     -1.0/(mBeta*CurrentProcessInfo[DELTA_TIME])
+                     -1.0/(mBeta*Dt)
                      *i->GetSolutionStepValue(ROTATION_NULL_DT_Y)
                      -(1.0-2.0*mBeta)/(2.0*mBeta)*
                      i->GetSolutionStepValue(ANGULAR_ACCELERATION_NULL_Y);
@@ -792,9 +793,9 @@ public:
                     i->GetSolutionStepValue(ROTATION_EINS_DT_Y)
                     =(i->GetSolutionStepValue(ROTATION_EINS_Y)
                       -i->GetSolutionStepValue(ROTATION_NULL_Y))
-                     *mGamma/(mBeta*CurrentProcessInfo[DELTA_TIME])
+                     *mGamma/(mBeta*Dt)
                      -(mGamma-mBeta)/mBeta*(i->GetSolutionStepValue(ROTATION_NULL_DT_Y))
-                     -(mGamma-2.0*mBeta)/(2.0*mBeta)*CurrentProcessInfo[DELTA_TIME]
+                     -(mGamma-2.0*mBeta)/(2.0*mBeta)*Dt
                      *(i->GetSolutionStepValue(ANGULAR_ACCELERATION_NULL_Y));
 
                     i->GetSolutionStepValue(ANGULAR_ACCELERATION_Y)
@@ -812,19 +813,19 @@ public:
                 if( i->HasDofFor(ROTATION_Z) )
                 {
                     i->GetSolutionStepValue(ANGULAR_ACCELERATION_EINS_Z)
-                    = 1.0/(mBeta*CurrentProcessInfo[DELTA_TIME]*CurrentProcessInfo[DELTA_TIME])
+                    = 1.0/(mBeta*Dt*Dt)
                       * (i->GetSolutionStepValue(ROTATION_EINS_Z)
                          -i->GetSolutionStepValue(ROTATION_NULL_Z))
-                      -1.0/(mBeta*CurrentProcessInfo[DELTA_TIME])
+                      -1.0/(mBeta*Dt)
                       *i->GetSolutionStepValue(ROTATION_NULL_DT_Z)
                       -(1.0-2.0*mBeta)/(2.0*mBeta)*i->GetSolutionStepValue(ANGULAR_ACCELERATION_NULL_Z);
 
                     i->GetSolutionStepValue(ROTATION_EINS_DT_Z)
                     = (i->GetSolutionStepValue(ROTATION_EINS_Z)
                        -i->GetSolutionStepValue(ROTATION_NULL_Z))
-                      *mGamma/(mBeta*CurrentProcessInfo[DELTA_TIME])-(mGamma-mBeta)/mBeta*
+                      *mGamma/(mBeta*Dt)-(mGamma-mBeta)/mBeta*
                       (i->GetSolutionStepValue(ROTATION_NULL_DT_Z))
-                      -(mGamma-2.0*mBeta)/(2.0*mBeta)*CurrentProcessInfo[DELTA_TIME]
+                      -(mGamma-2.0*mBeta)/(2.0*mBeta)*Dt
                       *(i->GetSolutionStepValue(ANGULAR_ACCELERATION_NULL_Z));
 
                     i->GetSolutionStepValue(ANGULAR_ACCELERATION_Z)
@@ -846,20 +847,19 @@ public:
                 if( i->HasDofFor(LAMBDA) )
                 {
                     i->GetSolutionStepValue(LAMBDA_EINS_DT2)
-                    = 1.0/(mBeta*CurrentProcessInfo[DELTA_TIME]
-                           *CurrentProcessInfo[DELTA_TIME])
+                    = 1.0/(mBeta*Dt*Dt)
                       * (i->GetSolutionStepValue(LAMBDA_EINS)
                          -i->GetSolutionStepValue(LAMBDA_NULL))
-                      -1.0/(mBeta*CurrentProcessInfo[DELTA_TIME])
+                      -1.0/(mBeta*Dt)
                       *i->GetSolutionStepValue(LAMBDA_NULL_DT)
                       -(1.0-2.0*mBeta)/(2.0*mBeta)*i->GetSolutionStepValue(LAMBDA_NULL_DT2);
 
                     i->GetSolutionStepValue(LAMBDA_EINS_DT)
                     = (i->GetSolutionStepValue(LAMBDA_EINS)
                        -i->GetSolutionStepValue(LAMBDA_NULL))
-                      *mGamma/(mBeta*CurrentProcessInfo[DELTA_TIME])
+                      *mGamma/(mBeta*Dt)
                       -(mGamma-mBeta)/mBeta*(i->GetSolutionStepValue(LAMBDA_NULL_DT))
-                      -(mGamma-2.0*mBeta)/(2.0*mBeta)*CurrentProcessInfo[DELTA_TIME]
+                      -(mGamma-2.0*mBeta)/(2.0*mBeta)*Dt
                       *(i->GetSolutionStepValue(LAMBDA_NULL_DT2));
 
                     i->GetSolutionStepValue(LAMBDA_DT2)
@@ -1754,32 +1754,32 @@ public:
 protected:
 
     void AddInertiaToRHS(
-        Element& rCurrentElement,
+        const Element& rCurrentElement,
         LocalSystemVectorType& RHS_Contribution,
-        LocalSystemMatrixType& M,
+        const LocalSystemMatrixType& MassMatrix,
         const ProcessInfo& CurrentProcessInfo)
     {
         // adding inertia contribution
         Vector acceleration;
         rCurrentElement.GetSecondDerivativesVector(acceleration, 0);
-        noalias(RHS_Contribution) -= prod(M, acceleration);
+        noalias(RHS_Contribution) -= prod(MassMatrix, acceleration);
     }
 
     void AddDampingToRHS(
-        Element& rCurrentElement,
+        const Element& rCurrentElement,
         LocalSystemVectorType& RHS_Contribution,
-        LocalSystemMatrixType& D,
+        const LocalSystemMatrixType& DampingMatrix,
         const ProcessInfo& CurrentProcessInfo)
     {
         // adding damping contribution
         Vector velocity;
         rCurrentElement.GetFirstDerivativesVector(velocity, 0);
-        noalias(RHS_Contribution) -= prod(D, velocity);
+        noalias(RHS_Contribution) -= prod(DampingMatrix, velocity);
     }
 
     void AssembleTimeSpaceLHS_QuasiStatic(
         LocalSystemMatrixType& LHS_Contribution,
-        LocalSystemMatrixType& DampingMatrix,
+        const LocalSystemMatrixType& DampingMatrix,
         const ProcessInfo& CurrentProcessInfo)
     {
         const double Dt = CurrentProcessInfo[DELTA_TIME];
@@ -1808,8 +1808,8 @@ protected:
 
     void AssembleTimeSpaceLHS_Dynamics(
         LocalSystemMatrixType& LHS_Contribution,
-        LocalSystemMatrixType& DampingMatrix,
-        LocalSystemMatrixType& MassMatrix,
+        const LocalSystemMatrixType& DampingMatrix,
+        const LocalSystemMatrixType& MassMatrix,
         const ProcessInfo& CurrentProcessInfo)
     {
         const double Dt = CurrentProcessInfo[DELTA_TIME];
