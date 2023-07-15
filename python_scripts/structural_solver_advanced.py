@@ -148,12 +148,16 @@ class SolverAdvanced(structural_solver_static.StaticStructuralSolver):
     #######################################################################
     def CheckAndConvertParameters(self, analysis_parameters):
         if( type( analysis_parameters ) == dict ):
+            if 'solution_strategy' not in analysis_parameters:
+                analysis_parameters['solution_strategy'] = "implicit_Newton_Raphson"
             if 'builder_and_solver_type' not in analysis_parameters:
                 analysis_parameters['builder_and_solver_type'] = "residual-based elimination deactivation"
             if 'convergence_criteria' not in analysis_parameters:
                 analysis_parameters['convergence_criteria'] = "multiphase"
             if 'use_lumped_mass' not in analysis_parameters:
                 analysis_parameters['use_lumped_mass'] = False
+            if 'move_mesh' not in analysis_parameters:
+                analysis_parameters['move_mesh'] = True
             return analysis_parameters
         elif( type( analysis_parameters ) == list ):
             new_analysis_parameters = {}
@@ -181,6 +185,7 @@ class SolverAdvanced(structural_solver_static.StaticStructuralSolver):
                     new_analysis_parameters['dissipation_radius'] = 1.0
             new_analysis_parameters['decouple_build_and_solve'] = False
             new_analysis_parameters['builder_and_solver_type'] = "residual-based elimination deactivation"
+            new_analysis_parameters['solution_strategy'] = "implicit_Newton_Raphson"
             return new_analysis_parameters
         else:
             print 'unsupported type of analysis parameters'
@@ -189,9 +194,6 @@ class SolverAdvanced(structural_solver_static.StaticStructuralSolver):
 
     #######################################################################
     def Initialize(self):
-        if 'solution_strategy' not in self.analysis_parameters:
-            self.analysis_parameters['solution_strategy'] = "implicit_Newton_Raphson"
-
         if self.analysis_parameters['solution_strategy'] == "implicit_Newton_Raphson":
             #definition of time integration scheme
             if( self.analysis_parameters['analysis_type'] == 0 ):
@@ -199,7 +201,7 @@ class SolverAdvanced(structural_solver_static.StaticStructuralSolver):
                 # self.time_scheme = ResidualBasedIncrementalUpdateStaticScheme()
                 self.time_scheme = ResidualBasedIncrementalUpdateStaticDeactivationScheme()
                 #self.time_scheme = ParallelResidualBasedIncrementalUpdateStaticScheme()
-                self.MoveMeshFlag = True
+                self.MoveMeshFlag = self.analysis_parameters["move_mesh"]
             elif( self.analysis_parameters['analysis_type'] == 1 ):
                 print("using newmark quasi-static scheme, dissipation_radius=" + str(self.dissipation_radius))
                 self.model_part.ProcessInfo.SetValue( QUASI_STATIC_ANALYSIS, True )
@@ -211,7 +213,7 @@ class SolverAdvanced(structural_solver_static.StaticStructuralSolver):
                     self.time_scheme = ResidualBasedNewmarkScheme(3, self.dissipation_radius-4.0)
                 else:
                     self.time_scheme = ResidualBasedNewmarkScheme() # pure Newmarkscheme
-                self.MoveMeshFlag = True
+                self.MoveMeshFlag = self.analysis_parameters["move_mesh"]
             elif( self.analysis_parameters['analysis_type'] == 2 ):
                 print("using newmark dynamic scheme, dissipation_radius=" + str(self.dissipation_radius))
                 self.model_part.ProcessInfo.SetValue( QUASI_STATIC_ANALYSIS, False )
@@ -244,19 +246,19 @@ class SolverAdvanced(structural_solver_static.StaticStructuralSolver):
                 # self.time_scheme = ResidualBasedIncrementalUpdateStaticScheme()
                 self.time_scheme = ResidualBasedIncrementalUpdateStaticDeactivationScheme()
                 #self.time_scheme = ParallelResidualBasedIncrementalUpdateStaticScheme()
-                self.MoveMeshFlag = True
+                self.MoveMeshFlag = self.analysis_parameters["move_mesh"]
             elif( self.analysis_parameters['analysis_type'] == 1 ):
                 print("using acceleration-based forward Euler scheme")
                 self.time_scheme = ResidualBasedAccBasedForwardEulerScheme(self.analysis_parameters['use_lumped_mass'])
-                self.MoveMeshFlag = True
+                self.MoveMeshFlag = self.analysis_parameters["move_mesh"]
             elif( self.analysis_parameters['analysis_type'] == 2 ):
                 print("using central difference scheme")
                 self.time_scheme = ResidualBasedCentralDifferenceScheme()
-                self.MoveMeshFlag = True
+                self.MoveMeshFlag = self.analysis_parameters["move_mesh"]
             elif( self.analysis_parameters['analysis_type'] == 3 ):
                 print("using acceleration-based central difference scheme")
                 self.time_scheme = ResidualBasedAccBasedCentralDifferenceScheme(self.analysis_parameters['use_lumped_mass'])
-                self.MoveMeshFlag = True
+                self.MoveMeshFlag = self.analysis_parameters["move_mesh"]
             else:
                 print("analysis type is not defined or unknown! Define in analysis_parameters['analysis_type']:")
                 sys.exit(0)
