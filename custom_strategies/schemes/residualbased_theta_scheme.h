@@ -304,7 +304,7 @@ public:
         DofsArrayType& rDofSet,
         TSystemMatrixType& A,
         TSystemVectorType& Dx,
-        TSystemVectorType& b )
+        TSystemVectorType& b ) override
     {
         KRATOS_TRY
 
@@ -420,7 +420,7 @@ public:
     void InitializeNonLinIteration(ModelPart& r_model_part,
                                    TSystemMatrixType& A,
                                    TSystemVectorType& Dx,
-                                   TSystemVectorType& b )
+                                   TSystemVectorType& b ) override
     {
         KRATOS_TRY
 
@@ -684,7 +684,7 @@ public:
         ModelPart& r_model_part,
         TSystemMatrixType& A,
         TSystemVectorType& Dx,
-        TSystemVectorType& b)
+        TSystemVectorType& b) override
     {
         KRATOS_TRY
 
@@ -761,7 +761,7 @@ public:
         ModelPart& r_model_part,
         TSystemMatrixType& A,
         TSystemVectorType& Dx,
-        TSystemVectorType& b)
+        TSystemVectorType& b) override
     {
         KRATOS_TRY
 
@@ -891,7 +891,7 @@ public:
         ModelPart& r_model_part,
         TSystemMatrixType& A,
         TSystemVectorType& Dx,
-        TSystemVectorType& b)
+        TSystemVectorType& b) override
     {
         const ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
 
@@ -1154,23 +1154,23 @@ public:
     //***************************************************************************
 
     void CalculateSystemContributions(
-        Element::Pointer rCurrentElement,
+        Element& rCurrentElement,
         LocalSystemMatrixType& LHS_Contribution,
         LocalSystemVectorType& RHS_Contribution,
         Element::EquationIdVectorType& EquationId,
-        ProcessInfo& CurrentProcessInfo)
+        const ProcessInfo& CurrentProcessInfo) override
     {
         KRATOS_TRY
 
-        (rCurrentElement)->CalculateLocalSystem(LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
+        rCurrentElement.CalculateLocalSystem(LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
 
-        (rCurrentElement)->EquationIdVector(EquationId,CurrentProcessInfo);
+        rCurrentElement.EquationIdVector(EquationId,CurrentProcessInfo);
 
         if (CurrentProcessInfo[QUASI_STATIC_ANALYSIS])
         {
             Matrix DampingMatrix;
 
-            (rCurrentElement)->CalculateDampingMatrix(DampingMatrix, CurrentProcessInfo);
+            rCurrentElement.CalculateDampingMatrix(DampingMatrix, CurrentProcessInfo);
 
             if (norm_frobenius(DampingMatrix) > 0.0) // filter out the element that did not calculate damping and then set it to a zero matrix
                 AssembleTimeSpaceLHS_QuasiStatic(LHS_Contribution, DampingMatrix, CurrentProcessInfo);
@@ -1181,12 +1181,12 @@ public:
 
             Matrix MassMatrix;
 
-            (rCurrentElement)->CalculateDampingMatrix(DampingMatrix, CurrentProcessInfo);
+            rCurrentElement.CalculateDampingMatrix(DampingMatrix, CurrentProcessInfo);
 
-            (rCurrentElement)->CalculateMassMatrix(MassMatrix, CurrentProcessInfo);
+            rCurrentElement.CalculateMassMatrix(MassMatrix, CurrentProcessInfo);
 
-            // KRATOS_WATCH(rCurrentElement->Id())
-            // KRATOS_WATCH(MassMatrix)
+            // KRATOS_WATCH(rCurrentElement.Id())
+            // // KRATOS_WATCH(MassMatrix)
             // KRATOS_WATCH(DampingMatrix)
             // KRATOS_WATCH(LHS_Contribution)
 
@@ -1219,16 +1219,16 @@ public:
         KRATOS_CATCH("")
     }
 
-    void Calculate_RHS_Contribution(
-        Element::Pointer rCurrentElement,
+    void CalculateRHSContribution(
+        Element& rCurrentElement,
         LocalSystemVectorType& RHS_Contribution,
         Element::EquationIdVectorType& EquationId,
-        ProcessInfo& CurrentProcessInfo)
+        const ProcessInfo& CurrentProcessInfo) override
     {
         KRATOS_TRY
 
-        (rCurrentElement)->CalculateRightHandSide(RHS_Contribution,CurrentProcessInfo);
-        (rCurrentElement)->EquationIdVector(EquationId,CurrentProcessInfo);
+        rCurrentElement.CalculateRightHandSide(RHS_Contribution,CurrentProcessInfo);
+        rCurrentElement.EquationIdVector(EquationId,CurrentProcessInfo);
 
         KRATOS_CATCH("")
     }
@@ -1236,22 +1236,22 @@ public:
 
     /**
     */
-    void Condition_CalculateSystemContributions(
-        Condition::Pointer rCurrentCondition,
+    void CalculateSystemContributions(
+        Condition& rCurrentCondition,
         LocalSystemMatrixType& LHS_Contribution,
         LocalSystemVectorType& RHS_Contribution,
         Element::EquationIdVectorType& EquationId,
-        ProcessInfo& CurrentProcessInfo)
+        const ProcessInfo& CurrentProcessInfo) override
     {
         KRATOS_TRY
 
         Matrix DampingMatrix;
 
-        (rCurrentCondition)->CalculateLocalSystem(LHS_Contribution,RHS_Contribution,CurrentProcessInfo);
+        rCurrentCondition.CalculateLocalSystem(LHS_Contribution,RHS_Contribution,CurrentProcessInfo);
 
-        (rCurrentCondition)->EquationIdVector(EquationId, CurrentProcessInfo);
+        rCurrentCondition.EquationIdVector(EquationId, CurrentProcessInfo);
 
-        (rCurrentCondition)->CalculateDampingMatrix(DampingMatrix, CurrentProcessInfo);
+        rCurrentCondition.CalculateDampingMatrix(DampingMatrix, CurrentProcessInfo);
 
         if (norm_frobenius(DampingMatrix) > 0.0) // filter out the condition that did not calculate damping and then set it to a zero matrix
             AssembleTimeSpaceLHS_QuasiStatic(LHS_Contribution, DampingMatrix, CurrentProcessInfo);
@@ -1262,16 +1262,16 @@ public:
 
     /**
      */
-    void Condition_Calculate_RHS_Contribution(
-        Condition::Pointer rCurrentCondition,
+    void CalculateRHSContribution(
+        Condition& rCurrentCondition,
         LocalSystemVectorType& RHS_Contribution,
         Element::EquationIdVectorType& EquationId,
-        ProcessInfo& CurrentProcessInfo)
+        const ProcessInfo& CurrentProcessInfo) override
     {
         KRATOS_TRY
 
-        (rCurrentCondition)->CalculateRightHandSide(RHS_Contribution,CurrentProcessInfo);
-        (rCurrentCondition)->EquationIdVector(EquationId,CurrentProcessInfo);
+        rCurrentCondition.CalculateRightHandSide(RHS_Contribution,CurrentProcessInfo);
+        rCurrentCondition.EquationIdVector(EquationId,CurrentProcessInfo);
 
         KRATOS_CATCH("")
     }
@@ -1323,32 +1323,32 @@ public:
 protected:
 
     void AddInertiaToRHS(
-        Element::Pointer rCurrentElement,
+        const Element& rCurrentElement,
         LocalSystemVectorType& RHS_Contribution,
-        LocalSystemMatrixType& M,
-        ProcessInfo& CurrentProcessInfo)
+        const LocalSystemMatrixType& MassMatrix,
+        const ProcessInfo& CurrentProcessInfo)
     {
         // adding inertia contribution
         Vector acceleration;
-        rCurrentElement->GetSecondDerivativesVector(acceleration, 0);
-        noalias(RHS_Contribution) -= prod(M, acceleration );
+        rCurrentElement.GetSecondDerivativesVector(acceleration, 0);
+        noalias(RHS_Contribution) -= prod(MassMatrix, acceleration );
     }
 
     void AddDampingToRHS(
-        Element::Pointer rCurrentElement,
+        const Element& rCurrentElement,
         LocalSystemVectorType& RHS_Contribution,
-        LocalSystemMatrixType& D,
-        ProcessInfo& CurrentProcessInfo)
+        const LocalSystemMatrixType& DampingMatrix,
+        const ProcessInfo& CurrentProcessInfo)
     {
         // adding damping contribution
         Vector velocity;
-        rCurrentElement->GetFirstDerivativesVector(velocity, 0);
-        noalias(RHS_Contribution) -= prod(D, velocity );
+        rCurrentElement.GetFirstDerivativesVector(velocity, 0);
+        noalias(RHS_Contribution) -= prod(DampingMatrix, velocity );
     }
 
     void AssembleTimeSpaceLHS_QuasiStatic(
         LocalSystemMatrixType& LHS_Contribution,
-        LocalSystemMatrixType& DampingMatrix,
+        const LocalSystemMatrixType& DampingMatrix,
         const ProcessInfo& CurrentProcessInfo)
     {
         const double Dt = CurrentProcessInfo[DELTA_TIME];
@@ -1365,8 +1365,8 @@ protected:
 
     void AssembleTimeSpaceLHS_Dynamics(
         LocalSystemMatrixType& LHS_Contribution,
-        LocalSystemMatrixType& DampingMatrix,
-        LocalSystemMatrixType& MassMatrix,
+        const LocalSystemMatrixType& DampingMatrix,
+        const LocalSystemMatrixType& MassMatrix,
         const ProcessInfo& CurrentProcessInfo)
     {
         const double Dt = CurrentProcessInfo[DELTA_TIME];
