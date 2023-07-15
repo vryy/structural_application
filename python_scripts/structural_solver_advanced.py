@@ -234,6 +234,12 @@ class SolverAdvanced(structural_solver_static.StaticStructuralSolver):
                 self.model_part.ProcessInfo.SetValue( QUASI_STATIC_ANALYSIS, False )
                 print("using theta dynamics scheme, theta=" + str(self.dissipation_radius))
                 self.time_scheme = ResidualBasedThetaScheme(self.dissipation_radius)
+            elif( self.analysis_parameters['analysis_type'] == -1 ):
+                print("using custom time scheme given in 'time_scheme' analysis parameters")
+                if not "time_scheme" in self.analysis_parameters:
+                    raise Exception("time_scheme must be given when analysis_type is -1")
+                self.time_scheme = self.analysis_parameters["time_scheme"]
+                self.MoveMeshFlag = self.analysis_parameters["move_mesh"]
             else:
                 print("analysis type is not defined! Define in analysis_parameters['analysis_type']:")
                 print("   'using static scheme': static analysis")
@@ -258,6 +264,12 @@ class SolverAdvanced(structural_solver_static.StaticStructuralSolver):
             elif( self.analysis_parameters['analysis_type'] == 3 ):
                 print("using acceleration-based central difference scheme")
                 self.time_scheme = ResidualBasedAccBasedCentralDifferenceScheme(self.analysis_parameters['use_lumped_mass'])
+                self.MoveMeshFlag = self.analysis_parameters["move_mesh"]
+            elif( self.analysis_parameters['analysis_type'] == -1 ):
+                print("using custom time scheme given in 'time_scheme' analysis parameters")
+                if not "time_scheme" in self.analysis_parameters:
+                    raise Exception("time_scheme must be given when analysis_type is -1")
+                self.time_scheme = self.analysis_parameters["time_scheme"]
                 self.MoveMeshFlag = self.analysis_parameters["move_mesh"]
             else:
                 print("analysis type is not defined or unknown! Define in analysis_parameters['analysis_type']:")
