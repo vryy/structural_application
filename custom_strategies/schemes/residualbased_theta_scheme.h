@@ -243,6 +243,14 @@ public:
                     +=Dx[i->GetDof(AIR_PRESSURE).EquationId()];
                 }
             }
+            if( i->HasDofFor(TEMPERATURE) )
+            {
+                if(i->GetDof(TEMPERATURE).IsFree())
+                {
+                    i->GetSolutionStepValue(TEMPERATURE_EINS)
+                    +=Dx[i->GetDof(TEMPERATURE).EquationId()];
+                }
+            }
 
             // update this variables to account for Lagrange multiplier
             if( i->HasDofFor(LAGRANGE_DISPLACEMENT_X) )
@@ -350,6 +358,15 @@ public:
                 {
                     rNode.GetSolutionStepValue(AIR_PRESSURE_EINS)
                     += Dx[dof_iterator->EquationId()];
+                }
+            }
+            else if (dof_iterator->GetVariable() == TEMPERATURE)
+            {
+                if (dof_iterator->IsFree())
+                {
+                    rNode.GetSolutionStepValue(TEMPERATURE_EINS)
+                    += Dx[dof_iterator->EquationId()];
+                    std::cout << "node " << rNode.Id() << " TEMPERATURE has been updated to " << rNode.GetSolutionStepValue(TEMPERATURE_EINS) << std::endl;
                 }
             }
             else
@@ -558,6 +575,26 @@ public:
                 i->GetSolutionStepValue(AIR_PRESSURE)
                 = (1.0-mTheta)*i->GetSolutionStepValue(AIR_PRESSURE_NULL)
                   + mTheta*i->GetSolutionStepValue(AIR_PRESSURE_EINS);
+            }
+            if( i->HasDofFor(TEMPERATURE) )
+            {
+                i->GetSolutionStepValue(TEMPERATURE_EINS_DT)
+                = ( i->GetSolutionStepValue(TEMPERATURE_EINS)
+                  - i->GetSolutionStepValue(TEMPERATURE_NULL) ) / Dt;
+
+                i->GetSolutionStepValue(TEMPERATURE_EINS_DT_DT)
+                = ( i->GetSolutionStepValue(TEMPERATURE_EINS_DT)
+                  - i->GetSolutionStepValue(TEMPERATURE_NULL_DT)) / Dt;
+
+                i->GetSolutionStepValue(TEMPERATURE_DT_DT)
+                = i->GetSolutionStepValue(TEMPERATURE_EINS_DT_DT);
+
+                i->GetSolutionStepValue(TEMPERATURE_DT)
+                = i->GetSolutionStepValue(TEMPERATURE_EINS_DT);
+
+                i->GetSolutionStepValue(TEMPERATURE)
+                = (1.0-mTheta)*i->GetSolutionStepValue(TEMPERATURE_NULL)
+                  + mTheta*i->GetSolutionStepValue(TEMPERATURE_EINS);
             }
 
             if (mIntegrateRotation)
@@ -817,6 +854,15 @@ public:
                 i->GetSolutionStepValue(AIR_PRESSURE_EINS)=
                     i->GetSolutionStepValue(AIR_PRESSURE_NULL);
             }
+            if( i->HasDofFor(TEMPERATURE) && i->GetDof(TEMPERATURE).IsFree())
+            {
+                i->GetSolutionStepValue(TEMPERATURE_EINS_DT)=
+                    i->GetSolutionStepValue(TEMPERATURE_NULL_DT);
+                i->GetSolutionStepValue(TEMPERATURE_EINS_DT_DT)=
+                    i->GetSolutionStepValue(TEMPERATURE_NULL_DT_DT);
+                i->GetSolutionStepValue(TEMPERATURE_EINS)=
+                    i->GetSolutionStepValue(TEMPERATURE_NULL);
+            }
 
             if (mIntegrateRotation)
             {
@@ -1023,6 +1069,27 @@ public:
                 i->GetSolutionStepValue(AIR_PRESSURE) = i->GetSolutionStepValue(AIR_PRESSURE_EINS);
                 i->GetSolutionStepValue(AIR_PRESSURE_DT) = i->GetSolutionStepValue(AIR_PRESSURE_EINS_DT);
                 i->GetSolutionStepValue(AIR_PRESSURE_ACCELERATION) = i->GetSolutionStepValue(AIR_PRESSURE_EINS_ACCELERATION);
+            }
+
+            if( i->HasDofFor(TEMPERATURE) )
+            {
+                if(CurrentProcessInfo[FIRST_TIME_STEP])
+                {
+                    i->GetSolutionStepValue(TEMPERATURE_NULL_DT_DT) = i->GetSolutionStepValue(TEMPERATURE_DT_DT);
+                    i->GetSolutionStepValue(TEMPERATURE_NULL_DT) = i->GetSolutionStepValue(TEMPERATURE_DT);
+                    i->GetSolutionStepValue(TEMPERATURE_NULL) = i->GetSolutionStepValue(TEMPERATURE);
+                }
+                else
+                {
+                    i->GetSolutionStepValue(TEMPERATURE_NULL_DT) = i->GetSolutionStepValue(TEMPERATURE_EINS_DT);
+                    i->GetSolutionStepValue(TEMPERATURE_NULL) = i->GetSolutionStepValue(TEMPERATURE_EINS);
+                    i->GetSolutionStepValue(TEMPERATURE_NULL_DT_DT) = i->GetSolutionStepValue(TEMPERATURE_EINS_DT_DT);
+                }
+
+                // here we update the current values at the end of time step
+                i->GetSolutionStepValue(TEMPERATURE) = i->GetSolutionStepValue(TEMPERATURE_EINS);
+                i->GetSolutionStepValue(TEMPERATURE_DT) = i->GetSolutionStepValue(TEMPERATURE_EINS_DT);
+                i->GetSolutionStepValue(TEMPERATURE_DT_DT) = i->GetSolutionStepValue(TEMPERATURE_EINS_DT_DT);
             }
 
             if (mIntegrateRotation)
