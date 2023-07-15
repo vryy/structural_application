@@ -122,7 +122,7 @@ public:
      */
     ResidualBasedThetaScheme() : BaseType()
     {
-        //For pure Theta Scheme
+        // For pure Theta Scheme
         mTheta = 0.5;
 
         // set all the integration flag to false. To incorporate the corresponding term, the flag shall be set by user.
@@ -143,7 +143,7 @@ public:
      */
     ResidualBasedThetaScheme(double theta ) : BaseType()
     {
-        //For pure Theta Scheme
+        // For pure Theta Scheme
         mTheta = theta;
 
         // set all the integration flag to false. To incorporate the corresponding term, the flag shall be set by user.

@@ -533,10 +533,6 @@ void FacePressure3D::CalculateAll(
 
         double IntegrationWeight = integration_points[PointNumber].Weight();
 
-//        KRATOS_WATCH(Load)
-//        KRATOS_WATCH(IntegrationWeight)
-//        KRATOS_WATCH(dA)
-
         // RIGHT HAND SIDE VECTOR
         if ( CalculateResidualVectorFlag == true ) //calculation of the matrix is required
         {

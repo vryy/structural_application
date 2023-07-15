@@ -367,8 +367,6 @@ namespace Kratos
     {
         KRATOS_TRY
 
-//        std::cout << "start computing element " << Id() << std::endl;
-
         unsigned int number_of_nodes = GetGeometry().size();
         unsigned int dim = GetGeometry().WorkingSpaceDimension();
         unsigned int strain_size = this->GetStrainSize(dim);
