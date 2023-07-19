@@ -2701,6 +2701,64 @@ public:
         CalculateSecondDerivatives<TGeometryType>(rGeometry, rD2N_DX2, J, DN_DX, rPoint);
     }
 
+    /**
+     * Assemble a sub-vector to a big vector
+     * num*dim is the size of sub-vector
+     * stride is the shift within dim of the big vector
+     * begin is where to assemble the values in the big vector. This can be used to shift the chunk.
+     * Example:
+     *  Let say the sub-vector is [1 1.1 1.2 2 2.1 2.2 ...]
+     *  dim in this case is 3
+     *  with stride = 2 and begin = 0, the big vector will look like
+     *    [1 1.1 1.2 0 0 2 2.1 2.2 0 0 ....]
+     */
+    static void AssembleVectorFromSubVector( VectorType& rRightHandSideVector,
+            const unsigned int& dim,
+            const unsigned int& num,
+            const unsigned int& stride,
+            const unsigned int& begin,
+            const Vector& R_P )
+    {
+        for ( unsigned int prim = 0; prim < num; ++prim )
+        {
+            for ( unsigned int i = 0; i < dim; ++i )
+            {
+                rRightHandSideVector( begin + prim*(dim+stride) + i ) += R_P( prim*dim + i );
+            }
+        }
+    }
+
+    /**
+     * Assemble a sub-matrix to a big matrix
+     * The index notation in each dimension is similar to AssembleVectorFromSubVector
+     */
+    static void AssembleMatrixFromSubMatrix( MatrixType& rLeftHandSideMatrix,
+            const unsigned int& dim1,
+            const unsigned int& num1,
+            const unsigned int& stride1,
+            const unsigned int& begin1,
+            const unsigned int& dim2,
+            const unsigned int& num2,
+            const unsigned int& stride2,
+            const unsigned int& begin2,
+            const Matrix& K_PQ)
+    {
+        for ( unsigned int prim = 0; prim < num1; ++prim )
+        {
+            for ( unsigned int i = 0; i < dim1; ++i )
+            {
+                for ( unsigned int sec = 0; sec < num2; ++sec )
+                {
+                    for ( unsigned int j = 0; j < dim2; ++j )
+                    {
+                        rLeftHandSideMatrix( begin1 + prim*(dim1+stride1) + i, begin2 + sec*(dim2+stride2) + j )
+                                += K_PQ( prim*dim1 + i, sec*dim2 + j );
+                    }
+                }
+            }
+        }
+    }
+
 };// class SD_MathUtils
 
 }
