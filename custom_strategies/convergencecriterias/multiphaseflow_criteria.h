@@ -619,5 +619,4 @@ private:
 
 } /* namespace Kratos.*/
 
-#endif /* KRATOS_NEW_DISPLACEMENT_CRITERIA  defined */
-
+#endif /* KRATOS_MULTIPHASEFLOW_CRITERIA  defined */
