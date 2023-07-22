@@ -282,6 +282,8 @@ class SolverAdvanced(structural_solver_static.StaticStructuralSolver):
             self.conv_criteria = MultiPhaseFlowCriteria(self.toll,self.absolute_tol)
         elif(self.analysis_parameters['convergence_criteria'] == "displacement"):
             self.conv_criteria = DisplacementCriteria(self.toll,self.absolute_tol)
+        elif(self.analysis_parameters['convergence_criteria'] == "custom criteria"):
+            self.conv_criteria = self.analysis_parameters['custom_convergence_criteria']
         #self.conv_criteria = MultiPhaseFlowCriteria(1.0e-13,1.0e-13)
         #self.conv_criteria = ResidualBasedMultiPhaseCriteria(self.toll,self.absolute_tol)
         #self.conv_criteria = ResidualCriteria(1.0e-9,1.0e-9)
