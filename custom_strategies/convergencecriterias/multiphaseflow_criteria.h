@@ -307,7 +307,7 @@ public:
                 }
                 else
                 {
-                    std::cout << "** obtained values total:\t\tratio = " << ratioWater + ratioDisp << "\t change = " << norm_Dx + norm_Dx_WATER << "\tabsolute = " << norm_x_WATER + norm_x << "\tenergy = " << norm_b_WATER + norm_b << " **" << std::endl;
+                    std::cout << "** obtained values total:\t\tratio = " << ratioWater + ratioDisp << "\tchange = " << norm_Dx + norm_Dx_WATER << "\tabsolute = " << norm_x_WATER + norm_x << "\tenergy = " << norm_b_WATER + norm_b << " **" << std::endl;
                 }
             }
             std::cout << "************************************************************************************************************************************" << std::endl;
