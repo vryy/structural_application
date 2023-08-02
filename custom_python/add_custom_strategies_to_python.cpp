@@ -166,6 +166,7 @@ void  AddCustomStrategiesToPython()
     typedef ResidualBasedPredictorCorrectorRelaxationScheme< SparseSpaceType, LocalSpaceType > ResidualBasedPredictorCorrectorRelaxationSchemeType;
     typedef ResidualBasedIncrementalUpdateStaticDeactivationScheme< SparseSpaceType, LocalSpaceType > ResidualBasedIncrementalUpdateStaticDeactivationSchemeType;
     typedef ResidualBasedNewmarkScheme< SparseSpaceType, LocalSpaceType > ResidualBasedNewmarkSchemeType;
+    typedef ResidualBasedNewmarkScheme< SparseSpaceType, LocalSpaceType, 1 > ResidualBasedNonlinearMassDampingNewmarkSchemeType;
     typedef ResidualBasedThetaScheme< SparseSpaceType, LocalSpaceType > ResidualBasedThetaSchemeType;
     typedef ResidualBasedStateBasedThetaScheme< SparseSpaceType, LocalSpaceType > ResidualBasedStateBasedThetaSchemeType;
     typedef ResidualBasedCentralDifferenceScheme< SparseSpaceType, LocalSpaceType > ResidualBasedCentralDifferenceSchemeType;
@@ -258,6 +259,19 @@ void  AddCustomStrategiesToPython()
             .def("SetIntegrateMultiplier", &ResidualBasedNewmarkSchemeType::SetIntegrateMultiplier)
             .def("SetIntegrateLoad", &ResidualBasedNewmarkSchemeType::SetIntegrateLoad)
             .def("UpdateForces", &ResidualBasedNewmarkSchemeType::UpdateForces)
+            ;
+
+    class_< ResidualBasedNonlinearMassDampingNewmarkSchemeType,
+            bases< BaseSchemeType >, boost::noncopyable >
+            (
+                "ResidualBasedNonlinearMassDampingNewmarkScheme", init< double >()
+            )
+            .def(init<>())
+            .def(init<int, double>())
+            .def("SetIntegrateRotation", &ResidualBasedNonlinearMassDampingNewmarkSchemeType::SetIntegrateRotation)
+            .def("SetIntegrateMultiplier", &ResidualBasedNonlinearMassDampingNewmarkSchemeType::SetIntegrateMultiplier)
+            .def("SetIntegrateLoad", &ResidualBasedNonlinearMassDampingNewmarkSchemeType::SetIntegrateLoad)
+            .def("UpdateForces", &ResidualBasedNonlinearMassDampingNewmarkSchemeType::UpdateForces)
             ;
 
     class_< ResidualBasedThetaSchemeType,

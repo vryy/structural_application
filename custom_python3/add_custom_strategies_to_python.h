@@ -78,4 +78,4 @@ void StructuralApplication_AddCustomStrategiesToPython(pybind11::module& m);
 
 }  // namespace Kratos.
 
-#endif // KRATOS_STRUCTURAL_APPLICATION_STRATEGIES_PYTHON_H_INCLUDED  defined 
+#endif // KRATOS_STRUCTURAL_APPLICATION_STRATEGIES_PYTHON_H_INCLUDED  defined

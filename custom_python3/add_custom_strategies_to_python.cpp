@@ -147,6 +147,7 @@ void StructuralApplication_AddCustomStrategiesToPython(pybind11::module& m)
 
 
     typedef ResidualBasedNewmarkScheme< SparseSpaceType, LocalSpaceType > ResidualBasedNewmarkSchemeType;
+    typedef ResidualBasedNewmarkScheme< SparseSpaceType, LocalSpaceType, 1 > ResidualBasedNonlinearMassDampingNewmarkSchemeType;
     // typedef ResidualBasedThetaScheme< SparseSpaceType, LocalSpaceType > ResidualBasedThetaSchemeType;
     typedef ResidualBasedStateBasedThetaScheme< SparseSpaceType, LocalSpaceType > ResidualBasedStateBasedThetaSchemeType;
 
@@ -244,6 +245,17 @@ void StructuralApplication_AddCustomStrategiesToPython(pybind11::module& m)
     .def("SetIntegrateMultiplier", &ResidualBasedNewmarkSchemeType::SetIntegrateMultiplier)
     .def("SetIntegrateLoad", &ResidualBasedNewmarkSchemeType::SetIntegrateLoad)
     .def("UpdateForces", &ResidualBasedNewmarkSchemeType::UpdateForces)
+    ;
+
+    class_< ResidualBasedNonlinearMassDampingNewmarkSchemeType, typename ResidualBasedNonlinearMassDampingNewmarkSchemeType::Pointer, BaseSchemeType >
+    (m, "ResidualBasedNonlinearMassDampingNewmarkScheme")
+    .def(init<>())
+    .def(init< double >())
+    .def(init<int, double>())
+    .def("SetIntegrateRotation", &ResidualBasedNonlinearMassDampingNewmarkSchemeType::SetIntegrateRotation)
+    .def("SetIntegrateMultiplier", &ResidualBasedNonlinearMassDampingNewmarkSchemeType::SetIntegrateMultiplier)
+    .def("SetIntegrateLoad", &ResidualBasedNonlinearMassDampingNewmarkSchemeType::SetIntegrateLoad)
+    .def("UpdateForces", &ResidualBasedNonlinearMassDampingNewmarkSchemeType::UpdateForces)
     ;
 
     // class_< ResidualBasedThetaSchemeType,

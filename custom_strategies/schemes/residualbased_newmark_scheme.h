@@ -46,6 +46,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 *   Last Modified by:    $Author: nagel $
 *   Date:                $Date: 2009-03-20 08:56:48 $
 *   Revision:            $Revision: 1.7 $
+*   Date:                $Date: 23/07/2023 $
+*   Revision:            $Revision: 1.8 $
 *
 * ***********************************************************/
 
@@ -63,6 +65,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/model_part.h"
 #include "includes/variables.h"
 #include "includes/element.h"
+#include "includes/fnv_1a_hash.h"
 #ifdef SD_APP_FORWARD_COMPATIBILITY
 #include "custom_python3/legacy_structural_app_vars.h"
 #else
@@ -72,6 +75,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "solving_strategies/schemes/scheme.h"
 #include "structural_application_variables.h"
 #include "custom_elements/prescribed_object.h"
+#include "residualbased_newmark_helper.h"
 
 namespace Kratos
 {
@@ -89,10 +93,11 @@ namespace Kratos
 /*@} */
 /**@name Kratos Classes */
 /*@{ */
-/** Implementation of Time Integration scheme based on Generalized-Alpha Method
- * */
-template<class TSparseSpace,  class TDenseSpace>
-class ResidualBasedNewmarkScheme: public Scheme<TSparseSpace,TDenseSpace>
+/**
+ * Implementation of Time Integration scheme based on Generalized-Alpha Method
+ */
+template<class TSparseSpace, class TDenseSpace, int TMassDampingType = 0>
+class ResidualBasedNewmarkScheme : public Scheme<TSparseSpace,TDenseSpace>
 {
 public:
     /**@name Type Definitions */
@@ -121,6 +126,8 @@ public:
 
     typedef typename BaseType::LocalSystemMatrixType LocalSystemMatrixType;
 
+    typedef ResidualBasedNewmarkHelper<TMassDampingType> ResidualBasedNewmarkHelperType;
+
     /**
      * Constructor for PURE Newmark scheme
      * @ref Chung&Hulbert: "A time integration algorithm for structural dynamics with improved
@@ -128,7 +135,7 @@ public:
      */
     ResidualBasedNewmarkScheme() : BaseType()
     {
-        //For pure Newmark Scheme
+        // pure Newmark scheme
         mAlpha_f = 0.0;
         mAlpha_m = 0.0;
         mBeta = 1.0 / 4.0;
@@ -139,7 +146,8 @@ public:
         mIntegrateMultiplier = false;
         mIntegrateLoad = false;
 
-        std::cout << "PURE Newmark Time !!!!!!!!!!!!!!!!!!!!!" << " alpha_f= " << mAlpha_f << " alpha_m= " << mAlpha_m << " beta= " << mBeta << " gamma= " << mGamma << std::endl;
+        std::cout << "PURE Newmark Time Integration Scheme!!!!!!!!!!!!!!!!!!!!!" << " alpha_f= " << mAlpha_f << " alpha_m= " << mAlpha_m << " beta= " << mBeta << " gamma= " << mGamma << std::endl;
+        std::cout << "Nonlinear mass damping: " << TMassDampingType << std::endl;
         //(...)_NULL DOF at the begin of time step, (...)_EINS DOF at the end of time step, (...)
         // DOF at the midpoint of time step, Please recognize that the name of the DOF is (...)
         // while the iteration is done towards the (...)_EINS DOF value at end of time step
@@ -155,6 +163,7 @@ public:
      */
     ResidualBasedNewmarkScheme(double mDissipationRadius ) : BaseType()
     {
+        // standard Newmark scheme
         mAlpha_f = mDissipationRadius / (1.0 + mDissipationRadius);
         mAlpha_m = (2.0 * mDissipationRadius - 1.0) / (mDissipationRadius + 1.0);
         mBeta = (1.0 + mAlpha_f - mAlpha_m) * (1.0 + mAlpha_f - mAlpha_m)/4.0;
@@ -165,7 +174,8 @@ public:
         mIntegrateMultiplier = false;
         mIntegrateLoad = false;
 
-        std::cout << "using the Generalized alpha Time Integration Scheme with radius= "<< mDissipationRadius << " alpha_f= " << mAlpha_f << " alpha_m= " << mAlpha_m << " beta= " << mBeta << " gamma= " << mGamma << std::endl;
+        std::cout << "Using the Generalized alpha Time Integration Scheme with radius= "<< mDissipationRadius << " alpha_f= " << mAlpha_f << " alpha_m= " << mAlpha_m << " beta= " << mBeta << " gamma= " << mGamma << std::endl;
+        std::cout << "Nonlinear mass damping: " << TMassDampingType << std::endl;
     }
 
     /**
@@ -223,6 +233,8 @@ public:
         {
             KRATOS_THROW_ERROR(std::logic_error, "Invalid Time integration option", option)
         }
+
+        std::cout << "Nonlinear mass damping: " << TMassDampingType << std::endl;
     }
 
     /** Destructor.*/
@@ -247,6 +259,23 @@ public:
     /*@} */
     /**@name Operations */
     /*@{ */
+
+    /// Initialize the scheme
+    void Initialize(ModelPart& r_model_part) override
+    {
+        BaseType::Initialize(r_model_part);
+
+        ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
+
+        CurrentProcessInfo[TIME_INTEGRATION_SCHEME] = FNV1a32Hash::CalculateHash(Info().c_str());
+        CurrentProcessInfo[NEWMARK_ALPHAF] = mAlpha_f;
+        CurrentProcessInfo[NEWMARK_ALPHAM] = mAlpha_m;
+        CurrentProcessInfo[NEWMARK_BETA] = mBeta;
+        CurrentProcessInfo[NEWMARK_GAMMA] = mGamma;
+
+        std::cout << "ModelPart " << r_model_part.Name() << " is initialized by " << Info() << std::endl;
+        KRATOS_WATCH(CurrentProcessInfo[TIME_INTEGRATION_SCHEME])
+    }
 
     /// Enable integration of rotation d.o.f
     void SetIntegrateRotation(const bool& value)
@@ -665,6 +694,7 @@ public:
                    -i->GetSolutionStepValue(WATER_PRESSURE_NULL))
                   *mGamma/(mBeta*Dt)
                   -(mGamma-mBeta)/mBeta*(i->GetSolutionStepValue(WATER_PRESSURE_NULL_DT))
+                  // TODO check if the inertial term is also needed, see the update for TEMPERATURE below
                   -(mGamma-2.0*mBeta)/(2.0*mBeta)*Dt
                   *(i->GetSolutionStepValue(WATER_PRESSURE_NULL_ACCELERATION));
 
@@ -696,6 +726,7 @@ public:
                   *mGamma/(mBeta*Dt)
                   -(mGamma-mBeta)/mBeta*
                   (i->GetSolutionStepValue(AIR_PRESSURE_NULL_DT))
+                  // TODO check if the inertial term is also needed, see the update for TEMPERATURE below
                   -(mGamma-2.0*mBeta)/(2.0*mBeta)*Dt
                   *(i->GetSolutionStepValue(AIR_PRESSURE_NULL_ACCELERATION));
 
@@ -713,13 +744,13 @@ public:
             }
             if( i->HasDofFor(TEMPERATURE) )
             {
-                i->GetSolutionStepValue(TEMPERATURE_EINS_DT_DT)
+                i->GetSolutionStepValue(TEMPERATURE_EINS_ACCELERATION)
                 = 1.0/(mBeta*Dt*Dt)
                   * (i->GetSolutionStepValue(TEMPERATURE_EINS)
                      -i->GetSolutionStepValue(TEMPERATURE_NULL))
                   -1.0/(mBeta*Dt)
                   *i->GetSolutionStepValue(TEMPERATURE_NULL_DT)
-                  -(1.0-2.0*mBeta)/(2.0*mBeta)*i->GetSolutionStepValue(TEMPERATURE_NULL_DT_DT);
+                  -(1.0-2.0*mBeta)/(2.0*mBeta)*i->GetSolutionStepValue(TEMPERATURE_NULL_ACCELERATION);
 
                 i->GetSolutionStepValue(TEMPERATURE_EINS_DT)
                 = (i->GetSolutionStepValue(TEMPERATURE_EINS)
@@ -731,11 +762,11 @@ public:
                 // don't need to add the inertial term to the approximation of
                 // the rate of temperature
                   // -(mGamma-2.0*mBeta)/(2.0*mBeta)*Dt
-                  // *(i->GetSolutionStepValue(TEMPERATURE_NULL_DT_DT));
+                  // *(i->GetSolutionStepValue(TEMPERATURE_NULL_ACCELERATION));
 
-                i->GetSolutionStepValue(TEMPERATURE_DT_DT)
-                = mAlpha_m*i->GetSolutionStepValue(TEMPERATURE_NULL_DT_DT)
-                  +(1.0-mAlpha_m)*i->GetSolutionStepValue(TEMPERATURE_EINS_DT_DT);
+                i->GetSolutionStepValue(TEMPERATURE_ACCELERATION)
+                = mAlpha_m*i->GetSolutionStepValue(TEMPERATURE_NULL_ACCELERATION)
+                  +(1.0-mAlpha_m)*i->GetSolutionStepValue(TEMPERATURE_EINS_ACCELERATION);
 
                 i->GetSolutionStepValue(TEMPERATURE_DT)
                 = mAlpha_f*i->GetSolutionStepValue(TEMPERATURE_NULL_DT)
@@ -917,6 +948,7 @@ public:
         KRATOS_TRY
 
         // to account for prescribed displacement, the displacement at prescribed nodes need to be updated
+
         double curr_disp, delta_disp;
         for (ModelPart::NodesContainerType::iterator it_node = r_model_part.Nodes().begin(); it_node != r_model_part.Nodes().end(); ++it_node)
         {
@@ -1052,8 +1084,8 @@ public:
             {
                 i->GetSolutionStepValue(TEMPERATURE_EINS_DT)=
                     i->GetSolutionStepValue(TEMPERATURE_NULL_DT);
-                i->GetSolutionStepValue(TEMPERATURE_EINS_DT_DT)=
-                    i->GetSolutionStepValue(TEMPERATURE_NULL_DT_DT);
+                i->GetSolutionStepValue(TEMPERATURE_EINS_ACCELERATION)=
+                    i->GetSolutionStepValue(TEMPERATURE_NULL_ACCELERATION);
                 i->GetSolutionStepValue(TEMPERATURE_EINS)=
                     i->GetSolutionStepValue(TEMPERATURE_NULL);
             }
@@ -1300,7 +1332,7 @@ public:
                 {
                     if(CurrentProcessInfo[FIRST_TIME_STEP])
                     {
-                        i->GetSolutionStepValue(TEMPERATURE_NULL_DT_DT) = i->GetSolutionStepValue(TEMPERATURE_DT_DT);
+                        i->GetSolutionStepValue(TEMPERATURE_NULL_ACCELERATION) = i->GetSolutionStepValue(TEMPERATURE_ACCELERATION);
                         i->GetSolutionStepValue(TEMPERATURE_NULL_DT) = i->GetSolutionStepValue(TEMPERATURE_DT);
                         i->GetSolutionStepValue(TEMPERATURE_NULL) = i->GetSolutionStepValue(TEMPERATURE);
                     }
@@ -1308,13 +1340,13 @@ public:
                     {
                         i->GetSolutionStepValue(TEMPERATURE_NULL_DT) = i->GetSolutionStepValue(TEMPERATURE_EINS_DT);
                         i->GetSolutionStepValue(TEMPERATURE_NULL) = i->GetSolutionStepValue(TEMPERATURE_EINS);
-                        i->GetSolutionStepValue(TEMPERATURE_NULL_DT_DT) = i->GetSolutionStepValue(TEMPERATURE_EINS_DT_DT);
+                        i->GetSolutionStepValue(TEMPERATURE_NULL_ACCELERATION) = i->GetSolutionStepValue(TEMPERATURE_EINS_ACCELERATION);
                     }
 
                     // // here we update the current values at the end of time step
                     // i->GetSolutionStepValue(TEMPERATURE) = i->GetSolutionStepValue(TEMPERATURE_EINS);
                     // i->GetSolutionStepValue(TEMPERATURE_DT) = i->GetSolutionStepValue(TEMPERATURE_EINS_DT);
-                    // i->GetSolutionStepValue(TEMPERATURE_DT_DT) = i->GetSolutionStepValue(TEMPERATURE_EINS_DT_DT);
+                    // i->GetSolutionStepValue(TEMPERATURE_ACCELERATION) = i->GetSolutionStepValue(TEMPERATURE_EINS_ACCELERATION);
                 }
 
                 if (mIntegrateRotation)
@@ -1452,23 +1484,12 @@ public:
         LocalSystemMatrixType& LHS_Contribution,
         LocalSystemVectorType& RHS_Contribution,
         Element::EquationIdVectorType& EquationId,
-        const ProcessInfo& CurrentProcessInfo) final
+        const ProcessInfo& CurrentProcessInfo) override
     {
         KRATOS_TRY
 
-        CalculateSystemContributionsImpl( rCurrentElement, LHS_Contribution, RHS_Contribution,
-                EquationId, CurrentProcessInfo );
-
-        // if (rCurrentElement.Id() == 743)
-        // {
-        //     Vector u;
-        //     rCurrentElement.GetValuesVector(u, 0);
-        //     KRATOS_WATCH(u)
-        //     Vector RHS(u.size());
-        //     noalias(RHS) = prod( LHS_Contribution, u );
-        //     KRATOS_WATCH(RHS)
-        //     KRATOS_WATCH(RHS_Contribution)
-        // }
+        ResidualBasedNewmarkHelperType::CalculateSystemContributions( rCurrentElement,
+                LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo );
 
         // account for prescription of dofs
         try
@@ -1488,12 +1509,12 @@ public:
         Element& rCurrentElement,
         LocalSystemVectorType& RHS_Contribution,
         Element::EquationIdVectorType& EquationId,
-        const ProcessInfo& CurrentProcessInfo) final
+        const ProcessInfo& CurrentProcessInfo) override
     {
         KRATOS_TRY
 
-        CalculateRHSContributionImpl( rCurrentElement, RHS_Contribution,
-                EquationId, CurrentProcessInfo );
+        ResidualBasedNewmarkHelperType::CalculateRHSContribution( rCurrentElement,
+                RHS_Contribution, EquationId, CurrentProcessInfo );
 
         KRATOS_CATCH("")
     }
@@ -1503,12 +1524,12 @@ public:
         Element& rCurrentElement,
         LocalSystemMatrixType& LHS_Contribution,
         Element::EquationIdVectorType& EquationId,
-        const ProcessInfo& CurrentProcessInfo) final
+        const ProcessInfo& CurrentProcessInfo) override
     {
         KRATOS_TRY
 
-        CalculateLHSContributionImpl( rCurrentElement, LHS_Contribution,
-                EquationId, CurrentProcessInfo );
+        ResidualBasedNewmarkHelperType::CalculateLHSContribution( rCurrentElement,
+                LHS_Contribution, EquationId, CurrentProcessInfo );
 
         KRATOS_CATCH("")
     }
@@ -1519,12 +1540,12 @@ public:
         LocalSystemMatrixType& LHS_Contribution,
         LocalSystemVectorType& RHS_Contribution,
         Element::EquationIdVectorType& EquationId,
-        const ProcessInfo& CurrentProcessInfo) final
+        const ProcessInfo& CurrentProcessInfo) override
     {
         KRATOS_TRY
 
-        CalculateSystemContributionsImpl( rCurrentCondition, LHS_Contribution, RHS_Contribution,
-                EquationId, CurrentProcessInfo );
+        ResidualBasedNewmarkHelperType::CalculateSystemContributions( rCurrentCondition,
+                LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo );
 
         KRATOS_CATCH("")
     }
@@ -1534,12 +1555,12 @@ public:
         Condition& rCurrentCondition,
         LocalSystemMatrixType& LHS_Contribution,
         Element::EquationIdVectorType& EquationId,
-        const ProcessInfo& CurrentProcessInfo) final
+        const ProcessInfo& CurrentProcessInfo) override
     {
         KRATOS_TRY
 
-        CalculateLHSContributionImpl( rCurrentCondition, LHS_Contribution,
-                EquationId, CurrentProcessInfo );
+        ResidualBasedNewmarkHelperType::CalculateLHSContribution( rCurrentCondition,
+                LHS_Contribution, EquationId, CurrentProcessInfo );
 
         KRATOS_CATCH("")
     }
@@ -1549,12 +1570,12 @@ public:
         Condition& rCurrentCondition,
         LocalSystemVectorType& RHS_Contribution,
         Element::EquationIdVectorType& EquationId,
-        const ProcessInfo& CurrentProcessInfo) final
+        const ProcessInfo& CurrentProcessInfo) override
     {
         KRATOS_TRY
 
-        CalculateRHSContributionImpl( rCurrentCondition, RHS_Contribution,
-                EquationId, CurrentProcessInfo );
+        ResidualBasedNewmarkHelperType::CalculateRHSContribution( rCurrentCondition,
+                RHS_Contribution, EquationId, CurrentProcessInfo );
 
         KRATOS_CATCH("")
     }
@@ -1606,7 +1627,9 @@ public:
     /// Turn back information as a string.
     std::string Info() const override
     {
-        return "ResidualBasedNewmarkScheme";
+        std::stringstream ss;
+        ss << "ResidualBasedNewmarkScheme<" << TMassDampingType << ">";
+        return ss.str();
     }
 
     /// Print object's data.
@@ -1623,252 +1646,6 @@ public:
     /*@{ */
 
 protected:
-
-    template<class TEntityType>
-    void CalculateSystemContributionsImpl(
-        TEntityType& rCurrentElement,
-        LocalSystemMatrixType& LHS_Contribution,
-        LocalSystemVectorType& RHS_Contribution,
-        typename TEntityType::EquationIdVectorType& EquationId,
-        const ProcessInfo& CurrentProcessInfo)
-    {
-        rCurrentElement.CalculateLocalSystem(LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
-
-        rCurrentElement.EquationIdVector(EquationId,CurrentProcessInfo);
-
-        if (CurrentProcessInfo[QUASI_STATIC_ANALYSIS])
-        {
-            Matrix DampingMatrix;
-
-            rCurrentElement.CalculateDampingMatrix(DampingMatrix, CurrentProcessInfo);
-
-            if (norm_frobenius(DampingMatrix) > 0.0) // filter out the element that did not calculate damping and then set it to a zero matrix
-            {
-                AddDampingToRHS(rCurrentElement, RHS_Contribution, DampingMatrix, CurrentProcessInfo);
-                AssembleTimeSpaceLHS_QuasiStatic(LHS_Contribution, DampingMatrix, CurrentProcessInfo);
-            }
-            else
-                AssembleTimeSpaceLHS_QuasiStatic(LHS_Contribution, CurrentProcessInfo);
-        }
-        else
-        {
-            Matrix DampingMatrix;
-
-            Matrix MassMatrix;
-
-            rCurrentElement.CalculateDampingMatrix(DampingMatrix, CurrentProcessInfo);
-
-            rCurrentElement.CalculateMassMatrix(MassMatrix, CurrentProcessInfo);
-
-            // KRATOS_WATCH(rCurrentElement.Id())
-            // KRATOS_WATCH(MassMatrix)
-            // KRATOS_WATCH(DampingMatrix)
-            // KRATOS_WATCH(LHS_Contribution)
-
-            if ((norm_frobenius(DampingMatrix) == 0.0) && (norm_frobenius(MassMatrix) > 0.0))
-            {
-                AddInertiaToRHS(rCurrentElement, RHS_Contribution, MassMatrix, CurrentProcessInfo);
-
-                if ((DampingMatrix.size1() != MassMatrix.size1()) || (DampingMatrix.size2() != MassMatrix.size2()))
-                    DampingMatrix.resize(MassMatrix.size1(), MassMatrix.size2(), false);
-                noalias(DampingMatrix) = ZeroMatrix(MassMatrix.size1(), MassMatrix.size2());
-
-                AssembleTimeSpaceLHS_Dynamics(LHS_Contribution, DampingMatrix, MassMatrix, CurrentProcessInfo);
-            }
-            else if ((norm_frobenius(DampingMatrix) > 0.0) && (norm_frobenius(MassMatrix) == 0.0))
-            {
-                AddDampingToRHS(rCurrentElement, RHS_Contribution, DampingMatrix, CurrentProcessInfo);
-
-                AssembleTimeSpaceLHS_QuasiStatic(LHS_Contribution, DampingMatrix, CurrentProcessInfo);
-            }
-            else if ((norm_frobenius(DampingMatrix) > 0.0) && (norm_frobenius(MassMatrix) > 0.0))
-            {
-                AddInertiaToRHS(rCurrentElement, RHS_Contribution, MassMatrix, CurrentProcessInfo);
-
-                AddDampingToRHS(rCurrentElement, RHS_Contribution, DampingMatrix, CurrentProcessInfo);
-
-                AssembleTimeSpaceLHS_Dynamics(LHS_Contribution, DampingMatrix, MassMatrix, CurrentProcessInfo);
-            }
-        }
-    }
-
-    template<class TEntityType>
-    void CalculateRHSContributionImpl(
-        TEntityType& rCurrentElement,
-        LocalSystemVectorType& RHS_Contribution,
-        typename TEntityType::EquationIdVectorType& EquationId,
-        const ProcessInfo& CurrentProcessInfo)
-    {
-        rCurrentElement.CalculateRightHandSide(RHS_Contribution, CurrentProcessInfo);
-
-        rCurrentElement.EquationIdVector(EquationId,CurrentProcessInfo);
-
-        if (CurrentProcessInfo[QUASI_STATIC_ANALYSIS])
-        {
-            Matrix DampingMatrix;
-
-            rCurrentElement.CalculateDampingMatrix(DampingMatrix, CurrentProcessInfo);
-
-            if (norm_frobenius(DampingMatrix) > 0.0)
-            {
-                AddDampingToRHS(rCurrentElement, RHS_Contribution, DampingMatrix, CurrentProcessInfo);
-            }
-        }
-        else
-        {
-            Matrix DampingMatrix;
-
-            Matrix MassMatrix;
-
-            rCurrentElement.CalculateDampingMatrix(DampingMatrix, CurrentProcessInfo);
-
-            rCurrentElement.CalculateMassMatrix(MassMatrix, CurrentProcessInfo);
-
-            if ((norm_frobenius(DampingMatrix) == 0.0) && (norm_frobenius(MassMatrix) > 0.0))
-            {
-                AddInertiaToRHS(rCurrentElement, RHS_Contribution, MassMatrix, CurrentProcessInfo);
-            }
-            else if ((norm_frobenius(DampingMatrix) > 0.0) && (norm_frobenius(MassMatrix) == 0.0))
-            {
-                AddDampingToRHS(rCurrentElement, RHS_Contribution, DampingMatrix, CurrentProcessInfo);
-            }
-            else if ((norm_frobenius(DampingMatrix) > 0.0) && (norm_frobenius(MassMatrix) > 0.0))
-            {
-                AddInertiaToRHS(rCurrentElement, RHS_Contribution, MassMatrix, CurrentProcessInfo);
-
-                AddDampingToRHS(rCurrentElement, RHS_Contribution, DampingMatrix, CurrentProcessInfo);
-            }
-        }
-    }
-
-    template<class TEntityType>
-    void CalculateLHSContributionImpl(
-        TEntityType& rCurrentElement,
-        LocalSystemMatrixType& LHS_Contribution,
-        typename TEntityType::EquationIdVectorType& EquationId,
-        const ProcessInfo& CurrentProcessInfo)
-    {
-        rCurrentElement.CalculateLeftHandSide(LHS_Contribution, CurrentProcessInfo);
-
-        rCurrentElement.EquationIdVector(EquationId,CurrentProcessInfo);
-
-        if (CurrentProcessInfo[QUASI_STATIC_ANALYSIS])
-        {
-            Matrix DampingMatrix;
-
-            rCurrentElement.CalculateDampingMatrix(DampingMatrix, CurrentProcessInfo);
-
-            if (norm_frobenius(DampingMatrix) > 0.0) // filter out the element that did not calculate damping and then set it to a zero matrix
-                AssembleTimeSpaceLHS_QuasiStatic(LHS_Contribution, DampingMatrix, CurrentProcessInfo);
-            else
-                AssembleTimeSpaceLHS_QuasiStatic(LHS_Contribution, CurrentProcessInfo);
-        }
-        else
-        {
-            Matrix DampingMatrix;
-
-            Matrix MassMatrix;
-
-            rCurrentElement.CalculateDampingMatrix(DampingMatrix, CurrentProcessInfo);
-
-            rCurrentElement.CalculateMassMatrix(MassMatrix, CurrentProcessInfo);
-
-            if ((norm_frobenius(DampingMatrix) == 0.0) && (norm_frobenius(MassMatrix) > 0.0))
-            {
-                if ((DampingMatrix.size1() != MassMatrix.size1()) || (DampingMatrix.size2() != MassMatrix.size2()))
-                    DampingMatrix.resize(MassMatrix.size1(), MassMatrix.size2(), false);
-                noalias(DampingMatrix) = ZeroMatrix(MassMatrix.size1(), MassMatrix.size2());
-
-                AssembleTimeSpaceLHS_Dynamics(LHS_Contribution, DampingMatrix, MassMatrix, CurrentProcessInfo);
-            }
-            else if ((norm_frobenius(DampingMatrix) > 0.0) && (norm_frobenius(MassMatrix) == 0.0))
-            {
-                AssembleTimeSpaceLHS_QuasiStatic(LHS_Contribution, DampingMatrix, CurrentProcessInfo);
-            }
-            else if ((norm_frobenius(DampingMatrix) > 0.0) && (norm_frobenius(MassMatrix) > 0.0))
-            {
-                AssembleTimeSpaceLHS_Dynamics(LHS_Contribution, DampingMatrix, MassMatrix, CurrentProcessInfo);
-            }
-        }
-    }
-
-    template<class TEntityType>
-    void AddInertiaToRHS(
-        const TEntityType& rCurrentElement,
-        LocalSystemVectorType& RHS_Contribution,
-        const LocalSystemMatrixType& MassMatrix,
-        const ProcessInfo& CurrentProcessInfo)
-    {
-        // adding inertia contribution
-        Vector acceleration;
-        rCurrentElement.GetSecondDerivativesVector(acceleration, 0);
-        noalias(RHS_Contribution) -= prod(MassMatrix, acceleration);
-    }
-
-    template<class TEntityType>
-    void AddDampingToRHS(
-        const TEntityType& rCurrentElement,
-        LocalSystemVectorType& RHS_Contribution,
-        const LocalSystemMatrixType& DampingMatrix,
-        const ProcessInfo& CurrentProcessInfo)
-    {
-        // adding damping contribution
-        Vector velocity;
-        rCurrentElement.GetFirstDerivativesVector(velocity, 0);
-        noalias(RHS_Contribution) -= prod(DampingMatrix, velocity);
-    }
-
-    void AssembleTimeSpaceLHS_QuasiStatic(
-        LocalSystemMatrixType& LHS_Contribution,
-        const LocalSystemMatrixType& DampingMatrix,
-        const ProcessInfo& CurrentProcessInfo)
-    {
-        const double Dt = CurrentProcessInfo[DELTA_TIME];
-        double aux;
-
-        // adding stiffness contribution to the dynamic stiffness
-        aux = (1-mAlpha_f);
-        LHS_Contribution *= aux;
-
-        // adding damping contribution to the dynamic stiffness
-        aux = (1-mAlpha_f)*mGamma/(mBeta*Dt);
-        noalias(LHS_Contribution) += aux * DampingMatrix;
-    }
-
-    void AssembleTimeSpaceLHS_QuasiStatic(
-        LocalSystemMatrixType& LHS_Contribution,
-        const ProcessInfo& CurrentProcessInfo)
-    {
-        const double Dt = CurrentProcessInfo[DELTA_TIME];
-        double aux;
-
-        // adding stiffness contribution to the dynamic stiffness
-        aux = (1-mAlpha_f);
-        LHS_Contribution *= aux;
-    }
-
-    void AssembleTimeSpaceLHS_Dynamics(
-        LocalSystemMatrixType& LHS_Contribution,
-        const LocalSystemMatrixType& DampingMatrix,
-        const LocalSystemMatrixType& MassMatrix,
-        const ProcessInfo& CurrentProcessInfo)
-    {
-        const double Dt = CurrentProcessInfo[DELTA_TIME];
-        double aux;
-
-        // adding stiffness contribution to the dynamic stiffness
-        aux = (1-mAlpha_f);
-        LHS_Contribution *= aux;
-
-        // adding damping contribution to the dynamic stiffness
-        aux = (1-mAlpha_f)*mGamma/(mBeta*Dt);
-        noalias(LHS_Contribution) += aux * DampingMatrix;
-
-        // adding mass contribution to the dynamic stiffness
-        aux = (1-mAlpha_m)/(mBeta*pow(Dt, 2));
-        noalias(LHS_Contribution) += aux * MassMatrix;
-    }
-
     /*@} */
     /**@name Protected member Variables */
     /*@{ */
@@ -1887,6 +1664,7 @@ protected:
     /*@} */
     /**@name Protected LifeCycle */
     /*@{ */
+
 private:
     /**@name Static Member Variables */
     /*@{ */
@@ -1918,7 +1696,8 @@ private:
     /*@} */
     /**@name Un accessible methods */
     /*@{ */
-}; /* Class Scheme */
+}; /* class ResidualBasedNewmarkScheme */
+
 }  /* namespace Kratos.*/
 
 #endif /* KRATOS_STRUCTURAL_APPLICATION_RESIDUALBASED_NEWMARK_SCHEME  defined */
