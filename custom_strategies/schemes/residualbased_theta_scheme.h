@@ -582,12 +582,12 @@ public:
                 = ( i->GetSolutionStepValue(TEMPERATURE_EINS)
                   - i->GetSolutionStepValue(TEMPERATURE_NULL) ) / Dt;
 
-                i->GetSolutionStepValue(TEMPERATURE_EINS_DT_DT)
+                i->GetSolutionStepValue(TEMPERATURE_EINS_ACCELERATION)
                 = ( i->GetSolutionStepValue(TEMPERATURE_EINS_DT)
                   - i->GetSolutionStepValue(TEMPERATURE_NULL_DT)) / Dt;
 
-                i->GetSolutionStepValue(TEMPERATURE_DT_DT)
-                = i->GetSolutionStepValue(TEMPERATURE_EINS_DT_DT);
+                i->GetSolutionStepValue(TEMPERATURE_ACCELERATION)
+                = i->GetSolutionStepValue(TEMPERATURE_EINS_ACCELERATION);
 
                 i->GetSolutionStepValue(TEMPERATURE_DT)
                 = i->GetSolutionStepValue(TEMPERATURE_EINS_DT);
@@ -858,8 +858,8 @@ public:
             {
                 i->GetSolutionStepValue(TEMPERATURE_EINS_DT)=
                     i->GetSolutionStepValue(TEMPERATURE_NULL_DT);
-                i->GetSolutionStepValue(TEMPERATURE_EINS_DT_DT)=
-                    i->GetSolutionStepValue(TEMPERATURE_NULL_DT_DT);
+                i->GetSolutionStepValue(TEMPERATURE_EINS_ACCELERATION)=
+                    i->GetSolutionStepValue(TEMPERATURE_NULL_ACCELERATION);
                 i->GetSolutionStepValue(TEMPERATURE_EINS)=
                     i->GetSolutionStepValue(TEMPERATURE_NULL);
             }
@@ -1075,7 +1075,7 @@ public:
             {
                 if(CurrentProcessInfo[FIRST_TIME_STEP])
                 {
-                    i->GetSolutionStepValue(TEMPERATURE_NULL_DT_DT) = i->GetSolutionStepValue(TEMPERATURE_DT_DT);
+                    i->GetSolutionStepValue(TEMPERATURE_NULL_ACCELERATION) = i->GetSolutionStepValue(TEMPERATURE_ACCELERATION);
                     i->GetSolutionStepValue(TEMPERATURE_NULL_DT) = i->GetSolutionStepValue(TEMPERATURE_DT);
                     i->GetSolutionStepValue(TEMPERATURE_NULL) = i->GetSolutionStepValue(TEMPERATURE);
                 }
@@ -1083,13 +1083,13 @@ public:
                 {
                     i->GetSolutionStepValue(TEMPERATURE_NULL_DT) = i->GetSolutionStepValue(TEMPERATURE_EINS_DT);
                     i->GetSolutionStepValue(TEMPERATURE_NULL) = i->GetSolutionStepValue(TEMPERATURE_EINS);
-                    i->GetSolutionStepValue(TEMPERATURE_NULL_DT_DT) = i->GetSolutionStepValue(TEMPERATURE_EINS_DT_DT);
+                    i->GetSolutionStepValue(TEMPERATURE_NULL_ACCELERATION) = i->GetSolutionStepValue(TEMPERATURE_EINS_ACCELERATION);
                 }
 
                 // here we update the current values at the end of time step
                 i->GetSolutionStepValue(TEMPERATURE) = i->GetSolutionStepValue(TEMPERATURE_EINS);
                 i->GetSolutionStepValue(TEMPERATURE_DT) = i->GetSolutionStepValue(TEMPERATURE_EINS_DT);
-                i->GetSolutionStepValue(TEMPERATURE_DT_DT) = i->GetSolutionStepValue(TEMPERATURE_EINS_DT_DT);
+                i->GetSolutionStepValue(TEMPERATURE_ACCELERATION) = i->GetSolutionStepValue(TEMPERATURE_EINS_ACCELERATION);
             }
 
             if (mIntegrateRotation)
