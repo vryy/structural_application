@@ -48,6 +48,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //   Date:                $Date: 2009-01-14 09:30:38 $
 //   Modified by:         $Author: hbui $
 //   Date:                $Date: 2013-02-22 16:16:48 $
+//   Modified by:         $Author: hbui $
+//   Date:                $Date: 2023-07-24 16:16:48 $
 //
 //
 
@@ -96,7 +98,8 @@ namespace Kratos
 
 /// Short class definition.
 /** Detail class definition.
-Define a small strain element with strain measure as Infinitesimal strain and stress measure as Cauchy stress
+ * Define a small strain element with strain measure as Infinitesimal strain and stress measure as Cauchy stress.
+ * The inertial and viscous forces are assumed linear.
  */
 class KinematicLinear : public Element, public PrescribedObject
 {
@@ -164,6 +167,19 @@ public:
 
     void CalculateDampingMatrix( MatrixType& rDampMatrix, const ProcessInfo& rCurrentProcessInfo ) override;
 
+    ///@brief Routines to enable the element to use with nonlinear mass damping time integration scheme
+    ///@{
+
+    void AddInertiaForces(VectorType& rRightHandSideVector, double coeff, const ProcessInfo& rCurrentProcessInfo) override;
+
+    void AddDampingForces(VectorType& rRightHandSideVector, double coeff, const ProcessInfo& rCurrentProcessInfo) override;
+
+    void CalculateLocalAccelerationContribution(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
+
+    void CalculateLocalVelocityContribution(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
+
+    ///@}
+
     void FinalizeSolutionStep( const ProcessInfo& CurrentProcessInfo ) override;
 
     void InitializeSolutionStep( const ProcessInfo& CurrentProcessInfo ) override;
@@ -172,9 +188,9 @@ public:
 
     void FinalizeNonLinearIteration( const ProcessInfo& CurrentProcessInfo ) override;
 
-    void CalculateOnIntegrationPoints( const Variable<Matrix>& rVariable, std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo ) override;
+    void CalculateOnIntegrationPoints( const Variable<MatrixType>& rVariable, std::vector<MatrixType>& rValues, const ProcessInfo& rCurrentProcessInfo ) override;
 
-    void CalculateOnIntegrationPoints( const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo ) override;
+    void CalculateOnIntegrationPoints( const Variable<VectorType>& rVariable, std::vector<VectorType>& rValues, const ProcessInfo& rCurrentProcessInfo ) override;
 
     void CalculateOnIntegrationPoints(const Variable<array_1d<double, 3> >& rVariable, std::vector<array_1d<double, 3> >& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
@@ -192,17 +208,17 @@ public:
 
     void SetValuesOnIntegrationPoints( const Variable<int>& rVariable, const std::vector<int>& rValues, const ProcessInfo& rCurrentProcessInfo ) override;
 
-    void SetValuesOnIntegrationPoints( const Variable<Matrix>& rVariable, const std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo ) override;
+    void SetValuesOnIntegrationPoints( const Variable<MatrixType>& rVariable, const std::vector<MatrixType>& rValues, const ProcessInfo& rCurrentProcessInfo ) override;
 
-    void SetValuesOnIntegrationPoints( const Variable<Vector>& rVariable, const std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo ) override;
+    void SetValuesOnIntegrationPoints( const Variable<VectorType>& rVariable, const std::vector<VectorType>& rValues, const ProcessInfo& rCurrentProcessInfo ) override;
 
     void SetValuesOnIntegrationPoints( const Variable<ConstitutiveLaw::Pointer>& rVariable, const std::vector<ConstitutiveLaw::Pointer>& rValues, const ProcessInfo& rCurrentProcessInfo ) override;
 
-    void GetValuesVector( Vector& values, int Step = 0 ) const override;
+    void GetValuesVector( VectorType& values, int Step = 0 ) const override;
 
-    void GetFirstDerivativesVector( Vector& values, int Step = 0 ) const override;
+    void GetFirstDerivativesVector( VectorType& values, int Step = 0 ) const override;
 
-    void GetSecondDerivativesVector( Vector& values, int Step = 0 ) const override;
+    void GetSecondDerivativesVector( VectorType& values, int Step = 0 ) const override;
 
     int Check( const ProcessInfo& rCurrentProcessInfo ) const override;
 
@@ -256,7 +272,7 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    Matrix mInitialDisp;
+    MatrixType mInitialDisp;
     IntegrationMethod mThisIntegrationMethod;
     std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector;
 
@@ -270,9 +286,9 @@ protected:
 
     void InitializeMaterial(const ProcessInfo& rCurrentProcessInfo);
 
-    virtual void CalculateBoperator( Matrix& B_Operator, const Vector& N, const Matrix& DN_DX ) const;
+    virtual void CalculateBoperator( MatrixType& B_Operator, const VectorType& N, const MatrixType& DN_DX ) const;
 
-    virtual void CalculateBBaroperator( Matrix& B_Operator, const Matrix& DN_DX, const Matrix& Bdil_bar ) const;
+    virtual void CalculateBBaroperator( MatrixType& B_Operator, const MatrixType& DN_DX, const MatrixType& Bdil_bar ) const;
 
     virtual unsigned int GetStrainSize( const unsigned int& dim ) const
     {
@@ -280,7 +296,7 @@ protected:
     }
 
     virtual double GetIntegrationWeight( const GeometryType::IntegrationPointsArrayType& integration_points,
-            const unsigned int& PointNumber, const Matrix& Ncontainer ) const
+            const unsigned int& PointNumber, const MatrixType& Ncontainer ) const
     {
         return integration_points[PointNumber].Weight();
     }
@@ -352,21 +368,21 @@ private:
 
     //CALCULATE FORCEVECTORS DISPLACEMENT
 
-    void AddBodyForcesToRHS( Vector& R, const Vector& N_DISP, double Weight, double detJ ) const;
+    void AddBodyForcesToRHS( VectorType& R, const VectorType& N_DISP, double Weight, double detJ ) const;
 
-    void CalculateAndAdd_ExtForceContribution( const Vector& N, const ProcessInfo& CurrentProcessInfo,
-                                               const Vector& BodyForce, VectorType& rRightHandSideVector,
+    void CalculateAndAdd_ExtForceContribution( const VectorType& N, const ProcessInfo& CurrentProcessInfo,
+                                               const VectorType& BodyForce, VectorType& rRightHandSideVector,
                                                double weight, double detJ) const;
 
-    void AddInternalForcesToRHS( Vector& R, const Matrix& B_Operator, Vector& StressVector, double Weight, double detJ ) const;
+    void AddInternalForcesToRHS( VectorType& R, const MatrixType& B_Operator, VectorType& StressVector, double Weight, double detJ ) const;
 
-    void CalculateStiffnesMatrix( Matrix& K, const Matrix& tan_C, const Matrix& B_Operator, double Weight, double detJ ) const;
+    void CalculateStiffnesMatrix( MatrixType& K, const MatrixType& tan_C, const MatrixType& B_Operator, double Weight, double detJ ) const;
 
-    void CalculateStressAndTangentialStiffness( Vector& StressVector, Matrix& tanC_U,
-                                                Vector& StrainVector, const Matrix& B_Operator,
+    void CalculateStressAndTangentialStiffness( VectorType& StressVector, MatrixType& tanC_U,
+                                                VectorType& StrainVector, const MatrixType& B_Operator,
                                                 int PointNumber, const ProcessInfo& CurrentProcessInfo ) const;
 
-    void CalculateStrain( const Matrix& B, const Matrix& Displacements, Vector& StrainVector ) const;
+    void CalculateStrain( const MatrixType& B, const MatrixType& Displacements, VectorType& StrainVector ) const;
 
     ///@}
     ///@name Private Operations
