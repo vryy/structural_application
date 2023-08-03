@@ -1,9 +1,8 @@
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
-include_directories( ${CMAKE_SOURCE_DIR}/kratos )
-
-##include cotire (CMake module to hep generating precompiled header to speed-up the build process)
-#include(cotire)
+if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Android")
+    include_directories( ${CMAKE_SOURCE_DIR}/kratos )
+endif()
 
 ## generate variables with the sources
 set( KRATOS_STRUCTURAL_APPLICATION_SOURCES
@@ -133,42 +132,52 @@ set( KRATOS_STRUCTURAL_APPLICATION_SOURCES
 
     ${CMAKE_CURRENT_SOURCE_DIR}/structural_application.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/structural_application_variables2.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_elements_to_python.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_conditions_to_python.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_strategies_to_python.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_io_to_python.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_constitutive_laws_to_python.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_parallel_strategies_to_python.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_fluency_criteria_to_python.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_processes_to_python.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/structural_python_application.cpp
 )
 
-###############################################################
-## define library Kratos which defines the basic python interface
-add_library(KratosStructuralApplication SHARED ${KRATOS_STRUCTURAL_APPLICATION_SOURCES})
-target_link_libraries(KratosStructuralApplication KratosCore )
-target_link_libraries(KratosStructuralApplication ${MPI_LIBRARIES} )
-set_target_properties(KratosStructuralApplication PROPERTIES PREFIX "")
+if(${CMAKE_SYSTEM_NAME} MATCHES "Android")
+    ###############################################################
+    ## define library Kratos which defines the basic python interface
+    add_library(KratosStructuralApplication SHARED ${KRATOS_STRUCTURAL_APPLICATION_SOURCES})
+    target_link_libraries(KratosStructuralApplication KratosCore )
+    set_target_properties(KratosStructuralApplication PROPERTIES PREFIX "")
+else()
+    set(KRATOS_STRUCTURAL_APPLICATION_SOURCES
+        ${KRATOS_STRUCTURAL_APPLICATION_SOURCES}
+        ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_elements_to_python.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_conditions_to_python.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_strategies_to_python.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_io_to_python.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_constitutive_laws_to_python.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_parallel_strategies_to_python.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_fluency_criteria_to_python.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_processes_to_python.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/structural_python_application.cpp
+    )
 
-if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-    set_target_properties(KratosStructuralApplication PROPERTIES SUFFIX .pyd)
-endif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+    ###############################################################
+    ## define library Kratos which defines the basic python interface
+    add_library(KratosStructuralApplication SHARED ${KRATOS_STRUCTURAL_APPLICATION_SOURCES})
+    target_link_libraries(KratosStructuralApplication KratosCore )
+    target_link_libraries(KratosStructuralApplication ${MPI_LIBRARIES} )
+    set_target_properties(KratosStructuralApplication PROPERTIES PREFIX "")
 
-# changing the .dylib suffix to .so
-if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-	set_target_properties(KratosStructuralApplication PROPERTIES SUFFIX .so)
-endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+    if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+        set_target_properties(KratosStructuralApplication PROPERTIES SUFFIX .pyd)
+    endif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 
-#cotire(KratosStructuralApplication)
+    # changing the .dylib suffix to .so
+    if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+        set_target_properties(KratosStructuralApplication PROPERTIES SUFFIX .so)
+    endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
-install(TARGETS KratosStructuralApplication DESTINATION libs )
+    install(TARGETS KratosStructuralApplication DESTINATION libs )
 
-if(${INSTALL_PYTHON_FILES} MATCHES ON)
-  get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
-  install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/python_scripts DESTINATION applications/${CURRENT_DIR_NAME}  FILES_MATCHING PATTERN "*.py"  PATTERN ".svn" EXCLUDE)
-endif(${INSTALL_PYTHON_FILES} MATCHES ON)
+    if(${INSTALL_PYTHON_FILES} MATCHES ON)
+      get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
+      install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/python_scripts DESTINATION applications/${CURRENT_DIR_NAME}  FILES_MATCHING PATTERN "*.py"  PATTERN ".svn" EXCLUDE)
+    endif(${INSTALL_PYTHON_FILES} MATCHES ON)
 
-# Add to the KratosMultiphisics Python module
-install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/StructuralApplication.py" DESTINATION KratosMultiphysics )
+    # Add to the KratosMultiphysics Python module
+    install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/StructuralApplication.py" DESTINATION KratosMultiphysics )
+endif()
