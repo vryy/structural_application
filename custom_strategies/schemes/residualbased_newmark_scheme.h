@@ -260,23 +260,6 @@ public:
     /**@name Operations */
     /*@{ */
 
-    /// Initialize the scheme
-    void Initialize(ModelPart& r_model_part) override
-    {
-        BaseType::Initialize(r_model_part);
-
-        ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
-
-        CurrentProcessInfo[TIME_INTEGRATION_SCHEME] = FNV1a32Hash::CalculateHash(Info().c_str());
-        CurrentProcessInfo[NEWMARK_ALPHAF] = mAlpha_f;
-        CurrentProcessInfo[NEWMARK_ALPHAM] = mAlpha_m;
-        CurrentProcessInfo[NEWMARK_BETA] = mBeta;
-        CurrentProcessInfo[NEWMARK_GAMMA] = mGamma;
-
-        std::cout << "ModelPart " << r_model_part.Name() << " is initialized by " << Info() << std::endl;
-        KRATOS_WATCH(CurrentProcessInfo[TIME_INTEGRATION_SCHEME])
-    }
-
     /// Enable integration of rotation d.o.f
     void SetIntegrateRotation(const bool& value)
     {
@@ -293,6 +276,23 @@ public:
     void SetIntegrateLoad(const bool& value)
     {
         mIntegrateLoad = value;
+    }
+
+    /// Initialize the scheme
+    void Initialize(ModelPart& r_model_part) override
+    {
+        BaseType::Initialize(r_model_part);
+
+        ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
+
+        CurrentProcessInfo[TIME_INTEGRATION_SCHEME] = FNV1a32Hash::CalculateHash(Info().c_str());
+        CurrentProcessInfo[NEWMARK_ALPHAF] = mAlpha_f;
+        CurrentProcessInfo[NEWMARK_ALPHAM] = mAlpha_m;
+        CurrentProcessInfo[NEWMARK_BETA]   = mBeta;
+        CurrentProcessInfo[NEWMARK_GAMMA]  = mGamma;
+
+        std::cout << "ModelPart " << r_model_part.Name() << " is initialized by " << Info() << std::endl;
+        KRATOS_WATCH(CurrentProcessInfo[TIME_INTEGRATION_SCHEME])
     }
 
     /** Performing the update of the solution.*/

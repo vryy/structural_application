@@ -398,7 +398,7 @@ struct ResidualBasedNewmarkHelper<1>
         typename TEntityType::EquationIdVectorType& EquationId,
         const ProcessInfo& CurrentProcessInfo)
     {
-        KRATOS_THROW_ERROR(std::logic_error, __FUNCTION__, " is not worth to implement. Call CalculateSystemContributions instead.")
+        KRATOS_ERROR << __FUNCTION__ << " is not implemented. Call CalculateSystemContributions instead.";
     }
 
 }; /* struct ResidualBasedNewmarkHelper<1> */
