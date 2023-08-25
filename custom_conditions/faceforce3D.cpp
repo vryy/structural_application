@@ -116,11 +116,12 @@ void FaceForce3D::EquationIdVector( EquationIdVectorType& rResult,
                                     const ProcessInfo& rCurrentProcessInfo ) const
 {
     KRATOS_TRY
-    unsigned int number_of_nodes = GetGeometry().size();
-    unsigned int dim = number_of_nodes * 3;
 
-    if ( rResult.size() != dim )
-        rResult.resize( dim );
+    unsigned int number_of_nodes = GetGeometry().size();
+    unsigned int dim = 3;
+
+    if ( rResult.size() != dim*number_of_nodes )
+        rResult.resize( dim*number_of_nodes );
 
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {

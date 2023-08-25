@@ -255,7 +255,6 @@ void CollinearConstraint2D::EquationIdVector( EquationIdVectorType& rResult,
         const ProcessInfo& CurrentProcessInfo ) const
 {
     //determining size of DOF list
-    //dimension of space
     rResult.resize(GetGeometry().size()*2+1, false);
     for( unsigned int i = 0; i < GetGeometry().size(); ++i )
     {
@@ -272,7 +271,6 @@ void CollinearConstraint2D::GetDofList( DofsVectorType& ConditionalDofList,
                                         const ProcessInfo& CurrentProcessInfo) const
 {
     //determining size of DOF list
-    //dimension of space
     ConditionalDofList.resize(GetGeometry().size()*2+1);
     for( unsigned int i = 0; i < GetGeometry().size(); ++i )
     {

@@ -478,23 +478,23 @@ namespace Kratos
         //// Compute the B-dilatational operator
         //// Reference: Thomas Hughes, The Finite Element Method
         /////////////////////////////////////////////////////////////////////////
+        bool is_bbar = false;
+        if(GetProperties().Has(IS_BBAR))
+            is_bbar = GetProperties()[IS_BBAR];
         MatrixType Bdil_bar;
         double TotalDomainInitialSize = this->GetValue(GEOMETRICAL_DOMAIN_SIZE);
-        if(GetProperties().Has(IS_BBAR))
+        if(is_bbar)
         {
-            if(GetProperties()[IS_BBAR] == true)
+            Bdil_bar.resize(number_of_nodes, dim, false);
+            noalias(Bdil_bar) = ZeroMatrix(number_of_nodes, dim);
+            for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); ++PointNumber )
             {
-                Bdil_bar.resize(number_of_nodes, dim, false);
-                noalias(Bdil_bar) = ZeroMatrix(number_of_nodes, dim);
-                for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); ++PointNumber )
-                {
-                    IntToReferenceWeight = this->GetIntegrationWeight(integration_points, PointNumber, Ncontainer);
-                    MathUtils<double>::InvertMatrix( J0[PointNumber], InvJ0, DetJ0 );
-                    noalias( DN_DX ) = prod( DN_De[PointNumber], InvJ0 );
-                    noalias(Bdil_bar) += DN_DX * IntToReferenceWeight * DetJ0;
-                }
-                Bdil_bar /= TotalDomainInitialSize;
+                IntToReferenceWeight = this->GetIntegrationWeight(integration_points, PointNumber, Ncontainer);
+                MathUtils<double>::InvertMatrix( J0[PointNumber], InvJ0, DetJ0 );
+                noalias( DN_DX ) = prod( DN_De[PointNumber], InvJ0 );
+                noalias(Bdil_bar) += DN_DX * IntToReferenceWeight * DetJ0;
             }
+            Bdil_bar /= TotalDomainInitialSize;
         }
     //    KRATOS_WATCH(Bdil_bar / dim)
     //    KRATOS_WATCH(TotalDomainInitialSize)
@@ -508,13 +508,8 @@ namespace Kratos
             noalias( DN_DX ) = prod( DN_De[PointNumber], InvJ0 );
 
             //Initializing B_Operator at the current integration point
-            if(GetProperties().Has(IS_BBAR))
-            {
-                if(GetProperties()[IS_BBAR] == true)
-                    CalculateBBaroperator( B, DN_DX, Bdil_bar );
-                else
-                    CalculateBoperator( B, row(Ncontainer, PointNumber), DN_DX );
-            }
+            if(is_bbar)
+                CalculateBBaroperator( B, DN_DX, Bdil_bar );
             else
                 CalculateBoperator( B, row(Ncontainer, PointNumber), DN_DX );
 
@@ -1545,9 +1540,9 @@ namespace Kratos
         {
             for ( unsigned int i = 0; i < number_of_nodes; ++i )
             {
-                B_Operator( 0, i*2 ) = DN_DX( i, 0 );
+                B_Operator( 0, i*2     ) = DN_DX( i, 0 );
                 B_Operator( 1, i*2 + 1 ) = DN_DX( i, 1 );
-                B_Operator( 2, i*2 ) = DN_DX( i, 1 );
+                B_Operator( 2, i*2     ) = DN_DX( i, 1 );
                 B_Operator( 2, i*2 + 1 ) = DN_DX( i, 0 );
             }
         }
@@ -1555,14 +1550,14 @@ namespace Kratos
         {
             for ( unsigned int i = 0; i < number_of_nodes; ++i )
             {
-                B_Operator( 0, i*3 ) = DN_DX( i, 0 );
+                B_Operator( 0, i*3     ) = DN_DX( i, 0 );
                 B_Operator( 1, i*3 + 1 ) = DN_DX( i, 1 );
                 B_Operator( 2, i*3 + 2 ) = DN_DX( i, 2 );
-                B_Operator( 3, i*3 ) = DN_DX( i, 1 );
+                B_Operator( 3, i*3     ) = DN_DX( i, 1 );
                 B_Operator( 3, i*3 + 1 ) = DN_DX( i, 0 );
                 B_Operator( 4, i*3 + 1 ) = DN_DX( i, 2 );
                 B_Operator( 4, i*3 + 2 ) = DN_DX( i, 1 );
-                B_Operator( 5, i*3 ) = DN_DX( i, 2 );
+                B_Operator( 5, i*3     ) = DN_DX( i, 2 );
                 B_Operator( 5, i*3 + 2 ) = DN_DX( i, 0 );
             }
         }
@@ -1845,7 +1840,7 @@ namespace Kratos
                 CalculateStrain(B, CurrentDisp, StrainVector);
 
                 if (rValues[i].size() != strain_size)
-                    rValues[i].resize(strain_size);
+                    rValues[i].resize(strain_size, false);
                 noalias(rValues[i]) = StrainVector;
             }
 
@@ -1919,9 +1914,6 @@ namespace Kratos
         }
         else if ( rVariable == STRESSES )
         {
-            if ( rValues.size() != mConstitutiveLawVector.size() )
-                rValues.resize( mConstitutiveLawVector.size() );
-
             for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); ++i )
             {
                 if (rValues[i].size() != strain_size)
@@ -1932,9 +1924,6 @@ namespace Kratos
         }
         else
         {
-            if ( rValues.size() != mConstitutiveLawVector.size() )
-                rValues.resize( mConstitutiveLawVector.size() );
-
             for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); ++i )
             {
                 rValues[i] = mConstitutiveLawVector[i]->GetValue( rVariable, rValues[i] );
