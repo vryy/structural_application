@@ -63,6 +63,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/model_part.h"
 #include "includes/variables.h"
 #include "includes/element.h"
+#include "includes/fnv_1a_hash.h"
 #ifdef SD_APP_FORWARD_COMPATIBILITY
 #include "custom_python3/legacy_structural_app_vars.h"
 #else
@@ -98,9 +99,9 @@ u_{n+1} = u_{n} + dt * ud_{n} + dt^2 * udd_{n}
 ud_{n+1} = ud_{n} + dt * udd_{n}
 
 The structural dynamics equation to be solved:
-    M*udd + D*ud + r_i(u) = r_e                     [1]
+    M*udd + D*ud + r_i(u) = r_ext                   [1]
 
-Temporal discretization of [1} is:
+Temporal discretization of [1] is:
 M*udd_{n+1} = r_ext - r_i(u_{n+1}) - D*ud_{n+1}     [2]
 
 [2] can be solved trivially if M is lumped mass matrix.
@@ -206,6 +207,24 @@ public:
     void SetIntegrateLoad(const bool& value)
     {
         mIntegrateLoad = value;
+    }
+
+    /// Initialize the scheme
+    void Initialize(ModelPart& r_model_part) override
+    {
+        BaseType::Initialize(r_model_part);
+
+        ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
+
+        CurrentProcessInfo[TIME_INTEGRATION_SCHEME] = FNV1a32Hash::CalculateHash(Info().c_str());
+
+        if (mForceLumpedMass)
+            CurrentProcessInfo[COMPUTE_LUMPED_MASS_MATRIX] = true;
+        else
+            CurrentProcessInfo[COMPUTE_LUMPED_MASS_MATRIX] = false;
+
+        std::cout << "ModelPart " << r_model_part.Name() << " is initialized by " << Info() << std::endl;
+        KRATOS_WATCH(CurrentProcessInfo[TIME_INTEGRATION_SCHEME])
     }
 
     /** Performing the update of the solution.*/
