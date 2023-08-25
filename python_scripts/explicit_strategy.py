@@ -182,18 +182,25 @@ class SolvingStrategyPython:
 
         #build and solve the problem
         if it == 0:
-            self.builder_and_solver.Build(self.time_scheme,self.model_part,self.A,self.b)
-            self.builder_and_solver.ApplyDirichletConditions(self.time_scheme,self.model_part,self.A,self.Dx,self.b)
-            self.dof_util.ListDofs(self.builder_and_solver.GetDofSet(),self.builder_and_solver.GetEquationSystemSize())
-            #provide data for the preconditioner and linear solver
-            if self.linear_solver.AdditionalPhysicalDataIsNeeded():
-                self.linear_solver.ProvideAdditionalData(self.A,self.Dx,self.b,self.builder_and_solver.GetDofSet(),self.model_part)
-            self.linear_solver.Solve(self.A,self.Dx,self.b)
+            if(self.Parameters['decouple_build_and_solve'] == False):
+                self.builder_and_solver.BuildAndSolve(self.time_scheme,self.model_part,self.A,self.Dx,self.b)
+                self.dof_util.ListDofs(self.builder_and_solver.GetDofSet(),self.builder_and_solver.GetEquationSystemSize())
+            else:
+                self.builder_and_solver.Build(self.time_scheme,self.model_part,self.A,self.b)
+                self.builder_and_solver.ApplyDirichletConditions(self.time_scheme,self.model_part,self.A,self.Dx,self.b)
+                self.dof_util.ListDofs(self.builder_and_solver.GetDofSet(),self.builder_and_solver.GetEquationSystemSize())
+                #provide data for the preconditioner and linear solver
+                if self.linear_solver.AdditionalPhysicalDataIsNeeded():
+                    self.linear_solver.ProvideAdditionalData(self.A,self.Dx,self.b,self.builder_and_solver.GetDofSet(),self.model_part)
+                self.linear_solver.Solve(self.A,self.Dx,self.b)
         else:
-            self.builder_and_solver.BuildRHS(self.time_scheme,self.model_part,self.b)
-            # print("normb at BuildRHS: " + str(self.space_utils.TwoNorm(self.b)))
-            self.builder_and_solver.ApplyDirichletConditions(self.time_scheme,self.model_part,self.A,self.Dx,self.b)
-            self.linear_solver.Solve(self.A,self.Dx,self.b)
+            if(self.Parameters['decouple_build_and_solve'] == False):
+                self.builder_and_solver.BuildRHSAndSolve(self.time_scheme,self.model_part,self.A,self.Dx,self.b)
+            else:
+                self.builder_and_solver.BuildRHS(self.time_scheme,self.model_part,self.b)
+                # print("normb at BuildRHS: " + str(self.space_utils.TwoNorm(self.b)))
+                self.builder_and_solver.ApplyDirichletConditions(self.time_scheme,self.model_part,self.A,self.Dx,self.b)
+                self.linear_solver.Solve(self.A,self.Dx,self.b)
 
         if it > 0:
             norm_bold = self.space_utils.TwoNorm(self.bold)
@@ -395,5 +402,3 @@ class SolvingStrategyPython:
         if str is not None:
             print(str)
         raw_input(prompt)
-
-
