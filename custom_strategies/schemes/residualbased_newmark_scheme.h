@@ -364,6 +364,14 @@ public:
                     +=Dx[i->GetDof(TEMPERATURE).EquationId()];
                 }
             }
+            if( i->HasDofFor(DENSITY) )
+            {
+                if(i->GetDof(DENSITY).IsFree())
+                {
+                    i->GetSolutionStepValue(DENSITY_EINS)
+                    +=Dx[i->GetDof(DENSITY).EquationId()];
+                }
+            }
 
             // update this variables to account for Lagrange multiplier
             if( i->HasDofFor(LAGRANGE_DISPLACEMENT_X) )
@@ -478,6 +486,14 @@ public:
                 if (dof_iterator->IsFree())
                 {
                     rNode.GetSolutionStepValue(TEMPERATURE_EINS)
+                    += Dx[dof_iterator->EquationId()];
+                }
+            }
+            else if (dof_iterator->GetVariable() == DENSITY)
+            {
+                if (dof_iterator->IsFree())
+                {
+                    rNode.GetSolutionStepValue(DENSITY_EINS)
                     += Dx[dof_iterator->EquationId()];
                 }
             }
@@ -775,6 +791,40 @@ public:
                 i->GetSolutionStepValue(TEMPERATURE)
                 = mAlpha_f*i->GetSolutionStepValue(TEMPERATURE_NULL)
                   +(1.0-mAlpha_f)*i->GetSolutionStepValue(TEMPERATURE_EINS);
+            }
+            if( i->HasDofFor(DENSITY) )
+            {
+                i->GetSolutionStepValue(DENSITY_EINS_ACCELERATION)
+                = 1.0/(mBeta*Dt*Dt)
+                  * (i->GetSolutionStepValue(DENSITY_EINS)
+                     -i->GetSolutionStepValue(DENSITY_NULL))
+                  -1.0/(mBeta*Dt)
+                  *i->GetSolutionStepValue(DENSITY_NULL_DT)
+                  -(1.0-2.0*mBeta)/(2.0*mBeta)*i->GetSolutionStepValue(DENSITY_NULL_ACCELERATION);
+
+                i->GetSolutionStepValue(DENSITY_EINS_DT)
+                = (i->GetSolutionStepValue(DENSITY_EINS)
+                   -i->GetSolutionStepValue(DENSITY_NULL))
+                  *mGamma/(mBeta*Dt)
+                  -(mGamma-mBeta)/mBeta*
+                  (i->GetSolutionStepValue(DENSITY_NULL_DT));
+                // DENSITY equation is a parabolic equation. Therefore we
+                // don't need to add the inertial term to the approximation of
+                // the rate of DENSITY
+                  // -(mGamma-2.0*mBeta)/(2.0*mBeta)*Dt
+                  // *(i->GetSolutionStepValue(DENSITY_NULL_ACCELERATION));
+
+                i->GetSolutionStepValue(DENSITY_ACCELERATION)
+                = mAlpha_m*i->GetSolutionStepValue(DENSITY_NULL_ACCELERATION)
+                  +(1.0-mAlpha_m)*i->GetSolutionStepValue(DENSITY_EINS_ACCELERATION);
+
+                i->GetSolutionStepValue(DENSITY_DT)
+                = mAlpha_f*i->GetSolutionStepValue(DENSITY_NULL_DT)
+                  +(1.0-mAlpha_f)*i->GetSolutionStepValue(DENSITY_EINS_DT);
+
+                i->GetSolutionStepValue(DENSITY)
+                = mAlpha_f*i->GetSolutionStepValue(DENSITY_NULL)
+                  +(1.0-mAlpha_f)*i->GetSolutionStepValue(DENSITY_EINS);
             }
 
             if (mIntegrateRotation)
@@ -1089,6 +1139,15 @@ public:
                 i->GetSolutionStepValue(TEMPERATURE_EINS)=
                     i->GetSolutionStepValue(TEMPERATURE_NULL);
             }
+            if( i->HasDofFor(DENSITY) && i->GetDof(DENSITY).IsFree())
+            {
+                i->GetSolutionStepValue(DENSITY_EINS_DT)=
+                    i->GetSolutionStepValue(DENSITY_NULL_DT);
+                i->GetSolutionStepValue(DENSITY_EINS_ACCELERATION)=
+                    i->GetSolutionStepValue(DENSITY_NULL_ACCELERATION);
+                i->GetSolutionStepValue(DENSITY_EINS)=
+                    i->GetSolutionStepValue(DENSITY_NULL);
+            }
 
             if (mIntegrateRotation)
             {
@@ -1347,6 +1406,26 @@ public:
                     // i->GetSolutionStepValue(TEMPERATURE) = i->GetSolutionStepValue(TEMPERATURE_EINS);
                     // i->GetSolutionStepValue(TEMPERATURE_DT) = i->GetSolutionStepValue(TEMPERATURE_EINS_DT);
                     // i->GetSolutionStepValue(TEMPERATURE_ACCELERATION) = i->GetSolutionStepValue(TEMPERATURE_EINS_ACCELERATION);
+                }
+                if( i->HasDofFor(DENSITY) )
+                {
+                    if(CurrentProcessInfo[FIRST_TIME_STEP])
+                    {
+                        i->GetSolutionStepValue(DENSITY_NULL_ACCELERATION) = i->GetSolutionStepValue(DENSITY_ACCELERATION);
+                        i->GetSolutionStepValue(DENSITY_NULL_DT) = i->GetSolutionStepValue(DENSITY_DT);
+                        i->GetSolutionStepValue(DENSITY_NULL) = i->GetSolutionStepValue(DENSITY);
+                    }
+                    else
+                    {
+                        i->GetSolutionStepValue(DENSITY_NULL_DT) = i->GetSolutionStepValue(DENSITY_EINS_DT);
+                        i->GetSolutionStepValue(DENSITY_NULL) = i->GetSolutionStepValue(DENSITY_EINS);
+                        i->GetSolutionStepValue(DENSITY_NULL_ACCELERATION) = i->GetSolutionStepValue(DENSITY_EINS_ACCELERATION);
+                    }
+
+                    // // here we update the current values at the end of time step
+                    // i->GetSolutionStepValue(DENSITY) = i->GetSolutionStepValue(DENSITY_EINS);
+                    // i->GetSolutionStepValue(DENSITY_DT) = i->GetSolutionStepValue(DENSITY_EINS_DT);
+                    // i->GetSolutionStepValue(DENSITY_ACCELERATION) = i->GetSolutionStepValue(DENSITY_EINS_ACCELERATION);
                 }
 
                 if (mIntegrateRotation)
