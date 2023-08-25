@@ -126,12 +126,64 @@ def AddDofsForNodes(nodes):
 def AddDofs(model_part):
     AddDofsForNodes(model_part.Nodes)
 
+def CheckAndConvertParameters(analysis_parameters):
+    if( type( analysis_parameters ) == dict ):
+        if 'solution_strategy' not in analysis_parameters:
+            analysis_parameters['solution_strategy'] = "implicit_Newton_Raphson"
+        if 'builder_and_solver_type' not in analysis_parameters:
+            analysis_parameters['builder_and_solver_type'] = "residual-based elimination deactivation"
+        if 'convergence_criteria' not in analysis_parameters:
+            analysis_parameters['convergence_criteria'] = "multiphase"
+        if 'use_lumped_mass' not in analysis_parameters:
+            analysis_parameters['use_lumped_mass'] = False
+        if 'move_mesh' not in analysis_parameters:
+            analysis_parameters['move_mesh'] = True
+        if 'nonlinear_mass_damping' not in analysis_parameters:
+            analysis_parameters['nonlinear_mass_damping'] = False
+        if 'dissipation_radius' not in analysis_parameters:
+            analysis_parameters['dissipation_radius'] = 0.9
+        return analysis_parameters
+    elif( type( analysis_parameters ) == list ):
+        new_analysis_parameters = {}
+        new_analysis_parameters['perform_contact_analysis_flag'] = analysis_parameters[0]
+        new_analysis_parameters['penalty'] = analysis_parameters[1]
+        new_analysis_parameters['maxuzawa'] = analysis_parameters[2]
+        new_analysis_parameters['friction'] = analysis_parameters[3]
+        new_analysis_parameters['frictionpenalty'] = analysis_parameters[4]
+        new_analysis_parameters['contact_double_check_flag'] = analysis_parameters[5]
+        new_analysis_parameters['contact_ramp_penalties_flag'] = analysis_parameters[6]
+        new_analysis_parameters['maxpenalty'] = analysis_parameters[7]
+        new_analysis_parameters['rampcriterion'] = analysis_parameters[8]
+        new_analysis_parameters['rampfactor'] = analysis_parameters[9]
+        new_analysis_parameters['fricmaxpenalty'] = analysis_parameters[10]
+        new_analysis_parameters['fricrampcriterion'] = analysis_parameters[11]
+        new_analysis_parameters['fricrampfactor'] = analysis_parameters[12]
+        new_analysis_parameters['print_sparsity_info_flag'] = analysis_parameters[13]
+        new_analysis_parameters['analysis_type'] = analysis_parameters[14]
+        if(len(analysis_parameters) > 15):
+            new_analysis_parameters['dissipation_radius'] = analysis_parameters[15]
+        else:
+            if new_analysis_parameters['analysis_type'] == 2:
+                new_analysis_parameters['dissipation_radius'] = 0.1
+            else:
+                new_analysis_parameters['dissipation_radius'] = 1.0
+        new_analysis_parameters['decouple_build_and_solve'] = False
+        new_analysis_parameters['builder_and_solver_type'] = "residual-based elimination deactivation"
+        new_analysis_parameters['solution_strategy'] = "implicit_Newton_Raphson"
+        new_analysis_parameters['nonlinear_mass_damping'] = False
+        new_analysis_parameters['move_mesh'] = True
+        new_analysis_parameters['convergence_criteria'] = "multiphase"
+        return new_analysis_parameters
+    else:
+        print 'unsupported type of analysis parameters'
+        sys.exit(0)
+
 #######################################################################
 class SolverAdvanced(structural_solver_static.StaticStructuralSolver):
     def __init__( self, model_part, domain_size, time_steps, analysis_parameters, abs_tol, rel_tol ):
         structural_solver_static.StaticStructuralSolver.__init__( self, model_part, domain_size )
         self.time_steps = time_steps
-        self.analysis_parameters = self.CheckAndConvertParameters(analysis_parameters)
+        self.analysis_parameters = CheckAndConvertParameters(analysis_parameters)
         self.echo_level = 0
         self.dissipation_radius = self.analysis_parameters['dissipation_radius']
         self.toll = rel_tol
@@ -144,55 +196,6 @@ class SolverAdvanced(structural_solver_static.StaticStructuralSolver):
         self.conv_criteria = DisplacementCriteria(0.000001,1e-9)
         #self.conv_criteria = ParallelDisplacementCriteria(0.000001,1e-9)
         self.CalculateReactionFlag = False
-
-    #######################################################################
-    def CheckAndConvertParameters(self, analysis_parameters):
-        if( type( analysis_parameters ) == dict ):
-            if 'solution_strategy' not in analysis_parameters:
-                analysis_parameters['solution_strategy'] = "implicit_Newton_Raphson"
-            if 'builder_and_solver_type' not in analysis_parameters:
-                analysis_parameters['builder_and_solver_type'] = "residual-based elimination deactivation"
-            if 'convergence_criteria' not in analysis_parameters:
-                analysis_parameters['convergence_criteria'] = "multiphase"
-            if 'use_lumped_mass' not in analysis_parameters:
-                analysis_parameters['use_lumped_mass'] = False
-            if 'move_mesh' not in analysis_parameters:
-                analysis_parameters['move_mesh'] = True
-            if 'nonlinear_mass_damping' not in analysis_parameters:
-                analysis_parameters['nonlinear_mass_damping'] = False
-            return analysis_parameters
-        elif( type( analysis_parameters ) == list ):
-            new_analysis_parameters = {}
-            new_analysis_parameters['perform_contact_analysis_flag'] = analysis_parameters[0]
-            new_analysis_parameters['penalty'] = analysis_parameters[1]
-            new_analysis_parameters['maxuzawa'] = analysis_parameters[2]
-            new_analysis_parameters['friction'] = analysis_parameters[3]
-            new_analysis_parameters['frictionpenalty'] = analysis_parameters[4]
-            new_analysis_parameters['contact_double_check_flag'] = analysis_parameters[5]
-            new_analysis_parameters['contact_ramp_penalties_flag'] = analysis_parameters[6]
-            new_analysis_parameters['maxpenalty'] = analysis_parameters[7]
-            new_analysis_parameters['rampcriterion'] = analysis_parameters[8]
-            new_analysis_parameters['rampfactor'] = analysis_parameters[9]
-            new_analysis_parameters['fricmaxpenalty'] = analysis_parameters[10]
-            new_analysis_parameters['fricrampcriterion'] = analysis_parameters[11]
-            new_analysis_parameters['fricrampfactor'] = analysis_parameters[12]
-            new_analysis_parameters['print_sparsity_info_flag'] = analysis_parameters[13]
-            new_analysis_parameters['analysis_type'] = analysis_parameters[14]
-            if(len(analysis_parameters) > 15):
-                new_analysis_parameters['dissipation_radius'] = analysis_parameters[15]
-            else:
-                if new_analysis_parameters['analysis_type'] == 2:
-                    new_analysis_parameters['dissipation_radius'] = 0.1
-                else:
-                    new_analysis_parameters['dissipation_radius'] = 1.0
-            new_analysis_parameters['decouple_build_and_solve'] = False
-            new_analysis_parameters['builder_and_solver_type'] = "residual-based elimination deactivation"
-            new_analysis_parameters['solution_strategy'] = "implicit_Newton_Raphson"
-            return new_analysis_parameters
-        else:
-            print 'unsupported type of analysis parameters'
-            sys.exit(0)
-
 
     #######################################################################
     def Initialize(self):
@@ -286,7 +289,7 @@ class SolverAdvanced(structural_solver_static.StaticStructuralSolver):
         else:
             self.time_scheme = ResidualBasedIncrementalUpdateStaticDeactivationScheme()
 
-        #definition of the convergence criteria
+        # definition of the convergence criteria
         if(self.analysis_parameters['convergence_criteria'] == "multiphase"):
             self.conv_criteria = MultiPhaseFlowCriteria(self.toll,self.absolute_tol)
         elif(self.analysis_parameters['convergence_criteria'] == "displacement"):
