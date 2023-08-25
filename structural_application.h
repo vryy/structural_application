@@ -143,6 +143,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
     #include "custom_conditions/elastic_constraint.h"
     #include "custom_conditions/elastic_face_springs.h"
     #include "custom_conditions/nitsche_isotropic_constraint.h"
+    #include "custom_conditions/roller_constraint.h"
 
     #include "constitutive_laws/isotropic_2d.h"
     #include "constitutive_laws/isotropic_3d.h"
@@ -507,6 +508,13 @@ private:
     const NitscheIsotropicConstraint mNitscheIsotropicConstraint3D4N;
     const NitscheIsotropicConstraint mNitscheIsotropicConstraint3D8N;
     const NitscheIsotropicConstraint mNitscheIsotropicConstraint3D9N;
+    const RollerConstraint mRollerConstraint2D2N;
+    const RollerConstraint mRollerConstraint2D3N;
+    const RollerConstraint mRollerConstraint3D3N;
+    const RollerConstraint mRollerConstraint3D6N;
+    const RollerConstraint mRollerConstraint3D4N;
+    const RollerConstraint mRollerConstraint3D8N;
+    const RollerConstraint mRollerConstraint3D9N;
 
     const SlaveContactPoint2D mSlaveContactPoint2D;
     const MasterContactFace2D mMasterContactFace2D;
