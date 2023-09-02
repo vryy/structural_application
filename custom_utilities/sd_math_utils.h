@@ -891,18 +891,28 @@ public:
 
         MatrixType StrainTensor;
         //KRATOS_WATCH(Strains)
-        if (Strains.size()==3)
+        if (Strains.size() == 3)
         {
-            StrainTensor.resize(2,2, false);
+            StrainTensor.resize(2, 2, false);
             //KRATOS_WATCH(StrainTensor)
             StrainTensor(0,0) = Strains[0];
             StrainTensor(0,1) = 0.5*Strains[2];
             StrainTensor(1,0) = 0.5*Strains[2];
             StrainTensor(1,1) = Strains[1];
         }
-        else if (Strains.size()==6)
+        else if (Strains.size() == 4)
         {
-            StrainTensor.resize(3,3, false);
+            StrainTensor.resize(3, 3, false);
+            //KRATOS_WATCH(StrainTensor)
+            StrainTensor(0,0) = Strains[0];
+            StrainTensor(0,1) = 0.5*Strains[2];
+            StrainTensor(1,0) = 0.5*Strains[2];
+            StrainTensor(1,1) = Strains[1];
+            StrainTensor(2,2) = Strains[3];
+        }
+        else if (Strains.size() == 6)
+        {
+            StrainTensor.resize(3, 3, false);
             StrainTensor(0,0) = Strains[0];
             StrainTensor(0,1) = 0.5*Strains[3];
             StrainTensor(0,2) = 0.5*Strains[5];
@@ -930,6 +940,15 @@ public:
             StrainTensor(1, 0) = 0.5 * StrainVector(2);
             StrainTensor(1, 1) = StrainVector(1);
         }
+        else if(StrainVector.size() == 4) // axisymmetric
+        {
+            noalias(StrainTensor) = ZeroMatrix(3, 3);
+            StrainTensor(0, 0) = StrainVector(0);
+            StrainTensor(0, 1) = 0.5 * StrainVector(2);
+            StrainTensor(1, 0) = 0.5 * StrainVector(2);
+            StrainTensor(1, 1) = StrainVector(1);
+            StrainTensor(2, 2) = StrainVector(3);
+        }
         else if(StrainVector.size() == 6) // 3d
         {
             StrainTensor(0, 0) = StrainVector(0);
@@ -949,7 +968,6 @@ public:
         KRATOS_TRY
         VectorType StrainVector;
 
-
         if (Tensor.size1()==2)
         {
             StrainVector.resize(3);
@@ -965,11 +983,10 @@ public:
             StrainVector(0) = Tensor(0,0);
             StrainVector(1) = Tensor(1,1);
             StrainVector(2) = Tensor(2,2);
-            StrainVector(3) = 2.00*Tensor(0,1);
-            StrainVector(4) = 2.00*Tensor(1,2);
-            StrainVector(5) = 2.00*Tensor(0,2);
+            StrainVector(3) = 2.0*Tensor(0,1);
+            StrainVector(4) = 2.0*Tensor(1,2);
+            StrainVector(5) = 2.0*Tensor(0,2);
         }
-
 
         return StrainVector;
         KRATOS_CATCH("")
@@ -983,6 +1000,13 @@ public:
             StrainVector[0] = StrainTensor(0, 0);
             StrainVector[1] = StrainTensor(1, 1);
             StrainVector[2] = 2.0*StrainTensor(0, 1);
+        }
+        else if(StrainVector.size() == 4)
+        {
+            StrainVector[0] = StrainTensor(0, 0);
+            StrainVector[1] = StrainTensor(1, 1);
+            StrainVector[2] = 2.0*StrainTensor(0, 1);
+            StrainVector[3] = StrainTensor(2, 2);
         }
         else if(StrainVector.size() == 6)
         {
@@ -1006,6 +1030,15 @@ public:
             StressTensor(1, 0) = StressVector(2);
             StressTensor(1, 1) = StressVector(1);
         }
+        else if(StressVector.size() == 4) // axisymmetric
+        {
+            noalias(StressTensor) = ZeroMatrix(3, 3);
+            StressTensor(0, 0) = StressVector(0);
+            StressTensor(0, 1) = StressVector(2);
+            StressTensor(1, 0) = StressVector(2);
+            StressTensor(1, 1) = StressVector(1);
+            StressTensor(2, 2) = StressVector(3);
+        }
         else if(StressVector.size() == 6) // 3d
         {
             StressTensor(0, 0) = StressVector(0);
@@ -1023,13 +1056,20 @@ public:
     template<typename TVectorType, typename TMatrixType>
     static inline void StressTensorToVector(const TMatrixType& StressTensor, TVectorType& StressVector)
     {
-        if(StressVector.size() == 3)
+        if(StressVector.size() == 3) // plane strain
         {
             StressVector[0] = StressTensor(0, 0);
             StressVector[1] = StressTensor(1, 1);
             StressVector[2] = StressTensor(0, 1);
         }
-        else if(StressVector.size() == 6)
+        if(StressVector.size() == 4) // axisymmetric
+        {
+            StressVector[0] = StressTensor(0, 0);
+            StressVector[1] = StressTensor(1, 1);
+            StressVector[2] = StressTensor(0, 1);
+            StressVector[3] = StressTensor(2, 2);
+        }
+        else if(StressVector.size() == 6) // 3d
         {
             StressVector[0] = StressTensor(0, 0);
             StressVector[1] = StressTensor(1, 1);
@@ -1048,6 +1088,13 @@ public:
             StressVector[0] += c*StressTensor(0, 0);
             StressVector[1] += c*StressTensor(1, 1);
             StressVector[2] += c*StressTensor(0, 1);
+        }
+        else if(StressVector.size() == 4)
+        {
+            StressVector[0] += c*StressTensor(0, 0);
+            StressVector[1] += c*StressTensor(1, 1);
+            StressVector[2] += c*StressTensor(0, 1);
+            StressVector[3] += c*StressTensor(2, 2);
         }
         else if(StressVector.size() == 6)
         {
@@ -1176,12 +1223,12 @@ public:
     {
         if (Matrix.size1() == 6)
         {
-            Matrix(0, 0) = Tensor[0][0](0, 0);
-            Matrix(0, 1) = Tensor[0][0](1, 1);
-            Matrix(0, 2) = Tensor[0][0](2, 2);
-            Matrix(0, 3) = Tensor[0][0](0, 1);
-            Matrix(0, 4) = Tensor[0][0](1, 2);
-            Matrix(0, 5) = Tensor[0][0](0, 2);
+            Matrix(0, 0) = Tensor[0][0](0, 0); // xx-xx
+            Matrix(0, 1) = Tensor[0][0](1, 1); // xx-yy
+            Matrix(0, 2) = Tensor[0][0](2, 2); // xx-zz
+            Matrix(0, 3) = Tensor[0][0](0, 1); // xx-xy
+            Matrix(0, 4) = Tensor[0][0](1, 2); // xx-yz
+            Matrix(0, 5) = Tensor[0][0](0, 2); // xx-xz
 
             Matrix(1, 0) = Tensor[1][1](0, 0);
             Matrix(1, 1) = Tensor[1][1](1, 1);
@@ -1218,19 +1265,42 @@ public:
             Matrix(5, 4) = Tensor[0][2](1, 2);
             Matrix(5, 5) = Tensor[0][2](0, 2);
         }
+        else if(Matrix.size1() == 4)
+        {
+            Matrix(0, 0) = Tensor[0][0](0, 0); // xx-xx
+            Matrix(0, 1) = Tensor[0][0](1, 1); // xx-yy
+            Matrix(0, 2) = Tensor[0][0](0, 1); // xx-xy
+            Matrix(0, 3) = Tensor[0][0](2, 2); // xx-zz
+
+            Matrix(1, 0) = Tensor[1][1](0, 0); // yy-xx
+            Matrix(1, 1) = Tensor[1][1](1, 1); // yy-yy
+            Matrix(1, 2) = Tensor[1][1](0, 1); // yy-xy
+            Matrix(1, 3) = Tensor[1][1](2, 2); // yy-zz
+
+            Matrix(2, 0) = Tensor[0][1](0, 0); // xy-xx
+            Matrix(2, 1) = Tensor[0][1](1, 1); // xy-yy
+            Matrix(2, 2) = Tensor[0][1](0, 1); // xy-xy
+            Matrix(2, 3) = Tensor[0][1](2, 2); // xy-zz
+
+            Matrix(3, 0) = Tensor[2][2](0, 0); // zz-xx
+            Matrix(3, 1) = Tensor[2][2](1, 1); // zz-yy
+            Matrix(3, 2) = Tensor[2][2](0, 1); // zz-xy
+            Matrix(3, 3) = Tensor[2][2](2, 2); // zz-zz
+        }
         else if(Matrix.size1() == 3)
         {
-            Matrix(0, 0) = Tensor[0][0](0, 0);
-            Matrix(0, 1) = Tensor[0][0](1, 1);
-            Matrix(0, 2) = Tensor[0][0](0, 1);
-            Matrix(1, 0) = Tensor[1][1](0, 0);
-            Matrix(1, 1) = Tensor[1][1](1, 1);
-            Matrix(1, 2) = Tensor[1][1](0, 1);
-            Matrix(2, 0) = Tensor[0][1](0, 0);
-            Matrix(2, 1) = Tensor[0][1](1, 1);
-            Matrix(2, 2) = Tensor[0][1](0, 1);
+            Matrix(0, 0) = Tensor[0][0](0, 0); // xx-xx
+            Matrix(0, 1) = Tensor[0][0](1, 1); // xx-yy
+            Matrix(0, 2) = Tensor[0][0](0, 1); // xx-xy
+            Matrix(1, 0) = Tensor[1][1](0, 0); // yy-xx
+            Matrix(1, 1) = Tensor[1][1](1, 1); // yy-yy
+            Matrix(1, 2) = Tensor[1][1](0, 1); // yy-xy
+            Matrix(2, 0) = Tensor[0][1](0, 0); // xy-xx
+            Matrix(2, 1) = Tensor[0][1](1, 1); // xy-yy
+            Matrix(2, 2) = Tensor[0][1](0, 1); // xy-xy
         }
-        return;
+        else
+            KRATOS_ERROR << "Invalid matrix size (" << Matrix.size1() << ", " << Matrix.size2() << ")";
     }
 
     // THis uses the notation [o_xx o_yy o_zz o_xy o_xz o_yz]
