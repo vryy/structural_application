@@ -100,6 +100,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_strategies/schemes/residualbased_central_difference_scheme.h"
 #include "custom_strategies/schemes/residualbased_acc_based_forward_euler_scheme.h"
 #include "custom_strategies/schemes/residualbased_acc_based_central_difference_scheme.h"
+#include "custom_strategies/schemes/residualbased_mixed_forward_euler_scheme.h"
 #include "custom_strategies/schemes/composit_scheme.h"
 #include "custom_strategies/schemes/volumetric_scheme.h"
 #include "custom_strategies/schemes/inner_volumetric_scheme.h"
@@ -172,6 +173,7 @@ void  AddCustomStrategiesToPython()
     typedef ResidualBasedCentralDifferenceScheme< SparseSpaceType, LocalSpaceType > ResidualBasedCentralDifferenceSchemeType;
     typedef ResidualBasedAccBasedForwardEulerScheme< SparseSpaceType, LocalSpaceType > ResidualBasedAccBasedForwardEulerSchemeType;
     typedef ResidualBasedAccBasedCentralDifferenceScheme< SparseSpaceType, LocalSpaceType > ResidualBasedAccBasedCentralDifferenceSchemeType;
+    typedef ResidualBasedMixedForwardEulerScheme< SparseSpaceType, LocalSpaceType > ResidualBasedMixedForwardEulerSchemeType;
 
 //             typedef TestingScheme< SparseSpaceType, LocalSpaceType >
 //                     TestingSchemeType;
@@ -317,6 +319,14 @@ void  AddCustomStrategiesToPython()
             bases< BaseSchemeType >, boost::noncopyable >
             (
                 "ResidualBasedAccBasedCentralDifferenceScheme", init<>()
+            )
+            .def(init<const bool>())
+            ;
+
+    class_< ResidualBasedMixedForwardEulerSchemeType,
+            bases< BaseSchemeType >, boost::noncopyable >
+            (
+                "ResidualBasedMixedForwardEulerScheme", init<>()
             )
             .def(init<const bool>())
             ;
