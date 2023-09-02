@@ -116,11 +116,11 @@ namespace Kratos
 
         for ( unsigned int i = 0; i < number_of_nodes; ++i )
         {
-            B_Operator( 0, i*2 ) = DN_DX( i, 0 );
+            B_Operator( 0, i*2     ) = DN_DX( i, 0 );
             B_Operator( 1, i*2 + 1 ) = DN_DX( i, 1 );
-            B_Operator( 2, i*2 ) = DN_DX( i, 1 );
+            B_Operator( 2, i*2     ) = DN_DX( i, 1 );
             B_Operator( 2, i*2 + 1 ) = DN_DX( i, 0 );
-            B_Operator( 3, i*2 ) = N( i ) / r;
+            B_Operator( 3, i*2     ) = N( i ) / r;
         }
     }
 

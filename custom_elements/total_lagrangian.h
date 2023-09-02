@@ -353,6 +353,7 @@ private:
         const double& weight
     );
 
+    // Calculate Green-Lagrange strain, providing C
     void CalculateStrain(const Matrix& C,
                          Vector& StrainVector);
 
