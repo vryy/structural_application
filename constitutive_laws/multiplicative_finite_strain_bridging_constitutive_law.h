@@ -38,7 +38,6 @@ public:
      */
     typedef ConstitutiveLaw BaseType;
     typedef BaseType::SizeType SizeType;
-    typedef double (*unitary_func_t)(double);
     typedef SD_MathUtils<double>::Fourth_Order_Tensor Fourth_Order_Tensor;
 
     /**
@@ -82,27 +81,27 @@ public:
      * returns the size of the strain vector of the current constitutive law
      * NOTE: this function HAS TO BE IMPLEMENTED by any derived class
      */
-    SizeType GetStrainSize() const final
+    SizeType GetStrainSize() const override
     {
         return mpConstitutiveLaw->GetStrainSize();
     }
 
-    bool IsIncremental() final
+    bool IsIncremental() override
     {
         return mpConstitutiveLaw->IsIncremental();
     }
 
-    ConstitutiveLaw::StrainMeasure GetStrainMeasure() final
+    ConstitutiveLaw::StrainMeasure GetStrainMeasure() override
     {
         return ConstitutiveLaw::StrainMeasure_Deformation_Gradient;
     }
 
-    ConstitutiveLaw::StressMeasure GetStressMeasure() final
+    ConstitutiveLaw::StressMeasure GetStressMeasure() override
     {
         return ConstitutiveLaw::StressMeasure_Cauchy;
     }
 
-    void GetLawFeatures(Features& rFeatures) final
+    void GetLawFeatures(Features& rFeatures) override
     {
         /// Since the constitutive law is bridging one, it supports all types of strain measure required by the elemment.
         /// Nevertheless, it mainly support the StrainMeasure_Deformation_Gradient
@@ -116,35 +115,35 @@ public:
         rFeatures.SetStrainMeasure(ConstitutiveLaw::StrainMeasure_Left_CauchyGreen);
     }
 
-    bool Has( const Variable<int>& rThisVariable ) final;
-    bool Has( const Variable<double>& rThisVariable ) final;
-    bool Has( const Variable<Vector>& rThisVariable ) final;
-    bool Has( const Variable<Matrix>& rThisVariable );
+    bool Has( const Variable<int>& rThisVariable ) override;
+    bool Has( const Variable<double>& rThisVariable ) override;
+    bool Has( const Variable<Vector>& rThisVariable ) override;
+    bool Has( const Variable<Matrix>& rThisVariable ) override;
 
-    int& GetValue( const Variable<int>& rThisVariable, int& rValue ) final;
-    double& GetValue( const Variable<double>& rThisVariable, double& rValue ) final;
-    Vector& GetValue( const Variable<Vector>& rThisVariable, Vector& rValue ) final;
-    Matrix& GetValue( const Variable<Matrix>& rThisVariable, Matrix& rValue ) final;
+    int& GetValue( const Variable<int>& rThisVariable, int& rValue ) override;
+    double& GetValue( const Variable<double>& rThisVariable, double& rValue ) override;
+    Vector& GetValue( const Variable<Vector>& rThisVariable, Vector& rValue ) override;
+    Matrix& GetValue( const Variable<Matrix>& rThisVariable, Matrix& rValue ) override;
 
     void SetValue( const Variable<int>& rThisVariable, const int& rValue,
-                   const ProcessInfo& rCurrentProcessInfo ) final;
+                   const ProcessInfo& rCurrentProcessInfo ) override;
     void SetValue( const Variable<double>& rThisVariable, const double& rValue,
-                   const ProcessInfo& rCurrentProcessInfo ) final;
+                   const ProcessInfo& rCurrentProcessInfo ) override;
     void SetValue( const Variable<array_1d<double, 3 > >& rThisVariable, const array_1d<double, 3 > & rValue,
-                   const ProcessInfo& rCurrentProcessInfo ) final;
+                   const ProcessInfo& rCurrentProcessInfo ) override;
     void SetValue( const Variable<Vector>& rThisVariable, const Vector& rValue,
-                   const ProcessInfo& rCurrentProcessInfo ) final;
+                   const ProcessInfo& rCurrentProcessInfo ) override;
     void SetValue( const Variable<Matrix>& rThisVariable, const Matrix& rValue,
-                   const ProcessInfo& rCurrentProcessInfo ) final;
+                   const ProcessInfo& rCurrentProcessInfo ) override;
     void SetValue( const Variable<ConstitutiveLaw::Pointer>& rThisVariable, ConstitutiveLaw::Pointer rValue,
-                   const ProcessInfo& rCurrentProcessInfo ) final;
+                   const ProcessInfo& rCurrentProcessInfo ) override;
 
     /**
      * Material parameters are inizialized
      */
     void InitializeMaterial( const Properties& props,
                              const GeometryType& geom,
-                             const Vector& ShapeFunctionsValues ) final;
+                             const Vector& ShapeFunctionsValues ) override;
 
     /**
      * As this constitutive law describes only linear elastic material properties
@@ -153,26 +152,26 @@ public:
     void InitializeSolutionStep( const Properties& props,
                                  const GeometryType& geom, //this is just to give the array of nodes
                                  const Vector& ShapeFunctionsValues,
-                                 const ProcessInfo& CurrentProcessInfo ) final;
+                                 const ProcessInfo& CurrentProcessInfo ) override;
 
     void InitializeNonLinearIteration( const Properties& props,
                                        const GeometryType& geom, //this is just to give the array of nodes
                                        const Vector& ShapeFunctionsValues,
-                                       const ProcessInfo& CurrentProcessInfo ) final;
+                                       const ProcessInfo& CurrentProcessInfo ) override;
 
     void ResetMaterial( const Properties& props,
                         const GeometryType& geom,
-                        const Vector& ShapeFunctionsValues ) final;
+                        const Vector& ShapeFunctionsValues ) override;
 
     void FinalizeNonLinearIteration( const Properties& props,
                                      const GeometryType& geom, //this is just to give the array of nodes
                                      const Vector& ShapeFunctionsValues,
-                                     const ProcessInfo& CurrentProcessInfo ) final;
+                                     const ProcessInfo& CurrentProcessInfo ) override;
 
     void FinalizeSolutionStep( const Properties& props,
                                const GeometryType& geom, //this is just to give the array of nodes
                                const Vector& ShapeFunctionsValues,
-                               const ProcessInfo& CurrentProcessInfo ) final;
+                               const ProcessInfo& CurrentProcessInfo ) override;
 
     /**
      * This function is designed to be called once to perform all the checks needed
@@ -185,13 +184,19 @@ public:
      */
     int Check( const Properties& props,
                const GeometryType& geom,
-               const ProcessInfo& CurrentProcessInfo ) const final;
+               const ProcessInfo& CurrentProcessInfo ) const override;
 
     /**
-     * Computes the material response in terms of Cauchy stresses and constitutive tensor
+     * Computes the material response in terms of Cauchy stresses
      * @see Parameters
      */
-    void CalculateMaterialResponseCauchy (Parameters& rValues) final;
+    void CalculateMaterialResponseCauchy (Parameters& rValues) override;
+
+    /**
+     * Computes the material response in terms of Kirchhoff stresses
+     * @see Parameters
+     */
+    // void CalculateMaterialResponseKirchhoff (Parameters& rValues) override;
 
     /**
      * Input and output
@@ -200,7 +205,7 @@ public:
     /**
      * Turn back information as a string.
      */
-    std::string Info() const final
+    std::string Info() const override
     {
         return "MultiplicativeFiniteStrainBridgingConstitutiveLaw";
     }
@@ -208,7 +213,7 @@ public:
     /**
      * Print information about this object.
      */
-    void PrintInfo(std::ostream& rOStream) const final
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << Info();
     }
@@ -224,6 +229,18 @@ protected:
      */
 
     ConstitutiveLaw::Pointer mpConstitutiveLaw;
+
+    Matrix mLastF;
+    Matrix mCurrentF;
+    double mCurrentDetF;
+
+    Matrix m_left_cauchy_green_tensor_trial;
+    Matrix m_stress_n1; // Cauchy stress
+
+    double mPrestressFactor;
+    Vector mPrestress;
+
+    void ComputeTangent(Matrix& AlgorithmicTangent) const;
 
 private:
 
@@ -251,176 +268,9 @@ private:
      * Member Variables
      */
 
-    Matrix mLastF;
-    Matrix mCurrentF;
-
     /**
      * Un accessible methods
      */
-
-    static double exp2(double x)
-    {
-        return exp(2.0*x);
-    }
-
-    static double log2(double x)
-    {
-        return 0.5*log(x);
-    }
-
-    static double dlog2(double x)
-    {
-        return 0.5/x;
-    }
-
-    /*
-    * Compute the isotropic function of the type
-    *       Y(X) = sum{ y(x_i) E_i }
-    * WHERE Y AND X ARE SYMMETRIC TENSORS, x_i AND E_i ARE, RESPECTIVELY
-    * THE EIGENVALUES AND EIGENPROJECTIONS OF X, AND y(.) IS A SCALAR
-    * FUNCTION.
-    * X must be 3 x 3 matrix
-    * Y will be resized accordingly
-    * e must be sorted
-    * Rererence: Section A.5.2, Computational Plasticity, de Souza Neto.
-    * TODO to move to SD_MathUtils
-    */
-    template<typename TMatrixType>
-    static void ComputeIsotropicTensorFunction(
-        unitary_func_t func,
-        TMatrixType& Y,
-        const std::vector<double>& e,
-        const std::vector<Matrix>& eigprj,
-        const double& TOL = 1.0e-10
-    )
-    {
-        if ((Y.size1() != 3) || (Y.size2() != 3))
-            Y.resize(3, 3, false);
-
-        Y.clear();
-        if (fabs(e[0] - e[1]) > TOL && fabs(e[1] - e[2]) > TOL)
-        {
-            for (int d = 0; d < 3; ++d)
-                noalias(Y) += func(e[d]) * eigprj[d];
-        }
-        else
-        {
-            const Matrix eye = IdentityMatrix(3);
-
-            if (fabs(e[0] - e[1]) < TOL && fabs(e[1] - e[2]) < TOL)
-            {
-                noalias(Y) = func(e[0]) * eye;
-            }
-            else
-            {
-                if (fabs(e[0] - e[1]) < TOL)
-                {
-                    noalias(Y) = func(e[2]) * eigprj[2]
-                               + func(e[0]) * (eye - eigprj[0]);
-                }
-                else // (fabs(e[1] - e[2]) < TOL)
-                {
-                    noalias(Y) = func(e[0]) * eigprj[0]
-                               + func(e[2]) * (eye - eigprj[2]);
-                }
-            }
-        }
-    }
-
-    /*
-    * Compute the derivative of the isotropic function of the type
-    *       Y(X) = sum{ y(x_i) E_i }
-    * WHERE Y AND X ARE SYMMETRIC TENSORS, x_i AND E_i ARE, RESPECTIVELY
-    * THE EIGENVALUES AND EIGENPROJECTIONS OF X, AND y(.) IS A SCALAR
-    * FUNCTION.
-    * X must be 3 x 3 matrix
-    * e and eigprj are the principle values and eigenprojections of X
-    * dYdX will be resized accordingly
-    * Rererence: Section A.5.2, Computational Plasticity, de Souza Neto.
-    * TODO to move to SD_MathUtils
-    */
-    template<typename TMatrixType>
-    static void ComputeDerivativeIsotropicTensorFunction(
-        unitary_func_t func,
-        unitary_func_t dfunc,
-        Fourth_Order_Tensor& dYdX,
-        const TMatrixType& X,
-        const std::vector<double>& e,
-        const std::vector<TMatrixType>& eigprj,
-        const double& TOL = 1.0e-10
-    )
-    {
-        Fourth_Order_Tensor dX2dX;
-        SD_MathUtils<double>::CalculateFourthOrderZeroTensor(dX2dX);
-        TMatrixType I = IdentityMatrix(3);
-        for(int i = 0; i < 3; ++i)
-            for(int j = 0; j < 3; ++j)
-                for(int k = 0; k < 3; ++k)
-                    for(int l = 0; l < 3; ++l)
-                        dX2dX[i][j](k, l) = 0.5 * (I(i, k) * X(l, j)
-                                                 + I(i, l) * X(k, j)
-                                                 + X(i, k) * I(j, l)
-                                                 + X(i, l) * I(k, j));
-
-        Fourth_Order_Tensor Is;
-        SD_MathUtils<double>::CalculateFourthOrderSymmetricTensor(Is);
-
-        SD_MathUtils<double>::CalculateFourthOrderZeroTensor(dYdX);
-
-        if (fabs(e[0] - e[1]) > TOL && fabs(e[1] - e[2]) > TOL)
-        {
-            constexpr int a = 0, b = 1, c = 2;
-
-            double aux1 = func(e[a]) / ((e[a] - e[b]) * (e[a] - e[c]));
-            double aux2 = -aux1 * (e[b] + e[c]);
-            double aux3 = -aux1 * (e[a] - e[b] + e[a] - e[c]);
-            double aux4 = -aux1 * (e[b] - e[c]);
-
-            SD_MathUtils<double>::AddFourthOrderTensor(aux1, dX2dX, dYdX);
-            SD_MathUtils<double>::AddFourthOrderTensor(aux2, Is, dYdX);
-            SD_MathUtils<double>::OuterProductFourthOrderTensor(aux3, eigprj[a], eigprj[a], dYdX);
-            SD_MathUtils<double>::OuterProductFourthOrderTensor(aux4, eigprj[b], eigprj[b], dYdX);
-            SD_MathUtils<double>::OuterProductFourthOrderTensor(-aux4, eigprj[c], eigprj[c], dYdX);
-            SD_MathUtils<double>::OuterProductFourthOrderTensor(dfunc(e[a]), eigprj[a], eigprj[a], dYdX);
-        }
-        else
-        {
-            if (fabs(e[0] - e[1]) < TOL && fabs(e[1] - e[2]) < TOL)
-            {
-                SD_MathUtils<double>::AddFourthOrderTensor(dfunc(e[0]), Is, dYdX);
-            }
-            else
-            {
-                const Matrix eye = IdentityMatrix(3);
-                int a, c;
-
-                if (fabs(e[0] - e[1]) < TOL)
-                {
-                    a = 2;
-                    c = 0;
-                }
-                else // (fabs(e[1] - e[2]) < TOL)
-                {
-                    a = 0;
-                    c = 2;
-                }
-
-                const double s1 = (func(e[a]) - func(e[c])) / pow(e[a] - e[c], 2) - dfunc(e[c]) / (e[a] - e[c]);
-                const double s2 = 2.0 * e[c] * (func(e[a]) - func(e[c])) / pow(e[a] - e[c], 2) - dfunc(e[c]) * (e[a] + e[c]) / (e[a] - e[c]);
-                const double s3 = 2.0 * (func(e[a]) - func(e[c])) / pow(e[a] - e[c], 3) - (dfunc(e[a]) + dfunc(e[c])) / pow(e[a] - e[c], 2);
-                const double s4 = e[c] * s3;
-                const double s5 = s4;
-                const double s6 = e[c]*e[c] * s3;
-
-                SD_MathUtils<double>::AddFourthOrderTensor(s1, dX2dX, dYdX);
-                SD_MathUtils<double>::AddFourthOrderTensor(-s2, Is, dYdX);
-                SD_MathUtils<double>::OuterProductFourthOrderTensor(-s3, X, X, dYdX);
-                SD_MathUtils<double>::OuterProductFourthOrderTensor(s4, X, eye, dYdX);
-                SD_MathUtils<double>::OuterProductFourthOrderTensor(s5, eye, X, dYdX);
-                SD_MathUtils<double>::OuterProductFourthOrderTensor(-s6, eye, eye, dYdX);
-            }
-        }
-    }
 
     /**
      * Assignment operator.

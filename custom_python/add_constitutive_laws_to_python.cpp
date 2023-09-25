@@ -70,6 +70,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "constitutive_laws/tutorial_damage_model.h"
 #include "constitutive_laws/isotropic_2d.h"
 #include "constitutive_laws/isotropic_3d.h"
+#include "constitutive_laws/isotropic_3d_dc.h"
 #include "constitutive_laws/neo_hookean_2d.h"
 #include "constitutive_laws/neo_hookean_3d.h"
 #include "constitutive_laws/hyperelastic_3d.h"
@@ -98,6 +99,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "constitutive_laws/brittle_material_2d.h"
 #include "constitutive_laws/orthotropic_3d.h"
 #include "constitutive_laws/multiplicative_finite_strain_bridging_constitutive_law.h"
+#include "constitutive_laws/multiplicative_finite_strain_bridging_constitutive_law_dc.h"
 #include "includes/node.h"
 #include "includes/variables.h"
 #include "includes/mesh.h"
@@ -197,6 +199,11 @@ void  AddConstitutiveLawsToPython()
     ( "Isotropic3D",
       init<>() )
     .def("CalculateStress", Isotropic3D_CalculateStress)
+    ;
+
+    class_< Isotropic3DDC, bases< ConstitutiveLawBaseType >,  boost::noncopyable >
+    ( "Isotropic3DDC",
+      init<>() )
     ;
 
     class_< DruckerPrager, bases< ConstitutiveLawBaseType >, boost::noncopyable >
@@ -321,6 +328,11 @@ void  AddConstitutiveLawsToPython()
 
     class_< MultiplicativeFiniteStrainBridgingConstitutiveLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
     ( "MultiplicativeFiniteStrainBridgingConstitutiveLaw", init<>() )
+    .def(init<ConstitutiveLawBaseType::Pointer>())
+    ;
+
+    class_< MultiplicativeFiniteStrainBridgingConstitutiveLawDC, bases< ConstitutiveLawBaseType >, boost::noncopyable >
+    ( "MultiplicativeFiniteStrainBridgingConstitutiveLawDC", init<>() )
     .def(init<ConstitutiveLawBaseType::Pointer>())
     ;
 
