@@ -303,6 +303,8 @@ protected:
         return integration_points[PointNumber].Weight();
     }
 
+    virtual void CalculateJacobian( GeometryType::JacobiansType& J ) const;
+
     ///@}
     ///@name Serialization
     ///@{

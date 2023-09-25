@@ -65,7 +65,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_utilities/sd_math_utils.h"
 #include "structural_application_variables.h"
 
-//#define ENABLE_DEBUG_CONSTITUTIVE_LAW
 
 //TODO: there is a potential bug at the CalculateRightHandSide, which is used for calculating the reaction. In principal, it should not tell the material to update them-self, however, CalculateRightHandSide indirectly call CalculateMaterialResponse. THis should be fixed, by introducing another abstract layer to update the material in the input parameters for CalculateAll
 
@@ -199,12 +198,7 @@ namespace Kratos
 
             // initializing the Jacobian in the reference configuration
             GeometryType::JacobiansType J0;
-            MatrixType DeltaPosition(GetGeometry().size(), 3);
-
-            for ( unsigned int node = 0; node < GetGeometry().size(); ++node )
-                noalias( row( DeltaPosition, node ) ) = GetGeometry()[node].Coordinates() - GetGeometry()[node].GetInitialPosition();
-
-            J0 = GetGeometry().Jacobian( J0, mThisIntegrationMethod, DeltaPosition );
+            this->CalculateJacobian( J0 );
 
             // calculating the domain size
             double TotalDomainInitialSize = 0.00;
@@ -449,27 +443,12 @@ namespace Kratos
         const MatrixType& Ncontainer = GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod );
 
         //initializing the Jacobian in the reference configuration
-        MatrixType DeltaPosition(GetGeometry().size(), 3);
-        for ( unsigned int node = 0; node < GetGeometry().size(); ++node )
-            noalias( row( DeltaPosition, node ) ) = GetGeometry()[node].Coordinates() - GetGeometry()[node].GetInitialPosition();
+        GeometryType::JacobiansType J0;
+        this->CalculateJacobian( J0 );
 
         //Current displacements
         for ( unsigned int node = 0; node < GetGeometry().size(); ++node )
             noalias( row( CurrentDisp, node ) ) = GetGeometry()[node].GetSolutionStepValue( DISPLACEMENT );
-
-        GeometryType::JacobiansType J0;
-        J0 = GetGeometry().Jacobian( J0, mThisIntegrationMethod, DeltaPosition );
-
-//        for(std::size_t i = 0; i < GetGeometry().size(); ++i)
-//            std::cout << " " << GetGeometry()[i].Id();
-//        std::cout << std::endl;
-
-//        std::vector<std::size_t> equation_ids;
-//        this->EquationIdVector(equation_ids, rCurrentProcessInfo);
-//        std::cout << "  equation_ids:";
-//        for(std::size_t i = 0; i < equation_ids.size(); ++i)
-//            std::cout << " " << equation_ids[i];
-//        std::cout << std::endl;
 
         //auxiliary terms
         const VectorType& BodyForce = GetProperties()[BODY_FORCE];
@@ -727,31 +706,38 @@ namespace Kratos
      */
     void KinematicLinear::InitializeSolutionStep( const ProcessInfo& CurrentProcessInfo )
     {
-        if(mConstitutiveLawVector.size() > 0)
+        // check if the constitutive law need current strain
+        bool need_current_strain_vector = false;
+        for ( unsigned int Point = 0; Point < mConstitutiveLawVector.size(); ++Point )
         {
-            int need_current_strain_vector = 0, tmp;
-            for ( unsigned int Point = 0; Point < mConstitutiveLawVector.size(); ++Point )
+            if (mConstitutiveLawVector[Point]->Has(CURRENT_STRAIN_VECTOR))
             {
-                if (mConstitutiveLawVector[Point]->Has(CURRENT_STRAIN_VECTOR))
-                    ++need_current_strain_vector;
-            }
-
-            if ( need_current_strain_vector )
-            {
-                std::vector<VectorType> Values;
-                this->CalculateOnIntegrationPoints( CURRENT_STRAIN_VECTOR, Values, CurrentProcessInfo );
-                for ( unsigned int Point = 0; Point < mConstitutiveLawVector.size(); ++Point )
-                {
-                    mConstitutiveLawVector[Point]->SetValue( CURRENT_STRAIN_VECTOR, Values[Point], CurrentProcessInfo );
-                }
+                need_current_strain_vector = true;
+                break;
             }
         }
 
-        int need_shape_function = 0, tmp;
+        if ( need_current_strain_vector )
+        {
+            std::vector<VectorType> Values;
+            this->CalculateOnIntegrationPoints( CURRENT_STRAIN_VECTOR, Values, CurrentProcessInfo );
+            for ( unsigned int Point = 0; Point < mConstitutiveLawVector.size(); ++Point )
+            {
+                mConstitutiveLawVector[Point]->SetValue( CURRENT_STRAIN_VECTOR, Values[Point], CurrentProcessInfo );
+            }
+        }
+
+        // check if the constitutive law needs shape function
+        bool need_shape_function = false;
         for ( unsigned int Point = 0; Point < mConstitutiveLawVector.size(); ++Point )
         {
+            int tmp;
             tmp = mConstitutiveLawVector[Point]->GetValue(IS_SHAPE_FUNCTION_REQUIRED, tmp);
-            need_shape_function += tmp;
+            if (tmp)
+            {
+                need_shape_function = true;
+                break;
+            }
         }
 
         if (need_shape_function)
@@ -803,11 +789,17 @@ namespace Kratos
 //            }
 //        }
 
-        int need_shape_function = 0, tmp;
+        // check if the constitutive law needs shape function
+        bool need_shape_function = false;
         for ( unsigned int Point = 0; Point < mConstitutiveLawVector.size(); ++Point )
         {
+            int tmp;
             tmp = mConstitutiveLawVector[Point]->GetValue(IS_SHAPE_FUNCTION_REQUIRED, tmp);
-            need_shape_function += tmp;
+            if (tmp)
+            {
+                need_shape_function = true;
+                break;
+            }
         }
 
         if (need_shape_function)
@@ -841,24 +833,38 @@ namespace Kratos
 
     void KinematicLinear::FinalizeNonLinearIteration(const ProcessInfo& CurrentProcessInfo)
     {
-        if(mConstitutiveLawVector.size() > 0)
+        // check if the constitutive law need current strain
+        bool need_current_strain_vector = false;
+        for ( unsigned int Point = 0; Point < mConstitutiveLawVector.size(); ++Point )
         {
-            if(mConstitutiveLawVector[0]->Has(CURRENT_STRAIN_VECTOR))
+            if (mConstitutiveLawVector[Point]->Has(CURRENT_STRAIN_VECTOR))
             {
-                std::vector<VectorType> Values;
-                this->CalculateOnIntegrationPoints(CURRENT_STRAIN_VECTOR, Values, CurrentProcessInfo);
-                for ( unsigned int Point = 0; Point < mConstitutiveLawVector.size(); ++Point )
-                {
-                    mConstitutiveLawVector[Point]->SetValue( CURRENT_STRAIN_VECTOR, Values[Point], CurrentProcessInfo );
-                }
+                need_current_strain_vector = true;
+                break;
             }
         }
 
-        int need_shape_function = 0, tmp;
+        if ( need_current_strain_vector )
+        {
+            std::vector<VectorType> Values;
+            this->CalculateOnIntegrationPoints( CURRENT_STRAIN_VECTOR, Values, CurrentProcessInfo );
+            for ( unsigned int Point = 0; Point < mConstitutiveLawVector.size(); ++Point )
+            {
+                mConstitutiveLawVector[Point]->SetValue( CURRENT_STRAIN_VECTOR, Values[Point], CurrentProcessInfo );
+            }
+        }
+
+        // check if the constitutive law needs shape function
+        bool need_shape_function = false;
         for ( unsigned int Point = 0; Point < mConstitutiveLawVector.size(); ++Point )
         {
+            int tmp;
             tmp = mConstitutiveLawVector[Point]->GetValue(IS_SHAPE_FUNCTION_REQUIRED, tmp);
-            need_shape_function += tmp;
+            if (tmp)
+            {
+                need_shape_function = true;
+                break;
+            }
         }
 
         if (need_shape_function)
@@ -897,31 +903,38 @@ namespace Kratos
      */
     void KinematicLinear::FinalizeSolutionStep( const ProcessInfo& CurrentProcessInfo )
     {
-        if(mConstitutiveLawVector.size() > 0)
+        // check if the constitutive law need current strain
+        bool need_current_strain_vector = false;
+        for ( unsigned int Point = 0; Point < mConstitutiveLawVector.size(); ++Point )
         {
-            int need_current_strain_vector = 0, tmp;
-            for ( unsigned int Point = 0; Point < mConstitutiveLawVector.size(); ++Point )
+            if (mConstitutiveLawVector[Point]->Has(CURRENT_STRAIN_VECTOR))
             {
-                if (mConstitutiveLawVector[Point]->Has(CURRENT_STRAIN_VECTOR))
-                    ++need_current_strain_vector;
-            }
-
-            if ( need_current_strain_vector )
-            {
-                std::vector<VectorType> Values;
-                this->CalculateOnIntegrationPoints( CURRENT_STRAIN_VECTOR, Values, CurrentProcessInfo );
-                for ( unsigned int Point = 0; Point < mConstitutiveLawVector.size(); ++Point )
-                {
-                    mConstitutiveLawVector[Point]->SetValue( CURRENT_STRAIN_VECTOR, Values[Point], CurrentProcessInfo );
-                }
+                need_current_strain_vector = true;
+                break;
             }
         }
 
-        int need_shape_function = 0, tmp;
+        if ( need_current_strain_vector )
+        {
+            std::vector<VectorType> Values;
+            this->CalculateOnIntegrationPoints( CURRENT_STRAIN_VECTOR, Values, CurrentProcessInfo );
+            for ( unsigned int Point = 0; Point < mConstitutiveLawVector.size(); ++Point )
+            {
+                mConstitutiveLawVector[Point]->SetValue( CURRENT_STRAIN_VECTOR, Values[Point], CurrentProcessInfo );
+            }
+        }
+
+        // check if the constitutive law needs shape function
+        bool need_shape_function = false;
         for ( unsigned int Point = 0; Point < mConstitutiveLawVector.size(); ++Point )
         {
+            int tmp;
             tmp = mConstitutiveLawVector[Point]->GetValue(IS_SHAPE_FUNCTION_REQUIRED, tmp);
-            need_shape_function += tmp;
+            if (tmp)
+            {
+                need_shape_function = true;
+                break;
+            }
         }
 
         if (need_shape_function)
@@ -1010,12 +1023,9 @@ namespace Kratos
         const MatrixType& Ncontainer = GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod );
 
         //initializing the Jacobian in the reference configuration
-        MatrixType DeltaPosition(GetGeometry().size(), 3);
-        for ( unsigned int node = 0; node < GetGeometry().size(); ++node )
-            noalias( row( DeltaPosition, node ) ) = GetGeometry()[node].Coordinates() - GetGeometry()[node].GetInitialPosition();
-
         GeometryType::JacobiansType J0;
-        J0 = GetGeometry().Jacobian( J0, mThisIntegrationMethod, DeltaPosition );
+        this->CalculateJacobian( J0 );
+
         double DetJ0;
         double IntToReferenceWeight;
 
@@ -1041,8 +1051,6 @@ namespace Kratos
             }
         }
 
-        // KRATOS_WATCH(Id())
-        // KRATOS_WATCH(rMassMatrix)
 
         KRATOS_CATCH( "" )
     }
@@ -1632,6 +1640,17 @@ namespace Kratos
         KRATOS_CATCH( "" )
     }
 
+    void KinematicLinear::CalculateJacobian( GeometryType::JacobiansType& J ) const
+    {
+        MatrixType DeltaPosition(GetGeometry().size(), 3);
+
+        for ( unsigned int node = 0; node < GetGeometry().size(); ++node )
+            noalias( row( DeltaPosition, node ) ) = GetGeometry()[node].Coordinates()
+                                            - GetGeometry()[node].GetInitialPosition();
+
+        J = GetGeometry().Jacobian( J, mThisIntegrationMethod, DeltaPosition );
+    }
+
     void KinematicLinear::CalculateOnIntegrationPoints( const Variable<MatrixType>& rVariable, std::vector<MatrixType>& rValues, const ProcessInfo& rCurrentProcessInfo )
     {
         KRATOS_TRY
@@ -1680,14 +1699,7 @@ namespace Kratos
 
         //initializing the Jacobian in the reference configuration
         GeometryType::JacobiansType J0;
-        MatrixType DeltaPosition(GetGeometry().size(), 3);
-
-        for ( unsigned int node = 0; node < GetGeometry().size(); ++node )
-        {
-            noalias( row( DeltaPosition, node ) ) = GetGeometry()[node].Coordinates() - GetGeometry()[node].GetInitialPosition();
-        }
-
-        J0 = GetGeometry().Jacobian( J0, mThisIntegrationMethod, DeltaPosition );
+        this->CalculateJacobian( J0 );
 
         //Current displacements
         for ( unsigned int node = 0; node < GetGeometry().size(); ++node )
@@ -1815,14 +1827,7 @@ namespace Kratos
 
             //initializing the Jacobian in the reference configuration
             GeometryType::JacobiansType J0;
-            MatrixType DeltaPosition(GetGeometry().size(), 3);
-
-            for ( unsigned int node = 0; node < GetGeometry().size(); ++node )
-            {
-                noalias( row( DeltaPosition, node ) ) = GetGeometry()[node].Coordinates() - GetGeometry()[node].GetInitialPosition();
-            }
-
-            J0 = GetGeometry().Jacobian( J0, mThisIntegrationMethod, DeltaPosition );
+            this->CalculateJacobian( J0 );
 
             // extract current displacements
             for (unsigned int node = 0; node < GetGeometry().size(); ++node)
@@ -1963,11 +1968,8 @@ namespace Kratos
                     noalias(rValues[point]) += Ncontainer(point, i) * displacement;
                 }
             }
-
-            return;
         }
-
-        if( rVariable == INTEGRATION_POINT_GLOBAL || rVariable == INTEGRATION_POINT_GLOBAL_IN_CURRENT_CONFIGURATION )
+        else if( rVariable == INTEGRATION_POINT_GLOBAL || rVariable == INTEGRATION_POINT_GLOBAL_IN_CURRENT_CONFIGURATION )
         {
             const GeometryType::IntegrationPointsArrayType& integration_points =
                     GetGeometry().IntegrationPoints( mThisIntegrationMethod );
@@ -1976,11 +1978,8 @@ namespace Kratos
             {
                 rValues[point] = GetGeometry().GlobalCoordinates(rValues[point], integration_points[point]);
             }
-
-            return;
         }
-
-        if( rVariable == INTEGRATION_POINT_GLOBAL_IN_REFERENCE_CONFIGURATION )
+        else if( rVariable == INTEGRATION_POINT_GLOBAL_IN_REFERENCE_CONFIGURATION )
         {
             const GeometryType::IntegrationPointsArrayType& integration_points =
                     GetGeometry().IntegrationPoints( mThisIntegrationMethod );
@@ -1995,11 +1994,8 @@ namespace Kratos
                 for(std::size_t i = 0 ; i < GetGeometry().size() ; ++i)
                     noalias( rValues[point] ) += N[i] * GetGeometry()[i].GetInitialPosition();
             }
-
-            return;
         }
-
-        if( rVariable == INTEGRATION_POINT_LOCAL )
+        else if( rVariable == INTEGRATION_POINT_LOCAL )
         {
             const GeometryType::IntegrationPointsArrayType& integration_points =
                     GetGeometry().IntegrationPoints( mThisIntegrationMethod );
@@ -2008,8 +2004,6 @@ namespace Kratos
             {
                 noalias(rValues[point]) = integration_points[point];
             }
-
-            return;
         }
 
         #ifdef ENABLE_BEZIER_GEOMETRY
@@ -2056,16 +2050,9 @@ namespace Kratos
         {
             // initializing the Jacobian in the reference configuration
             GeometryType::JacobiansType J0;
-            MatrixType DeltaPosition(GetGeometry().size(), 3);
+            this->CalculateJacobian( J0 );
 
-            for ( unsigned int node = 0; node < GetGeometry().size(); ++node )
-            {
-                noalias( row( DeltaPosition, node ) ) = GetGeometry()[node].Coordinates() - GetGeometry()[node].GetInitialPosition();
-            }
-
-            J0 = GetGeometry().Jacobian( J0, mThisIntegrationMethod, DeltaPosition );
-
-            // compute the Jacobian
+            // compute the Jacobian determinant
             for( unsigned int i = 0; i < rValues.size(); ++i )
             {
                 rValues[i] = MathUtils<double>::Det(J0[i]);

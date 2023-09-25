@@ -100,6 +100,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
     #include "custom_elements/corotational_linear_beam_element.h"
     #include "custom_elements/kinematic_linear.h"
     #include "custom_elements/kinematic_linear_axisymmetric.h"
+    #include "custom_elements/updated_kinematic_linear.h"
     #include "custom_elements/membrane_element.h"
     #include "custom_elements/unsaturated_soils_element_2phase_small_strain.h"
     #include "custom_elements/unsaturated_soils_element_2phase_small_strain_staggered.h"
@@ -402,11 +403,26 @@ private:
     const KinematicLinear mKinematicLinear3D27N;
     const KinematicLinear mKinematicLinear3D6N;
     const KinematicLinear mKinematicLinear3D15N;
+
     const KinematicLinearAxisymmetric mKinematicLinearAxisymmetric3N;
     const KinematicLinearAxisymmetric mKinematicLinearAxisymmetric4N;
     const KinematicLinearAxisymmetric mKinematicLinearAxisymmetric6N;
     const KinematicLinearAxisymmetric mKinematicLinearAxisymmetric8N;
     const KinematicLinearAxisymmetric mKinematicLinearAxisymmetric9N;
+
+    const UpdatedKinematicLinear mUpdatedKinematicLinear2D3N;
+    const UpdatedKinematicLinear mUpdatedKinematicLinear2D4N;
+    const UpdatedKinematicLinear mUpdatedKinematicLinear2D6N;
+    const UpdatedKinematicLinear mUpdatedKinematicLinear2D8N;
+    const UpdatedKinematicLinear mUpdatedKinematicLinear2D9N;
+    const UpdatedKinematicLinear mUpdatedKinematicLinear3D4N;
+    const UpdatedKinematicLinear mUpdatedKinematicLinear3D10N;
+    const UpdatedKinematicLinear mUpdatedKinematicLinear3D8N;
+    const UpdatedKinematicLinear mUpdatedKinematicLinear3D20N;
+    const UpdatedKinematicLinear mUpdatedKinematicLinear3D27N;
+    const UpdatedKinematicLinear mUpdatedKinematicLinear3D6N;
+    const UpdatedKinematicLinear mUpdatedKinematicLinear3D15N;
+
     const UnsaturatedSoilsElement_2phase_SmallStrain mUnsaturatedSoilsElement2PhaseSmallStrain3D4N;
     const UnsaturatedSoilsElement_2phase_SmallStrain mUnsaturatedSoilsElement2PhaseSmallStrain3D6N;
     const UnsaturatedSoilsElement_2phase_SmallStrain mUnsaturatedSoilsElement2PhaseSmallStrain3D8N;
