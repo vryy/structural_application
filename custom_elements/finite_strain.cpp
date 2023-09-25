@@ -60,7 +60,15 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // Project includes
 #include "utilities/math_utils.h"
 #include "custom_elements/finite_strain.h"
+#include "custom_utilities/geometry_utility.h"
+#include "custom_utilities/sd_math_utils.h"
 #include "structural_application_variables.h"
+
+// #define ENABLE_DEBUG_CONSTITUTIVE_LAW
+
+#ifdef ENABLE_DEBUG_CONSTITUTIVE_LAW
+#include <iomanip>
+#endif
 
 namespace Kratos
 {
@@ -217,10 +225,10 @@ namespace Kratos
 //************************************************************************************
 
     void FiniteStrain::CalculateAll( MatrixType& rLeftHandSideMatrix,
-                                        VectorType& rRightHandSideVector,
-                                        const ProcessInfo& rCurrentProcessInfo,
-                                        bool CalculateStiffnessMatrixFlag,
-                                        bool CalculateResidualVectorFlag )
+                                     VectorType& rRightHandSideVector,
+                                     const ProcessInfo& rCurrentProcessInfo,
+                                     bool CalculateStiffnessMatrixFlag,
+                                     bool CalculateResidualVectorFlag )
     {
         KRATOS_TRY
 
@@ -228,13 +236,23 @@ namespace Kratos
         const unsigned int dim = GetGeometry().WorkingSpaceDimension();
         const unsigned int strain_size = dim * (dim+1) / 2;
 
-        Matrix B( strain_size, number_of_nodes * dim );
+        Matrix B;
+        if (CalculateResidualVectorFlag)
+        {
+            B.resize( strain_size, number_of_nodes * dim, false );
+        }
+
+        Matrix G;
+        if (CalculateStiffnessMatrixFlag)
+        {
+            G.resize( dim*dim, number_of_nodes * dim, false );
+        }
 
         Matrix F( dim, dim );
 
         Matrix InvF( dim, dim );
 
-        Matrix D( strain_size, strain_size );
+        Matrix A( dim*dim, dim*dim );
 
         Matrix C( dim, dim );
 
@@ -242,15 +260,14 @@ namespace Kratos
 
         Vector StressVector( strain_size );
 
-        Matrix DN_DX( number_of_nodes, dim );
+        // Matrix DN_DX( number_of_nodes, dim );
+        Matrix DN_Dx( number_of_nodes, dim );
 
-        Matrix DN_DXs( number_of_nodes, dim );
+        Matrix CurrentDisp( number_of_nodes, 3 );
 
-        Matrix CurrentDisp( number_of_nodes, dim );
+        Matrix InvJ0(dim, dim), InvJ(dim, dim);
 
-        Matrix InvJ0(dim, dim);
-
-        double DetJ0;
+        double DetJ0, DetJ;
 
         double DetF;
 
@@ -259,19 +276,18 @@ namespace Kratos
         const_params.SetStrainVector(StrainVector);
         const_params.SetDeformationGradientF(F);
         const_params.SetStressVector(StressVector);
-        const_params.SetConstitutiveMatrix(D);
+        const_params.SetConstitutiveMatrix(A);
         const_params.SetProcessInfo(rCurrentProcessInfo);
         const_params.SetMaterialProperties(GetProperties());
         const_params.SetElementGeometry(GetGeometry());
-        // ConstitutiveLaw::StressMeasure stress_measure = ConstitutiveLaw::StressMeasure_Cauchy;
-        ConstitutiveLaw::StressMeasure stress_measure = ConstitutiveLaw::StressMeasure_Kirchhoff;
+        ConstitutiveLaw::StressMeasure stress_measure = ConstitutiveLaw::StressMeasure_Cauchy;
 
         //resizing as needed the LHS
         unsigned int MatSize = number_of_nodes * dim;
 
         if ( CalculateStiffnessMatrixFlag == true ) //calculation of the matrix is required
         {
-            if ( rLeftHandSideMatrix.size1() != MatSize )
+            if ( rLeftHandSideMatrix.size1() != MatSize || rLeftHandSideMatrix.size2() != MatSize )
                 rLeftHandSideMatrix.resize( MatSize, MatSize, false );
 
             noalias( rLeftHandSideMatrix ) = ZeroMatrix( MatSize, MatSize ); //resetting LHS
@@ -315,63 +331,165 @@ namespace Kratos
         Matrix ShiftedDisp = DeltaPosition - CurrentDisp;
         J = GetGeometry().Jacobian( J, mThisIntegrationMethod, ShiftedDisp );
 
+        /////////////////////////////////////////////////////////////////////////
+        //// Compute F0, G0 for Fbar formulation
+        //// Reference: Souze de Neto, Computational Plasticity, Box 15.1
+        /////////////////////////////////////////////////////////////////////////
+        int fbar_mode = 0;
+        if(GetProperties().Has(FBAR_MODE))
+            fbar_mode = GetProperties()[FBAR_MODE];
+        Matrix F0, G0, Q, A3d, eye, stress_tensor;
+        SD_MathUtils<double>::Fourth_Order_Tensor Atensor, Qtensor, ItimesI;
+        double DetF0;
+        if (fbar_mode > 0)
+        {
+            CoordinatesArrayType origin;
+            GeometryUtility::ComputeOrigin(GetGeometry().GetGeometryFamily(), origin);
+
+            Matrix J0Origin, JOrigin;
+            J0Origin = GetGeometry().Jacobian( J0Origin, origin, DeltaPosition );
+            JOrigin = GetGeometry().Jacobian( JOrigin, origin, ShiftedDisp );
+
+            Matrix DN_De_origin( number_of_nodes, dim );
+            DN_De_origin = GetGeometry().ShapeFunctionsLocalGradients(DN_De_origin, origin);
+
+            Matrix InvJ0Origin(dim, dim), InvJOrigin(dim, dim);
+            double DetJ0Origin, DetJOrigin;
+            Matrix DN_Dx_Origin( number_of_nodes, dim );
+
+            MathUtils<double>::InvertMatrix( J0Origin, InvJ0Origin, DetJ0Origin );
+            MathUtils<double>::InvertMatrix( JOrigin, InvJOrigin, DetJOrigin );
+            noalias( DN_Dx_Origin ) = prod( DN_De_origin, InvJOrigin );
+
+            // F0
+            F0.resize(dim, dim, false);
+            noalias( F0 ) = prod( JOrigin, InvJ0Origin );
+            DetF0 = MathUtils<double>::Det(F0);
+
+            // G0
+            G0.resize( dim*dim, number_of_nodes * dim, false );
+            CalculateG( G0, DN_Dx_Origin );
+
+            // resize Q as needed
+            Q.resize(dim*dim, dim*dim, false);
+
+            // resize A3d as needed
+            A3d.resize(9, 9, false);
+
+            // initialize the tensors
+            SD_MathUtils<double>::CalculateFourthOrderZeroTensor(Atensor);
+            SD_MathUtils<double>::CalculateFourthOrderZeroTensor(Qtensor);
+
+            eye = IdentityMatrix(3);
+            if (fbar_mode == 1) eye(2, 2) = 0.0; // this modification is required because we don't want to involve the zz component
+            SD_MathUtils<double>::CalculateFourthOrderZeroTensor(ItimesI);
+            SD_MathUtils<double>::OuterProductFourthOrderTensor(1.0, eye, eye, ItimesI);
+
+            stress_tensor.resize(3, 3);
+        }
+
+        /////////////////////////////////////////////////////////////////////////
+        //// Integration in space over quadrature points
+        /////////////////////////////////////////////////////////////////////////
         for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
         {
-KRATOS_WATCH(integration_points[PointNumber])
             //Calculating the cartesian derivatives (it is avoided storing them to minimize storage)
             MathUtils<double>::InvertMatrix( J0[PointNumber], InvJ0, DetJ0 );
-            noalias( DN_DX ) = prod( DN_De[PointNumber], InvJ0 );
-KRATOS_WATCH(DetJ0)
-KRATOS_WATCH(DN_DX)
+            MathUtils<double>::InvertMatrix( J[PointNumber], InvJ, DetJ );
+            noalias( DN_Dx ) = prod( DN_De[PointNumber], InvJ );
+            // noalias( DN_DX ) = prod( DN_De[PointNumber], InvJ0 );
+
             //deformation gradient
             noalias( F ) = prod( J[PointNumber], InvJ0 );
-            MathUtils<double>::InvertMatrix( F, InvF, DetF );
-            noalias( DN_DXs ) = prod( DN_DX, InvF );
-            const_params.SetDeterminantF(DetF);
-KRATOS_WATCH(F)
-KRATOS_WATCH(DN_DXs)
+
+            DetF = MathUtils<double>::Det(F);
+
+            if (fbar_mode == 1) // plane strain
+            {
+                F *= std::sqrt(DetF0/DetF);
+                // const_params.SetDeterminantF(std::sqrt(DetF0/DetF)*DetF);
+                const_params.SetDeterminantF(DetF0); // for the reason why to do this, see iffba2.f
+            }
+            else if (fbar_mode > 1) // plane stress, axisymmetric, 3D
+            {
+                F *= std::cbrt(DetF0/DetF);
+                // const_params.SetDeterminantF(std::cbrt(DetF0/DetF)*DetF);
+                const_params.SetDeterminantF(DetF0); // for the reason why to do this, see iffba2.f
+            }
+            else
+            {
+                const_params.SetDeterminantF(DetF);
+            }
+
             //strain calculation
             noalias( C ) = prod( trans( F ), F );
 
             CalculateStrain( C, StrainVector );
-//            Comprobate_State_Vector( StrainVector ); // I don't understand why we need this
 
+            //integrate the material
             mConstitutiveLawVector[PointNumber]->CalculateMaterialResponse( const_params, stress_measure );
-KRATOS_WATCH(StressVector)
-            //calculating operator B
-            // CalculateB( B, F, DN_DX, StrainVector.size() );
-            CalculateB( B, DN_DXs );
-KRATOS_WATCH(B)
+
             //calculating weights for integration on the reference configuration
-            double IntToReferenceWeight = integration_points[PointNumber].Weight() * DetJ0;
+            double IntToReferenceWeight = integration_points[PointNumber].Weight() * DetJ;
 
             if ( dim == 2 ) IntToReferenceWeight *= GetProperties()[THICKNESS];
 
-            if ( CalculateStiffnessMatrixFlag == true ) //calculation of the matrix is required
-            {
-KRATOS_WATCH(D)
-                //contributions to stiffness matrix calculated on the reference config
-                noalias( rLeftHandSideMatrix ) += prod( trans( B ), ( IntToReferenceWeight ) * Matrix( prod( D, B ) ) ); //to be optimized to remove the temporary
-KRATOS_WATCH(rLeftHandSideMatrix)
-                CalculateAndAddKg( rLeftHandSideMatrix, DN_DX, StressVector, IntToReferenceWeight );
-KRATOS_WATCH(rLeftHandSideMatrix)
-            }
-
             if ( CalculateResidualVectorFlag == true ) //calculation of the matrix is required
             {
+                //calculating operator B
+                CalculateB( B, DN_Dx );
+
                 //contribution to external forces
                 const Vector& BodyForce = GetProperties()[BODY_FORCE];
-
-                // operation performed: rRightHandSideVector += ExtForce*IntToReferenceWeight
                 CalculateAndAdd_ExtForceContribution( row( Ncontainer, PointNumber ), rCurrentProcessInfo, BodyForce, rRightHandSideVector, IntToReferenceWeight );
 
                 //contribution of gravity (if there is)
                 AddBodyForcesToRHS( rRightHandSideVector, row( Ncontainer, PointNumber ), IntToReferenceWeight );
 
-                // operation performed: rRightHandSideVector -= IntForce*IntToReferenceWeight
+                //contribution of internal forces
                 noalias( rRightHandSideVector ) -= IntToReferenceWeight * prod( trans( B ), StressVector );
             }
-KRATOS_WATCH("------------------")
+
+            if ( CalculateStiffnessMatrixFlag == true ) //calculation of the matrix is required
+            {
+                //calculating operator G
+                CalculateG( G, DN_Dx );
+
+                //contributions to stiffness
+                noalias( rLeftHandSideMatrix ) += prod( trans( G ), ( IntToReferenceWeight ) * Matrix( prod( A, G ) ) ); //to be optimized to remove the temporary
+
+                if (fbar_mode > 0)
+                {
+                    //compute Q matrix
+                    mConstitutiveLawVector[PointNumber]->GetValue(CAUCHY_STRESS_TENSOR, stress_tensor);
+                    if ( dim == 2)
+                    {
+                        mConstitutiveLawVector[PointNumber]->GetValue(THREED_ALGORITHMIC_TANGENT, A3d);
+                        SD_MathUtils<double>::UnsymmetricMatrixToTensor(A3d, Atensor);
+                    }
+                    else if (dim == 3)
+                    {
+                        SD_MathUtils<double>::UnsymmetricMatrixToTensor(A, Atensor);
+                    }
+
+                    SD_MathUtils<double>::ZeroFourthOrderTensor(Qtensor);
+                    if (fbar_mode == 1) // plane strain
+                    {
+                        SD_MathUtils<double>::ProductFourthOrderTensor(0.5, Atensor, ItimesI, Qtensor);
+                        SD_MathUtils<double>::OuterProductFourthOrderTensor(-0.5, stress_tensor, eye, Qtensor);
+                    }
+                    else // plane stress, axisymmetric, 3D
+                    {
+                        SD_MathUtils<double>::ProductFourthOrderTensor(1.0/3, Atensor, ItimesI, Qtensor);
+                        SD_MathUtils<double>::OuterProductFourthOrderTensor(-2.0/3, stress_tensor, eye, Qtensor);
+                    }
+
+                    SD_MathUtils<double>::TensorToUnsymmetricMatrix(Qtensor, Q);
+
+                    //contributions to stiffness
+                    noalias( rLeftHandSideMatrix ) += prod( trans( G ), ( IntToReferenceWeight ) * Matrix( prod( Q, G0 - G ) ) );
+                }
+            }
         }
 
         #ifdef ENABLE_BEZIER_GEOMETRY
@@ -380,6 +498,46 @@ KRATOS_WATCH("------------------")
         #endif
 
         KRATOS_CATCH( "" )
+    }
+
+//************************************************************************************
+//************************************************************************************
+
+    void FiniteStrain::ApplyPrescribedDofs(const MatrixType& LHS_Contribution, VectorType& RHS_Constribution, const ProcessInfo& CurrentProcessInfo) const
+    {
+        // modify the right hand side to account for prescribed displacement
+        // according to the book of Bazant & Jirasek, this scheme is more stable than the total displacement scheme for prescribing displacement.
+        unsigned int dim = GetGeometry().WorkingSpaceDimension();
+        unsigned int mat_size = dim * GetGeometry().size();
+        for ( unsigned int node = 0; node < GetGeometry().size(); ++node )
+        {
+            if(GetGeometry()[node].IsFixed(DISPLACEMENT_X))
+            {
+                double temp = GetGeometry()[node].GetSolutionStepValue(PRESCRIBED_DELTA_DISPLACEMENT_X);
+                if (temp != 0.0)
+                    for( unsigned int i = 0; i < mat_size; ++i )
+                        RHS_Constribution[i] -= LHS_Contribution(i, node * dim) * temp;
+            }
+
+            if(GetGeometry()[node].IsFixed(DISPLACEMENT_Y))
+            {
+                double temp = GetGeometry()[node].GetSolutionStepValue(PRESCRIBED_DELTA_DISPLACEMENT_Y);
+                if (temp != 0.0)
+                    for( unsigned int i = 0; i < mat_size; ++i )
+                        RHS_Constribution[i] -= LHS_Contribution(i, node * dim + 1) * temp;
+            }
+
+            if (dim > 2)
+            {
+                if(GetGeometry()[node].IsFixed(DISPLACEMENT_Z))
+                {
+                    double temp = GetGeometry()[node].GetSolutionStepValue(PRESCRIBED_DELTA_DISPLACEMENT_Z);
+                    if (temp != 0.0)
+                        for( unsigned int i = 0; i < mat_size; ++i )
+                            RHS_Constribution[i] -= LHS_Contribution(i, node * dim + 2) * temp;
+                }
+            }
+        }
     }
 
 //************************************************************************************
@@ -405,8 +563,6 @@ KRATOS_WATCH("------------------")
         bool CalculateResidualVectorFlag = true;
 
         CalculateAll( rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo, CalculateStiffnessMatrixFlag, CalculateResidualVectorFlag );
-
-
     }
 
 //************************************************************************************
@@ -431,11 +587,38 @@ KRATOS_WATCH("------------------")
 
     void FiniteStrain::InitializeSolutionStep( const ProcessInfo& CurrentProcessInfo )
     {
-        int need_shape_function = 0, tmp;
+        // check if the constitutive law need current deformation gradient
+        bool need_current_deformation_gradient = false;
         for ( unsigned int Point = 0; Point < mConstitutiveLawVector.size(); ++Point )
         {
+            if (mConstitutiveLawVector[Point]->Has(CURRENT_DEFORMATION_GRADIENT))
+            {
+                need_current_deformation_gradient = true;
+                break;
+            }
+        }
+
+        if ( need_current_deformation_gradient )
+        {
+            std::vector<MatrixType> Values;
+            this->CalculateOnIntegrationPoints( CURRENT_DEFORMATION_GRADIENT, Values, CurrentProcessInfo );
+            for ( unsigned int Point = 0; Point < mConstitutiveLawVector.size(); ++Point )
+            {
+                mConstitutiveLawVector[Point]->SetValue( CURRENT_DEFORMATION_GRADIENT, Values[Point], CurrentProcessInfo );
+            }
+        }
+
+        // check if the constitutive law needs shape function
+        bool need_shape_function = false;
+        for ( unsigned int Point = 0; Point < mConstitutiveLawVector.size(); ++Point )
+        {
+            int tmp;
             tmp = mConstitutiveLawVector[Point]->GetValue(IS_SHAPE_FUNCTION_REQUIRED, tmp);
-            need_shape_function += tmp;
+            if (tmp)
+            {
+                need_shape_function = true;
+                break;
+            }
         }
 
         if (need_shape_function)
@@ -480,11 +663,17 @@ KRATOS_WATCH("------------------")
             GetGeometry()[i].GetSolutionStepValue( REACTION_Z ) = 0.0;
         }
 
-        int need_shape_function = 0, tmp;
+        // check if the constitutive law needs shape function
+        bool need_shape_function = false;
         for ( unsigned int Point = 0; Point < mConstitutiveLawVector.size(); ++Point )
         {
+            int tmp;
             tmp = mConstitutiveLawVector[Point]->GetValue(IS_SHAPE_FUNCTION_REQUIRED, tmp);
-            need_shape_function += tmp;
+            if (tmp)
+            {
+                need_shape_function = true;
+                break;
+            }
         }
 
         if (need_shape_function)
@@ -521,11 +710,51 @@ KRATOS_WATCH("------------------")
 
     void FiniteStrain::FinalizeNonLinearIteration(const ProcessInfo& CurrentProcessInfo)
     {
-        int need_shape_function = 0, tmp;
+        // check if the constitutive law need current deformation gradient
+        bool need_current_deformation_gradient = false;
         for ( unsigned int Point = 0; Point < mConstitutiveLawVector.size(); ++Point )
         {
+            if (mConstitutiveLawVector[Point]->Has(CURRENT_DEFORMATION_GRADIENT))
+            {
+                need_current_deformation_gradient = true;
+                break;
+            }
+        }
+
+        if ( need_current_deformation_gradient )
+        {
+            std::vector<MatrixType> Values;
+            this->CalculateOnIntegrationPoints( CURRENT_DEFORMATION_GRADIENT, Values, CurrentProcessInfo );
+            for ( unsigned int Point = 0; Point < mConstitutiveLawVector.size(); ++Point )
+            {
+                mConstitutiveLawVector[Point]->SetValue( CURRENT_DEFORMATION_GRADIENT, Values[Point], CurrentProcessInfo );
+            }
+
+            int fbar_mode = 0;
+            if(GetProperties().Has(FBAR_MODE))
+                fbar_mode = GetProperties()[FBAR_MODE];
+            if (fbar_mode > 0)
+            {
+                std::vector<double> Values2;
+                this->CalculateOnIntegrationPoints( CURRENT_DEFORMATION_GRADIENT_DETERMINANT, Values2, CurrentProcessInfo );
+                for ( unsigned int Point = 0; Point < mConstitutiveLawVector.size(); ++Point )
+                {
+                    mConstitutiveLawVector[Point]->SetValue( CURRENT_DEFORMATION_GRADIENT_DETERMINANT, Values2[Point], CurrentProcessInfo );
+                }
+            }
+        }
+
+        // check if the constitutive law needs shape function
+        bool need_shape_function = false;
+        for ( unsigned int Point = 0; Point < mConstitutiveLawVector.size(); ++Point )
+        {
+            int tmp;
             tmp = mConstitutiveLawVector[Point]->GetValue(IS_SHAPE_FUNCTION_REQUIRED, tmp);
-            need_shape_function += tmp;
+            if (tmp)
+            {
+                need_shape_function = true;
+                break;
+            }
         }
 
         if (need_shape_function)
@@ -562,11 +791,38 @@ KRATOS_WATCH("------------------")
 
     void FiniteStrain::FinalizeSolutionStep( const ProcessInfo& CurrentProcessInfo )
     {
-        int need_shape_function = 0, tmp;
+        // check if the constitutive law need current deformation gradient
+        bool need_current_deformation_gradient = false;
         for ( unsigned int Point = 0; Point < mConstitutiveLawVector.size(); ++Point )
         {
+            if (mConstitutiveLawVector[Point]->Has(CURRENT_DEFORMATION_GRADIENT))
+            {
+                need_current_deformation_gradient = true;
+                break;
+            }
+        }
+
+        if ( need_current_deformation_gradient )
+        {
+            std::vector<MatrixType> Values;
+            this->CalculateOnIntegrationPoints( CURRENT_DEFORMATION_GRADIENT, Values, CurrentProcessInfo );
+            for ( unsigned int Point = 0; Point < mConstitutiveLawVector.size(); ++Point )
+            {
+                mConstitutiveLawVector[Point]->SetValue( CURRENT_DEFORMATION_GRADIENT, Values[Point], CurrentProcessInfo );
+            }
+        }
+
+        // check if the constitutive law needs shape function
+        bool need_shape_function = false;
+        for ( unsigned int Point = 0; Point < mConstitutiveLawVector.size(); ++Point )
+        {
+            int tmp;
             tmp = mConstitutiveLawVector[Point]->GetValue(IS_SHAPE_FUNCTION_REQUIRED, tmp);
-            need_shape_function += tmp;
+            if (tmp)
+            {
+                need_shape_function = true;
+                break;
+            }
         }
 
         if (need_shape_function)
@@ -717,35 +973,12 @@ KRATOS_WATCH("------------------")
 //************************************************************************************
 //************************************************************************************
 
-    void FiniteStrain::CalculateAndAddKg(
-        MatrixType& K,
-        const Matrix& DN_DX,
-        const Vector& StressVector,
-        const double& weight )
-    {
-        KRATOS_TRY
-        // unsigned int dimension = mpReferenceGeometry->WorkingSpaceDimension();
-        //Matrix<double> StressTensor = MathUtils<double>::StressVectorToTensor(StressVector);
-        //Matrix<double> ReducedKg(DN_Dx.RowsNumber(),DN_Dx.RowsNumber());
-        //Matrix<double>::MatMulAndAdd_B_D_Btrans(ReducedKg,weight,DN_Dx,StressTensor);
-        //MathUtils<double>::ExpandAndAddReducedMatrix(K,ReducedKg,dimension);
-
-        unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-        Matrix StressTensor = MathUtils<double>::StressVectorToTensor( StressVector );
-        Matrix ReducedKg = prod( DN_DX, weight * Matrix( prod( StressTensor, trans( DN_DX ) ) ) ); //to be optimized
-        MathUtils<double>::ExpandAndAddReducedMatrix( K, ReducedKg, dimension );
-
-        KRATOS_CATCH( "" )
-    }
-
-//************************************************************************************
-//************************************************************************************
-
     void FiniteStrain::CalculateStrain(
         const Matrix& C,
         Vector& StrainVector )
     {
         KRATOS_TRY
+
         unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
         if ( dimension == 2 )
@@ -782,72 +1015,14 @@ KRATOS_WATCH("------------------")
 //************************************************************************************
 //************************************************************************************
 
-    // void FiniteStrain::CalculateB(
-    //     Matrix& B,
-    //     const Matrix& F,
-    //     const Matrix& DN_DX,
-    //     unsigned int StrainSize )
-    // {
-    //     KRATOS_TRY
-    //     const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-    //     unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-    //     //
-    //     //unsigned int dim2 = number_of_nodes*dimension;
-    //     //if(B.size1() != StrainSize || B.size2()!=dim2)
-    //     // B.resize(StrainSize,dim2);
-    //     //Matrix Bi;
-
-    //     for ( unsigned int i = 0; i < number_of_nodes; i++ )
-    //     {
-    //         unsigned int index = dimension * i;
-
-    //         if ( dimension == 2 )
-    //         {
-    //             B( 0, index + 0 ) = F( 0, 0 ) * DN_DX( i, 0 );
-    //             B( 0, index + 1 ) = F( 1, 0 ) * DN_DX( i, 0 );
-    //             B( 1, index + 0 ) = F( 0, 1 ) * DN_DX( i, 1 );
-    //             B( 1, index + 1 ) = F( 1, 1 ) * DN_DX( i, 1 );
-    //             B( 2, index + 0 ) = F( 0, 0 ) * DN_DX( i, 1 ) + F( 0, 1 ) * DN_DX( i, 0 );
-    //             B( 2, index + 1 ) = F( 1, 0 ) * DN_DX( i, 1 ) + F( 1, 1 ) * DN_DX( i, 0 );
-    //         }
-    //         else
-    //         {
-    //             B( 0, index + 0 ) = F( 0, 0 ) * DN_DX( i, 0 );
-    //             B( 0, index + 1 ) = F( 1, 0 ) * DN_DX( i, 0 );
-    //             B( 0, index + 2 ) = F( 2, 0 ) * DN_DX( i, 0 );
-    //             B( 1, index + 0 ) = F( 0, 1 ) * DN_DX( i, 1 );
-    //             B( 1, index + 1 ) = F( 1, 1 ) * DN_DX( i, 1 );
-    //             B( 1, index + 2 ) = F( 2, 1 ) * DN_DX( i, 1 );
-    //             B( 2, index + 0 ) = F( 0, 2 ) * DN_DX( i, 2 );
-    //             B( 2, index + 1 ) = F( 1, 2 ) * DN_DX( i, 2 );
-    //             B( 2, index + 2 ) = F( 2, 2 ) * DN_DX( i, 2 );
-    //             B( 3, index + 0 ) = F( 0, 0 ) * DN_DX( i, 1 ) + F( 0, 1 ) * DN_DX( i, 0 );
-    //             B( 3, index + 1 ) = F( 1, 0 ) * DN_DX( i, 1 ) + F( 1, 1 ) * DN_DX( i, 0 );
-    //             B( 3, index + 2 ) = F( 2, 0 ) * DN_DX( i, 1 ) + F( 2, 1 ) * DN_DX( i, 0 );
-    //             B( 4, index + 0 ) = F( 0, 1 ) * DN_DX( i, 2 ) + F( 0, 2 ) * DN_DX( i, 1 );
-    //             B( 4, index + 1 ) = F( 1, 1 ) * DN_DX( i, 2 ) + F( 1, 2 ) * DN_DX( i, 1 );
-    //             B( 4, index + 2 ) = F( 2, 1 ) * DN_DX( i, 2 ) + F( 2, 2 ) * DN_DX( i, 1 );
-    //             B( 5, index + 0 ) = F( 0, 2 ) * DN_DX( i, 0 ) + F( 0, 0 ) * DN_DX( i, 2 );
-    //             B( 5, index + 1 ) = F( 1, 2 ) * DN_DX( i, 0 ) + F( 1, 0 ) * DN_DX( i, 2 );
-    //             B( 5, index + 2 ) = F( 2, 2 ) * DN_DX( i, 0 ) + F( 2, 0 ) * DN_DX( i, 2 );
-    //         }
-
-    //         //CalculateBi(Bi,F,DN_DX,i);
-    //         //MathUtils<double>::WriteMatrix(B,Bi,0,index);
-    //     }
-
-    //     KRATOS_CATCH( "" )
-    // }
-
     void FiniteStrain::CalculateB( Matrix& B_Operator, const Matrix& DN_DX )
     {
         KRATOS_TRY
-        const unsigned int number_of_nodes = GetGeometry().PointsNumber();
 
-        unsigned int dim = GetGeometry().WorkingSpaceDimension();
-        unsigned int strain_size = dim * (dim + 1) / 2;
+        const unsigned int dim = GetGeometry().WorkingSpaceDimension();
+        const unsigned int number_of_nodes = GetGeometry().size();
 
-        noalias( B_Operator ) = ZeroMatrix( strain_size, number_of_nodes * dim );
+        B_Operator.clear();
 
         if(dim == 2)
         {
@@ -872,6 +1047,47 @@ KRATOS_WATCH("------------------")
                 B_Operator( 4, i*3 + 2 ) = DN_DX( i, 1 );
                 B_Operator( 5, i*3 ) = DN_DX( i, 2 );
                 B_Operator( 5, i*3 + 2 ) = DN_DX( i, 0 );
+            }
+        }
+
+        KRATOS_CATCH( "" )
+    }
+
+//************************************************************************************
+//************************************************************************************
+
+    void FiniteStrain::CalculateG( Matrix& G_Operator, const Matrix& DN_DX )
+    {
+        KRATOS_TRY
+
+        const unsigned int dim = GetGeometry().WorkingSpaceDimension();
+        const unsigned int number_of_nodes = GetGeometry().size();
+
+        G_Operator.clear();
+
+        if(dim == 2)
+        {
+            for ( unsigned int i = 0; i < number_of_nodes; ++i )
+            {
+                G_Operator( 0, i*2 )     = DN_DX( i, 0 );
+                G_Operator( 1, i*2 + 1 ) = DN_DX( i, 0 );
+                G_Operator( 2, i*2 )     = DN_DX( i, 1 );
+                G_Operator( 3, i*2 + 1 ) = DN_DX( i, 1 );
+            }
+        }
+        else if(dim == 3)
+        {
+            for ( unsigned int i = 0; i < number_of_nodes; ++i )
+            {
+                G_Operator( 0, i*3 )     = DN_DX( i, 0 );
+                G_Operator( 1, i*3 + 1 ) = DN_DX( i, 0 );
+                G_Operator( 2, i*3 + 2 ) = DN_DX( i, 0 );
+                G_Operator( 3, i*3 )     = DN_DX( i, 1 );
+                G_Operator( 4, i*3 + 1 ) = DN_DX( i, 1 );
+                G_Operator( 5, i*3 + 2 ) = DN_DX( i, 1 );
+                G_Operator( 6, i*3 )     = DN_DX( i, 2 );
+                G_Operator( 7, i*3 + 1 ) = DN_DX( i, 2 );
+                G_Operator( 8, i*3 + 2 ) = DN_DX( i, 2 );
             }
         }
 
@@ -1083,11 +1299,114 @@ KRATOS_WATCH("------------------")
             std::vector<double>& rValues,
             const ProcessInfo& rCurrentProcessInfo )
     {
-        if ( rValues.size() != GetGeometry().IntegrationPoints( mThisIntegrationMethod ).size() )
-            rValues.resize( GetGeometry().IntegrationPoints( mThisIntegrationMethod ).size(), false );
+        KRATOS_TRY
 
-        for ( unsigned int ii = 0; ii < mConstitutiveLawVector.size(); ii++ )
-            rValues[ii] = mConstitutiveLawVector[ii]->GetValue( rVariable, rValues[ii] );
+        const unsigned int number_of_nodes = GetGeometry().size();
+        const unsigned int dim = GetGeometry().WorkingSpaceDimension();
+
+        Matrix F( dim, dim );
+
+        // Matrix DN_DX( number_of_nodes, dim );
+
+        Matrix CurrentDisp( number_of_nodes, 3 );
+
+        Matrix InvJ0(dim, dim), InvJ(dim, dim);
+
+        double DetJ0, DetJ;
+
+        #ifdef ENABLE_BEZIER_GEOMETRY
+        //initialize the geometry
+        GetGeometry().Initialize(mThisIntegrationMethod);
+        #endif
+
+        //reading integration points and local gradients
+        const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
+
+        const Matrix& Ncontainer = GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod );
+
+        const GeometryType::ShapeFunctionsGradientsType& DN_De = GetGeometry().ShapeFunctionsLocalGradients( mThisIntegrationMethod );
+
+        //initializing the Jacobian in the reference configuration
+        Matrix DeltaPosition(GetGeometry().size(), 3);
+        for ( unsigned int node = 0; node < GetGeometry().size(); ++node )
+            noalias( row( DeltaPosition, node ) ) = GetGeometry()[node].Coordinates() - GetGeometry()[node].GetInitialPosition();
+
+        //Current displacements
+        for ( unsigned int node = 0; node < GetGeometry().size(); ++node )
+            noalias( row( CurrentDisp, node ) ) = GetGeometry()[node].GetSolutionStepValue( DISPLACEMENT );
+
+        GeometryType::JacobiansType J0;
+        J0 = GetGeometry().Jacobian( J0, mThisIntegrationMethod, DeltaPosition );
+
+        //calculating actual jacobian
+        Matrix ShiftedDisp = DeltaPosition - CurrentDisp;
+
+        GeometryType::JacobiansType J;
+        J = GetGeometry().Jacobian( J, mThisIntegrationMethod, ShiftedDisp );
+
+        if ( rValues.size() != integration_points.size() )
+            rValues.resize( integration_points.size() );
+
+        int fbar_mode = 0;
+        if(GetProperties().Has(FBAR_MODE))
+            fbar_mode = GetProperties()[FBAR_MODE];
+
+        Matrix F0;
+        double DetF0, DetF;
+        if (fbar_mode > 0)
+        {
+            CoordinatesArrayType origin;
+            GeometryUtility::ComputeOrigin(GetGeometry().GetGeometryFamily(), origin);
+
+            Matrix J0Origin, JOrigin;
+            J0Origin = GetGeometry().Jacobian( J0Origin, origin, DeltaPosition );
+            JOrigin = GetGeometry().Jacobian( JOrigin, origin, ShiftedDisp );
+
+            Matrix InvJ0Origin(dim, dim), InvJOrigin(dim, dim);
+            double DetJ0Origin, DetJOrigin;
+            Matrix DN_Dx_Origin( number_of_nodes, dim );
+
+            MathUtils<double>::InvertMatrix( J0Origin, InvJ0Origin, DetJ0Origin );
+
+            // F0
+            F0.resize(dim, dim, false);
+            noalias( F0 ) = prod( JOrigin, InvJ0Origin );
+            DetF0 = MathUtils<double>::Det(F0);
+        }
+
+        for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
+        {
+            //deformation gradient
+            MathUtils<double>::InvertMatrix( J0[PointNumber], InvJ0, DetJ0 );
+            // noalias( DN_DX ) = prod( DN_De[PointNumber], InvJ0 );
+
+            noalias( F ) = prod( J[PointNumber], InvJ0 );
+
+            DetF = MathUtils<double>::Det(F);
+
+            if ( rVariable == CURRENT_DEFORMATION_GRADIENT_DETERMINANT )
+            {
+                if (fbar_mode > 0)
+                {
+                    rValues[PointNumber] = DetF0;
+                }
+                else
+                {
+                    rValues[PointNumber] = DetF;
+                }
+            }
+            else
+            {
+                mConstitutiveLawVector[PointNumber]->GetValue( rVariable, rValues[PointNumber] );
+            }
+        }
+
+        #ifdef ENABLE_BEZIER_GEOMETRY
+        //clean the internal data of the geometry
+        GetGeometry().Clean();
+        #endif
+
+        KRATOS_CATCH( "" )
     }
 
 //************************************************************************************
@@ -1220,7 +1539,6 @@ KRATOS_WATCH("------------------")
             {
                 rValues[PointNumber] =
                     mConstitutiveLawVector[PointNumber]->GetValue( INTERNAL_VARIABLES, rValues[PointNumber] );
-
             }
         }
         else
@@ -1243,36 +1561,16 @@ KRATOS_WATCH("------------------")
 
         const unsigned int number_of_nodes = GetGeometry().size();
         const unsigned int dim = GetGeometry().WorkingSpaceDimension();
-        unsigned int StrainSize = dim * (dim + 1) / 2;
 
         Matrix F( dim, dim );
 
-        Matrix D( StrainSize, StrainSize );
+        // Matrix DN_DX( number_of_nodes, dim );
 
-        Matrix C( dim, dim );
+        Matrix CurrentDisp( number_of_nodes, 3 );
 
-        Vector StrainVector( StrainSize );
+        Matrix InvJ0(dim, dim), InvJ(dim, dim);
 
-        Vector StressVector( StrainSize );
-
-        Matrix DN_DX( number_of_nodes, dim );
-
-        Matrix CurrentDisp( number_of_nodes, dim );
-
-        Matrix InvJ0(dim, dim);
-
-        double DetJ0;
-
-        //constitutive law
-        ConstitutiveLaw::Parameters const_params;
-        const_params.SetStrainVector(StrainVector);
-        const_params.SetDeformationGradientF(F);
-        const_params.SetStressVector(StressVector);
-        const_params.SetConstitutiveMatrix(D);
-        const_params.SetProcessInfo(rCurrentProcessInfo);
-        const_params.SetMaterialProperties(GetProperties());
-        const_params.SetElementGeometry(GetGeometry());
-        ConstitutiveLaw::StressMeasure stress_measure = ConstitutiveLaw::StressMeasure_Cauchy;
+        double DetJ0, DetJ;
 
         #ifdef ENABLE_BEZIER_GEOMETRY
         //initialize the geometry
@@ -1283,6 +1581,8 @@ KRATOS_WATCH("------------------")
         const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
 
         const Matrix& Ncontainer = GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod );
+
+        const GeometryType::ShapeFunctionsGradientsType& DN_De = GetGeometry().ShapeFunctionsLocalGradients( mThisIntegrationMethod );
 
         //initializing the Jacobian in the reference configuration
         Matrix DeltaPosition(GetGeometry().size(), 3);
@@ -1299,10 +1599,38 @@ KRATOS_WATCH("------------------")
         //calculating actual jacobian
         GeometryType::JacobiansType J;
         Matrix ShiftedDisp = DeltaPosition - CurrentDisp;
+
         J = GetGeometry().Jacobian( J, mThisIntegrationMethod, ShiftedDisp );
 
         if ( rValues.size() != integration_points.size() )
             rValues.resize( integration_points.size() );
+
+        int fbar_mode = 0;
+        if(GetProperties().Has(FBAR_MODE))
+            fbar_mode = GetProperties()[FBAR_MODE];
+
+        Matrix F0;
+        double DetF0, DetF;
+        if (fbar_mode > 0)
+        {
+            CoordinatesArrayType origin;
+            GeometryUtility::ComputeOrigin(GetGeometry().GetGeometryFamily(), origin);
+
+            Matrix J0Origin, JOrigin;
+            J0Origin = GetGeometry().Jacobian( J0Origin, origin, DeltaPosition );
+            JOrigin = GetGeometry().Jacobian( JOrigin, origin, ShiftedDisp );
+
+            Matrix InvJ0Origin(dim, dim), InvJOrigin(dim, dim);
+            double DetJ0Origin, DetJOrigin;
+            Matrix DN_Dx_Origin( number_of_nodes, dim );
+
+            MathUtils<double>::InvertMatrix( J0Origin, InvJ0Origin, DetJ0Origin );
+
+            // F0
+            F0.resize(dim, dim, false);
+            noalias( F0 ) = prod( JOrigin, InvJ0Origin );
+            DetF0 = MathUtils<double>::Det(F0);
+        }
 
         for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
         {
@@ -1310,44 +1638,40 @@ KRATOS_WATCH("------------------")
             MathUtils<double>::InvertMatrix( J0[PointNumber], InvJ0, DetJ0 );
             noalias( F ) = prod( J[PointNumber], InvJ0 );
 
-            //strain calculation
-            noalias( C ) = prod( trans( F ), F );
 
-            CalculateStrain( C, StrainVector );
-//            Comprobate_State_Vector( StrainVector ); // I don't understand why we need this
+            if (fbar_mode == 1) // plane strain
+            {
+                DetF = MathUtils<double>::Det(F);
+                F *= std::sqrt(DetF0/DetF);
+            }
+            else if (fbar_mode > 1) // plane stress, axisymmetric, 3D
+            {
+                DetF = MathUtils<double>::Det(F);
+                F *= std::cbrt(DetF0/DetF);
+            }
+
 
             if ( rVariable == GREEN_LAGRANGE_STRAIN_TENSOR )
             {
-                if ( rValues[PointNumber].size2() != StrainVector.size() )
-                    rValues[PointNumber].resize( 1, StrainVector.size(), false );
+                if ( rValues[PointNumber].size1() != dim || rValues[PointNumber].size2() != dim )
+                    rValues[PointNumber].resize( dim, dim, false );
 
-                for ( unsigned int ii = 0; ii < StrainVector.size(); ii++ )
-                    rValues[PointNumber]( 0, ii ) = StrainVector[ii];
+                //strain calculation
+                Matrix C( dim, dim );
+                noalias( C ) = prod( trans( F ), F );
+
+                noalias(rValues[PointNumber]) = C;
             }
-            else if ( rVariable == PK2_STRESS_TENSOR )
+            else if ( rVariable == CURRENT_DEFORMATION_GRADIENT )
             {
-                if ( rValues[PointNumber].size2() != StrainVector.size() )
-                    rValues[PointNumber].resize( 1, StrainVector.size(), false );
+                if ( rValues[PointNumber].size1() != dim || rValues[PointNumber].size2() != dim )
+                    rValues[PointNumber].resize( dim, dim, false );
 
-                mConstitutiveLawVector[PointNumber]->CalculateMaterialResponse( const_params, stress_measure );
-
-                for ( unsigned int ii = 0; ii < StrainVector.size(); ii++ )
-                {
-                    rValues[PointNumber]( 0, ii ) = StressVector[ii];
-                }
+                noalias(rValues[PointNumber]) = F;
             }
-            else if ( rVariable == GREEN_LAGRANGE_PLASTIC_STRAIN_TENSOR )
+            else
             {
-                Matrix PlasticStrainVector;
-                double size = StrainVector.size();
-                PlasticStrainVector.resize( 1, size, false );
-
-                if ( rValues[PointNumber].size2() != StrainVector.size() )
-                    rValues[PointNumber].resize( 1, size, false );
-
-                mConstitutiveLawVector[PointNumber]->GetValue( GREEN_LAGRANGE_PLASTIC_STRAIN_TENSOR, PlasticStrainVector );
-
-                rValues[PointNumber] = PlasticStrainVector;
+                mConstitutiveLawVector[PointNumber]->GetValue( rVariable, rValues[PointNumber] );
             }
         }
 
@@ -1442,52 +1766,11 @@ KRATOS_WATCH("------------------")
         unsigned int dimension = this->GetGeometry().WorkingSpaceDimension();
 
 
-
-        //verify that the variables are correctly initialized
-
-//        if ( VELOCITY.Key() == 0 )
-//            KRATOS_THROW_ERROR( std::invalid_argument, "VELOCITY has Key zero! (check if the application is correctly registered", "" );
-
-//        if ( DISPLACEMENT.Key() == 0 )
-//            KRATOS_THROW_ERROR( std::invalid_argument, "DISPLACEMENT has Key zero! (check if the application is correctly registered", "" );
-
-//        if ( ACCELERATION.Key() == 0 )
-//            KRATOS_THROW_ERROR( std::invalid_argument, "ACCELERATION has Key zero! (check if the application is correctly registered", "" );
-
-//        if ( DENSITY.Key() == 0 )
-//            KRATOS_THROW_ERROR( std::invalid_argument, "DENSITY has Key zero! (check if the application is correctly registered", "" );
-
-//        if ( BODY_FORCE.Key() == 0 )
-//            KRATOS_THROW_ERROR( std::invalid_argument, "BODY_FORCE has Key zero! (check if the application is correctly registered", "" );
-
-//        if ( THICKNESS.Key() == 0 )
-//            KRATOS_THROW_ERROR( std::invalid_argument, "THICKNESS has Key zero! (check if the application is correctly registered", "" );
-
-//        //verify that the dofs exist
-//        for ( unsigned int i = 0; i < this->GetGeometry().size(); i++ )
-//        {
-//            if ( this->GetGeometry()[i].SolutionStepsDataHas( DISPLACEMENT ) == false )
-//                KRATOS_THROW_ERROR( std::invalid_argument, "missing variable DISPLACEMENT on node ", this->GetGeometry()[i].Id() );
-
-//            if ( this->GetGeometry()[i].HasDofFor( DISPLACEMENT_X ) == false || this->GetGeometry()[i].HasDofFor( DISPLACEMENT_Y ) == false || this->GetGeometry()[i].HasDofFor( DISPLACEMENT_Z ) == false )
-//                KRATOS_THROW_ERROR( std::invalid_argument, "missing one of the dofs for the variable DISPLACEMENT on node ", GetGeometry()[i].Id() );
-//        }
-
         //verify that the constitutive law exists
         if ( this->GetProperties().Has( CONSTITUTIVE_LAW ) == false )
         {
             KRATOS_THROW_ERROR( std::logic_error, "constitutive law not provided for property ", this->GetProperties().Id() );
         }
-
-        // // verify the strain measure
-        // auto strain_mearure = this->GetProperties().GetValue( CONSTITUTIVE_LAW )->GetStrainMeasure();
-        // if ( strain_mearure != ConstitutiveLaw::StrainMeasure_Infinitesimal
-        //   && strain_mearure != ConstitutiveLaw::StrainMeasure_GreenLagrange )
-        // {
-        //     std::stringstream ss;
-        //     ss << "The strain measure " << strain_mearure << " is not supported by this element";
-        //     KRATOS_THROW_ERROR( std::logic_error, ss.str(), "" )
-        // }
 
         //Verify that the body force is defined
         if ( this->GetProperties().Has( BODY_FORCE ) == false )
@@ -1495,29 +1778,11 @@ KRATOS_WATCH("------------------")
             KRATOS_THROW_ERROR( std::logic_error, "BODY_FORCE not provided for property ", this->GetProperties().Id() )
         }
 
-        //verify that the constitutive law has the correct dimension
-        if ( dimension == 2 )
-        {
-            if ( this->GetProperties().Has( THICKNESS ) == false )
-                KRATOS_THROW_ERROR( std::logic_error, "THICKNESS not provided for element ", this->Id() );
-
-            if ( this->GetProperties().GetValue( CONSTITUTIVE_LAW )->GetStrainSize() != 3 )
-                KRATOS_THROW_ERROR( std::logic_error, "wrong constitutive law used. This is a 2D element! expected strain size is 3 (el id = ) ", this->Id() );
-        }
-        else
-        {
-            if ( this->GetProperties().GetValue( CONSTITUTIVE_LAW )->GetStrainSize() != 6 )
-                KRATOS_THROW_ERROR( std::logic_error, "wrong constitutive law used. This is a 3D element! expected strain size is 6 (el id = ) ", this->Id() );
-        }
-
         //check constitutive law
         for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); i++ )
         {
             return mConstitutiveLawVector[i]->Check( GetProperties(), GetGeometry(), rCurrentProcessInfo );
         }
-
-        //check if it is in the XY plane for 2D case
-
 
         return 0;
 
@@ -1540,3 +1805,5 @@ KRATOS_WATCH("------------------")
     }
 
 } // Namespace Kratos
+
+#undef ENABLE_DEBUG_CONSTITUTIVE_LAW

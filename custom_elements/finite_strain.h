@@ -69,6 +69,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/ublas_interface.h"
 #include "includes/variables.h"
 #include "includes/constitutive_law.h"
+#include "custom_elements/prescribed_object.h"
+
 
 namespace Kratos
 {
@@ -92,15 +94,10 @@ namespace Kratos
 /**
  * Implements a finite strain definition for structural analysis.
  * This works for arbitrary geometries in 2D and 3D
- * In this element, the strain measure is Green-Lagrange strain and
- * the stress measure is Kirchhoff stress.
- * Because the compatibility of Infinitesimal strain and Green-Lagrange strain,
- * the constitutive law supporting Infinitesimal strain (i.e. linear elastic) can
- * also be used
- * Reference: A. Bower, Applier Mechanics of Solids
- * TODO: this element is incomplete
+ * In this element, the stress measure is Cauchy and the strain measure is Hencky.
+ * Reference: De Souza Neto, Computational Plasticity, Box 14.3
  */
-class FiniteStrain : public Element
+class FiniteStrain : public Element, public PrescribedObject
 {
 public:
     ///@name Type Definitions
@@ -111,6 +108,8 @@ public:
     typedef ConstitutiveLawType::Pointer ConstitutiveLawPointerType;
     ///Type definition for integration methods
     typedef GeometryData::IntegrationMethod IntegrationMethod;
+    ///Type for local coordinates
+    typedef GeometryType::CoordinatesArrayType CoordinatesArrayType;
 
     /// Counted pointer of FiniteStrain
     KRATOS_CLASS_POINTER_DEFINITION(FiniteStrain);
@@ -136,53 +135,55 @@ public:
      * Returns the currently selected integration method
      * @return current integration method selected
      */
-    IntegrationMethod GetIntegrationMethod() const;
+    IntegrationMethod GetIntegrationMethod() const override;
 
-    virtual Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const;
+    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override;
 
-    virtual Element::Pointer Create( IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties ) const;
+    Element::Pointer Create( IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties ) const override;
 
-    void Initialize(const ProcessInfo& rCurrentProcessInfo);
+    void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
-    void ResetConstitutiveLaw();
+    void ResetConstitutiveLaw() override;
 
-    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo);
+    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
 
-    void CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo);
+    void ApplyPrescribedDofs(const MatrixType& LHS_Contribution, VectorType& RHS_Constribution, const ProcessInfo& CurrentProcessInfo) const override;
+
+    void CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
 
     //virtual void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo);
 
-    void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const;
+    void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const override;
 
-    void GetDofList(DofsVectorType& ElementalDofList, const ProcessInfo& CurrentProcessInfo) const;
+    void GetDofList(DofsVectorType& ElementalDofList, const ProcessInfo& CurrentProcessInfo) const override;
 
-    void InitializeSolutionStep(const ProcessInfo& CurrentProcessInfo);
+    void InitializeSolutionStep(const ProcessInfo& CurrentProcessInfo) override;
 
-    void InitializeNonLinearIteration( const ProcessInfo& CurrentProcessInfo );
+    void InitializeNonLinearIteration( const ProcessInfo& CurrentProcessInfo ) override;
 
-    void FinalizeNonLinearIteration( const ProcessInfo& CurrentProcessInfo );
+    void FinalizeNonLinearIteration( const ProcessInfo& CurrentProcessInfo ) override;
 
-    void FinalizeSolutionStep(const ProcessInfo& CurrentProcessInfo);
+    void FinalizeSolutionStep(const ProcessInfo& CurrentProcessInfo) override;
 
-    void CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo);
+    void CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo) override;
 
-    void CalculateDampingMatrix(MatrixType& rDampingMatrix, const ProcessInfo& rCurrentProcessInfo);
+    void CalculateDampingMatrix(MatrixType& rDampingMatrix, const ProcessInfo& rCurrentProcessInfo) override;
 
     void SetValuesOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo);
 
     void SetValuesOnIntegrationPoints(const Variable<Matrix>& rVariable, std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo);
 
-    void CalculateOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo);
+    void CalculateOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
-    void CalculateOnIntegrationPoints(const Variable<array_1d<double, 3> >& rVariable, std::vector<array_1d<double, 3> >& rValues, const ProcessInfo& rCurrentProcessInfo);
+    void CalculateOnIntegrationPoints(const Variable<array_1d<double, 3> >& rVariable, std::vector<array_1d<double, 3> >& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
-    void CalculateOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo);
+    void CalculateOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
-    void CalculateOnIntegrationPoints(const Variable<Matrix>& rVariable, std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo);
+    void CalculateOnIntegrationPoints(const Variable<Matrix>& rVariable, std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
-    void GetValuesVector(Vector& values, int Step = 0) const;
-    void GetFirstDerivativesVector(Vector& values, int Step = 0) const;
-    void GetSecondDerivativesVector(Vector& values, int Step = 0) const;
+    void GetValuesVector(Vector& values, int Step = 0) const override;
+    void GetFirstDerivativesVector(Vector& values, int Step = 0) const override;
+    void GetSecondDerivativesVector(Vector& values, int Step = 0) const override;
 
     //************************************************************************************
     //************************************************************************************
@@ -209,19 +210,19 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    std::string Info() const final
+    std::string Info() const override
     {
         return "FiniteStrain";
     }
 
     /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const final
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << Info() << " #" << Id();
     }
 
     /// Print object's data.
-    void PrintData(std::ostream& rOStream) const final
+    void PrintData(std::ostream& rOStream) const override
     {}
 
     ///@}
@@ -296,22 +297,6 @@ private:
     ///@name Private Operators
     ///@{
 
-//    void CalculateAndAddKm(
-//        MatrixType& K,
-//        Matrix& B,
-//        Matrix& D,
-//        double weight);
-
-    /**
-     * Calculation of the Geometric Stiffness Matrix. Kg = dB * S
-     */
-    void CalculateAndAddKg(
-        MatrixType& K,
-        const Matrix& DN_DX,
-        const Vector& StressVector,
-        const double& weight
-    );
-
     void CalculateBodyForces(
         Vector& BodyForce,
         const ProcessInfo& CurrentProcessInfo
@@ -343,6 +328,8 @@ private:
 
     void CalculateB( Matrix& B_Operator, const Matrix& DN_DX );
 
+    void CalculateG( Matrix& G_Operator, const Matrix& DN_DX );
+
     ///@}
     ///@name Private Operations
     ///@{
@@ -362,13 +349,13 @@ private:
 
 
 
-    virtual void save(Serializer& rSerializer) const;
+    void save(Serializer& rSerializer) const override;
 //        {
 //            rSerializer.save("Name", "FiniteStrain");
 //            KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element);
 //        }
 
-    virtual void load(Serializer& rSerializer);
+    void load(Serializer& rSerializer) override;
 //        {
 //            KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
 //        }
