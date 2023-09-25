@@ -70,19 +70,10 @@ namespace Kratos
         //THIS IS THE DEFAULT CONSTRUCTOR
     }
 
-    /**
-     * A simple kinematic linear 3D element for the solution
-     * of the momentum balance in structural mechanics.
-     * This element is used for students training at the Ruhr University Bochum.
-     * Therefore it may includes comments that are obvious for the
-     * experienced user.
-     */
     KinematicLinearAxisymmetric::KinematicLinearAxisymmetric( IndexType NewId,
             GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties )
         : BaseType( NewId, pGeometry, pProperties )
-    {
-        mThisIntegrationMethod = GetGeometry().GetDefaultIntegrationMethod();//default method
-    }
+    {}
 
     Element::Pointer KinematicLinearAxisymmetric::Create( IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties ) const
     {

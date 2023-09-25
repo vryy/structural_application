@@ -70,6 +70,8 @@ namespace Kratos
  * and NU (Poisson ratio)
  * As there are no further parameters the functionality is limited
  * to linear elasticity.
+ * For finite strain/total Lagrangian. This constitutive law behaves like
+ * St-Venant Kirhhoff material.
  */
 #ifdef SD_APP_FORWARD_COMPATIBILITY
 class KRATOS_API(STRUCTURAL_APPLICATION) PlaneStrain

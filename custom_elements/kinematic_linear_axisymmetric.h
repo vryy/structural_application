@@ -89,7 +89,9 @@ namespace Kratos
 
 /// Short class definition.
 /** Detail class definition.
-Define a small strain element with strain measure as Infinitesimal strain and stress measure as Cauchy stress for Axisymmetric problem
+ * Define a small strain element with strain measure as Infinitesimal strain and stress measure as Cauchy stress for Axisymmetric problem
+ * Reference:
+ * +    Ted Belytschko, Nonlinear Finite Elements for Continua and Structures, 2014, (E4.4.6)
  */
 class KinematicLinearAxisymmetric : public KinematicLinear
 {

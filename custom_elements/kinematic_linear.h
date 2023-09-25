@@ -100,6 +100,8 @@ namespace Kratos
 /** Detail class definition.
  * Define a small strain element with strain measure as Infinitesimal strain and stress measure as Cauchy stress.
  * The inertial and viscous forces are assumed linear.
+ * This element is designed to always compute Jacobian in the reference configuration. It is not influenced
+ * by the MoveMeshFlag.
  */
 class KinematicLinear : public Element, public PrescribedObject
 {

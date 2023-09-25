@@ -377,10 +377,7 @@ void Isotropic3D::CalculateMaterialResponse( const Vector& StrainVector,
     this->CalculateMaterialResponseCauchy(const_params);
 }
 
-/**
- * TO BE TESTED!!!
- */
-void Isotropic3D::CalculateElasticMatrix( Matrix& C, const double& E, const double& NU ) const
+void Isotropic3D::CalculateElasticMatrix( Matrix& C, const double& E, const double& NU )
 {
     //setting up material matrix
     double c1 = E / (( 1.00 + NU ) * ( 1 - 2 * NU ) );

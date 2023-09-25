@@ -71,18 +71,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/constitutive_law.h"
 #include "custom_elements/prescribed_object.h"
 
-/*
-namespace TotalLagrangianAuxiliaries
-{
-    extern Matrix msB;
-    extern Matrix msF;
-    extern Matrix msD;
-    extern Matrix msC;
-    extern Vector msStrainVector;
-    extern Vector msStressVector;
-    extern Matrix msDN_DX;
-}
- */
 
 namespace Kratos
 {
@@ -229,19 +217,19 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    std::string Info() const final
+    std::string Info() const override
     {
         return "TotalLagrangian";
     }
 
     /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const final
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << Info() << " #" << Id();
     }
 
     /// Print object's data.
-    void PrintData(std::ostream& rOStream) const final
+    void PrintData(std::ostream& rOStream) const override
     {}
 
     ///@}

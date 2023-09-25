@@ -52,9 +52,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 // System includes
 #include <iostream>
+#include <cmath>
 
 // External includes
-#include<cmath>
 
 // Project includes
 #include "utilities/math_utils.h"
@@ -156,13 +156,11 @@ Vector& PlaneStrain::GetValue( const Variable<Vector>& rThisVariable, Vector& rV
     {
         rValue = mCurrentStress;
     }
-
-    if ( rThisVariable == PRESTRESS || rThisVariable == INSITU_STRESS )
+    else if ( rThisVariable == PRESTRESS || rThisVariable == INSITU_STRESS )
     {
         rValue = mPreStress;
     }
-
-    if ( rThisVariable == THREED_STRESSES )
+    else if ( rThisVariable == THREED_STRESSES )
     {
         if(rValue.size() != 6)
             rValue.resize(6, false);
@@ -173,8 +171,7 @@ Vector& PlaneStrain::GetValue( const Variable<Vector>& rThisVariable, Vector& rV
         rValue(4) = 0.0;
         rValue(5) = 0.0;
     }
-
-    if ( rThisVariable == THREED_PRESTRESS )
+    else if ( rThisVariable == THREED_PRESTRESS )
     {
         if(rValue.size() != 6)
             rValue.resize(6, false);
@@ -185,10 +182,9 @@ Vector& PlaneStrain::GetValue( const Variable<Vector>& rThisVariable, Vector& rV
         rValue(4) = 0.0;
         rValue(5) = 0.0;
     }
-
-    // REF: http://www.efunda.com/formulae/solid_mechanics/mat_mechanics/hooke_plane_strain.cfm
-    if ( rThisVariable == THREED_STRAIN )
+    else if ( rThisVariable == THREED_STRAIN )
     {
+        // REF: http://www.efunda.com/formulae/solid_mechanics/mat_mechanics/hooke_plane_strain.cfm
         if(rValue.size() != 6)
             rValue.resize(6, false);
         double aux = (1.0+mNU)/mE;
@@ -210,8 +206,7 @@ Matrix& PlaneStrain::GetValue( const Variable<Matrix>& rThisVariable, Matrix& rV
         for(unsigned int i = 0; i< rValue.size2(); ++i)
             rValue(0, i) = 0.00;
     }
-
-    if(rThisVariable == ALGORITHMIC_TANGENT || rThisVariable == ELASTIC_TANGENT)
+    else if(rThisVariable == ALGORITHMIC_TANGENT || rThisVariable == ELASTIC_TANGENT)
     {
         if(rValue.size1() != 3 || rValue.size2() != 3)
             rValue.resize(3, 3, false);
@@ -244,13 +239,13 @@ void PlaneStrain::SetValue( const Variable<Vector>& rThisVariable, const Vector&
     {
         noalias(mPreStress) = rValue;
     }
-    if ( rThisVariable == STRESSES || rThisVariable == INITIAL_STRESS )
+    else if ( rThisVariable == STRESSES || rThisVariable == INITIAL_STRESS )
     {
         if(mCurrentStress.size() != rValue.size())
             mCurrentStress.resize(rValue.size(), false);
         noalias(mCurrentStress) = rValue;
     }
-    if ( rThisVariable == THREED_STRESSES )
+    else if ( rThisVariable == THREED_STRESSES )
     {
         mCurrentStress(0) = rValue(0);
         mCurrentStress(1) = rValue(1);

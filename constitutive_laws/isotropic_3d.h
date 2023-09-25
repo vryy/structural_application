@@ -251,11 +251,15 @@ class Isotropic3D : public ConstitutiveLaw
          */
         void CalculateStress(const double& E, const double& NU, const Vector& StrainVector, Vector& rResult) const;
 
+
         /**
-         * converts a strain vector styled variable into its form, which the
-         * deviatoric parts are no longer multiplied by 2
+         * calculates the linear elastic constitutive matrix in terms of Young's modulus and
+         * Poisson ratio
+         * @param E the Young's modulus
+         * @param NU the Poisson ratio
+         * @return the linear elastic constitutive matrix
          */
-        //             void Calculate(const Variable<Matrix >& rVariable, Matrix& rResult, const ProcessInfo& rCurrentProcessInfo);
+        static void CalculateElasticMatrix( Matrix& C, const double& E, const double& NU );
 
         /**
          * Input and output
@@ -326,15 +330,6 @@ class Isotropic3D : public ConstitutiveLaw
          * @param rResult the stress vector corresponding to the given strains
          */
         void CalculateStress( const Vector& StrainVector, Matrix& AlgorithmicTangent, Vector& rResult );
-
-        /**
-         * calculates the linear elastic constitutive matrix in terms of Young's modulus and
-         * Poisson ratio
-         * @param E the Young's modulus
-         * @param NU the Poisson ratio
-         * @return the linear elastic constitutive matrix
-         */
-        void CalculateElasticMatrix( Matrix& C, const double& E, const double& NU ) const;
 
         Vector mPrestress;
         double mPrestressFactor;

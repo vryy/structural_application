@@ -69,18 +69,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/ublas_interface.h"
 #include "includes/variables.h"
 #include "includes/constitutive_law.h"
-/*
-namespace FiniteStrainAuxiliaries
-{
-    extern Matrix msB;
-    extern Matrix msF;
-    extern Matrix msD;
-    extern Matrix msC;
-    extern Vector msStrainVector;
-    extern Vector msStressVector;
-    extern Matrix msDN_DX;
-}
- */
 
 namespace Kratos
 {
@@ -100,8 +88,6 @@ namespace Kratos
 ///@}
 ///@name Kratos Classes
 ///@{
-
-/// Total Lagrangian element for 2D and 3D geometries.
 
 /**
  * Implements a finite strain definition for structural analysis.

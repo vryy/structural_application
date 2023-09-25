@@ -86,11 +86,6 @@ struct ResidualBasedNewmarkHelper<0>
 
             rCurrentElement.CalculateMassMatrix(MassMatrix, CurrentProcessInfo);
 
-            // KRATOS_WATCH(rCurrentElement.Id())
-            // KRATOS_WATCH(MassMatrix)
-            // KRATOS_WATCH(DampingMatrix)
-            // KRATOS_WATCH(LHS_Contribution)
-
             if ((norm_frobenius(DampingMatrix) == 0.0) && (norm_frobenius(MassMatrix) > 0.0))
             {
                 AddInertiaToRHS(rCurrentElement, RHS_Contribution, MassMatrix, CurrentProcessInfo);
