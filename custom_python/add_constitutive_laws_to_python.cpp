@@ -111,6 +111,11 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "constitutive_laws/von_mises_3d.h"
 #include "constitutive_laws/mohr_coulomb_plane_strain.h"
 #include "constitutive_laws/values_container_constitutive_law.h"
+#include "constitutive_laws/hardening_law.h"
+#include "constitutive_laws/linear_hardening_law.h"
+#include "constitutive_laws/exponential_hardening_law.h"
+#include "constitutive_laws/piecewise_linear_hardening_law.h"
+#include "constitutive_laws/power_hardening_law.h"
 
 
 namespace Kratos
@@ -134,6 +139,12 @@ void Push_Back_Constitutive_Laws( MaterialsContainer& ThisMaterialsContainer,
                                   ConstitutiveLawPointer ThisConstitutiveLaw )
 {
     ThisMaterialsContainer.push_back( ThisConstitutiveLaw );
+}
+
+void HardeningLaw_Assign(HardeningLaw& rDummy,
+    Variable<HardeningLaw::Pointer>& rThisVariable, HardeningLaw::Pointer pLaw, Properties::Pointer pProperties)
+{
+    rDummy.Assign(rThisVariable, pLaw, pProperties);
 }
 
 void  AddConstitutiveLawsToPython()
@@ -344,7 +355,36 @@ void  AddConstitutiveLawsToPython()
                             .def(init<MaterialsContainer>())
        ;*/
 
+    class_<Variable<HardeningLaw::Pointer>, bases<VariableData>, boost::noncopyable >( "HardeningLawVariable", no_init );
 
+    double(HardeningLaw::*pointer_to_GetValue)(const double&) const = &HardeningLaw::GetValue;
+
+    class_< HardeningLaw, bases< Flags >, boost::noncopyable >
+    ( "HardeningLaw", init<>() )
+    .def("GetValue", pointer_to_GetValue)
+    .def("GetDerivative", &HardeningLaw::GetDerivative)
+    .def("Assign", &HardeningLaw_Assign)
+    ;
+
+    class_< LinearHardeningLaw, bases< HardeningLaw >, boost::noncopyable >
+    ( "LinearHardeningLaw", init<>() )
+    .def(init<const double&, const double&>())
+    ;
+
+    class_< ExponentialHardeningLaw, bases< HardeningLaw >, boost::noncopyable >
+    ( "ExponentialHardeningLaw", init<>() )
+    .def(init<const double&, const double&, const double&>())
+    ;
+
+    class_< PiecewiseLinearHardeningLaw, bases< HardeningLaw >, boost::noncopyable >
+    ( "PiecewiseLinearHardeningLaw", init<>() )
+    .def("AddPoint", &PiecewiseLinearHardeningLaw::AddPoint)
+    ;
+
+    class_< PowerHardeningLaw, bases< HardeningLaw >, boost::noncopyable >
+    ( "PowerHardeningLaw", init<>() )
+    .def(init<const double&, const double&, const double&>())
+    ;
 }
 }  // namespace Python.
 }  // namespace Kratos.

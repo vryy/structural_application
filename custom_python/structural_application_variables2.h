@@ -70,9 +70,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/element.h"
 #include "includes/ublas_interface.h"
 #include "includes/constitutive_law.h"
-
 #include "includes/legacy_structural_app_vars.h"
 #include "includes/deprecated_variables.h"
+
+#include "constitutive_laws/hardening_law.h"
 
 namespace Kratos
 {
@@ -299,6 +300,12 @@ KRATOS_DEFINE_VARIABLE ( double, L2_ERROR )
 KRATOS_DEFINE_VARIABLE ( double, H1_ERROR )
 KRATOS_DEFINE_VARIABLE ( double, ROTATIONAL_STIFFNESS )
 KRATOS_DEFINE_VARIABLE ( double, RATE_SENSITIVITY )
+
+KRATOS_DEFINE_VARIABLE(HardeningLaw::Pointer, HARDENING_LAW)
+// KRATOS_DEFINE_VARIABLE(HardeningLaw::Pointer, HARDENING_LAW_1)
+// KRATOS_DEFINE_VARIABLE(HardeningLaw::Pointer, HARDENING_LAW_2)
+KRATOS_DEFINE_VARIABLE(HardeningLaw::Pointer, ISOTROPIC_HARDENING_LAW)
+KRATOS_DEFINE_VARIABLE(HardeningLaw::Pointer, KINEMATIC_HARDENING_LAW)
 
 // 	KRATOS_DEFINE_VARIABLE(double, DP_EPSILON )
 // 	KRATOS_DEFINE_VARIABLE(Vector, INSITU_STRESS )

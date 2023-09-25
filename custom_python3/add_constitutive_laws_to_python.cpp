@@ -103,6 +103,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // #include "constitutive_laws/von_mises_3d.h"
 // #include "constitutive_laws/mohr_coulomb_plane_strain.h"
 // #include "constitutive_laws/values_container_constitutive_law.h"
+#include "constitutive_laws/hardening_law.h"
+#include "constitutive_laws/linear_hardening_law.h"
+#include "constitutive_laws/exponential_hardening_law.h"
 
 
 namespace Kratos
@@ -125,6 +128,16 @@ void Push_Back_Constitutive_Laws( MaterialsContainer& ThisMaterialsContainer,
                                   ConstitutiveLawPointer ThisConstitutiveLaw )
 {
     ThisMaterialsContainer.push_back( ThisConstitutiveLaw );
+}
+
+double HardeningLaw_GetValue(HardeningLaw& rDummy, const double& phi)
+{
+    return rDummy.GetValue(phi);
+}
+
+double HardeningLaw_GetDerivative(HardeningLaw& rDummy, const double& phi)
+{
+    return rDummy.GetDerivative(phi);
 }
 
 void StructuralApplication_AddConstitutiveLawsToPython(pybind11::module& m)
@@ -326,6 +339,27 @@ void StructuralApplication_AddConstitutiveLawsToPython(pybind11::module& m)
        .def( init<>() )
                             .def(init<MaterialsContainer>())
        ;*/
+
+    class_<Variable<HardeningLaw::Pointer>, VariableData>(m, "HardeningLawVariable");
+
+    class_<HardeningLaw, HardeningLaw::Pointer, Flags>
+    (m, "HardeningLaw")
+    .def(init<>())
+    .def("GetValue", &HardeningLaw_GetValue)
+    .def("GetDerivative", &HardeningLaw_GetDerivative)
+    ;
+
+    class_<LinearHardeningLaw, LinearHardeningLaw::Pointer, HardeningLaw>
+    (m, "LinearHardeningLaw")
+    .def(init<>())
+    .def(init<const double&, const double&>())
+    ;
+
+    class_<ExponentialHardeningLaw, ExponentialHardeningLaw::Pointer, HardeningLaw >
+    (m, "ExponentialHardeningLaw")
+    .def(init<>())
+    .def(init<const double&, const double&, const double&>())
+    ;
 
 }
 }  // namespace Python.
