@@ -11,6 +11,7 @@
 #define  KRATOS_EIGEN_UTILITY_INCLUDED
 
 // System includes
+#include <cmath>
 
 // External includes
 
@@ -20,6 +21,7 @@
 #include "utilities/math_utils.h"
 #include "custom_utilities/eig/eig.h"
 #include "custom_utilities/eig/eig3.h"
+#include "custom_utilities/sd_math_utils.h"
 
 namespace Kratos
 {
@@ -31,9 +33,19 @@ public:
 
     typedef double (*unitary_func_t)(double);
 
+    typedef typename SD_MathUtils<double>::Fourth_Order_Tensor Fourth_Order_Tensor;
+
     EigenUtility() {}
 
     virtual ~EigenUtility() {}
+
+    /// Unitary function
+    static double exp2(double x) {return std::exp(2.0*x);}
+    static double log(double x) {return std::log(x);}
+    static double dlog(double x) {return 1.0/x;}
+    static double logd2(double x) {return 0.5*std::log(x);}
+    static double dlogd2(double x) {return 0.5/x;}
+    static double sqrt(double x) {return std::sqrt(x);}
 
     /*
     * Compute principal stresses and direction using eig3
@@ -150,14 +162,14 @@ public:
     * Remarks: sigma_1, sigma_2, sigma_3 is sorted descending except when the reversed flag is true
     */
     static void calculate_principle_stresses(
-        const double& sigma_xx,
-        const double& sigma_yy,
-        const double& sigma_zz,
-        const double& sigma_xy,
-        const double& sigma_yz,
-        const double& sigma_zx,
+        double sigma_xx,
+        double sigma_yy,
+        double sigma_zz,
+        double sigma_xy,
+        double sigma_yz,
+        double sigma_zx,
         double& sigma_1, double& sigma_2, double& sigma_3,
-        const double& reversed = false
+        bool reversed = false
     )
     {
         double A[3][3];
@@ -418,39 +430,39 @@ public:
     }
 
     /*
-    * Compute the isotropic function of the type
-    *       Y(X) = sum{ y(x_i) E_i }
-    * WHERE Y AND X ARE SYMMETRIC TENSORS, x_i AND E_i ARE, RESPECTIVELY
-    * THE EIGENVALUES AND EIGENPROJECTIONS OF X, AND y(.) IS A SCALAR
-    * FUNCTION.
-    * X must be 3 x 3 matrix
-    * Y will be resized accordingly
-    * Rererence: Section A.5.2, Computational Plasticity, de Souza Neto.
-    */
+     * Compute the isotropic function of the type
+     *       Y(X) = sum{ y(x_i) E_i }
+     * WHERE Y AND X ARE SYMMETRIC TENSORS, x_i AND E_i ARE, RESPECTIVELY
+     * THE EIGENVALUES AND EIGENPROJECTIONS OF X, AND y(.) IS A SCALAR
+     * FUNCTION.
+     * X must be 3 x 3 matrix
+     * Y will be resized accordingly
+     * Rererence: Section A.5.2, Computational Plasticity, de Souza Neto.
+     */
     template<typename TMatrixType>
     static void ComputeIsotropicTensorFunction(
         unitary_func_t func,
         TMatrixType& Y,
         const TMatrixType& X,
-        const double& TOL = 1.0e-10
+        double TOL = 1.0e-10
     )
     {
         TMatrixType V(3, 3);
-        double e[3];
+        std::vector<double> e(3);
 
         eig::eigen_decomposition<3>(X, V, e);
 
         std::vector<Matrix> eigprj(3);
 
-        for (std::size_t d = 0; d < 3; ++d)
+        for (unsigned int d = 0; d < 3; ++d)
         {
             eigprj[d].resize(3, 3, false);
 
-            for (std::size_t i = 0; i < 3; ++i)
+            for (unsigned int i = 0; i < 3; ++i)
             {
-                for (std::size_t j = 0; j < 3; ++j)
+                for (unsigned int j = 0; j < 3; ++j)
                 {
-                    eigprj[d](i, j) = V(i, 2-d) * V(j, 2-d);
+                    eigprj[d](i, j) = V(i, d) * V(j, d);
                 }
             }
         }
@@ -462,7 +474,7 @@ public:
         // It is noted that e is sorted ascending
         if (fabs(e[0] - e[1]) > TOL && fabs(e[1] - e[2]) > TOL)
         {
-            for (int d = 0; d < 3; ++d)
+            for (unsigned int d = 0; d < 3; ++d)
                 noalias(Y) += func(e[d]) * eigprj[d];
         }
         else
@@ -530,8 +542,8 @@ public:
     * REFERENCE: WH Press, SA Teukolsky, WT Vetting & BP Flannery. Numerical
     *            recipes in C++, Cambridge University Press, 1992.
     ***********************************************************************/
-    static inline void rot(Matrix& a, const double& s, const double& tau, const unsigned int& i,
-        const unsigned int& j, const unsigned int& k, const unsigned int& l)
+    static inline void rot(Matrix& a, double s, double tau, unsigned int i,
+        unsigned int j, unsigned int k, unsigned int l)
     {
         double  g,h;
 

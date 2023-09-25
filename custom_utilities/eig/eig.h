@@ -6,6 +6,7 @@
 #define _eig_h
 
 #include <cmath>
+#include <vector>
 
 namespace Kratos
 {
@@ -22,8 +23,6 @@ static double hypot2(double x, double y) {
 }
 
 // Symmetric Householder reduction to tridiagonal form.
-//template<int n>
-//static void tred2(double V[n][n], double d[n], double e[n]) {
 template<int n, typename mat_t, typename vec_t>
 static void tred2(mat_t V, vec_t d, vec_t e) {
 
@@ -264,31 +263,27 @@ static void tql2(mat_t V, vec_t d, vec_t e) {
 
 /* Symmetric matrix A => eigenvectors in columns of V, corresponding
    eigenvalues in d. */
-template<int n, typename TMatrixType, typename TVectorType>
+template<unsigned int n, typename TMatrixType, typename TVectorType>
 void eigen_decomposition(const TMatrixType& A, TMatrixType& V, TVectorType& d) {
-  double* e = new double[n];
-  double* v = new double[n];
-  double** M = new double*[n];
-  for (int i = 0; i < n; ++i) {
-    M[i] = new double[n];
-    for (int j = 0; j < n; ++j) {
+  std::vector<double> e(n);
+  std::vector<double> v(n);
+  std::vector<std::vector<double> > M(n);
+  for (unsigned int i = 0; i < n; ++i) {
+    M[i].resize(n);
+    for (unsigned int j = 0; j < n; ++j) {
       M[i][j] = A(i, j);
     }
   }
 
-  eig::tred2<n>(M, v, e);
-  eig::tql2<n>(M, v, e);
+  eig::tred2<n, std::vector<double>*, double*>(M.data(), v.data(), e.data());
+  eig::tql2<n, std::vector<double>*, double*>(M.data(), v.data(), e.data());
 
-  for (int i = 0; i < n; ++i) {
-    for (int j = 0; j < n; ++j) {
+  for (unsigned int i = 0; i < n; ++i) {
+    for (unsigned int j = 0; j < n; ++j) {
       V(i, j) = M[i][j];
     }
     d[i] = v[i];
   }
-
-  for (int i = 0; i < n; ++i)
-    delete M[i];
-  delete e, v, M;
 }
 
 } // end namespace eig
