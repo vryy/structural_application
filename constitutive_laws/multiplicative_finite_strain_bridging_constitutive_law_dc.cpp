@@ -150,7 +150,17 @@ void MultiplicativeFiniteStrainBridgingConstitutiveLawDC::FinalizeNonLinearItera
 
     mpConstitutiveLaw->GetValue(ELASTIC_STRAIN_TENSOR, elastic_strain_tensor);
 
-    EigenUtility::ComputeIsotropicTensorFunction(EigenUtility::exp2, left_cauchy_green_tensor_n, elastic_strain_tensor);
+    // special treatment when the elastic strain tensor is very small, e.g. at the beginning of the analysis
+    const double norm_es = norm_frobenius(elastic_strain_tensor);
+    if (norm_es > 1.0e-10)
+    {
+        EigenUtility::ComputeIsotropicTensorFunction(EigenUtility::exp2,
+                left_cauchy_green_tensor_n, elastic_strain_tensor);
+    }
+    else
+    {
+        noalias(left_cauchy_green_tensor_n) = IdentityMatrix(3);
+    }
 
     // compute trial elastic left Cauchy-Green tensor
     Matrix Fincr(3, 3), invFn(3, 3);
@@ -188,7 +198,9 @@ void MultiplicativeFiniteStrainBridgingConstitutiveLawDC::FinalizeNonLinearItera
             left_cauchy_green_tensor_trial_eigprj[0],
             left_cauchy_green_tensor_trial_eigprj[1],
             left_cauchy_green_tensor_trial_eigprj[2]);
-    SD_MathUtils<double>::ComputeIsotropicTensorFunction(EigenUtility::logd2, elastic_strain_tensor_trial, left_cauchy_green_tensor_trial_pri, left_cauchy_green_tensor_trial_eigprj);
+    SD_MathUtils<double>::ComputeIsotropicTensorFunction(EigenUtility::logd2,
+            elastic_strain_tensor_trial, left_cauchy_green_tensor_trial_pri,
+            left_cauchy_green_tensor_trial_eigprj);
 
     // create the strain vector as input to the small strain constitutive law
     Vector StrainVector(strain_size), IncrementalStrainVector(strain_size);

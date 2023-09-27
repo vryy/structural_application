@@ -2381,8 +2381,35 @@ public:
         unitary_func_t func,
         TMatrixType& Y,
         const std::vector<double>& e,
+        const std::vector<Matrix>& eigprj
+    )
+    {
+        if ((Y.size1() != 3) || (Y.size2() != 3))
+            Y.resize(3, 3, false);
+
+        Y.clear();
+        for (int d = 0; d < 3; ++d)
+            noalias(Y) += func(e[d]) * eigprj[d];
+    }
+
+    /*
+     * Compute the isotropic function of the type
+     *       Y(X) = sum{ y(x_i) E_i }
+     * WHERE Y AND X ARE SYMMETRIC TENSORS, x_i AND E_i ARE, RESPECTIVELY
+     * THE EIGENVALUES AND EIGENPROJECTIONS OF X, AND y(.) IS A SCALAR
+     * FUNCTION.
+     * X must be 3 x 3 matrix
+     * Y will be resized accordingly
+     * e must be sorted
+     * Rererence: Section A.5.2, Computational Plasticity, de Souza Neto.
+     */
+    template<typename TMatrixType>
+    static void ComputeIsotropicTensorFunction(
+        unitary_func_t func,
+        TMatrixType& Y,
+        const std::vector<double>& e,
         const std::vector<Matrix>& eigprj,
-        double TOL = 1.0e-10
+        double TOL // tolerance to compare eigenvalues
     )
     {
         if ((Y.size1() != 3) || (Y.size2() != 3))
@@ -2437,7 +2464,7 @@ public:
         const TMatrixType& X,
         const std::vector<double>& e,
         const std::vector<TMatrixType>& eigprj,
-        double TOL = 1.0e-10
+        double TOL // tolerance to compare eigenvalues
     )
     {
         Fourth_Order_Tensor dX2dX;

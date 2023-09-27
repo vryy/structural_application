@@ -286,7 +286,17 @@ void MultiplicativeFiniteStrainBridgingConstitutiveLaw::CalculateMaterialRespons
 
     mpConstitutiveLaw->GetValue(ELASTIC_STRAIN_TENSOR, elastic_strain_tensor);
 
-    EigenUtility::ComputeIsotropicTensorFunction(EigenUtility::exp2, left_cauchy_green_tensor_n, elastic_strain_tensor);
+    // special treatment when the elastic strain tensor is very small, e.g. at the beginning of the analysis
+    const double norm_es = norm_frobenius(elastic_strain_tensor);
+    if (norm_es > 1.0e-10)
+    {
+        EigenUtility::ComputeIsotropicTensorFunction(EigenUtility::exp2,
+                left_cauchy_green_tensor_n, elastic_strain_tensor);
+    }
+    else
+    {
+        noalias(left_cauchy_green_tensor_n) = IdentityMatrix(3);
+    }
 
     // compute trial elastic left Cauchy-Green tensor
     Matrix Fincr(3, 3), invFn(3, 3);
@@ -457,7 +467,8 @@ void MultiplicativeFiniteStrainBridgingConstitutiveLaw::ComputeTangent(Matrix& A
         L,
         m_left_cauchy_green_tensor_trial,
         left_cauchy_green_tensor_trial_pri,
-        left_cauchy_green_tensor_trial_eigprj);
+        left_cauchy_green_tensor_trial_eigprj,
+        1e-10); // tolerance to compare the eigenvalues
 
     Fourth_Order_Tensor B;
     SD_MathUtils<double>::CalculateFourthOrderZeroTensor(B);

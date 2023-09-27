@@ -443,8 +443,53 @@ public:
     static void ComputeIsotropicTensorFunction(
         unitary_func_t func,
         TMatrixType& Y,
+        const TMatrixType& X
+    )
+    {
+        TMatrixType V(3, 3);
+        std::vector<double> e(3);
+
+        eig::eigen_decomposition<3>(X, V, e);
+
+        std::vector<Matrix> eigprj(3);
+
+        for (unsigned int d = 0; d < 3; ++d)
+        {
+            eigprj[d].resize(3, 3, false);
+
+            for (unsigned int i = 0; i < 3; ++i)
+            {
+                for (unsigned int j = 0; j < 3; ++j)
+                {
+                    eigprj[d](i, j) = V(i, d) * V(j, d);
+                }
+            }
+        }
+
+        if ((Y.size1() != 3) || (Y.size2() != 3))
+            Y.resize(3, 3, false);
+
+        Y.clear();
+        for (unsigned int d = 0; d < 3; ++d)
+            noalias(Y) += func(e[d]) * eigprj[d];
+    }
+
+    /*
+     * Compute the isotropic function of the type
+     *       Y(X) = sum{ y(x_i) E_i }
+     * WHERE Y AND X ARE SYMMETRIC TENSORS, x_i AND E_i ARE, RESPECTIVELY
+     * THE EIGENVALUES AND EIGENPROJECTIONS OF X, AND y(.) IS A SCALAR
+     * FUNCTION.
+     * X must be 3 x 3 matrix
+     * Y will be resized accordingly
+     * Rererence: Section A.5.2, Computational Plasticity, de Souza Neto.
+     */
+    template<typename TMatrixType>
+    static void ComputeIsotropicTensorFunction(
+        unitary_func_t func,
+        TMatrixType& Y,
         const TMatrixType& X,
-        double TOL = 1.0e-10
+        double TOL // tolerance to compare the eigenvalues
     )
     {
         TMatrixType V(3, 3);

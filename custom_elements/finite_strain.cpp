@@ -65,6 +65,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "structural_application_variables.h"
 
 // #define ENABLE_DEBUG_CONSTITUTIVE_LAW
+#define CHECK_DEFORMATION_GRADIENT
+#define USE_DETERMINANT_F0_FOR_FBAR
 
 #ifdef ENABLE_DEBUG_CONSTITUTIVE_LAW
 #include <iomanip>
@@ -366,6 +368,19 @@ namespace Kratos
             noalias( F0 ) = prod( JOrigin, InvJ0Origin );
             DetF0 = MathUtils<double>::Det(F0);
 
+            #ifdef CHECK_DEFORMATION_GRADIENT
+            if (DetF0 < 0.0)
+            {
+                KRATOS_WATCH(origin)
+                KRATOS_WATCH(J0Origin)
+                KRATOS_WATCH(InvJ0Origin)
+                KRATOS_WATCH(JOrigin)
+                KRATOS_WATCH(F0)
+                KRATOS_WATCH(DetF0)
+                KRATOS_ERROR << "Deformation gradient is negative at origin of element " << Id();
+            }
+            #endif
+
             // G0
             G0.resize( dim*dim, number_of_nodes * dim, false );
             CalculateG( G0, DN_Dx_Origin );
@@ -404,17 +419,31 @@ namespace Kratos
 
             DetF = MathUtils<double>::Det(F);
 
+            #ifdef CHECK_DEFORMATION_GRADIENT
+            if (DetF < 0.0)
+            {
+                KRATOS_ERROR << "Deformation gradient is negative at integration point " << PointNumber
+                             << " of element " << Id();
+            }
+            #endif
+
             if (fbar_mode == 1) // plane strain
             {
                 F *= std::sqrt(DetF0/DetF);
-                // const_params.SetDeterminantF(std::sqrt(DetF0/DetF)*DetF);
+                #ifdef USE_DETERMINANT_F0_FOR_FBAR
                 const_params.SetDeterminantF(DetF0); // for the reason why to do this, see iffba2.f
+                #else
+                const_params.SetDeterminantF(std::sqrt(DetF0/DetF)*DetF);
+                #endif
             }
             else if (fbar_mode > 1) // plane stress, axisymmetric, 3D
             {
                 F *= std::cbrt(DetF0/DetF);
-                // const_params.SetDeterminantF(std::cbrt(DetF0/DetF)*DetF);
+                #ifdef USE_DETERMINANT_F0_FOR_FBAR
                 const_params.SetDeterminantF(DetF0); // for the reason why to do this, see iffba2.f
+                #else
+                const_params.SetDeterminantF(std::cbrt(DetF0/DetF)*DetF);
+                #endif
             }
             else
             {
@@ -1388,7 +1417,18 @@ namespace Kratos
             {
                 if (fbar_mode > 0)
                 {
+                    #ifdef USE_DETERMINANT_F0_FOR_FBAR
                     rValues[PointNumber] = DetF0;
+                    #else
+                    if (fbar_mode == 1) // plane strain
+                    {
+                        rValues[PointNumber] = std::sqrt(DetF0/DetF)*DetF;
+                    }
+                    else // plane stress, axisymmetric, 3D
+                    {
+                        rValues[PointNumber] = std::cbrt(DetF0/DetF)*DetF;
+                    }
+                    #endif
                 }
                 else
                 {
@@ -1807,3 +1847,5 @@ namespace Kratos
 } // Namespace Kratos
 
 #undef ENABLE_DEBUG_CONSTITUTIVE_LAW
+#undef CHECK_DEFORMATION_GRADIENT
+#undef USE_DETERMINANT_F0_FOR_FBAR
