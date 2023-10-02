@@ -87,6 +87,17 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "structural_application.h"
 #include "structural_application_variables.h"
 
+#ifdef SD_APP_FORWARD_COMPATIBILITY
+#define STRUCTURAL_APP_CREATE_ELEMENT(element_type, geometry_type, number_of_nodes) \
+    element_type( 0, Element::GeometryType::Pointer( new geometry_type <Node>( Element::GeometryType::PointsArrayType( number_of_nodes ) ) ) )
+#define STRUCTURAL_APP_CREATE_CONDITION(condition_type, geometry_type, number_of_nodes) \
+    condition_type( 0, Condition::GeometryType::Pointer( new geometry_type <Node>( Condition::GeometryType::PointsArrayType( number_of_nodes ) ) ) )
+#else
+#define STRUCTURAL_APP_CREATE_ELEMENT(element_type, geometry_type, number_of_nodes) \
+    element_type( 0, Element::GeometryType::Pointer( new geometry_type <Node<3> >( Element::GeometryType::PointsArrayType( number_of_nodes, Node<3>() ) ) ) )
+#define STRUCTURAL_APP_CREATE_CONDITION(condition_type, geometry_type, number_of_nodes) \
+    condition_type( 0, Condition::GeometryType::Pointer( new geometry_type <Node<3> >( Condition::GeometryType::PointsArrayType( number_of_nodes, Node<3>() ) ) ) )
+#endif
 
 namespace Kratos
 {
@@ -281,6 +292,22 @@ KratosStructuralApplication::KratosStructuralApplication()
     , mEbstVel3D3N( 0, Element::GeometryType::Pointer( new Triangle3D3<Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) )
     , mEASElementQ4E4( 0, Element::GeometryType::Pointer( new Quadrilateral2D4<Node<3> >( Element::GeometryType::PointsArrayType( 4, Node<3>() ) ) ) )
 
+    , STRUCTURAL_APP_CREATE_ELEMENT( mDummySurfaceElement2D3N, Triangle2D3, 3 )
+    , STRUCTURAL_APP_CREATE_ELEMENT( mDummySurfaceElement2D6N, Triangle2D6, 6 )
+    , STRUCTURAL_APP_CREATE_ELEMENT( mDummySurfaceElement2D4N, Quadrilateral2D4, 4 )
+    , STRUCTURAL_APP_CREATE_ELEMENT( mDummySurfaceElement2D8N, Quadrilateral2D8, 8 )
+    , STRUCTURAL_APP_CREATE_ELEMENT( mDummySurfaceElement2D9N, Quadrilateral2D9, 9 )
+    , STRUCTURAL_APP_CREATE_ELEMENT( mDummySurfaceElement3D3N, Triangle3D3, 3 )
+    , STRUCTURAL_APP_CREATE_ELEMENT( mDummySurfaceElement3D6N, Triangle3D6, 6 )
+    , STRUCTURAL_APP_CREATE_ELEMENT( mDummySurfaceElement3D4N, Quadrilateral3D4, 4 )
+    , STRUCTURAL_APP_CREATE_ELEMENT( mDummySurfaceElement3D8N, Quadrilateral3D8, 8 )
+    , STRUCTURAL_APP_CREATE_ELEMENT( mDummySurfaceElement3D9N, Quadrilateral3D9, 9 )
+    , STRUCTURAL_APP_CREATE_ELEMENT( mDummyVolumeElement3D4N, Tetrahedra3D4, 4 )
+    , STRUCTURAL_APP_CREATE_ELEMENT( mDummyVolumeElement3D10N, Tetrahedra3D10, 10 )
+    , STRUCTURAL_APP_CREATE_ELEMENT( mDummyVolumeElement3D8N, Hexahedra3D8, 8 )
+    , STRUCTURAL_APP_CREATE_ELEMENT( mDummyVolumeElement3D20N, Hexahedra3D20, 20 )
+    , STRUCTURAL_APP_CREATE_ELEMENT( mDummyVolumeElement3D27N, Hexahedra3D27, 27 )
+
     , mFace2D( 0, Element::GeometryType::Pointer( new Line2D2<Node<3> >( Element::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) )
     , mFace3D3N( 0, Element::GeometryType::Pointer( new Triangle3D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) )
     , mFace3D6N( 0, Element::GeometryType::Pointer( new Triangle3D6 <Node<3> >( Element::GeometryType::PointsArrayType( 6, Node<3>() ) ) ) )
@@ -379,6 +406,34 @@ KratosStructuralApplication::KratosStructuralApplication()
 
     , mSlaveContactPoint2D( 0, Element::GeometryType::Pointer( new Point2D <Node<3> >( Element::GeometryType::PointsArrayType( 1, Node<3>() ) ) ) )
     , mMasterContactFace2D( 0, Element::GeometryType::Pointer( new Line2D2 <Node<3> >( Element::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) )
+
+    , STRUCTURAL_APP_CREATE_CONDITION( mDummySurfaceCondition2D3N, Triangle2D3, 3 )
+    , STRUCTURAL_APP_CREATE_CONDITION( mDummySurfaceCondition2D6N, Triangle2D6, 6 )
+    , STRUCTURAL_APP_CREATE_CONDITION( mDummySurfaceCondition2D4N, Quadrilateral2D4, 4 )
+    , STRUCTURAL_APP_CREATE_CONDITION( mDummySurfaceCondition2D8N, Quadrilateral2D8, 8 )
+    , STRUCTURAL_APP_CREATE_CONDITION( mDummySurfaceCondition2D9N, Quadrilateral2D9, 9 )
+    , STRUCTURAL_APP_CREATE_CONDITION( mDummySurfaceCondition3D3N, Triangle3D3, 3 )
+    , STRUCTURAL_APP_CREATE_CONDITION( mDummySurfaceCondition3D6N, Triangle3D6, 6 )
+    , STRUCTURAL_APP_CREATE_CONDITION( mDummySurfaceCondition3D4N, Quadrilateral3D4, 4 )
+    , STRUCTURAL_APP_CREATE_CONDITION( mDummySurfaceCondition3D8N, Quadrilateral3D8, 8 )
+    , STRUCTURAL_APP_CREATE_CONDITION( mDummySurfaceCondition3D9N, Quadrilateral3D9, 9 )
+    , STRUCTURAL_APP_CREATE_CONDITION( mDummyConditionPoint2D, Point2D, 1 )
+    , STRUCTURAL_APP_CREATE_CONDITION( mDummyConditionPoint3D, Point3D, 1 )
+    , STRUCTURAL_APP_CREATE_CONDITION( mDummyConditionLine2N, Line3D2, 2 )
+    , STRUCTURAL_APP_CREATE_CONDITION( mDummyConditionLine3N, Line3D3, 3 )
+    , STRUCTURAL_APP_CREATE_CONDITION( mDummyCondition2D3N, Triangle2D3, 3 )
+    , STRUCTURAL_APP_CREATE_CONDITION( mDummyCondition2D4N, Quadrilateral2D4, 4 )
+    , STRUCTURAL_APP_CREATE_CONDITION( mDummyCondition2D6N, Triangle2D6, 6 )
+    , STRUCTURAL_APP_CREATE_CONDITION( mDummyCondition2D8N, Quadrilateral2D8, 8 )
+    , STRUCTURAL_APP_CREATE_CONDITION( mDummyCondition2D9N, Quadrilateral2D9, 9 )
+    , STRUCTURAL_APP_CREATE_CONDITION( mDummyCondition3D4N, Tetrahedra3D4, 4 )
+    , STRUCTURAL_APP_CREATE_CONDITION( mDummyCondition3D10N, Tetrahedra3D10, 10 )
+    , STRUCTURAL_APP_CREATE_CONDITION( mDummyCondition3D8N, Hexahedra3D8, 8 )
+    , STRUCTURAL_APP_CREATE_CONDITION( mDummyCondition3D20N, Hexahedra3D20, 20 )
+    , STRUCTURAL_APP_CREATE_CONDITION( mDummyCondition3D27N, Hexahedra3D27, 27 )
+    , STRUCTURAL_APP_CREATE_CONDITION( mDummyCondition3D6N, Prism3D6, 6 )
+    , STRUCTURAL_APP_CREATE_CONDITION( mDummyCondition3D15N, Prism3D15, 15 )
+
     , mIsotropic3D()
     , mDummyConstitutiveLaw()
     , mDruckerPrager()
@@ -1018,6 +1073,23 @@ void KratosStructuralApplication::Register()
     KRATOS_REGISTER_ELEMENT( "EbstVel3D3N", mEbstVel3D3N )
     KRATOS_REGISTER_ELEMENT( "EASElementQ4E4", mEASElementQ4E4 )
 
+    KRATOS_REGISTER_ELEMENT( "DummySurfaceElement2D3N", mDummySurfaceElement2D3N )
+    KRATOS_REGISTER_ELEMENT( "DummySurfaceElement2D6N", mDummySurfaceElement2D6N )
+    KRATOS_REGISTER_ELEMENT( "DummySurfaceElement2D4N", mDummySurfaceElement2D4N )
+    KRATOS_REGISTER_ELEMENT( "DummySurfaceElement2D8N", mDummySurfaceElement2D8N )
+    KRATOS_REGISTER_ELEMENT( "DummySurfaceElement2D9N", mDummySurfaceElement2D9N )
+    KRATOS_REGISTER_ELEMENT( "DummySurfaceElement3D3N", mDummySurfaceElement3D3N )
+    KRATOS_REGISTER_ELEMENT( "DummySurfaceElement3D6N", mDummySurfaceElement3D6N )
+    KRATOS_REGISTER_ELEMENT( "DummySurfaceElement3D4N", mDummySurfaceElement3D4N )
+    KRATOS_REGISTER_ELEMENT( "DummySurfaceElement3D8N", mDummySurfaceElement3D8N )
+    KRATOS_REGISTER_ELEMENT( "DummySurfaceElement3D9N", mDummySurfaceElement3D9N )
+
+    KRATOS_REGISTER_ELEMENT( "DummyVolumeElement3D4N", mDummyVolumeElement3D4N )
+    KRATOS_REGISTER_ELEMENT( "DummyVolumeElement3D10N", mDummyVolumeElement3D10N )
+    KRATOS_REGISTER_ELEMENT( "DummyVolumeElement3D8N", mDummyVolumeElement3D8N )
+    KRATOS_REGISTER_ELEMENT( "DummyVolumeElement3D20N", mDummyVolumeElement3D20N )
+    KRATOS_REGISTER_ELEMENT( "DummyVolumeElement3D27N", mDummyVolumeElement3D27N )
+
     KRATOS_REGISTER_CONDITION( "Face2D", mFace2D )
     KRATOS_REGISTER_CONDITION( "Face3D", mFace3D3N )
     KRATOS_REGISTER_CONDITION( "Face3D3N", mFace3D3N )
@@ -1113,13 +1185,38 @@ void KratosStructuralApplication::Register()
     KRATOS_REGISTER_CONDITION( "PointPointLagrangeCondition", mPointPointLagrangeCondition )
     KRATOS_REGISTER_CONDITION( "FaceVel3D3N", mFaceVel3D3N )
 
-
-//         KRATOS_REGISTER_ELEMENT("UPCTestElement3D20N", mUPCTestElement3D20N)
     KRATOS_REGISTER_CONDITION( "PointForce2D", mPointForce2D )
-
 
     KRATOS_REGISTER_CONDITION( "SlaveContactPoint2D", mSlaveContactPoint2D )
     KRATOS_REGISTER_CONDITION( "MasterContactFace2D", mMasterContactFace2D )
+
+    KRATOS_REGISTER_CONDITION("DummyConditionPoint2D", mDummyConditionPoint2D)
+    KRATOS_REGISTER_CONDITION("DummyConditionPoint3D", mDummyConditionPoint3D)
+    KRATOS_REGISTER_CONDITION( "DummyConditionLine2N", mDummyConditionLine2N )
+    KRATOS_REGISTER_CONDITION( "DummyConditionLine3N", mDummyConditionLine3N )
+    KRATOS_REGISTER_CONDITION( "DummyCondition2D3N", mDummyCondition2D3N )
+    KRATOS_REGISTER_CONDITION( "DummyCondition2D4N", mDummyCondition2D4N )
+    KRATOS_REGISTER_CONDITION( "DummyCondition2D6N", mDummyCondition2D6N )
+    KRATOS_REGISTER_CONDITION( "DummyCondition2D8N", mDummyCondition2D8N )
+    KRATOS_REGISTER_CONDITION( "DummyCondition2D9N", mDummyCondition2D9N )
+    KRATOS_REGISTER_CONDITION( "DummyCondition3D4N", mDummyCondition3D4N )
+    KRATOS_REGISTER_CONDITION( "DummyCondition3D10N", mDummyCondition3D10N )
+    KRATOS_REGISTER_CONDITION( "DummyCondition3D8N", mDummyCondition3D8N )
+    KRATOS_REGISTER_CONDITION( "DummyCondition3D20N", mDummyCondition3D20N )
+    KRATOS_REGISTER_CONDITION( "DummyCondition3D27N", mDummyCondition3D27N )
+    KRATOS_REGISTER_CONDITION( "DummyCondition3D6N", mDummyCondition3D6N )
+    KRATOS_REGISTER_CONDITION( "DummyCondition3D15N", mDummyCondition3D15N )
+
+    KRATOS_REGISTER_CONDITION( "DummySurfaceCondition2D3N", mDummySurfaceCondition2D3N )
+    KRATOS_REGISTER_CONDITION( "DummySurfaceCondition2D6N", mDummySurfaceCondition2D6N )
+    KRATOS_REGISTER_CONDITION( "DummySurfaceCondition2D4N", mDummySurfaceCondition2D4N )
+    KRATOS_REGISTER_CONDITION( "DummySurfaceCondition2D8N", mDummySurfaceCondition2D8N )
+    KRATOS_REGISTER_CONDITION( "DummySurfaceCondition2D9N", mDummySurfaceCondition2D9N )
+    KRATOS_REGISTER_CONDITION( "DummySurfaceCondition3D3N", mDummySurfaceCondition3D3N )
+    KRATOS_REGISTER_CONDITION( "DummySurfaceCondition3D6N", mDummySurfaceCondition3D6N )
+    KRATOS_REGISTER_CONDITION( "DummySurfaceCondition3D4N", mDummySurfaceCondition3D4N )
+    KRATOS_REGISTER_CONDITION( "DummySurfaceCondition3D8N", mDummySurfaceCondition3D8N )
+    KRATOS_REGISTER_CONDITION( "DummySurfaceCondition3D9N", mDummySurfaceCondition3D9N )
 
 // KratosComponents<ConstitutiveLaw >::Add("Isotropic3D", mIsotropic3D);
     Serializer::Register( "Isotropic3D", mIsotropic3D );

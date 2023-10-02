@@ -6,6 +6,7 @@ endif()
 
 ## generate variables with the sources
 set( KRATOS_STRUCTURAL_APPLICATION_SOURCES
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/dummy_element.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/rigid_body_3D.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/shell_anisotropic.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/beam_element.cpp
@@ -84,6 +85,7 @@ set( KRATOS_STRUCTURAL_APPLICATION_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/soft_hard_behavior/friction_softening.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/soft_hard_behavior/dilatancy_softening.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/fluency_criteria/energy_yield_function.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/dummy_condition.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/master_contact_face_2d.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/master_contact_point_2d.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/slave_contact_point_2d.cpp

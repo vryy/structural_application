@@ -115,6 +115,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
     #include "custom_elements/ebst.h"
     #include "custom_elements/ebst_vel.h"
     #include "custom_elements/eas_element_q4e4.h"
+    #include "custom_elements/dummy_element.h"
 
     #include "custom_conditions/node_tying_lagrange.h"
     #include "custom_conditions/node_tying_lagrange_z.h"
@@ -145,6 +146,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
     #include "custom_conditions/elastic_face_springs.h"
     #include "custom_conditions/nitsche_isotropic_constraint.h"
     #include "custom_conditions/roller_constraint.h"
+    #include "custom_conditions/dummy_condition.h"
 
     #include "constitutive_laws/isotropic_2d.h"
     #include "constitutive_laws/isotropic_3d.h"
@@ -442,6 +444,25 @@ private:
     const Ebst mEbst3D3N;
     const EbstVel mEbstVel3D3N;
     const EASElementQ4E4 mEASElementQ4E4;
+
+    const DummyElement mDummySurfaceElement2D3N;
+    const DummyElement mDummySurfaceElement2D6N;
+    const DummyElement mDummySurfaceElement2D4N;
+    const DummyElement mDummySurfaceElement2D8N;
+    const DummyElement mDummySurfaceElement2D9N;
+
+    const DummyElement mDummySurfaceElement3D3N;
+    const DummyElement mDummySurfaceElement3D6N;
+    const DummyElement mDummySurfaceElement3D4N;
+    const DummyElement mDummySurfaceElement3D8N;
+    const DummyElement mDummySurfaceElement3D9N;
+
+    const DummyElement mDummyVolumeElement3D4N;
+    const DummyElement mDummyVolumeElement3D10N;
+    const DummyElement mDummyVolumeElement3D8N;
+    const DummyElement mDummyVolumeElement3D20N;
+    const DummyElement mDummyVolumeElement3D27N;
+
     const Face2D  mFace2D;
     const Face3D  mFace3D3N;
     const Face3D  mFace3D6N;
@@ -531,6 +552,35 @@ private:
     const RollerConstraint mRollerConstraint3D4N;
     const RollerConstraint mRollerConstraint3D8N;
     const RollerConstraint mRollerConstraint3D9N;
+
+    const DummyCondition mDummySurfaceCondition2D3N;
+    const DummyCondition mDummySurfaceCondition2D6N;
+    const DummyCondition mDummySurfaceCondition2D4N;
+    const DummyCondition mDummySurfaceCondition2D8N;
+    const DummyCondition mDummySurfaceCondition2D9N;
+
+    const DummyCondition mDummySurfaceCondition3D3N;
+    const DummyCondition mDummySurfaceCondition3D6N;
+    const DummyCondition mDummySurfaceCondition3D4N;
+    const DummyCondition mDummySurfaceCondition3D8N;
+    const DummyCondition mDummySurfaceCondition3D9N;
+
+    const DummyCondition mDummyConditionPoint2D;
+    const DummyCondition mDummyConditionPoint3D;
+    const DummyCondition mDummyConditionLine2N;
+    const DummyCondition mDummyConditionLine3N;
+    const DummyCondition mDummyCondition2D3N;
+    const DummyCondition mDummyCondition2D4N;
+    const DummyCondition mDummyCondition2D6N;
+    const DummyCondition mDummyCondition2D8N;
+    const DummyCondition mDummyCondition2D9N;
+    const DummyCondition mDummyCondition3D4N;
+    const DummyCondition mDummyCondition3D10N;
+    const DummyCondition mDummyCondition3D8N;
+    const DummyCondition mDummyCondition3D20N;
+    const DummyCondition mDummyCondition3D27N;
+    const DummyCondition mDummyCondition3D6N;
+    const DummyCondition mDummyCondition3D15N;
 
     const SlaveContactPoint2D mSlaveContactPoint2D;
     const MasterContactFace2D mMasterContactFace2D;
