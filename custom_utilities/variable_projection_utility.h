@@ -155,7 +155,7 @@ public:
         OpenMPUtils::CreatePartition(number_of_threads, BaseType::mpElements.size(), element_partition);
 
 #ifdef _OPENMP
-            #pragma omp parallel for
+        #pragma omp parallel for
 #endif
         for (int k = 0; k < number_of_threads; ++k)
         {
@@ -217,7 +217,7 @@ public:
 protected:
 
     /// Initialize the projection matrix
-    void Initialize( ElementsContainerType& pElements ) final
+    void Initialize( const ElementsContainerType& pElements ) final
     {
         NodesContainerType pActiveNodes;
         std::map<std::size_t, std::size_t> NodeRowId;
@@ -233,18 +233,18 @@ private:
     //**********AUXILIARY FUNCTION**************************************************************
     //******************************************************************************************
     /// Extract the active nodes and construct the nodal id row map
-    void ExtractActiveNodes(ElementsContainerType& pElements,
+    void ExtractActiveNodes(const ElementsContainerType& pElements,
         NodesContainerType& pActiveNodes, std::map<std::size_t, std::size_t>& NodeRowId) const
     {
         // extract the active nodes
-        for(ElementsContainerType::ptr_iterator it = pElements.ptr_begin();
-                it != pElements.ptr_end(); ++it)
+        for(ElementsContainerType::const_iterator it = pElements.begin();
+                it != pElements.end(); ++it)
         {
-            if( (*it)->GetValue(IS_INACTIVE) == false || (*it)->Is(ACTIVE) )
+            if( it->GetValue(IS_INACTIVE) == false || it->Is(ACTIVE) )
             {
-                for(std::size_t i = 0; i < (*it)->GetGeometry().size(); ++i)
+                for(std::size_t i = 0; i < it->GetGeometry().size(); ++i)
                 {
-                    pActiveNodes.push_back( (*it)->GetGeometry().pGetPoint(i) );
+                    pActiveNodes.push_back( it->GetGeometry().pGetPoint(i) );
                 }
             }
         }
@@ -263,7 +263,7 @@ private:
     //**********AUXILIARY FUNCTION**************************************************************
     //******************************************************************************************
     /// Construct the L2 projection matrix
-    void ConstructLHSMatrix(SparseSpaceType::MatrixType& rA, ElementsContainerType& pElements,
+    void ConstructLHSMatrix(SparseSpaceType::MatrixType& rA, const ElementsContainerType& pElements,
             const std::map<std::size_t, std::size_t>& NodeRowId) const
     {
         // set up system
@@ -295,24 +295,24 @@ private:
 #endif
         for(int k = 0; k < number_of_threads; ++k)
         {
-            ElementsContainerType::ptr_iterator it_begin = pElements.ptr_begin() + element_partition[k];
-            ElementsContainerType::ptr_iterator it_end = pElements.ptr_begin() + element_partition[k+1];
+            ElementsContainerType::const_iterator it_begin = pElements.begin() + element_partition[k];
+            ElementsContainerType::const_iterator it_end = pElements.begin() + element_partition[k+1];
             std::map<std::size_t, std::size_t>::const_iterator it_id;
 
-            for( ElementsContainerType::ptr_iterator it = it_begin; it != it_end; ++it )
+            for( ElementsContainerType::const_iterator it = it_begin; it != it_end; ++it )
             {
-                if( (*it)->GetValue(IS_INACTIVE) == true && !(*it)->Is(ACTIVE) )
+                if( it->GetValue(IS_INACTIVE) == true && !it->Is(ACTIVE) )
                     continue;
 
-                unsigned int dim = (*it)->GetGeometry().WorkingSpaceDimension();
+                unsigned int dim = it->GetGeometry().WorkingSpaceDimension();
 
                 const IntegrationPointsArrayType& integration_points
-                    = (*it)->GetGeometry().IntegrationPoints((*it)->GetIntegrationMethod());
+                    = it->GetGeometry().IntegrationPoints(it->GetIntegrationMethod());
 
                 JacobiansType J(integration_points.size());
-                J = (*it)->GetGeometry().Jacobian(J, (*it)->GetIntegrationMethod());
+                J = it->GetGeometry().Jacobian(J, it->GetIntegrationMethod());
 
-                const Matrix& Ncontainer = (*it)->GetGeometry().ShapeFunctionsValues((*it)->GetIntegrationMethod());
+                const Matrix& Ncontainer = it->GetGeometry().ShapeFunctionsValues(it->GetIntegrationMethod());
 
                 double DetJ;
                 for(unsigned int point = 0; point < integration_points.size(); ++point)
@@ -321,16 +321,16 @@ private:
 
                     double dV = DetJ*integration_points[point].Weight();
 
-                    for(unsigned int prim = 0 ; prim < (*it)->GetGeometry().size(); ++prim)
+                    for(unsigned int prim = 0 ; prim < it->GetGeometry().size(); ++prim)
                     {
-                        it_id = NodeRowId.find((*it)->GetGeometry()[prim].Id());
+                        it_id = NodeRowId.find(it->GetGeometry()[prim].Id());
                         std::size_t row = it_id->second;
 #ifdef _OPENMP
                         omp_set_lock(&lock_array[row]);
 #endif
-                        for(unsigned int sec = 0 ; sec < (*it)->GetGeometry().size(); ++sec)
+                        for(unsigned int sec = 0 ; sec < it->GetGeometry().size(); ++sec)
                         {
-                            it_id = NodeRowId.find((*it)->GetGeometry()[sec].Id());
+                            it_id = NodeRowId.find(it->GetGeometry()[sec].Id());
                             std::size_t col = it_id->second;
                             rA(row, col) += Ncontainer(point, prim)*Ncontainer(point, sec) * dV;
                         }
@@ -347,14 +347,14 @@ private:
     //**********AUXILIARY FUNCTION**************************************************************
     //******************************************************************************************
     void ConstructMatrixStructure(SparseSpaceType::MatrixType& A,
-            ElementsContainerType& pElements, const std::map<std::size_t, std::size_t>& NodeRowId) const
+            const ElementsContainerType& pElements, const std::map<std::size_t, std::size_t>& NodeRowId) const
     {
         std::size_t equation_size = A.size1();
         std::vector<std::vector<std::size_t> > indices(equation_size);
 
         Element::EquationIdVectorType ids;
         std::map<std::size_t, std::size_t>::const_iterator it;
-        for(ElementsContainerType::iterator i_element = pElements.begin();
+        for(ElementsContainerType::const_iterator i_element = pElements.begin();
                 i_element != pElements.end() ; ++i_element)
         {
             if( !(i_element)->GetValue( IS_INACTIVE ) || (i_element)->Is(ACTIVE) )
@@ -446,7 +446,6 @@ private:
         {
             v.push_back(candidate);
         }
-
     }
 
 };//Class VariableProjectionUtility

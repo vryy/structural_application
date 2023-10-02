@@ -112,7 +112,7 @@ public:
 protected:
 
     /// Initialize the elements binning
-    void Initialize( ElementsContainerType& pElements ) final
+    void Initialize( const ElementsContainerType& pElements ) final
     {
         std::cout << "Initialize the Bounding Volume Hierarchy" << std::endl;
 

@@ -112,7 +112,7 @@ public:
 protected:
 
     /// Initialize the elements binning
-    void Initialize( ElementsContainerType& pElements ) final
+    void Initialize( const ElementsContainerType& pElements ) final
     {
         std::cout << "Initialize the spatial binning" << std::endl;
 
@@ -123,9 +123,9 @@ protected:
         boost::progress_display show_progress( pElements.size() );
         std::vector<double> vmin(3);
         std::vector<double> vmax(3);
-        for ( ElementsContainerType::ptr_iterator it = pElements.ptr_begin(); it != pElements.ptr_end(); ++it )
+        for ( ElementsContainerType::const_iterator it = pElements.begin(); it != pElements.end(); ++it )
         {
-            this->FindBoundingBox(vmin, vmax, (*it)->GetGeometry());
+            this->FindBoundingBox(vmin, vmax, it->GetGeometry());
 
             if (GetEchoLevel() > 4)
             {
@@ -152,10 +152,10 @@ protected:
                     for (int k = k_min; k <= k_max; ++k)
                     {
                         SpatialKey key(i, j, k);
-                        mBinElements[key].insert((*it)->Id());
+                        mBinElements[key].insert(it->Id());
 
                         if (GetEchoLevel() > 4)
-                            std::cout << "element " << (*it)->Id() << " is added to the bin with key (" << i << "," << j << "," << k << ")" << std::endl;
+                            std::cout << "element " << it->Id() << " is added to the bin with key (" << i << "," << j << "," << k << ")" << std::endl;
                     }
                 }
             }

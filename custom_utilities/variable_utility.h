@@ -263,7 +263,7 @@ protected:
     ElementsContainerType mpElements;
 
     /// Initialize the utilitey
-    virtual void Initialize( ElementsContainerType& pElements )
+    virtual void Initialize( const ElementsContainerType& pElements )
     {
         KRATOS_THROW_ERROR(std::logic_error, "Error calling base class function", __FUNCTION__)
     }
