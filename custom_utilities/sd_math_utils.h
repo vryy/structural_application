@@ -2463,6 +2463,65 @@ public:
         Fourth_Order_Tensor& dYdX,
         const TMatrixType& X,
         const std::vector<double>& e,
+        const std::vector<TMatrixType>& eigprj
+    )
+    {
+        Fourth_Order_Tensor dX2dX;
+        CalculateFourthOrderZeroTensor(dX2dX);
+        TMatrixType I = IdentityMatrix(3);
+        for(int i = 0; i < 3; ++i)
+            for(int j = 0; j < 3; ++j)
+                for(int k = 0; k < 3; ++k)
+                    for(int l = 0; l < 3; ++l)
+                        dX2dX[i][j](k, l) = 0.5 * (I(i, k) * X(l, j)
+                                                 + I(i, l) * X(k, j)
+                                                 + X(i, k) * I(j, l)
+                                                 + X(i, l) * I(k, j));
+
+        Fourth_Order_Tensor Is;
+        CalculateFourthOrderSymmetricTensor(Is);
+
+        CalculateFourthOrderZeroTensor(dYdX);
+
+        int a, b, c;
+        for (a = 0; a < 3; ++a)
+        {
+            if (a == 0) {b = 1; c = 2;}
+            else if (a == 1) {b = 2; c = 0;}
+            else if (a == 2) {b = 0; c = 1;}
+
+            double aux1 = func(e[a]) / ((e[a] - e[b]) * (e[a] - e[c]));
+            double aux2 = -aux1 * (e[b] + e[c]);
+            double aux3 = -aux1 * (e[a] - e[b] + e[a] - e[c]);
+            double aux4 = -aux1 * (e[b] - e[c]);
+
+            AddFourthOrderTensor(aux1, dX2dX, dYdX);
+            AddFourthOrderTensor(aux2, Is, dYdX);
+            OuterProductFourthOrderTensor(aux3, eigprj[a], eigprj[a], dYdX);
+            OuterProductFourthOrderTensor(aux4, eigprj[b], eigprj[b], dYdX);
+            OuterProductFourthOrderTensor(-aux4, eigprj[c], eigprj[c], dYdX);
+            OuterProductFourthOrderTensor(dfunc(e[a]), eigprj[a], eigprj[a], dYdX);
+        }
+    }
+
+    /*
+     * Compute the derivative of the isotropic function of the type
+     *       Y(X) = sum{ y(x_i) E_i }
+     * WHERE Y AND X ARE SYMMETRIC TENSORS, x_i AND E_i ARE, RESPECTIVELY
+      * THE EIGENVALUES AND EIGENPROJECTIONS OF X, AND y(.) IS A SCALAR
+     * FUNCTION.
+     * X must be 3 x 3 matrix
+     * e and eigprj are the principle values and eigenprojections of X
+     * dYdX will be resized accordingly
+     * Rererence: Section A.5.2, Computational Plasticity, de Souza Neto.
+     */
+    template<typename TMatrixType>
+    static void ComputeDerivativeIsotropicTensorFunction(
+        unitary_func_t func,
+        unitary_func_t dfunc,
+        Fourth_Order_Tensor& dYdX,
+        const TMatrixType& X,
+        const std::vector<double>& e,
         const std::vector<TMatrixType>& eigprj,
         double TOL // tolerance to compare eigenvalues
     )
