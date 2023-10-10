@@ -237,7 +237,16 @@ void PlaneStrain::SetValue( const Variable<Vector>& rThisVariable, const Vector&
 {
     if ( rThisVariable == PRESTRESS || rThisVariable == INSITU_STRESS )
     {
-        noalias(mPreStress) = rValue;
+        if (rValue.size() == 3)
+        {
+            noalias(mPreStress) = rValue;
+        }
+        else if (rValue.size() == 4 || rValue.size() == 6)
+        {
+            mPreStress(0) = rValue(0);
+            mPreStress(1) = rValue(1);
+            mPreStress(2) = rValue(3);
+        }
     }
     else if ( rThisVariable == STRESSES || rThisVariable == INITIAL_STRESS )
     {
@@ -247,9 +256,16 @@ void PlaneStrain::SetValue( const Variable<Vector>& rThisVariable, const Vector&
     }
     else if ( rThisVariable == THREED_STRESSES )
     {
-        mCurrentStress(0) = rValue(0);
-        mCurrentStress(1) = rValue(1);
-        mCurrentStress(2) = rValue(3);
+        if (rValue.size() == 3)
+        {
+            noalias(mCurrentStress) = rValue;
+        }
+        else if (rValue.size() == 4 || rValue.size() == 6)
+        {
+            mCurrentStress(0) = rValue(0);
+            mCurrentStress(1) = rValue(1);
+            mCurrentStress(2) = rValue(3);
+        }
     }
 }
 
