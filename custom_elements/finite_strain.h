@@ -244,6 +244,43 @@ protected:
     {
     }
 
+    /// Get the size of the strain vector
+    virtual unsigned int GetStrainSize( unsigned int dim ) const
+    {
+        return dim * (dim + 1) / 2;
+    }
+
+    /// Get the size of unsymmetric second order tensor
+    virtual unsigned int GetFSize( unsigned int dim ) const
+    {
+        return dim;
+    }
+
+    /// Get the size of unsymmetric second order tensor
+    virtual unsigned int GetGSize( unsigned int dim ) const
+    {
+        return dim * dim;
+    }
+
+    /// Calculate the B operator
+    virtual void CalculateB( Matrix& B_Operator, const VectorType& N, const Matrix& DN_DX, const Matrix& CurrentDisp ) const;
+
+    /// Calculate the G operator
+    virtual void CalculateG( Matrix& G_Operator, const VectorType& N, const Matrix& DN_DX ) const;
+
+    /// Calculate the G operator
+    virtual void CalculateG( Matrix& G_Operator, const VectorType& N, const Matrix& DN_DX, const Matrix& CurrentDisp ) const;
+
+    /// Calculate the deformation gradient
+    virtual void CalculateF( Matrix& F, const Matrix& G_Operator, const Matrix& CurrentDisp ) const;
+
+    /// Get the integration weight
+    virtual double GetIntegrationWeight( const GeometryType::IntegrationPointsArrayType& integration_points,
+            unsigned int PointNumber, const MatrixType& Ncontainer, const Matrix& CurrentDisp ) const
+    {
+        return integration_points[PointNumber].Weight();
+    }
+
     /**
      * Calculates the elemental contributions
      * \f$ K^e = w\,B^T\,D\,B \f$ and
@@ -318,17 +355,13 @@ private:
         const double& weight
     );
 
-    void CalculateStrain(const Matrix& C,
-                         Vector& StrainVector);
+    /// Calculate left Green-Cauchy strain
+    void CalculateStrain( const Matrix& C, Vector& StrainVector ) const;
 
     // void CalculateB(Matrix& B,
     //                 const Matrix& F,
     //                 const Matrix& DN_DX,
     //                 unsigned int StrainSize);
-
-    void CalculateB( Matrix& B_Operator, const Matrix& DN_DX );
-
-    void CalculateG( Matrix& G_Operator, const Matrix& DN_DX );
 
     ///@}
     ///@name Private Operations
