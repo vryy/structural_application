@@ -347,4 +347,4 @@ private:
     //PlaneStrain(const IsotropicPlaneStressWrinklingNew& rOther);
 }; // Class PlaneStrain
 }  // namespace Kratos.
-#endif // KRATOS_ISOTROPIC_2D_H_INCLUDED  defined 
+#endif // KRATOS_ISOTROPIC_2D_H_INCLUDED  defined

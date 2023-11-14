@@ -59,6 +59,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // Project includes
 #include "utilities/math_utils.h"
 #include "constitutive_laws/plane_strain.h"
+#include "constitutive_laws/isotropic_3d.h"
 #include "structural_application_variables.h"
 
 namespace Kratos
@@ -98,7 +99,7 @@ bool PlaneStrain::Has( const Variable<Vector>& rThisVariable )
 
 bool PlaneStrain::Has( const Variable<Matrix>& rThisVariable )
 {
-    if(rThisVariable == ALGORITHMIC_TANGENT)
+    if(rThisVariable == ALGORITHMIC_TANGENT || rThisVariable == THREED_ALGORITHMIC_TANGENT)
         return true;
     return false;
 }
@@ -201,19 +202,20 @@ Vector& PlaneStrain::GetValue( const Variable<Vector>& rThisVariable, Vector& rV
 
 Matrix& PlaneStrain::GetValue( const Variable<Matrix>& rThisVariable, Matrix& rValue )
 {
-    if (rThisVariable == GREEN_LAGRANGE_PLASTIC_STRAIN_TENSOR)
-    {
-        for(unsigned int i = 0; i< rValue.size2(); ++i)
-            rValue(0, i) = 0.00;
-    }
-    else if(rThisVariable == ALGORITHMIC_TANGENT || rThisVariable == ELASTIC_TANGENT)
+    if(rThisVariable == ALGORITHMIC_TANGENT || rThisVariable == ELASTIC_TANGENT)
     {
         if(rValue.size1() != 3 || rValue.size2() != 3)
             rValue.resize(3, 3, false);
         CalculateElasticMatrix( rValue, mE, mNU );
     }
+    else if( rThisVariable == THREED_ALGORITHMIC_TANGENT )
+    {
+        if (rValue.size1() != 6 || rValue.size2() != 6)
+            rValue.resize(6, 6, false);
+        Isotropic3D::CalculateElasticMatrix(rValue, mE, mNU);
+    }
 
-    return( rValue );
+    return rValue ;
 }
 
 void PlaneStrain::SetValue( const Variable<int>& rThisVariable, const int& rValue,
