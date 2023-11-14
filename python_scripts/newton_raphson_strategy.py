@@ -76,13 +76,18 @@ class SolvingStrategyPython:
         if 'list_plastic_points' not in self.Parameters:
             self.Parameters['list_plastic_points'] = False
 
-        if not('log_residuum_name' in self.Parameters):
-            self.log_residuum = open('residuum_newton_raphson.log', 'w')
-        else:
-            self.log_residuum = open(self.Parameters['log_residuum_name'], 'w')
+        if 'log_residuum' not in self.Parameters:
+            self.Parameters['log_residuum'] = True
+        self.log_residuum = None
+        if self.Parameters['log_residuum']:
+            if not('log_residuum_name' in self.Parameters):
+                self.log_residuum = open('residuum_newton_raphson.log', 'w')
+            else:
+                self.log_residuum = open(self.Parameters['log_residuum_name'], 'w')
 
     def __del__(self):
-        self.log_residuum.close()
+        if self.log_residuum != None:
+            self.log_residuum.close()
 
         if self.Parameters['calculate_strain_energy'] == True:
             self.log_energy.close()
@@ -177,12 +182,13 @@ class SolvingStrategyPython:
         self.FinalizeNonLinIteration(False,self.MoveMeshFlag)
         print("normDx at iteration 0: " + str(normDx))
 
-        er_0 = self.space_utils.TwoNorm(self.b)
-        er_n = er_0
-        self.log_residuum.write('time: ' + str(self.model_part.ProcessInfo[TIME]) + '\n')
-        self.log_residuum.write('it\tresidual\tratio\treduction\n')
-        self.log_residuum.write('0\t' + str(er_0) + '\n')
-        self.log_residuum.flush()
+        if self.log_residuum != None:
+            er_0 = self.space_utils.TwoNorm(self.b)
+            er_n = er_0
+            self.log_residuum.write('time: ' + str(self.model_part.ProcessInfo[TIME]) + '\n')
+            self.log_residuum.write('it\tresidual\tratio\treduction\n')
+            self.log_residuum.write('0\t' + str(er_0) + '\n')
+            self.log_residuum.flush()
 
         #non linear loop
         converged = False
@@ -208,25 +214,26 @@ class SolvingStrategyPython:
             #update iteration count
             it = it + 1
 
-            # record the residuum and reduction
-            er = self.space_utils.TwoNorm(self.b)
+            if self.log_residuum != None:
+                # record the residuum and reduction
+                er = self.space_utils.TwoNorm(self.b)
 
-            if er_0 > 0.0:
-                er_ratio = er/er_0
-            else:
-                er_ratio = 1.0
-            if er > 0.0:
-                er_reduction = er_n/er
-            else:
-                if er_n == 0.0:
-                    er_reduction = 1.0
+                if er_0 > 0.0:
+                    er_ratio = er/er_0
                 else:
-                    er_reduction = 1.0e99
-            er_n = er
+                    er_ratio = 1.0
+                if er > 0.0:
+                    er_reduction = er_n/er
+                else:
+                    if er_n == 0.0:
+                        er_reduction = 1.0
+                    else:
+                        er_reduction = 1.0e99
+                er_n = er
 
-            # self.log_residuum.write(str(it) + '\t' + str(er) + '\t' + str(er_ratio) + '\t' + str(er_reduction) + '\n')
-            self.log_residuum.write('%d\t%.6e\t%.6e\t%.6e\n' % (it, er, er_ratio, er_reduction))
-            self.log_residuum.flush()
+                # self.log_residuum.write(str(it) + '\t' + str(er) + '\t' + str(er_ratio) + '\t' + str(er_reduction) + '\n')
+                self.log_residuum.write('%d\t%.6e\t%.6e\t%.6e\n' % (it, er, er_ratio, er_reduction))
+                self.log_residuum.flush()
 
         if( it == self.max_iter and converged == False):
             print("Iteration did not converge at time step " + str(self.model_part.ProcessInfo[TIME]))
@@ -401,8 +408,9 @@ class SolvingStrategyPython:
         if self.Parameters['calculate_strain_energy'] == True:
             self.log_energy.write('%.6e\t%.10e\n' % (self.model_part.ProcessInfo[TIME], self.calculate_strain_energy_process.GetEnergy()))
 
-        self.log_residuum.write("----------------------------------------------------\n")
-        self.log_residuum.flush()
+        if self.log_residuum != None:
+            self.log_residuum.write("----------------------------------------------------\n")
+            self.log_residuum.flush()
 
         print("newton_raphson_strategy.FinalizeSolutionStep is called")
 
