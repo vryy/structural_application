@@ -122,7 +122,7 @@ void MultiplicativeFiniteStrainBridgingConstitutiveLawDC::FinalizeNonLinearItera
         const ProcessInfo& CurrentProcessInfo )
 {
     const unsigned int dim = geom.WorkingSpaceDimension();
-    const unsigned int strain_size = dim*(dim+1) / 2;
+    const unsigned int strain_size = this->GetStrainSize(dim);
 
     #ifdef DEBUG_CONSTITUTIVE_LAW
     int ElemId, GaussId;

@@ -100,6 +100,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "constitutive_laws/orthotropic_3d.h"
 #include "constitutive_laws/multiplicative_finite_strain_bridging_constitutive_law.h"
 #include "constitutive_laws/multiplicative_finite_strain_bridging_constitutive_law_dc.h"
+#include "constitutive_laws/multiplicative_total_lagrangian_bridging_constitutive_law.h"
 #include "constitutive_laws/total_lagrangian_bridging_constitutive_law.h"
 #include "includes/node.h"
 #include "includes/variables.h"
@@ -332,13 +333,33 @@ void  AddConstitutiveLawsToPython()
     .def(init<ConstitutiveLawBaseType::Pointer>())
     ;
 
+    class_< MultiplicativeFiniteStrainAxisymmetricBridgingConstitutiveLaw, bases< MultiplicativeFiniteStrainBridgingConstitutiveLaw >, boost::noncopyable >
+    ( "MultiplicativeFiniteStrainAxisymmetricBridgingConstitutiveLaw", init<>() )
+    .def(init<ConstitutiveLawBaseType::Pointer>())
+    ;
+
     class_< MultiplicativeFiniteStrainBridgingConstitutiveLawDC, bases< ConstitutiveLawBaseType >, boost::noncopyable >
     ( "MultiplicativeFiniteStrainBridgingConstitutiveLawDC", init<>() )
     .def(init<ConstitutiveLawBaseType::Pointer>())
     ;
 
+    class_< MultiplicativeFiniteStrainAxisymmetricBridgingConstitutiveLawDC, bases< MultiplicativeFiniteStrainBridgingConstitutiveLawDC >, boost::noncopyable >
+    ( "MultiplicativeFiniteStrainAxisymmetricBridgingConstitutiveLawDC", init<>() )
+    .def(init<ConstitutiveLawBaseType::Pointer>())
+    ;
+
     class_< TotalLagrangianBridgingConstitutiveLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
     ( "TotalLagrangianBridgingConstitutiveLaw", init<>() )
+    .def(init<ConstitutiveLawBaseType::Pointer>())
+    ;
+
+    class_< MultiplicativeTotalLagrangianBridgingConstitutiveLaw<MultiplicativeFiniteStrainBridgingConstitutiveLaw>, bases< MultiplicativeFiniteStrainBridgingConstitutiveLaw >, boost::noncopyable >
+    ( "MultiplicativeTotalLagrangianBridgingConstitutiveLaw", init<>() )
+    .def(init<ConstitutiveLawBaseType::Pointer>())
+    ;
+
+    class_< MultiplicativeTotalLagrangianBridgingConstitutiveLaw<MultiplicativeFiniteStrainBridgingConstitutiveLawDC>, bases< MultiplicativeFiniteStrainBridgingConstitutiveLawDC >, boost::noncopyable >
+    ( "MultiplicativeTotalLagrangianBridgingConstitutiveLawDC", init<>() )
     .def(init<ConstitutiveLawBaseType::Pointer>())
     ;
 

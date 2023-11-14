@@ -21,7 +21,6 @@ LICENSE: see material_point_application/LICENSE.txt
 #include "constitutive_laws/multiplicative_finite_strain_bridging_constitutive_law.h"
 #include "structural_application_variables.h"
 
-//#define DEBUG_CONSTITUTIVE_LAW
 
 #ifdef DEBUG_CONSTITUTIVE_LAW
 #include <iomanip>
@@ -96,7 +95,7 @@ Matrix& MultiplicativeFiniteStrainBridgingConstitutiveLaw::GetValue( const Varia
     {
         if (rValue.size1() != 9 || rValue.size2() != 9)
             rValue.resize(9, 9, false);
-        ComputeTangent( rValue );
+        this->ComputeTangent( rValue );
         return rValue;
     }
     else if (rThisVariable == CAUCHY_STRESS_TENSOR)
@@ -162,7 +161,7 @@ void MultiplicativeFiniteStrainBridgingConstitutiveLaw::InitializeMaterial( cons
                                       const Vector& ShapeFunctionsValues )
 {
     const unsigned int dim = geom.WorkingSpaceDimension();
-    const unsigned int strain_size = dim*(dim+1) / 2;
+    const unsigned int strain_size = this->GetStrainSize(dim);
 
     mpConstitutiveLaw->InitializeMaterial(props, geom, ShapeFunctionsValues);
 
@@ -243,13 +242,12 @@ void MultiplicativeFiniteStrainBridgingConstitutiveLaw::CalculateMaterialRespons
     const auto& geom = rValues.GetElementGeometry();
 
     const unsigned int dim = geom.WorkingSpaceDimension();
-    const unsigned int strain_size = dim*(dim+1) / 2;
+    const unsigned int strain_size = this->GetStrainSize(dim);
 
     #ifdef DEBUG_CONSTITUTIVE_LAW
     int ElemId, GaussId;
     mpConstitutiveLaw->GetValue(PARENT_ELEMENT_ID, ElemId);
     mpConstitutiveLaw->GetValue(INTEGRATION_POINT_INDEX, GaussId);
-    std::cout << std::setprecision(16);
     #endif
 
     const Matrix& F = rValues.GetDeformationGradientF();
@@ -405,7 +403,7 @@ void MultiplicativeFiniteStrainBridgingConstitutiveLaw::CalculateMaterialRespons
     #endif
 }
 
-void MultiplicativeFiniteStrainBridgingConstitutiveLaw::ComputeTangent(Matrix& AlgorithmicTangent) const
+void MultiplicativeFiniteStrainBridgingConstitutiveLaw::ComputeTangent(Fourth_Order_Tensor& A) const
 {
     if (!mpConstitutiveLaw->Has(THREED_ALGORITHMIC_TANGENT))
         KRATOS_ERROR << "Constitutive law is not able to return THREED_ALGORITHMIC_TANGENT";
@@ -485,16 +483,17 @@ void MultiplicativeFiniteStrainBridgingConstitutiveLaw::ComputeTangent(Matrix& A
     SD_MathUtils<double>::CalculateFourthOrderZeroTensor(DL);
     SD_MathUtils<double>::ProductFourthOrderTensor(1.0/J, D, L, DL);
 
-    Fourth_Order_Tensor A;
+    // compute tangent matrix A
     SD_MathUtils<double>::CalculateFourthOrderZeroTensor(A);
     SD_MathUtils<double>::ProductFourthOrderTensor(1.0, DL, B, A);
 
     #ifdef DEBUG_CONSTITUTIVE_LAW
+    const unsigned int g_size = 9;
     if (ElemId == 1)
     {
         KRATOS_WATCH(m_left_cauchy_green_tensor_trial)
 
-        Matrix Du(4, 4);
+        Matrix Du(g_size, g_size);
         SD_MathUtils<double>::TensorToUnsymmetricMatrix(D, Du);
         KRATOS_WATCH(Du)
 
@@ -502,15 +501,15 @@ void MultiplicativeFiniteStrainBridgingConstitutiveLaw::ComputeTangent(Matrix& A
         SD_MathUtils<double>::TensorToMatrix(L, Ls);
         KRATOS_WATCH(Ls)
 
-        Matrix Lu(4, 4);
+        Matrix Lu(g_size, g_size);
         SD_MathUtils<double>::TensorToUnsymmetricMatrix(L, Lu);
         KRATOS_WATCH(Lu/J)
 
-        Matrix Bu(4, 4);
+        Matrix Bu(g_size, g_size);
         SD_MathUtils<double>::TensorToUnsymmetricMatrix(B, Bu);
         KRATOS_WATCH(Bu)
 
-        Matrix DLB(4, 4);
+        Matrix DLB(g_size, g_size);
         SD_MathUtils<double>::TensorToUnsymmetricMatrix(A, DLB);
         KRATOS_WATCH(DLB)
     }
@@ -521,7 +520,12 @@ void MultiplicativeFiniteStrainBridgingConstitutiveLaw::ComputeTangent(Matrix& A
             for (int k = 0; k < 3; ++k)
                 for (int l = 0; l < 3; ++l)
                     A[i][j](k, l) -= m_stress_n1(i, l) * eye(j, k);
+}
 
+void MultiplicativeFiniteStrainBridgingConstitutiveLaw::ComputeTangent(Matrix& AlgorithmicTangent) const
+{
+    Fourth_Order_Tensor A;
+    this->ComputeTangent(A);
     SD_MathUtils<double>::TensorToUnsymmetricMatrix(A, AlgorithmicTangent);
 }
 

@@ -1,6 +1,3 @@
-/*
-LICENSE: see material_point_application/LICENSE.txt
-*/
 /* *********************************************************
  *
  *   Last Modified by:    $Author: hbui $
@@ -240,7 +237,14 @@ protected:
     double mPrestressFactor;
     Vector mPrestress;
 
-    void ComputeTangent(Matrix& AlgorithmicTangent) const;
+    virtual void ComputeTangent(Fourth_Order_Tensor& A) const;
+
+    virtual void ComputeTangent(Matrix& AlgorithmicTangent) const;
+
+    virtual unsigned int GetStrainSize(unsigned int dim) const
+    {
+        return dim*(dim+1) / 2;
+    }
 
 private:
 
@@ -271,16 +275,51 @@ private:
     /**
      * Un accessible methods
      */
+}; // Class MultiplicativeFiniteStrainBridgingConstitutiveLaw
+
+/**
+ * Variant of MultiplicativeFiniteStrainBridgingConstitutiveLaw for axisymmetric problem
+ */
+class MultiplicativeFiniteStrainAxisymmetricBridgingConstitutiveLaw : public MultiplicativeFiniteStrainBridgingConstitutiveLaw
+{
+public:
+    /**
+     * Type Definitions
+     */
+    typedef MultiplicativeFiniteStrainBridgingConstitutiveLaw BaseType;
 
     /**
-     * Assignment operator.
+     * Counted pointer of MultiplicativeFiniteStrainBridgingConstitutiveLaw
      */
-    //MultiplicativeFiniteStrainBridgingConstitutiveLaw& operator=(const IsotropicPlaneStressWrinklingNew& rOther);
+    KRATOS_CLASS_POINTER_DEFINITION(MultiplicativeFiniteStrainAxisymmetricBridgingConstitutiveLaw);
+
     /**
-     * Copy constructor.
+     * Default constructor.
      */
-    //MultiplicativeFiniteStrainBridgingConstitutiveLaw(const IsotropicPlaneStressWrinklingNew& rOther);
-}; // Class MultiplicativeFiniteStrainBridgingConstitutiveLaw
+    MultiplicativeFiniteStrainAxisymmetricBridgingConstitutiveLaw() : BaseType()
+    {}
+
+    /**
+     * Constructor with nested constitutive law.
+     */
+    MultiplicativeFiniteStrainAxisymmetricBridgingConstitutiveLaw(ConstitutiveLaw::Pointer pConstitutiveLaw)
+    : BaseType(pConstitutiveLaw)
+    {}
+
+    ConstitutiveLaw::Pointer Clone() const override
+    {
+        ConstitutiveLaw::Pointer p_clone( new MultiplicativeFiniteStrainAxisymmetricBridgingConstitutiveLaw(mpConstitutiveLaw->Clone()) );
+        return p_clone;
+    }
+
+protected:
+
+    unsigned int GetStrainSize(unsigned int dim) const override
+    {
+        return 4;
+    }
+
+}; // MultiplicativeFiniteStrainAxisymmetricBridgingConstitutiveLaw
 
 } // namespace Kratos.
 

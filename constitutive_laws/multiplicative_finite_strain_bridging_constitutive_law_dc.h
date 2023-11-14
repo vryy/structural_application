@@ -161,16 +161,51 @@ private:
     /**
      * Un accessible methods
      */
+}; // Class MultiplicativeFiniteStrainBridgingConstitutiveLawDC
+
+/**
+ * Variant of MultiplicativeFiniteStrainBridgingConstitutiveLaw for axisymmetric problem
+ */
+class MultiplicativeFiniteStrainAxisymmetricBridgingConstitutiveLawDC : public MultiplicativeFiniteStrainBridgingConstitutiveLawDC
+{
+public:
+    /**
+     * Type Definitions
+     */
+    typedef MultiplicativeFiniteStrainBridgingConstitutiveLawDC BaseType;
 
     /**
-     * Assignment operator.
+     * Counted pointer of MultiplicativeFiniteStrainBridgingConstitutiveLaw
      */
-    //MultiplicativeFiniteStrainBridgingConstitutiveLawDC& operator=(const IsotropicPlaneStressWrinklingNew& rOther);
+    KRATOS_CLASS_POINTER_DEFINITION(MultiplicativeFiniteStrainAxisymmetricBridgingConstitutiveLaw);
+
     /**
-     * Copy constructor.
+     * Default constructor.
      */
-    //MultiplicativeFiniteStrainBridgingConstitutiveLawDC(const IsotropicPlaneStressWrinklingNew& rOther);
-}; // Class MultiplicativeFiniteStrainBridgingConstitutiveLawDC
+    MultiplicativeFiniteStrainAxisymmetricBridgingConstitutiveLawDC() : BaseType()
+    {}
+
+    /**
+     * Constructor with nested constitutive law.
+     */
+    MultiplicativeFiniteStrainAxisymmetricBridgingConstitutiveLawDC(ConstitutiveLaw::Pointer pConstitutiveLaw)
+    : BaseType(pConstitutiveLaw)
+    {}
+
+    ConstitutiveLaw::Pointer Clone() const override
+    {
+        ConstitutiveLaw::Pointer p_clone( new MultiplicativeFiniteStrainAxisymmetricBridgingConstitutiveLawDC(mpConstitutiveLaw->Clone()) );
+        return p_clone;
+    }
+
+protected:
+
+    unsigned int GetStrainSize(unsigned int dim) const override
+    {
+        return 4;
+    }
+
+}; // MultiplicativeFiniteStrainAxisymmetricBridgingConstitutiveLawDC
 
 } // namespace Kratos.
 
