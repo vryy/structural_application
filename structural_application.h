@@ -94,6 +94,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
     //#include "custom_elements/linear_incompresible_element.h"
     #include "custom_elements/mixed_lagrangian.h"
     #include "custom_elements/finite_strain.h"
+    #include "custom_elements/finite_strain_axisymmetric.h"
     #include "custom_elements/beam_element.h"
     #include "custom_elements/timoshenko_beam_element.h"
     #include "custom_elements/timoshenko_linear_beam_element.h"
@@ -392,6 +393,12 @@ private:
     const FiniteStrain mFiniteStrain3D8N;
     const FiniteStrain mFiniteStrain3D20N;
     const FiniteStrain mFiniteStrain3D27N;
+
+    const FiniteStrainAxisymmetric mFiniteStrainAxisymmetric3N;
+    const FiniteStrainAxisymmetric mFiniteStrainAxisymmetric4N;
+    const FiniteStrainAxisymmetric mFiniteStrainAxisymmetric6N;
+    const FiniteStrainAxisymmetric mFiniteStrainAxisymmetric8N;
+    const FiniteStrainAxisymmetric mFiniteStrainAxisymmetric9N;
 
     const KinematicLinear mKinematicLinear2D3N;
     const KinematicLinear mKinematicLinear2D4N;
