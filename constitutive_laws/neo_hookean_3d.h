@@ -72,12 +72,12 @@ class NeoHookean3D : public ConstitutiveLaw
 
         ConstitutiveLaw::StrainMeasure GetStrainMeasure() final
         {
-            return StrainMeasure_Infinitesimal;
+            return StrainMeasure_GreenLagrange;
         }
 
         ConstitutiveLaw::StressMeasure GetStressMeasure() final
         {
-            return StressMeasure_Cauchy;
+            return StressMeasure_PK2;
         }
 
         bool Has( const Variable<int>& rThisVariable );
