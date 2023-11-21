@@ -29,15 +29,18 @@ namespace Kratos
  * Reference: De Souza Neto, Computational Plasticity, Box 14.3
  * In different to load control, the material update is performed during FinalizeNonLinearIteration.
  */
-class MultiplicativeFiniteStrainBridgingConstitutiveLawDC : public MultiplicativeFiniteStrainBridgingConstitutiveLaw
+template<int TStressType>
+class MultiplicativeFiniteStrainBridgingConstitutiveLawDC : public MultiplicativeFiniteStrainBridgingConstitutiveLaw<TStressType>
 {
 public:
     /**
      * Type Definitions
      */
-    typedef MultiplicativeFiniteStrainBridgingConstitutiveLaw BaseType;
-    typedef BaseType::SizeType SizeType;
+    typedef MultiplicativeFiniteStrainBridgingConstitutiveLaw<TStressType> BaseType;
+    typedef typename BaseType::SizeType SizeType;
+    typedef typename BaseType::GeometryType GeometryType;
     typedef SD_MathUtils<double>::Fourth_Order_Tensor Fourth_Order_Tensor;
+    typedef typename BaseType::Parameters Parameters;
 
     /**
      * Counted pointer of MultiplicativeFiniteStrainBridgingConstitutiveLawDC
@@ -59,7 +62,7 @@ public:
 
     ConstitutiveLaw::Pointer Clone() const override
     {
-        ConstitutiveLaw::Pointer p_clone( new MultiplicativeFiniteStrainBridgingConstitutiveLawDC(mpConstitutiveLaw->Clone()) );
+        ConstitutiveLaw::Pointer p_clone( new MultiplicativeFiniteStrainBridgingConstitutiveLawDC(BaseType::mpConstitutiveLaw->Clone()) );
         return p_clone;
     }
 
@@ -166,18 +169,19 @@ private:
 /**
  * Variant of MultiplicativeFiniteStrainBridgingConstitutiveLaw for axisymmetric problem
  */
-class MultiplicativeFiniteStrainAxisymmetricBridgingConstitutiveLawDC : public MultiplicativeFiniteStrainBridgingConstitutiveLawDC
+template<int TStressType>
+class MultiplicativeFiniteStrainAxisymmetricBridgingConstitutiveLawDC : public MultiplicativeFiniteStrainBridgingConstitutiveLawDC<TStressType>
 {
 public:
     /**
      * Type Definitions
      */
-    typedef MultiplicativeFiniteStrainBridgingConstitutiveLawDC BaseType;
+    typedef MultiplicativeFiniteStrainBridgingConstitutiveLawDC<TStressType> BaseType;
 
     /**
      * Counted pointer of MultiplicativeFiniteStrainBridgingConstitutiveLaw
      */
-    KRATOS_CLASS_POINTER_DEFINITION(MultiplicativeFiniteStrainAxisymmetricBridgingConstitutiveLaw);
+    KRATOS_CLASS_POINTER_DEFINITION(MultiplicativeFiniteStrainAxisymmetricBridgingConstitutiveLawDC);
 
     /**
      * Default constructor.
@@ -194,7 +198,7 @@ public:
 
     ConstitutiveLaw::Pointer Clone() const override
     {
-        ConstitutiveLaw::Pointer p_clone( new MultiplicativeFiniteStrainAxisymmetricBridgingConstitutiveLawDC(mpConstitutiveLaw->Clone()) );
+        ConstitutiveLaw::Pointer p_clone( new MultiplicativeFiniteStrainAxisymmetricBridgingConstitutiveLawDC(BaseType::mpConstitutiveLaw->Clone()) );
         return p_clone;
     }
 
