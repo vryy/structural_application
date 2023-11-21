@@ -58,6 +58,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // Project includes
 #include "utilities/math_utils.h"
 #include "constitutive_laws/isotropic_3d.h"
+#include "custom_utilities/sd_math_utils.h"
 #include "structural_application_variables.h"
 
 namespace Kratos
@@ -227,7 +228,26 @@ Vector& Isotropic3D::GetValue( const Variable<Vector>& rThisVariable, Vector& rV
 
 Matrix& Isotropic3D::GetValue( const Variable<Matrix>& rThisVariable, Matrix& rValue )
 {
-        KRATOS_THROW_ERROR( std::logic_error, "Matrix Variable case not considered", "" );
+    if(rThisVariable == ALGORITHMIC_TANGENT || rThisVariable == ELASTIC_TANGENT || rThisVariable == THREED_ALGORITHMIC_TANGENT)
+    {
+        if(rValue.size1() != 6 || rValue.size2() != 6)
+            rValue.resize(6, 6, false);
+        CalculateElasticMatrix( rValue, mE, mNU );
+    }
+    else if(rThisVariable == ELASTIC_STRAIN_TENSOR)
+    {
+        Vector StrainVector(6);
+        this->CalculateStrain(mE, mNU, mCurrentStress + mPrestressFactor * mPrestress, StrainVector);
+        SD_MathUtils<double>::StrainVectorToTensor(StrainVector, rValue);
+    }
+    else if(rThisVariable == CAUCHY_STRESS_TENSOR)
+    {
+        if (rValue.size1() != 3 || rValue.size2() != 3)
+            rValue.resize(3, 3, false);
+        SD_MathUtils<double>::StrainVectorToTensor(mCurrentStress, rValue);
+    }
+
+    return rValue ;
 }
 
 void Isotropic3D::SetValue( const Variable<int>& rThisVariable, const int& rValue,
@@ -349,11 +369,6 @@ void Isotropic3D::CalculateMaterialResponseCauchy (Parameters& rValues)
     }
 }
 
-void Isotropic3D::CalculateMaterialResponsePK2 (Parameters& rValues)
-{
-    CalculateMaterialResponseCauchy(rValues);
-}
-
 void Isotropic3D::CalculateMaterialResponse( const Vector& StrainVector,
         const Matrix& DeformationGradient,
         Vector& StressVector,
@@ -400,9 +415,6 @@ void Isotropic3D::CalculateElasticMatrix( Matrix& C, const double& E, const doub
     C( 5, 5 ) = c4;
 }
 
-/**
- * TO BE TESTED!!!
- */
 void Isotropic3D::CalculateStress( const Vector& StrainVector, Matrix& AlgorithmicTangent, Vector& StressVector )
 {
     if ( StressVector.size() != 6 )
@@ -415,9 +427,6 @@ void Isotropic3D::CalculateStress( const Vector& StrainVector, Matrix& Algorithm
     noalias(mCurrentStress) = StressVector;
 }
 
-/**
- * TO BE TESTED!!!
- */
 void Isotropic3D::CalculateStress( const double& E, const double& NU, const Vector& StrainVector, Vector& StressVector ) const
 {
     if ( StressVector.size() != 6 )
@@ -432,6 +441,19 @@ void Isotropic3D::CalculateStress( const double& E, const double& NU, const Vect
     noalias( StressVector ) = prod( Ce, StrainVector );
 }
 
+void Isotropic3D::CalculateStrain( const double& E, const double& NU, const Vector& StressVector, Vector& StrainVector ) const
+{
+    const double c1 = 1.0 / E;
+    const double c2 = -NU * c1;
+    const double c3 = 2 * (1 + NU) / E;
+
+    StrainVector(0) = c1 * StressVector(0) + c2 * StressVector(1) + c2 * StressVector(2);
+    StrainVector(1) = c2 * StressVector(0) + c1 * StressVector(1) + c2 * StressVector(2);
+    StrainVector(2) = c2 * StressVector(0) + c2 * StressVector(1) + c1 * StressVector(2);
+    StrainVector(3) = c3 * StressVector(3);
+    StrainVector(4) = c3 * StressVector(4);
+    StrainVector(5) = c3 * StressVector(5);
+}
 
 //**********************************************************************
 void Isotropic3D::CalculateCauchyStresses(

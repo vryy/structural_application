@@ -111,7 +111,7 @@ public:
      * Operations
      */
 
-    ConstitutiveLaw::Pointer Clone() const final
+    ConstitutiveLaw::Pointer Clone() const override
     {
          ConstitutiveLaw::Pointer p_clone(new PlaneStrain());
         return p_clone;
@@ -199,6 +199,13 @@ public:
     void CalculateStress(const double& E, const double& NU, const Vector& StrainVector, Vector& rResult) const;
 
     /**
+     * Calculates the strain for given stress state
+     * @param StrainVector the current vector of strains
+     * @param rResult the stress vector corresponding to the given strains
+     */
+    void CalculateStrain(const double& E, const double& NU, const Vector& StressVector, Vector& rResult ) const;
+
+    /**
      * As this constitutive law describes only linear elastic material properties
      * this function is rather useless and in fact does nothing
      */
@@ -238,12 +245,6 @@ public:
      */
     void CalculateMaterialResponseCauchy (Parameters& rValues) final;
 
-    /**
-     * Computes the material response in terms of 2nd Piola-Kirchhoff stresses and constitutive tensor
-     * @see Parameters
-     */
-    void CalculateMaterialResponsePK2 (Parameters& rValues) final;
-
     /// DEPRECATED interface
     void CalculateMaterialResponse( const Vector& StrainVector,
                                      const Matrix& DeformationGradient,
@@ -268,7 +269,7 @@ public:
     /**
      * Turn back information as a string.
      */
-    std::string Info() const final
+    std::string Info() const override
     {
         return "PlaneStrain";
     }
@@ -288,8 +289,10 @@ public:
 
 protected:
     /**
-     * there are no protected class members
+     * there are several protected class members
      */
+
+    Vector mCurrentStress;
 
 private:
     ///@}
@@ -329,7 +332,6 @@ private:
     void CalculateElasticMatrix(Matrix& C, const double& E, const double& NU) const;
 
     double mE, mNU, mDE;
-    Vector mCurrentStress;
     double mPrestressFactor;
     Vector mPreStress;
 

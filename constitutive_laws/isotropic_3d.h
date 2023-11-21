@@ -106,25 +106,25 @@ class Isotropic3D : public ConstitutiveLaw
          * Operations
          */
 
-        ConstitutiveLaw::Pointer Clone() const final
+        ConstitutiveLaw::Pointer Clone() const override
         {
             ConstitutiveLaw::Pointer p_clone( new Isotropic3D() );
             return p_clone;
         }
 
-        ConstitutiveLaw::StrainMeasure GetStrainMeasure() final
+        ConstitutiveLaw::StrainMeasure GetStrainMeasure() override
         {
             return StrainMeasure_Infinitesimal;
         }
 
-        ConstitutiveLaw::StressMeasure GetStressMeasure() final
+        ConstitutiveLaw::StressMeasure GetStressMeasure() override
         {
             return StressMeasure_Cauchy;
         }
 
         void GetLawFeatures(Features& rFeatures) final
         {
-            rFeatures.SetStrainMeasure(ConstitutiveLaw::StrainMeasure_Infinitesimal);
+            rFeatures.SetStrainMeasure(this->GetStrainMeasure());
         }
 
         bool Has( const Variable<int>& rThisVariable );
@@ -215,12 +215,6 @@ class Isotropic3D : public ConstitutiveLaw
          */
         void CalculateMaterialResponseCauchy (Parameters& rValues) final;
 
-        /**
-         * Computes the material response in terms of 2nd Piola-Kirchhoff stresses and constitutive tensor
-         * @see Parameters
-         */
-        void CalculateMaterialResponsePK2 (Parameters& rValues) final;
-
         /// DEPRECATED function
         void CalculateMaterialResponse( const Vector& StrainVector,
                                         const Matrix& DeformationGradient,
@@ -251,6 +245,12 @@ class Isotropic3D : public ConstitutiveLaw
          */
         void CalculateStress(const double& E, const double& NU, const Vector& StrainVector, Vector& rResult) const;
 
+        /**
+         * Calculates the strain for given stress state
+         * @param StrainVector the current vector of strains
+         * @param rResult the stress vector corresponding to the given strains
+         */
+        void CalculateStrain(const double& E, const double& NU, const Vector& StressVector, Vector& rResult) const;
 
         /**
          * calculates the linear elastic constitutive matrix in terms of Young's modulus and
@@ -268,7 +268,7 @@ class Isotropic3D : public ConstitutiveLaw
         /**
          * Turn back information as a string.
          */
-        std::string Info() const final
+        std::string Info() const override
         {
             return "Isotropic3D";
         }
@@ -288,8 +288,11 @@ class Isotropic3D : public ConstitutiveLaw
 
     protected:
         /**
-         * there are no protected class members
+         * there are several protected class members
          */
+
+        Vector mCurrentStress;
+
     private:
 
         ///@}
@@ -333,7 +336,6 @@ class Isotropic3D : public ConstitutiveLaw
 
         Vector mPrestress;
         double mPrestressFactor;
-        Vector mCurrentStress;
         double mE, mNU, mDE;
 
         /**

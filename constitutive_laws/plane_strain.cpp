@@ -60,6 +60,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "utilities/math_utils.h"
 #include "constitutive_laws/plane_strain.h"
 #include "constitutive_laws/isotropic_3d.h"
+#include "custom_utilities/sd_math_utils.h"
 #include "structural_application_variables.h"
 
 namespace Kratos
@@ -214,6 +215,18 @@ Matrix& PlaneStrain::GetValue( const Variable<Matrix>& rThisVariable, Matrix& rV
             rValue.resize(6, 6, false);
         Isotropic3D::CalculateElasticMatrix(rValue, mE, mNU);
     }
+    else if(rThisVariable == ELASTIC_STRAIN_TENSOR)
+    {
+        Vector StrainVector(3);
+        this->CalculateStrain(mE, mNU, mCurrentStress + mPrestressFactor * mPreStress, StrainVector);
+        SD_MathUtils<double>::StrainVectorToTensor(StrainVector, rValue);
+    }
+    else if(rThisVariable == CAUCHY_STRESS_TENSOR)
+    {
+        if (rValue.size1() != 3 || rValue.size2() != 3)
+            rValue.resize(3, 3, false);
+        SD_MathUtils<double>::StrainVectorToTensor(mCurrentStress, rValue);
+    }
 
     return rValue ;
 }
@@ -302,11 +315,6 @@ void PlaneStrain::CalculateMaterialResponseCauchy (Parameters& rValues)
     }
 }
 
-void PlaneStrain::CalculateMaterialResponsePK2 (Parameters& rValues)
-{
-    CalculateMaterialResponseCauchy(rValues);
-}
-
 void PlaneStrain::CalculateMaterialResponse( const Vector& StrainVector,
         const Matrix& DeformationGradient,
         Vector& StressVector,
@@ -384,28 +392,15 @@ void PlaneStrain::CalculateElasticMatrix( Matrix& C, const double& E, const doub
     C( 2, 2 ) = c3;
 }
 
-/**
- * TO BE TESTED!!!
- */
 void PlaneStrain::CalculateStress( const Vector& StrainVector, Vector& StressVector )
 {
-    double c1 = mE * ( 1.00 - mNU ) / (( 1.00 + mNU ) * ( 1.00 - 2 * mNU ) );
-    double c2 = mE * mNU / (( 1.00 + mNU ) * ( 1.00 - 2 * mNU ) );
-    double c3 = 0.5 * mE / ( 1 + mNU );
-
-    // compute the stress based on strain
-    StressVector[0] = c1 * StrainVector[0] + c2 * StrainVector[1];
-    StressVector[1] = c1 * StrainVector[1] + c2 * StrainVector[0];
-    StressVector[2] = c3 * StrainVector[2];
+    this->CalculateStress(mE, mNU, StrainVector, StressVector);
 
     noalias(StressVector) -= mPrestressFactor*mPreStress;
 
     noalias( mCurrentStress ) = StressVector;
 }
 
-/**
- * TO BE TESTED!!!
- */
 void PlaneStrain::CalculateStress( const double& E, const double& NU, const Vector& StrainVector, Vector& StressVector ) const
 {
     double c1 = E * ( 1.00 - NU ) / (( 1.00 + NU ) * ( 1.00 - 2 * NU ) );
@@ -418,6 +413,17 @@ void PlaneStrain::CalculateStress( const double& E, const double& NU, const Vect
     StressVector[2] = c3 * StrainVector[2];
 }
 
+
+void PlaneStrain::CalculateStrain(const double& E, const double& NU, const Vector& StressVector, Vector& StrainVector ) const
+{
+    const double c1 = ( 1.00 - NU * NU ) / E;
+    const double c2 = -NU * ( 1.00 + NU ) / E;
+    const double c3 = 2 * ( 1 + NU ) / E;
+
+    StrainVector(0) = c1 * StressVector(0) + c2 * StressVector(1);
+    StrainVector(1) = c2 * StressVector(0) + c1 * StressVector(1);
+    StrainVector(2) = c3 * StressVector(2);
+}
 
 /**
  * TO BE REVIEWED!!!

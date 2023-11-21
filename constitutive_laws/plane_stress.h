@@ -123,7 +123,7 @@ public:
 
     void GetLawFeatures(Features& rFeatures) final
     {
-        rFeatures.SetStrainMeasure(StrainMeasure_Infinitesimal);
+        rFeatures.SetStrainMeasure(this->GetStrainMeasure());
     }
 
     bool Has(const Variable<int>& rThisVariable);
