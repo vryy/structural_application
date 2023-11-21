@@ -343,12 +343,18 @@ void TotalLagrangianBridgingConstitutiveLaw::CalculateMaterialResponsePK2(Parame
     {
         Fourth_Order_Tensor D;
         Matrix& AlgorithmicTangent = rValues.GetConstitutiveMatrix();
-        SD_MathUtils<double>::MatrixToTensor(AlgorithmicTangent, D);
+
+        // obtain the tangent from the small strain constitutive law. It must be from
+        // a fourth order tensor to not missing the out-of-plane component in plane strain
+        // analysis
+        Matrix Dmat(6, 6);
+        mpConstitutiveLaw->GetValue(THREED_ALGORITHMIC_TANGENT, Dmat);
+        SD_MathUtils<double>::MatrixToTensor(Dmat, D);
 
         #ifdef DEBUG_CONSTITUTIVE_LAW
         if (ElemId == 1)
         {
-            KRATOS_WATCH(AlgorithmicTangent)
+            KRATOS_WATCH(Dmat)
         }
         #endif
 
