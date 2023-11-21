@@ -117,19 +117,19 @@ public:
         return p_clone;
     }
 
-    ConstitutiveLaw::StrainMeasure GetStrainMeasure() final
+    ConstitutiveLaw::StrainMeasure GetStrainMeasure() override
     {
         return StrainMeasure_Infinitesimal;
     }
 
-    ConstitutiveLaw::StressMeasure GetStressMeasure() final
+    ConstitutiveLaw::StressMeasure GetStressMeasure() override
     {
         return StressMeasure_Cauchy;
     }
 
     void GetLawFeatures(Features& rFeatures) final
     {
-        rFeatures.SetStrainMeasure(StrainMeasure_Infinitesimal);
+        rFeatures.SetStrainMeasure(this->GetStrainMeasure());
     }
 
     bool Has( const Variable<int>& rThisVariable );

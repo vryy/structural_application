@@ -98,6 +98,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "constitutive_laws/plane_stress_J2.h"
 #include "constitutive_laws/brittle_material_2d.h"
 #include "constitutive_laws/orthotropic_3d.h"
+#include "constitutive_laws/st_venant_kirchhoff.h"
 #include "constitutive_laws/multiplicative_finite_strain_bridging_constitutive_law.h"
 #include "constitutive_laws/multiplicative_finite_strain_bridging_constitutive_law_dc.h"
 #include "constitutive_laws/multiplicative_total_lagrangian_bridging_constitutive_law.h"
@@ -205,6 +206,16 @@ void  AddConstitutiveLawsToPython()
 
     class_< Isotropic3DDC, bases< ConstitutiveLawBaseType >,  boost::noncopyable >
     ( "Isotropic3DDC",
+      init<>() )
+    ;
+
+    class_< StVenantKirchhoff<2>, bases< PlaneStrain >,  boost::noncopyable >
+    ( "StVenantKirchhoff_PlaneStrain",
+      init<>() )
+    ;
+
+    class_< StVenantKirchhoff<3>, bases< Isotropic3D >,  boost::noncopyable >
+    ( "StVenantKirchhoff_3D",
       init<>() )
     ;
 
