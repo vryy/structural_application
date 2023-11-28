@@ -17,6 +17,7 @@ set( KRATOS_STRUCTURAL_APPLICATION_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/shell_isotropic.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/membrane_element.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/total_lagrangian.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/total_lagrangian_axisymmetric.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/finite_strain.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/finite_strain_axisymmetric.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/mixed_lagrangian.cpp

@@ -60,7 +60,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // Project includes
 #include "utilities/math_utils.h"
 #include "custom_elements/total_lagrangian.h"
+#include "custom_utilities/geometry_utility.h"
 #include "structural_application_variables.h"
+
+// #define CHECK_DEFORMATION_GRADIENT
 
 namespace Kratos
 {
@@ -223,30 +226,33 @@ namespace Kratos
                                         bool CalculateResidualVectorFlag )
     {
         KRATOS_TRY
+
         const unsigned int number_of_nodes = GetGeometry().size();
         const unsigned int dim = GetGeometry().WorkingSpaceDimension();
-        unsigned int StrainSize = dim * (dim+1) / 2;
+        const unsigned int strain_size = this->GetStrainSize(dim);
+        const unsigned int f_size = this->GetFSize(dim);
 
-        Matrix B( StrainSize, number_of_nodes * dim );
+        Matrix B_Operator( strain_size, number_of_nodes * dim );
 
-        Matrix F( dim, dim );
+        Matrix F( f_size, f_size );
 
-        Matrix D( StrainSize, StrainSize );
+        Matrix D( strain_size, strain_size );
 
-        Matrix C( dim, dim );
+        Matrix C( f_size, f_size );
 
-        Vector StrainVector( StrainSize );
+        Vector StrainVector( strain_size );
 
-        Vector StressVector( StrainSize );
+        Vector StressVector( strain_size );
 
         Vector N( number_of_nodes );
-        Matrix DN_DX( number_of_nodes, dim );
 
-        Matrix CurrentDisp( number_of_nodes, dim );
+        Matrix DN_DX( number_of_nodes, dim );
 
         Matrix InvJ0(dim, dim);
 
         double DetJ0;
+
+        double DetJn;
 
         double DetF;
 
@@ -299,17 +305,22 @@ namespace Kratos
             noalias( row( DeltaPosition, node ) ) = GetGeometry()[node].Coordinates() - GetGeometry()[node].GetInitialPosition();
 
         //Current displacements
+        Matrix CurrentDisp(GetGeometry().size(), 3);
         for ( unsigned int node = 0; node < GetGeometry().size(); ++node )
             noalias( row( CurrentDisp, node ) ) = GetGeometry()[node].GetSolutionStepValue( DISPLACEMENT );
 
-        GeometryType::JacobiansType J0;
-        J0 = GetGeometry().Jacobian( J0, mThisIntegrationMethod, DeltaPosition );
+        //calculating jacobians
+        MyJacobians Jacobians;
+        this->CalculateJacobians(Jacobians, DeltaPosition, CurrentDisp);
+        Jacobians.Check();
 
-        //calculating actual jacobian
-        GeometryType::JacobiansType J;
-        Matrix ShiftedDisp = DeltaPosition - CurrentDisp;
-        J = GetGeometry().Jacobian( J, mThisIntegrationMethod, ShiftedDisp );
+        const GeometryType::JacobiansType& J0 = Jacobians.J0();
+        const GeometryType::JacobiansType& Jn = Jacobians.Jn();
+        const GeometryType::JacobiansType& J = Jacobians.J();
 
+        /////////////////////////////////////////////////////////////////////////
+        //// Integration in space over quadrature points
+        /////////////////////////////////////////////////////////////////////////
         for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
         {
             //Calculating the cartesian derivatives (it is avoided storing them to minimize storage)
@@ -318,46 +329,55 @@ namespace Kratos
             noalias( N ) = row( Ncontainer, PointNumber );
 
             //deformation gradient
-            noalias( F ) = prod( J[PointNumber], InvJ0 );
+            this->CalculateF( F, N, DN_DX, CurrentDisp );
             DetF = MathUtils<double>::Det(F);
             const_params.SetDeterminantF(DetF);
+
+            #ifdef CHECK_DEFORMATION_GRADIENT
+            if (DetF < 0.0)
+            {
+                KRATOS_WATCH(F)
+                KRATOS_ERROR << "Deformation gradient is negative at integration point " << PointNumber
+                             << " of element " << Id();
+            }
+            #endif
 
             //strain calculation
             noalias( C ) = prod( trans( F ), F );
 
-            CalculateStrain( C, StrainVector );
+            this->CalculateStrain( C, StrainVector );
 //            Comprobate_State_Vector( StrainVector ); // I don't understand why we need this
 
             mConstitutiveLawVector[PointNumber]->CalculateMaterialResponse( const_params, stress_measure );
 
             //calculating operator B
-            CalculateB( B, F, DN_DX, StrainVector.size() );
+            this->CalculateB( B_Operator, F, N, DN_DX );
 
             //calculating weights for integration on the reference configuration
             double IntToReferenceWeight = this->GetIntegrationWeight(integration_points[PointNumber].Weight(), N) * DetJ0;
 
             if ( dim == 2 ) IntToReferenceWeight *= GetProperties()[THICKNESS];
 
-            if ( CalculateStiffnessMatrixFlag == true ) //calculation of the matrix is required
+            if ( CalculateStiffnessMatrixFlag == true ) //calculation of the lhs matrix is required
             {
                 //contributions to stiffness matrix calculated on the reference config
-                noalias( rLeftHandSideMatrix ) += prod( trans( B ), ( IntToReferenceWeight ) * Matrix( prod( D, B ) ) ); //to be optimized to remove the temporary
-                CalculateAndAddKg( rLeftHandSideMatrix, DN_DX, StressVector, IntToReferenceWeight );
+                noalias( rLeftHandSideMatrix ) += prod( trans( B_Operator ), ( IntToReferenceWeight ) * Matrix( prod( D, B_Operator ) ) ); //to be optimized to remove the temporary
+                CalculateAndAddKg( rLeftHandSideMatrix, N, DN_DX, StressVector, IntToReferenceWeight );
             }
 
-            if ( CalculateResidualVectorFlag == true ) //calculation of the matrix is required
+            if ( CalculateResidualVectorFlag == true ) //calculation of the rhs vector is required
             {
                 //contribution to external forces
                 const Vector& BodyForce = GetProperties()[BODY_FORCE];
 
                 // operation performed: rRightHandSideVector += ExtForce*IntToReferenceWeight
-                CalculateAndAdd_ExtForceContribution( row( Ncontainer, PointNumber ), rCurrentProcessInfo, BodyForce, rRightHandSideVector, IntToReferenceWeight );
+                CalculateAndAdd_ExtForceContribution( N, rCurrentProcessInfo, BodyForce, rRightHandSideVector, IntToReferenceWeight );
 
                 //contribution of gravity (if there is)
-                AddBodyForcesToRHS( rRightHandSideVector, row( Ncontainer, PointNumber ), IntToReferenceWeight );
+                AddBodyForcesToRHS( rRightHandSideVector, N, IntToReferenceWeight );
 
                 // operation performed: rRightHandSideVector -= IntForce*IntToReferenceWeight
-                noalias( rRightHandSideVector ) -= IntToReferenceWeight * prod( trans( B ), StressVector );
+                noalias( rRightHandSideVector ) -= IntToReferenceWeight * prod( trans( B_Operator ), StressVector );
             }
         }
 
@@ -412,6 +432,37 @@ namespace Kratos
 //************************************************************************************
 //************************************************************************************
 
+    void TotalLagrangian::CalculateJacobians( TotalLagrangian::MyJacobians& Jacobians,
+            const Matrix& DeltaPosition, const Matrix& CurrentDisp ) const
+    {
+        // calculate the Jacobian in reference configuration no matter what the MoveMeshFlag is turned on or not
+        Jacobians.J0Values = GetGeometry().Jacobian( Jacobians.J0Values, mThisIntegrationMethod, DeltaPosition );
+
+        // calculate the Jacobian in current configuration no matter what the MoveMeshFlag is turned on or not
+        // The coordinates for Jacobian are GetInitialPosition + CurrentDisp
+        Matrix ShiftedDisp = DeltaPosition - CurrentDisp;
+        Jacobians.JValues = GetGeometry().Jacobian( Jacobians.JValues, mThisIntegrationMethod, ShiftedDisp );
+
+        // assign the correct pointers
+        Jacobians.J0p = &Jacobians.J0Values;
+        Jacobians.Jnp = &Jacobians.J0Values; // the Jacobians in previous configutation are taken as the reference ones
+        Jacobians.Jp = &Jacobians.JValues;
+    }
+
+    void TotalLagrangian::CalculateJacobians( MatrixType& J0, MatrixType& J, const CoordinatesArrayType& rCoordinates,
+            const Matrix& DeltaPosition, const Matrix& CurrentDisp ) const
+    {
+        // calculate the Jacobian in reference configuration no matter what the MoveMeshFlag is turned on or not
+        J0 = GetGeometry().Jacobian( J0, rCoordinates, DeltaPosition );
+
+        // calculate the Jacobian in current configuration no matter what the MoveMeshFlag is turned on or not
+        Matrix ShiftedDisp = DeltaPosition - CurrentDisp;
+        J = GetGeometry().Jacobian( J, rCoordinates, ShiftedDisp );
+    }
+
+//************************************************************************************
+//************************************************************************************
+
     void TotalLagrangian::CalculateRightHandSide( VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo )
     {
         //calculation flags
@@ -432,10 +483,6 @@ namespace Kratos
         bool CalculateResidualVectorFlag = true;
 
         CalculateAll( rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo, CalculateStiffnessMatrixFlag, CalculateResidualVectorFlag );
-
-
-    }
-
     }
 
 //************************************************************************************
@@ -671,7 +718,7 @@ namespace Kratos
 //************************************************************************************
 //************************************************************************************
 
-    inline void TotalLagrangian::AddBodyForcesToRHS( Vector& R, const Vector& N_DISP, const double& Weight )
+    inline void TotalLagrangian::AddBodyForcesToRHS( Vector& R, const Vector& N_DISP, const double& Weight ) const
     {
         KRATOS_TRY
 
@@ -704,15 +751,16 @@ namespace Kratos
 //************************************************************************************
 //************************************************************************************
 
-    inline void TotalLagrangian::CalculateAndAdd_ExtForceContribution(
+    void TotalLagrangian::CalculateAndAdd_ExtForceContribution(
         const Vector& N,
         const ProcessInfo& CurrentProcessInfo,
         const Vector& BodyForce,
         VectorType& rRightHandSideVector,
-        const double& weight
-    )
+        double Weight
+    ) const
     {
         KRATOS_TRY
+
         unsigned int number_of_nodes = GetGeometry().PointsNumber();
         unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
@@ -720,7 +768,7 @@ namespace Kratos
         {
             int index = dimension * i;
 
-            for ( unsigned int j = 0; j < dimension; j++ ) rRightHandSideVector[index + j] += weight * N[i] * BodyForce[j];
+            for ( unsigned int j = 0; j < dimension; j++ ) rRightHandSideVector[index + j] += Weight * N[i] * BodyForce[j];
         }
 
         KRATOS_CATCH( "" )
@@ -731,20 +779,16 @@ namespace Kratos
 
     void TotalLagrangian::CalculateAndAddKg(
         MatrixType& K,
+        const Vector& N,
         const Matrix& DN_DX,
         const Vector& StressVector,
-        const double& weight )
+        double Weight ) const
     {
         KRATOS_TRY
-        // unsigned int dimension = mpReferenceGeometry->WorkingSpaceDimension();
-        //Matrix<double> StressTensor = MathUtils<double>::StressVectorToTensor(StressVector);
-        //Matrix<double> ReducedKg(DN_Dx.RowsNumber(),DN_Dx.RowsNumber());
-        //Matrix<double>::MatMulAndAdd_B_D_Btrans(ReducedKg,weight,DN_Dx,StressTensor);
-        //MathUtils<double>::ExpandAndAddReducedMatrix(K,ReducedKg,dimension);
 
         unsigned int dimension = GetGeometry().WorkingSpaceDimension();
         Matrix StressTensor = MathUtils<double>::StressVectorToTensor( StressVector );
-        Matrix ReducedKg = prod( DN_DX, weight * Matrix( prod( StressTensor, trans( DN_DX ) ) ) ); //to be optimized
+        Matrix ReducedKg = prod( DN_DX, Weight * Matrix( prod( StressTensor, trans( DN_DX ) ) ) ); //to be optimized
         MathUtils<double>::ExpandAndAddReducedMatrix( K, ReducedKg, dimension );
 
         KRATOS_CATCH( "" )
@@ -755,26 +799,22 @@ namespace Kratos
 
     void TotalLagrangian::CalculateStrain(
         const Matrix& C,
-        Vector& StrainVector )
+        Vector& StrainVector ) const
     {
         KRATOS_TRY
-        unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+
+        const unsigned int dimension = C.size1();
 
         if ( dimension == 2 )
         {
-            if ( StrainVector.size() != 3 ) StrainVector.resize( 3, false );
-
             StrainVector[0] = 0.5 * ( C( 0, 0 ) - 1.00 );
 
             StrainVector[1] = 0.5 * ( C( 1, 1 ) - 1.00 );
 
             StrainVector[2] = C( 0, 1 );
         }
-
-        if ( dimension == 3 )
+        else if ( dimension == 3 )
         {
-            if ( StrainVector.size() != 6 ) StrainVector.resize( 6, false );
-
             StrainVector[0] = 0.5 * ( C( 0, 0 ) - 1.00 );
 
             StrainVector[1] = 0.5 * ( C( 1, 1 ) - 1.00 );
@@ -794,13 +834,33 @@ namespace Kratos
 //************************************************************************************
 //************************************************************************************
 
+    void TotalLagrangian::CalculateF( Matrix& F, const Vector& N, const Matrix& DN_DX, const Matrix& CurrentDisp ) const
+    {
+        const unsigned int dim = F.size1();
+        const unsigned int number_of_nodes = CurrentDisp.size1();
+
+        for (unsigned int i = 0; i < dim; ++i)
+        {
+            for (unsigned int j = 0; j < dim; ++j)
+            {
+                F(i, j) = 0.0;
+                for (unsigned int n = 0; n < number_of_nodes; ++n)
+                    F(i, j) += DN_DX(n, j) * CurrentDisp(n, i);
+            }
+            F(i, i) += 1.0;
+        }
+    }
+
+//************************************************************************************
+//************************************************************************************
+
     void TotalLagrangian::CalculateB(
         Matrix& B,
         const Matrix& F,
-        const Matrix& DN_DX,
-        unsigned int StrainSize )
+        const Matrix& DN_DX ) const
     {
         KRATOS_TRY
+
         const unsigned int number_of_nodes = GetGeometry().PointsNumber();
         unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
@@ -937,6 +997,7 @@ namespace Kratos
         //reading integration points and local gradients
         const GeometryType::IntegrationPointsArrayType& integration_points =
             GetGeometry().IntegrationPoints( mThisIntegrationMethod );
+
         const Matrix& Ncontainer = GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod );
 
         //initializing the Jacobian in the reference configuration
@@ -944,12 +1005,21 @@ namespace Kratos
         for ( unsigned int node = 0; node < GetGeometry().size(); ++node )
             noalias( row( DeltaPosition, node ) ) = GetGeometry()[node].Coordinates() - GetGeometry()[node].GetInitialPosition();
 
+        //Current displacements
+        Matrix CurrentDisp(GetGeometry().size(), 3);
+        for ( unsigned int node = 0; node < GetGeometry().size(); ++node )
+            noalias( row( CurrentDisp, node ) ) = GetGeometry()[node].GetSolutionStepValue( DISPLACEMENT );
+
+        //Jacobians
+        Vector N(GetGeometry().size());
         GeometryType::JacobiansType J0;
         J0 = GetGeometry().Jacobian( J0, mThisIntegrationMethod, DeltaPosition );
         double DetJ0;
 
+        //Mass contribution
         for (unsigned int PointNumber = 0; PointNumber < integration_points.size(); ++PointNumber)
         {
+            noalias( N ) = row( Ncontainer, PointNumber );
             DetJ0 = MathUtils<double>::Det(J0[PointNumber]);
 
             //calculating weights for integration on the reference configuration
@@ -963,8 +1033,7 @@ namespace Kratos
                 for ( unsigned int j = 0; j < NumberOfNodes; ++j )
                 {
                     for ( unsigned int k = 0; k < dimension; ++k )
-                        rMassMatrix(dimension*i + k, dimension*j + k) += Ncontainer(PointNumber, i) * Ncontainer(PointNumber, j)
-                            * IntToReferenceWeight * DetJ0;
+                        rMassMatrix(dimension*i + k, dimension*j + k) += N(i) * N(j) * IntToReferenceWeight;
                 }
             }
         }
@@ -1050,11 +1119,62 @@ namespace Kratos
             std::vector<double>& rValues,
             const ProcessInfo& rCurrentProcessInfo )
     {
-        if ( rValues.size() != GetGeometry().IntegrationPoints( mThisIntegrationMethod ).size() )
-            rValues.resize( GetGeometry().IntegrationPoints( mThisIntegrationMethod ).size(), false );
+        //reading integration points and local gradients
+        const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
 
-        for ( unsigned int ii = 0; ii < mConstitutiveLawVector.size(); ii++ )
-            rValues[ii] = mConstitutiveLawVector[ii]->GetValue( rVariable, rValues[ii] );
+        if ( rValues.size() != integration_points.size() )
+            rValues.resize( integration_points.size(), false );
+
+        if ( rVariable == CURRENT_DEFORMATION_GRADIENT_DETERMINANT )
+        {
+            const unsigned int dim = GetGeometry().WorkingSpaceDimension();
+
+            Matrix F( dim, dim );
+
+            Matrix InvJ0(dim, dim);
+
+            double DetJ0;
+
+            double DetF;
+
+            //initializing the Jacobian in the reference configuration
+            Matrix DeltaPosition(GetGeometry().size(), 3);
+            for ( unsigned int node = 0; node < GetGeometry().size(); ++node )
+                noalias( row( DeltaPosition, node ) ) = GetGeometry()[node].Coordinates() - GetGeometry()[node].GetInitialPosition();
+
+            //Current displacements
+            Matrix CurrentDisp(GetGeometry().size(), 3);
+            for ( unsigned int node = 0; node < GetGeometry().size(); ++node )
+                noalias( row( CurrentDisp, node ) ) = GetGeometry()[node].GetSolutionStepValue( DISPLACEMENT );
+
+            //calculating jacobians
+            MyJacobians Jacobians;
+            this->CalculateJacobians(Jacobians, DeltaPosition, CurrentDisp);
+            Jacobians.Check();
+
+            const GeometryType::JacobiansType& J0 = Jacobians.J0();
+            const GeometryType::JacobiansType& Jn = Jacobians.Jn();
+            const GeometryType::JacobiansType& J = Jacobians.J();
+
+            for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
+            {
+                //Calculating the cartesian derivatives (it is avoided storing them to minimize storage)
+                MathUtils<double>::InvertMatrix( J0[PointNumber], InvJ0, DetJ0 );
+
+                //deformation gradient
+                noalias( F ) = prod( J[PointNumber], InvJ0 );
+                DetF = MathUtils<double>::Det(F);
+
+                rValues[PointNumber] = DetF;
+            }
+
+            return;
+        }
+        else
+        {
+            for ( unsigned int ii = 0; ii < mConstitutiveLawVector.size(); ii++ )
+                rValues[ii] = mConstitutiveLawVector[ii]->GetValue( rVariable, rValues[ii] );
+        }
     }
 
 //************************************************************************************
@@ -1128,13 +1248,9 @@ namespace Kratos
 
     void TotalLagrangian::CalculateOnIntegrationPoints( const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo )
     {
-        const unsigned int& size = GetGeometry().IntegrationPoints( mThisIntegrationMethod ).size();
-        unsigned int StrainSize;
-
-        if ( GetGeometry().WorkingSpaceDimension() == 2 )
-            StrainSize = 3;
-        else
-            StrainSize = 6;
+        const unsigned int size = GetGeometry().IntegrationPoints( mThisIntegrationMethod ).size();
+        const unsigned int dim = GetGeometry().WorkingSpaceDimension();
+        const unsigned int strain_size = this->GetStrainSize(dim);
 
         if ( rValues.size() != size )
             rValues.resize( size );
@@ -1145,8 +1261,8 @@ namespace Kratos
                     PointNumber < GetGeometry().IntegrationPoints( mThisIntegrationMethod ).size();
                     PointNumber++ )
             {
-                if ( rValues[PointNumber].size() != StrainSize )
-                    rValues[PointNumber].resize( StrainSize, false );
+                if ( rValues[PointNumber].size() != strain_size )
+                    rValues[PointNumber].resize( strain_size, false );
 
                 rValues[PointNumber] =
                     mConstitutiveLawVector[PointNumber]->GetValue( rVariable, rValues[PointNumber] );
@@ -1156,8 +1272,8 @@ namespace Kratos
         {
             for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); i++ )
             {
-                if ( rValues[i].size() != StrainSize )
-                    rValues[i].resize( StrainSize );
+                if ( rValues[i].size() != strain_size )
+                    rValues[i].resize( strain_size );
                 noalias( rValues[i] ) = mConstitutiveLawVector[i]->GetValue( PLASTIC_STRAIN_VECTOR, rValues[i] );
             }
         }
@@ -1165,8 +1281,8 @@ namespace Kratos
         {
             for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); i++ )
             {
-                if ( rValues[i].size() != StrainSize )
-                    rValues[i].resize( StrainSize );
+                if ( rValues[i].size() != strain_size )
+                    rValues[i].resize( strain_size );
                 noalias( rValues[i] ) = mConstitutiveLawVector[i]->GetValue( STRESSES, rValues[i] );
             }
         }
@@ -1210,21 +1326,19 @@ namespace Kratos
 
         const unsigned int number_of_nodes = GetGeometry().size();
         const unsigned int dim = GetGeometry().WorkingSpaceDimension();
-        unsigned int StrainSize = dim * (dim + 1) / 2;
+        const unsigned int strain_size = this->GetStrainSize(dim);
 
         Matrix F( dim, dim );
 
-        Matrix D( StrainSize, StrainSize );
+        Matrix D( strain_size, strain_size );
 
         Matrix C( dim, dim );
 
-        Vector StrainVector( StrainSize );
+        Vector StrainVector( strain_size );
 
-        Vector StressVector( StrainSize );
+        Vector StressVector( strain_size );
 
         Matrix DN_DX( number_of_nodes, dim );
-
-        Matrix CurrentDisp( number_of_nodes, dim );
 
         Matrix InvJ0(dim, dim);
 
@@ -1257,16 +1371,18 @@ namespace Kratos
             noalias( row( DeltaPosition, node ) ) = GetGeometry()[node].Coordinates() - GetGeometry()[node].GetInitialPosition();
 
         //Current displacements
+        Matrix CurrentDisp(GetGeometry().size(), 3);
         for ( unsigned int node = 0; node < GetGeometry().size(); ++node )
             noalias( row( CurrentDisp, node ) ) = GetGeometry()[node].GetSolutionStepValue( DISPLACEMENT );
 
-        GeometryType::JacobiansType J0;
-        J0 = GetGeometry().Jacobian( J0, mThisIntegrationMethod, DeltaPosition );
+        //calculating jacobians
+        MyJacobians Jacobians;
+        this->CalculateJacobians(Jacobians, DeltaPosition, CurrentDisp);
+        Jacobians.Check();
 
-        //calculating actual jacobian
-        GeometryType::JacobiansType J;
-        Matrix ShiftedDisp = DeltaPosition - CurrentDisp;
-        J = GetGeometry().Jacobian( J, mThisIntegrationMethod, ShiftedDisp );
+        const GeometryType::JacobiansType& J0 = Jacobians.J0();
+        const GeometryType::JacobiansType& Jn = Jacobians.Jn();
+        const GeometryType::JacobiansType& J = Jacobians.J();
 
         if ( rValues.size() != integration_points.size() )
             rValues.resize( integration_points.size() );
@@ -1440,7 +1556,7 @@ namespace Kratos
 //************************************************************************************
 //************************************************************************************
 
-    void TotalLagrangian::Comprobate_State_Vector( Vector& Result )
+    void TotalLagrangian::Comprobate_State_Vector( Vector& Result ) const
     {
         for ( unsigned int i = 0.00; i < Result.size(); i++ )
         {
@@ -1551,10 +1667,6 @@ namespace Kratos
         mThisIntegrationMethod = GetGeometry().GetDefaultIntegrationMethod();
     }
 
-
-
-
-
 } // Namespace Kratos
 
-
+#undef CHECK_DEFORMATION_GRADIENT

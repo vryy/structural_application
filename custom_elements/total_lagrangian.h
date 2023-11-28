@@ -115,9 +115,32 @@ public:
     typedef ConstitutiveLawType::Pointer ConstitutiveLawPointerType;
     ///Type definition for integration methods
     typedef GeometryData::IntegrationMethod IntegrationMethod;
+    ///Type for local coordinates
+    typedef GeometryType::CoordinatesArrayType CoordinatesArrayType;
+    ///Type for integration point container
+    typedef GeometryType::IntegrationPointsArrayType IntegrationPointsArrayType;
 
     /// Counted pointer of TotalLagrangian
     KRATOS_CLASS_POINTER_DEFINITION(TotalLagrangian);
+
+    /// local Jacobian container
+    struct MyJacobians
+    {
+        GeometryType::JacobiansType J0Values, JnValues, JValues;
+        GeometryType::JacobiansType *J0p, *Jnp, *Jp;
+
+        MyJacobians() : J0p(nullptr), Jnp(nullptr), Jp(nullptr) {}
+
+        const GeometryType::JacobiansType& J0() const {return *J0p;}
+        const GeometryType::JacobiansType& Jn() const {return *Jnp;}
+        const GeometryType::JacobiansType& J()  const {return *Jp;}
+
+        void Check() const
+        {
+            if (J0p == nullptr || Jnp == nullptr || Jp == nullptr)
+                KRATOS_ERROR << "The Jacobians are not fully defined";
+        }
+    };
 
     ///@}
     ///@name Life Cycle
@@ -244,12 +267,22 @@ protected:
     ///@name Protected member Variables
     ///@{
 
+    /**
+     * Currently selected integration methods
+     */
+    IntegrationMethod mThisIntegrationMethod;
+
     ///@}
     ///@name Protected Operators
     ///@{
     TotalLagrangian() : Element()
     {
     }
+
+    /**
+     * Container for constitutive law instances on each integration point
+     */
+    std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector;
 
     /**
      * Calculates the elemental contributions
@@ -260,10 +293,71 @@ protected:
                               const ProcessInfo& rCurrentProcessInfo,
                               bool CalculateStiffnessMatrixFlag,
                               bool CalculateResidualVectorFlag);
+
+    /// Compute the Jacobian in reference and current configuration
+    virtual void CalculateJacobians( MyJacobians& Jacobians, const Matrix& DeltaPosition, const Matrix& CurrentDisp ) const;
+    void CalculateJacobians( MatrixType& J0, MatrixType& J, const CoordinatesArrayType& rCoordinates,
+            const Matrix& DeltaPosition, const Matrix& CurrentDisp ) const;
+
+    /**
+     * Calculation of the Geometric Stiffness Matrix. Kg = dB * S
+     */
+    virtual void CalculateAndAddKg(
+        MatrixType& K,
+        const Vector& N,
+        const Matrix& DN_DX,
+        const Vector& StressVector,
+        double Weight
+    ) const;
+
+    void CalculateBodyForces(
+        Vector& BodyForce,
+        const ProcessInfo& CurrentProcessInfo
+    ) const;
+
+    void AddBodyForcesToRHS( Vector& R, const Vector& N_DISP, const double& Weight ) const;
+
+    void CalculateAndAdd_ExtForceContribution(
+        const Vector& N,
+        const ProcessInfo& CurrentProcessInfo,
+        const Vector& BodyForce,
+        VectorType& mResidualVector,
+        double Weight
+    ) const;
+
+    virtual unsigned int GetStrainSize( unsigned int dim ) const
+    {
+        return dim * (dim + 1) / 2;
+    }
+
+    virtual unsigned int GetFSize( unsigned int dim ) const
+    {
+        return dim;
+    }
+
+    // Calculate Green-Lagrange strain, providing C
+    virtual void CalculateStrain( const Matrix& C,
+                                  Vector& StrainVector ) const;
+
+    virtual void CalculateF( Matrix& F,
+                             const Vector& N,
+                             const Matrix& DN_DX,
+                             const Matrix& CurrentDisp ) const;
+
+    virtual void CalculateB( Matrix& B,
+                             const Matrix& F,
+                             const Vector& N,
+                             const Matrix& DN_DX ) const
+    {
+        this->CalculateB(B, F, DN_DX);
+    }
+
     virtual double GetIntegrationWeight( double Weight, const Vector& N ) const
     {
         return Weight;
     }
+
+    void Comprobate_State_Vector(Vector& Result) const;
 
     ///@}
     ///@name Protected Operations
@@ -293,14 +387,6 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-    /**
-     * Currently selected integration methods
-     */
-    IntegrationMethod mThisIntegrationMethod;
-    /**
-     * Container for constitutive law instances on each integration point
-     */
-    std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector;
 
     double mTotalDomainInitialSize;
     bool mIsInitialized;
@@ -315,48 +401,13 @@ private:
 //        Matrix& D,
 //        double weight);
 
-    /**
-     * Calculation of the Geometric Stiffness Matrix. Kg = dB * S
-     */
-    void CalculateAndAddKg(
-        MatrixType& K,
-        const Matrix& DN_DX,
-        const Vector& StressVector,
-        const double& weight
-    );
-
-    void CalculateBodyForces(
-        Vector& BodyForce,
-        const ProcessInfo& CurrentProcessInfo
-    );
-
     void InitializeVariables();
 
     virtual void InitializeMaterial();
 
-    double CalculateIntegrationWeight(const double& GaussPointWeight, const double& DetJ0);
-
-    void AddBodyForcesToRHS( Vector& R, const Vector& N_DISP, const double& Weight );
-
-    void CalculateAndAdd_ExtForceContribution(
-        const Vector& N,
-        const ProcessInfo& CurrentProcessInfo,
-        const Vector& BodyForce,
-        VectorType& mResidualVector,
-        const double& weight
-    );
-
-    // Calculate Green-Lagrange strain, providing C
-    void CalculateStrain(const Matrix& C,
-                         Vector& StrainVector);
-
     void CalculateB(Matrix& B,
                     const Matrix& F,
-                    const Matrix& DN_DX,
-                    unsigned int StrainSize);
-
-
-    void Comprobate_State_Vector(Vector& Result);
+                    const Matrix& DN_DX) const;
 
     ///@}
     ///@name Private Operations
@@ -375,15 +426,13 @@ private:
 
     // A private default constructor necessary for serialization
 
-
-
-    virtual void save(Serializer& rSerializer) const;
+    void save(Serializer& rSerializer) const override;
 //        {
 //            rSerializer.save("Name", "TotalLagrangian");
 //            KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element);
 //        }
 
-    virtual void load(Serializer& rSerializer);
+    void load(Serializer& rSerializer) override;
 //        {
 //            KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
 //        }
