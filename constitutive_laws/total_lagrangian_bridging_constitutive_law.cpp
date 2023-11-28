@@ -342,6 +342,7 @@ void TotalLagrangianBridgingConstitutiveLaw::CalculateMaterialResponsePK2(Parame
     if (rValues.IsSetConstitutiveMatrix())
     {
         Fourth_Order_Tensor D;
+        SD_MathUtils<double>::CalculateFourthOrderZeroTensor(D);
         Matrix& AlgorithmicTangent = rValues.GetConstitutiveMatrix();
 
         // obtain the tangent from the small strain constitutive law. It must be from

@@ -671,6 +671,7 @@ void MultiplicativeFiniteStrainBridgingConstitutiveLaw<TStressType>::ComputeInfi
     Matrix Dmat(6, 6);
     mpConstitutiveLaw->GetValue(THREED_ALGORITHMIC_TANGENT, Dmat);
 
+    SD_MathUtils<double>::CalculateFourthOrderZeroTensor(D);
     SD_MathUtils<double>::MatrixToTensor(Dmat, D);
 
     #ifdef DEBUG_CONSTITUTIVE_LAW
@@ -747,6 +748,7 @@ void MultiplicativeFiniteStrainBridgingConstitutiveLaw<TStressType>::ComputeGree
     mpConstitutiveLaw->GetValue(THREED_ALGORITHMIC_TANGENT, Dmat);
 
     Fourth_Order_Tensor D;
+    SD_MathUtils<double>::CalculateFourthOrderZeroTensor(D);
     SD_MathUtils<double>::MatrixToTensor(Dmat, D);
 
     // compute the tensor a
