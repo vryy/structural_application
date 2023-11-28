@@ -1110,17 +1110,48 @@ public:
     /**
     * Builds the Inverse of Matrix input
     * @param input the given Matrix
-    * @param inverse inverse of the given Matrix
+    * @param inverse of the given Matrix
     */
     static int InvertMatrix( const MatrixType& input, MatrixType& inverse )
     {
-        int singular = 0;
         using namespace boost::numeric::ublas;
         typedef permutation_matrix<std::size_t> pmatrix;
         MatrixType A(input);
-        pmatrix pm(A.size1());
-        singular = lu_factorize(A,pm);
-        inverse.assign( IdentityMatrix(A.size1()));
+        const std::size_t size = A.size1();
+        pmatrix pm(size);
+        const int singular = lu_factorize(A, pm);
+        inverse.assign(IdentityMatrix(size));
+        lu_substitute(A, pm, inverse);
+        return singular;
+    }
+
+    /**
+    * Builds the Inverse of Matrix input
+    * @param input the given Matrix
+    * @param inverse inverse of the given Matrix
+    * @param determinant of the given Matrix
+    */
+    static int InvertMatrix( const MatrixType& input, MatrixType& inverse, double& det )
+    {
+        using namespace boost::numeric::ublas;
+        typedef permutation_matrix<std::size_t> pmatrix;
+        MatrixType A(input);
+        const std::size_t size = A.size1();
+        pmatrix pm(size);
+        const int singular = lu_factorize(A,pm);
+        if (singular) {det = 0.0;}
+        else
+        {
+            det = 1.0;
+            for (std::size_t i = 0; i < size; ++i)
+            {
+                if (pm(i) != i)
+                    det *= -1.0;
+
+                det *= A(i, i);
+            }
+        }
+        inverse.assign(IdentityMatrix(size));
         lu_substitute(A, pm, inverse);
         return singular;
     }
@@ -1441,8 +1472,6 @@ public:
     template<typename TMatrixType>
     static inline void MatrixToTensor(const TMatrixType& Matrix, Fourth_Order_Tensor& Tensor)
     {
-        CalculateFourthOrderZeroTensor(Tensor);
-
         if (Matrix.size1() == 6)
         {
             Tensor[0][0](0, 0) = Matrix(0, 0); // xx-xx
@@ -1860,14 +1889,17 @@ public:
 
     static inline void CalculateFourthOrderZeroTensor( Fourth_Order_Tensor& C )
     {
-        C.resize(3, false);
+        if (C.size() != 3)
+            C.resize(3, false);
         for(unsigned int i = 0; i < 3; ++i)
         {
-            C[i].resize(3, false);
+            if (C[i].size() != 3)
+                C[i].resize(3, false);
             for(unsigned int j = 0; j < 3; ++j)
             {
-                C[i][j].resize(3, 3, false);
-                noalias(C[i][j]) = ZeroMatrix(3, 3);
+                if (C[i][j].size1() != 3 || C[i][j].size2() != 3)
+                    C[i][j].resize(3, 3, false);
+                C[i][j].clear();
             }
         }
     }
