@@ -174,6 +174,12 @@ protected:
     ///@name Protected Operations
     ///@{
 
+    unsigned int GetStrainSize( unsigned int dim ) const override { return 4; }
+
+    unsigned int GetFSize( unsigned int dim ) const override { return 3; }
+
+    unsigned int GetGSize( unsigned int dim ) const override { return 5; }
+
     void CalculateB( Matrix& B_Operator, const VectorType& N, const Matrix& DN_DX, const Matrix& CurrentDisp ) const override;
 
     void CalculateG( Matrix& G_Operator, const VectorType& N, const Matrix& DN_DX ) const override;
@@ -182,22 +188,9 @@ protected:
 
     void CalculateF( Matrix& F, const Matrix& G_Operator, const Matrix& CurrentDisp ) const override;
 
+    void CalculateStrain( const MatrixType& B, Vector& StrainVector ) const override;
 
     double GetIntegrationWeight( double Weight, const VectorType& N, const Matrix& CurrentDisp ) const override;
-    unsigned int GetStrainSize( unsigned int dim ) const override
-    {
-        return 4;
-    }
-
-    unsigned int GetFSize( unsigned int dim ) const override
-    {
-        return 3;
-    }
-
-    unsigned int GetGSize( unsigned int dim ) const override
-    {
-        return 5;
-    }
 
     ///@}
     ///@name Serialization

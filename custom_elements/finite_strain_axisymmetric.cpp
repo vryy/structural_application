@@ -196,8 +196,25 @@ namespace Kratos
         KRATOS_CATCH( "" )
     }
 
-    double FiniteStrainAxisymmetric::GetIntegrationWeight( const GeometryType::IntegrationPointsArrayType& integration_points,
-            unsigned int PointNumber, const MatrixType& Ncontainer, const Matrix& CurrentDisp ) const
+    void FiniteStrainAxisymmetric::CalculateStrain( const Matrix& B, Vector& StrainVector ) const
+    {
+        KRATOS_TRY
+
+        Matrix InvB(3, 3);
+        double DetB;
+        MathUtils<double>::InvertMatrix(B, InvB, DetB);
+
+        StrainVector[0] = 0.5 * ( 1.00 - InvB( 0, 0 ) );
+
+        StrainVector[1] = 0.5 * ( 1.00 - InvB( 1, 1 ) );
+
+        StrainVector[2] = -InvB( 0, 1 );
+
+        StrainVector[3] = 0.5 * ( 1.00 - InvB( 2, 2 ) );
+
+        KRATOS_CATCH( "" )
+    }
+
     double FiniteStrainAxisymmetric::GetIntegrationWeight( double Weight, const VectorType& N, const Matrix& CurrentDisp ) const
     {
         // compute r

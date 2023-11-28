@@ -171,7 +171,7 @@ public:
 
     void SetValuesOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo);
 
-    void SetValuesOnIntegrationPoints(const Variable<Matrix>& rVariable, std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo);
+    void SetValuesOnIntegrationPoints(const Variable<MatrixType>& rVariable, std::vector<MatrixType>& rValues, const ProcessInfo& rCurrentProcessInfo);
 
     void CalculateOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
@@ -179,7 +179,7 @@ public:
 
     void CalculateOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
-    void CalculateOnIntegrationPoints(const Variable<Matrix>& rVariable, std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateOnIntegrationPoints(const Variable<MatrixType>& rVariable, std::vector<MatrixType>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
     void GetValuesVector(Vector& values, int Step = 0) const override;
     void GetFirstDerivativesVector(Vector& values, int Step = 0) const override;
@@ -237,6 +237,16 @@ protected:
     ///@name Protected member Variables
     ///@{
 
+    /**
+     * Currently selected integration methods
+     */
+    IntegrationMethod mThisIntegrationMethod;
+
+    /**
+     * Container for constitutive law instances on each integration point
+     */
+    std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector;
+
     ///@}
     ///@name Protected Operators
     ///@{
@@ -263,16 +273,16 @@ protected:
     }
 
     /// Calculate the B operator
-    virtual void CalculateB( Matrix& B_Operator, const VectorType& N, const Matrix& DN_DX, const Matrix& CurrentDisp ) const;
+    virtual void CalculateB( MatrixType& B_Operator, const VectorType& N, const MatrixType& DN_DX, const MatrixType& CurrentDisp ) const;
 
     /// Calculate the G operator
-    virtual void CalculateG( Matrix& G_Operator, const VectorType& N, const Matrix& DN_DX ) const;
+    virtual void CalculateG( MatrixType& G_Operator, const VectorType& N, const MatrixType& DN_DX ) const;
 
     /// Calculate the G operator
-    virtual void CalculateG( Matrix& G_Operator, const VectorType& N, const Matrix& DN_DX, const Matrix& CurrentDisp ) const;
+    virtual void CalculateG( MatrixType& G_Operator, const VectorType& N, const MatrixType& DN_DX, const MatrixType& CurrentDisp ) const;
 
     /// Calculate the deformation gradient
-    virtual void CalculateF( Matrix& F, const Matrix& G_Operator, const Matrix& CurrentDisp ) const;
+    virtual void CalculateF( MatrixType& F, const MatrixType& G_Operator, const MatrixType& CurrentDisp ) const;
 
     /// Get the integration weight
     virtual double GetIntegrationWeight( double Weight, const VectorType& N, const MatrixType& CurrentDisp ) const
@@ -289,6 +299,21 @@ protected:
                               const ProcessInfo& rCurrentProcessInfo,
                               bool CalculateStiffnessMatrixFlag,
                               bool CalculateResidualVectorFlag);
+
+    void AddBodyForcesToRHS( Vector& R, const Vector& N_DISP, const double& Weight ) const;
+
+    void CalculateAndAdd_ExtForceContribution(
+        const Vector& N,
+        const ProcessInfo& CurrentProcessInfo,
+        const Vector& BodyForce,
+        VectorType& mResidualVector,
+        const double& weight
+    ) const;
+
+    /// Calculate Almansi strain, providing B
+    virtual void CalculateStrain( const MatrixType& B, Vector& StrainVector ) const;
+
+
     ///@}
     ///@name Protected Operations
     ///@{
@@ -306,25 +331,17 @@ protected:
 private:
     ///@name Static Member Variables
     ///@{
-    /*  static Matrix msB;
-    static Matrix msF;
-    static Matrix msD;
-    static Matrix msC;
+    /*  static MatrixType msB;
+    static MatrixType msF;
+    static MatrixType msD;
+    static MatrixType msC;
     static Vector msStrainVector;
     static Vector msStressVector;
-    static Matrix msDN_DX;
+    static MatrixType msDN_DX;
      */
     ///@}
     ///@name Member Variables
     ///@{
-    /**
-     * Currently selected integration methods
-     */
-    IntegrationMethod mThisIntegrationMethod;
-    /**
-     * Container for constitutive law instances on each integration point
-     */
-    std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector;
 
     double mTotalDomainInitialSize;
     bool mIsInitialized;
@@ -344,22 +361,9 @@ private:
 
     double CalculateIntegrationWeight(const double& GaussPointWeight, const double& DetJ0);
 
-    void AddBodyForcesToRHS( Vector& R, const Vector& N_DISP, const double& Weight );
-
-    void CalculateAndAdd_ExtForceContribution(
-        const Vector& N,
-        const ProcessInfo& CurrentProcessInfo,
-        const Vector& BodyForce,
-        VectorType& mResidualVector,
-        const double& weight
-    );
-
-    /// Calculate left Green-Cauchy strain
-    void CalculateStrain( const Matrix& C, Vector& StrainVector ) const;
-
-    // void CalculateB(Matrix& B,
-    //                 const Matrix& F,
-    //                 const Matrix& DN_DX,
+    // void CalculateB(MatrixType& B,
+    //                 const MatrixType& F,
+    //                 const MatrixType& DN_DX,
     //                 unsigned int StrainSize);
 
     ///@}

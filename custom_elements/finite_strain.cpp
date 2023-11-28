@@ -240,10 +240,10 @@ namespace Kratos
         const unsigned int g_size = this->GetGSize(dim);
         const unsigned int f_size = this->GetFSize(dim);
 
-        Matrix B;
+        Matrix B_Operator;
         if (CalculateResidualVectorFlag)
         {
-            B.resize( strain_size, number_of_nodes * dim, false );
+            B_Operator.resize( strain_size, number_of_nodes * dim, false );
         }
 
         Matrix Gx;
@@ -488,9 +488,9 @@ namespace Kratos
                 const_params.SetDeterminantF(DetF);
 
             //strain calculation
-            noalias( C ) = prod( trans( F ), F );
+            noalias( B ) = prod( F, trans( F ) );
 
-            CalculateStrain( C, StrainVector );
+            CalculateStrain( B, StrainVector );
 
             //integrate the material
             mConstitutiveLawVector[PointNumber]->CalculateMaterialResponse( const_params, stress_measure );
@@ -981,7 +981,7 @@ namespace Kratos
 //************************************************************************************
 //************************************************************************************
 
-    inline void FiniteStrain::AddBodyForcesToRHS( Vector& R, const Vector& N_DISP, const double& Weight )
+    void FiniteStrain::AddBodyForcesToRHS( Vector& R, const Vector& N_DISP, const double& Weight ) const
     {
         KRATOS_TRY
 
@@ -1014,13 +1014,13 @@ namespace Kratos
 //************************************************************************************
 //************************************************************************************
 
-    inline void FiniteStrain::CalculateAndAdd_ExtForceContribution(
+    void FiniteStrain::CalculateAndAdd_ExtForceContribution(
         const Vector& N,
         const ProcessInfo& CurrentProcessInfo,
         const Vector& BodyForce,
         VectorType& rRightHandSideVector,
         const double& weight
-    )
+    ) const
     {
         KRATOS_TRY
         unsigned int number_of_nodes = GetGeometry().PointsNumber();
@@ -1059,40 +1059,37 @@ namespace Kratos
 //************************************************************************************
 //************************************************************************************
 
-    void FiniteStrain::CalculateStrain(
-        const Matrix& C,
-        Vector& StrainVector ) const
+    void FiniteStrain::CalculateStrain( const Matrix& B, Vector& StrainVector ) const
     {
         KRATOS_TRY
 
-        unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+        const unsigned int dimension = B.size1();
+
+        Matrix InvB(dimension, dimension);
+        double DetB;
+        MathUtils<double>::InvertMatrix(B, InvB, DetB);
 
         if ( dimension == 2 )
         {
-            if ( StrainVector.size() != 3 ) StrainVector.resize( 3, false );
+            StrainVector[0] = 0.5 * ( 1.00 - InvB( 0, 0 ) );
 
-            StrainVector[0] = 0.5 * ( C( 0, 0 ) - 1.00 );
+            StrainVector[1] = 0.5 * ( 1.00 - InvB( 1, 1 ) );
 
-            StrainVector[1] = 0.5 * ( C( 1, 1 ) - 1.00 );
-
-            StrainVector[2] = C( 0, 1 );
+            StrainVector[2] = -InvB( 0, 1 );
         }
-
-        if ( dimension == 3 )
+        else if ( dimension == 3 )
         {
-            if ( StrainVector.size() != 6 ) StrainVector.resize( 6, false );
+            StrainVector[0] = 0.5 * ( 1.00 - InvB( 0, 0 ) );
 
-            StrainVector[0] = 0.5 * ( C( 0, 0 ) - 1.00 );
+            StrainVector[1] = 0.5 * ( 1.00 - InvB( 1, 1 ) );
 
-            StrainVector[1] = 0.5 * ( C( 1, 1 ) - 1.00 );
+            StrainVector[2] = 0.5 * ( 1.00 - InvB( 2, 2 ) );
 
-            StrainVector[2] = 0.5 * ( C( 2, 2 ) - 1.00 );
+            StrainVector[3] = -InvB( 0, 1 ); // xy
 
-            StrainVector[3] = C( 0, 1 ); // xy
+            StrainVector[4] = -InvB( 1, 2 ); // yz
 
-            StrainVector[4] = C( 1, 2 ); // yz
-
-            StrainVector[5] = C( 0, 2 ); // xz
+            StrainVector[5] = -InvB( 0, 2 ); // xz
         }
 
         KRATOS_CATCH( "" )
