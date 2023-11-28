@@ -201,8 +201,9 @@ void TotalLagrangianBridgingConstitutiveLaw::CalculateMaterialResponsePK2(Parame
 {
     const GeometryType& rGeometry = rValues.GetElementGeometry();
     const Properties& rProperties = rValues.GetMaterialProperties();
+    const ProcessInfo& rProcessInfo = rValues.GetProcessInfo();
     const unsigned int dim = rGeometry.WorkingSpaceDimension();
-    const unsigned int strain_size = dim*(dim+1) / 2;
+    const unsigned int strain_size = rValues.GetStrainVector().size();
 
     #ifdef DEBUG_CONSTITUTIVE_LAW
     int ElemId, GaussId;
@@ -224,6 +225,8 @@ void TotalLagrangianBridgingConstitutiveLaw::CalculateMaterialResponsePK2(Parame
                 mCurrentF(i, j) = F(i, j);
         mCurrentF(2, 2) = 1.0;
     }
+    else
+        KRATOS_ERROR << "Invalid F size";
 
     #ifdef DEBUG_CONSTITUTIVE_LAW
     if (ElemId == 1)
@@ -320,22 +323,36 @@ void TotalLagrangianBridgingConstitutiveLaw::CalculateMaterialResponsePK2(Parame
     #endif
 
     /* call the material integration subroutine */
-    Vector StrainVector(strain_size);
-    SD_MathUtils<double>::StrainTensorToVector(current_rotated_strain_tensor, StrainVector);
+    // here we do not use the strain/stress vector and tangent matrix directly from the element
+    // to prevent memory leaking. We create new ConstitutiveLaw's Parameters to compute the small
+    // strain constitutive law.
+    Vector NewStrainVector(strain_size), NewStressVector(strain_size);
+    Matrix NewTangent(strain_size, strain_size);
 
-    rValues.SetStrainVector(StrainVector);
-    mpConstitutiveLaw->CalculateMaterialResponseCauchy(rValues);
+    SD_MathUtils<double>::StrainTensorToVector(current_rotated_strain_tensor, NewStrainVector);
+
+    ConstitutiveLaw::Parameters const_params;
+    const_params.SetStrainVector(NewStrainVector);
+    const_params.SetStressVector(NewStressVector);
+    const_params.SetConstitutiveMatrix(NewTangent);
+    const_params.SetProcessInfo(rProcessInfo);
+    const_params.SetMaterialProperties(rProperties);
+    const_params.SetElementGeometry(rGeometry);
+    ConstitutiveLaw::StressMeasure stress_measure = ConstitutiveLaw::StressMeasure_Cauchy;
+
+    mpConstitutiveLaw->CalculateMaterialResponseCauchy(const_params);
 
     /* obtain the stress */
     Matrix current_rotated_stress_tensor(3, 3);
-    Vector& StressVector = rValues.GetStressVector();
-    SD_MathUtils<double>::StressVectorToTensor(StressVector, current_rotated_stress_tensor);
+    SD_MathUtils<double>::StressVectorToTensor(NewStressVector, current_rotated_stress_tensor);
 
+    /* transform the stress */
     Matrix current_pk2_stress_tensor(3, 3);
     double J = detU;
     noalias(current_pk2_stress_tensor) = J * prod(right_stretch_tensor_inversed,
             Matrix(prod(current_rotated_stress_tensor, right_stretch_tensor_inversed)));
 
+    Vector& StressVector = rValues.GetStressVector();
     SD_MathUtils<double>::StressTensorToVector(current_pk2_stress_tensor, StressVector);
 
     /* obtain and transform the tangent */
@@ -343,21 +360,30 @@ void TotalLagrangianBridgingConstitutiveLaw::CalculateMaterialResponsePK2(Parame
     {
         Fourth_Order_Tensor D;
         SD_MathUtils<double>::CalculateFourthOrderZeroTensor(D);
-        Matrix& AlgorithmicTangent = rValues.GetConstitutiveMatrix();
 
         // obtain the tangent from the small strain constitutive law. It must be from
         // a fourth order tensor to not missing the out-of-plane component in plane strain
         // analysis
-        Matrix Dmat(6, 6);
-        mpConstitutiveLaw->GetValue(THREED_ALGORITHMIC_TANGENT, Dmat);
-        SD_MathUtils<double>::MatrixToTensor(Dmat, D);
-
-        #ifdef DEBUG_CONSTITUTIVE_LAW
-        if (ElemId == 1)
+        if (strain_size != 6)
         {
-            KRATOS_WATCH(Dmat)
+            if (mpConstitutiveLaw->Has(THREED_ALGORITHMIC_TANGENT))
+            {
+                Matrix Dmat(6, 6);
+                mpConstitutiveLaw->GetValue(THREED_ALGORITHMIC_TANGENT, Dmat);
+                SD_MathUtils<double>::MatrixToTensor(Dmat, D);
+            }
+            else
+            {
+                // TODO sometimes the error line below will cause non-convergence in 2D analysis.
+                // The reason is currently unknown. If that occurs repeatedly, this indicates some
+                // problem with memory leaking.
+                KRATOS_ERROR << "THREED_ALGORITHMIC_TANGENT is required from constitutive_law for non-3D problem";
+            }
         }
-        #endif
+        else
+        {
+            SD_MathUtils<double>::MatrixToTensor(NewTangent, D);
+        }
 
         Fourth_Order_Tensor DSDE;
         SD_MathUtils<double>::CalculateFourthOrderZeroTensor(DSDE);
@@ -390,6 +416,7 @@ void TotalLagrangianBridgingConstitutiveLaw::CalculateMaterialResponsePK2(Parame
             }
         }
 
+        Matrix& AlgorithmicTangent = rValues.GetConstitutiveMatrix();
         SD_MathUtils<double>::TensorToMatrix(DSDE, AlgorithmicTangent);
 
         #ifdef DEBUG_CONSTITUTIVE_LAW
@@ -409,6 +436,4 @@ int TotalLagrangianBridgingConstitutiveLaw::Check( const Properties& props, cons
 
 } // Namespace Kratos
 
-#ifdef DEBUG_CONSTITUTIVE_LAW
 #undef DEBUG_CONSTITUTIVE_LAW
-#endif
