@@ -116,7 +116,7 @@ namespace Kratos
         KRATOS_TRY
 
         //dimension of the problem
-        unsigned int dim = GetGeometry().WorkingSpaceDimension();
+        const unsigned int dim = GetGeometry().WorkingSpaceDimension();
 
         // integration rule
         if(this->Has( INTEGRATION_ORDER ))
@@ -259,7 +259,7 @@ namespace Kratos
 
         Matrix A( g_size, g_size );
 
-        Matrix C( dim, dim );
+        Matrix B( dim, dim );
 
         Vector StrainVector( strain_size );
 
@@ -503,7 +503,7 @@ namespace Kratos
             if ( CalculateResidualVectorFlag == true ) //calculation of the matrix is required
             {
                 //calculating operator B
-                CalculateB( B, N, DN_Dx, CurrentDisp );
+                CalculateB( B_Operator, N, DN_Dx, CurrentDisp );
 
                 //contribution to external forces
                 const Vector& BodyForce = GetProperties()[BODY_FORCE];
@@ -513,7 +513,7 @@ namespace Kratos
                 AddBodyForcesToRHS( rRightHandSideVector, N, IntToReferenceWeight );
 
                 //contribution of internal forces
-                noalias( rRightHandSideVector ) -= IntToReferenceWeight * prod( trans( B ), StressVector );
+                noalias( rRightHandSideVector ) -= IntToReferenceWeight * prod( trans( B_Operator ), StressVector );
             }
 
             if ( CalculateStiffnessMatrixFlag == true ) //calculation of the matrix is required

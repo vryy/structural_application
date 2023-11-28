@@ -121,9 +121,6 @@ namespace Kratos
 
         const unsigned int number_of_nodes = GetGeometry().PointsNumber();
 
-        unsigned int dim = GetGeometry().WorkingSpaceDimension();
-        unsigned int strain_size = this->GetStrainSize(dim);
-
         B_Operator.clear();
 
         double r = 0.0;
@@ -149,7 +146,6 @@ namespace Kratos
     {
         KRATOS_TRY
 
-        const unsigned int dim = GetGeometry().WorkingSpaceDimension();
         const unsigned int number_of_nodes = GetGeometry().size();
 
         G_Operator.clear();
@@ -177,7 +173,6 @@ namespace Kratos
     {
         KRATOS_TRY
 
-        const unsigned int dim = GetGeometry().WorkingSpaceDimension();
         const unsigned int number_of_nodes = GetGeometry().size();
 
         G_Operator.clear();

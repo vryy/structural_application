@@ -103,6 +103,8 @@ bool Isotropic3DDC::Has( const Variable<Matrix>& rThisVariable )
 {
     if(rThisVariable == ALGORITHMIC_TANGENT || rThisVariable == THREED_ALGORITHMIC_TANGENT)
         return true;
+    if(rThisVariable == ELASTIC_STRAIN_TENSOR || rThisVariable == CAUCHY_STRESS_TENSOR)
+        return true;
     return false;
 }
 

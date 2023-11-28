@@ -140,6 +140,8 @@ void MultiplicativeFiniteStrainBridgingConstitutiveLawDC<1>::FinalizeNonLinearIt
     // integrate the (small strain) constitutive law, obtaining Cauchy stress
     BaseType::mpConstitutiveLaw->SetValue(CURRENT_STRAIN_VECTOR, StrainVector, CurrentProcessInfo);
     BaseType::mpConstitutiveLaw->FinalizeNonLinearIteration(props, geom, ShapeFunctionsValues, CurrentProcessInfo);
+    if (!BaseType::mpConstitutiveLaw->Has(CAUCHY_STRESS_TENSOR))
+        KRATOS_ERROR << "Constitutive law is not able to return CAUCHY_STRESS_TENSOR";
     BaseType::mpConstitutiveLaw->GetValue(CAUCHY_STRESS_TENSOR, BaseType::m_stress_n1);
 }
 
@@ -181,6 +183,8 @@ void MultiplicativeFiniteStrainBridgingConstitutiveLawDC<2>::FinalizeNonLinearIt
     }
     #endif
     BaseType::mpConstitutiveLaw->FinalizeNonLinearIteration(props, geom, ShapeFunctionsValues, CurrentProcessInfo);
+    if (!BaseType::mpConstitutiveLaw->Has(CAUCHY_STRESS_TENSOR))
+        KRATOS_ERROR << "Constitutive law is not able to return CAUCHY_STRESS_TENSOR";
     BaseType::mpConstitutiveLaw->GetValue(CAUCHY_STRESS_TENSOR, BaseType::m_stress_n1);
     #ifdef DEBUG_CONSTITUTIVE_LAW
     if (ElemId == DEBUG_ELEMENT_ID)
