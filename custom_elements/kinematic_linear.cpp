@@ -1978,6 +1978,23 @@ namespace Kratos
                 }
             }
         }
+        else if( rVariable == INITIAL_DISPLACEMENT )
+        {
+            const GeometryType::IntegrationPointsArrayType& integration_points =
+                    GetGeometry().IntegrationPoints( mThisIntegrationMethod );
+
+            const MatrixType& Ncontainer = GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod );
+
+            for(std::size_t point = 0; point < integration_points.size(); ++point)
+            {
+                noalias(rValues[point]) = ZeroVector(3);
+                for(std::size_t i = 0; i < GetGeometry().size(); ++i)
+                {
+                    for (unsigned int j = 0; j < dim; ++j)
+                        rValues[point][j] += Ncontainer(point, i) * mInitialDisp(i, j);
+                }
+            }
+        }
         else if( rVariable == INTEGRATION_POINT_GLOBAL || rVariable == INTEGRATION_POINT_GLOBAL_IN_CURRENT_CONFIGURATION )
         {
             const GeometryType::IntegrationPointsArrayType& integration_points =
