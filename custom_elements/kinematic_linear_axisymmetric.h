@@ -183,8 +183,7 @@ protected:
         return 4;
     }
 
-    double GetIntegrationWeight( const GeometryType::IntegrationPointsArrayType& integration_points,
-            const unsigned int& PointNumber, const Matrix& Ncontainer ) const override;
+    double GetIntegrationWeight( double Weight, const VectorType& N ) const override;
 
     ///@}
     ///@name Serialization

@@ -381,6 +381,7 @@ namespace Kratos
         VectorType StrainVector( strain_size );
         VectorType StressVector( strain_size );
         MatrixType DN_DX( number_of_nodes, dim );
+        VectorType N( number_of_nodes );
         MatrixType CurrentDisp( number_of_nodes, dim );
         MatrixType InvJ0(dim, dim);
         double DetJ0;
@@ -468,7 +469,9 @@ namespace Kratos
             noalias(Bdil_bar) = ZeroMatrix(number_of_nodes, dim);
             for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); ++PointNumber )
             {
-                IntToReferenceWeight = this->GetIntegrationWeight(integration_points, PointNumber, Ncontainer);
+                noalias( N ) = row(Ncontainer, PointNumber);
+                IntToReferenceWeight = this->GetIntegrationWeight(integration_points[PointNumber].Weight(), N);
+                if ( dim == 2 ) IntToReferenceWeight *= GetProperties()[THICKNESS];
                 MathUtils<double>::InvertMatrix( J0[PointNumber], InvJ0, DetJ0 );
                 noalias( DN_DX ) = prod( DN_De[PointNumber], InvJ0 );
                 noalias(Bdil_bar) += DN_DX * IntToReferenceWeight * DetJ0;
@@ -485,12 +488,13 @@ namespace Kratos
         {
             MathUtils<double>::InvertMatrix( J0[PointNumber], InvJ0, DetJ0 );
             noalias( DN_DX ) = prod( DN_De[PointNumber], InvJ0 );
+            noalias( N ) = row(Ncontainer, PointNumber);
 
             //Initializing B_Operator at the current integration point
             if(is_bbar)
                 CalculateBBaroperator( B, DN_DX, Bdil_bar );
             else
-                CalculateBoperator( B, row(Ncontainer, PointNumber), DN_DX );
+                CalculateBoperator( B, N, DN_DX );
 
             //calculate strain
             CalculateStrain( B, CurrentDisp, StrainVector );
@@ -513,7 +517,7 @@ namespace Kratos
             #endif
 
             //calculating weights for integration on the reference configuration
-            IntToReferenceWeight = this->GetIntegrationWeight(integration_points, PointNumber, Ncontainer);
+            IntToReferenceWeight = this->GetIntegrationWeight(integration_points[PointNumber].Weight(), N);
 
             //modify integration weight in case of 2D
             if ( dim == 2 ) IntToReferenceWeight *= GetProperties()[THICKNESS];
@@ -528,10 +532,10 @@ namespace Kratos
             if ( CalculateResidualVectorFlag == true )
             {
                 //contribution of external forces
-                CalculateAndAdd_ExtForceContribution( row( Ncontainer, PointNumber ), rCurrentProcessInfo, BodyForce, rRightHandSideVector, IntToReferenceWeight, DetJ0);
+                CalculateAndAdd_ExtForceContribution( N, rCurrentProcessInfo, BodyForce, rRightHandSideVector, IntToReferenceWeight, DetJ0);
 
                 //contribution of gravity (if there is)
-                AddBodyForcesToRHS( rRightHandSideVector, row( Ncontainer, PointNumber ), IntToReferenceWeight, DetJ0 );
+                AddBodyForcesToRHS( rRightHandSideVector, N, IntToReferenceWeight, DetJ0 );
 
                 //contribution of internal forces
                 AddInternalForcesToRHS( rRightHandSideVector, B, StressVector, IntToReferenceWeight, DetJ0 );
@@ -980,8 +984,8 @@ namespace Kratos
 
         //lumped
         unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-        unsigned int NumberOfNodes = GetGeometry().size();
-        unsigned int mat_size = dimension * NumberOfNodes;
+        unsigned int number_of_nodes = GetGeometry().size();
+        unsigned int mat_size = dimension * number_of_nodes;
 
         if ( rMassMatrix.size1() != mat_size )
             rMassMatrix.resize( mat_size, mat_size, false );
@@ -1004,7 +1008,7 @@ namespace Kratos
 
         // LumpFact = GetGeometry().LumpingFactors( LumpFact );
 
-        // for ( unsigned int i = 0; i < NumberOfNodes; ++i )
+        // for ( unsigned int i = 0; i < number_of_nodes; ++i )
         // {
         //     double temp = LumpFact[i] * TotalMass;
 
@@ -1026,27 +1030,27 @@ namespace Kratos
         GeometryType::JacobiansType J0;
         this->CalculateJacobian( J0 );
 
+        VectorType N(number_of_nodes);
         double DetJ0;
         double IntToReferenceWeight;
 
         for (unsigned int PointNumber = 0; PointNumber < integration_points.size(); ++PointNumber)
         {
             DetJ0 = MathUtils<double>::Det(J0[PointNumber]);
+            noalias( N ) = row( Ncontainer, PointNumber );
 
             //calculating weights for integration on the reference configuration
-            IntToReferenceWeight = this->GetIntegrationWeight(integration_points, PointNumber, Ncontainer);
-            IntToReferenceWeight *= density;
+            IntToReferenceWeight = this->GetIntegrationWeight(integration_points[PointNumber].Weight(), N) * density;
 
             //modify integration weight in case of 2D
             if ( dimension == 2 ) IntToReferenceWeight *= GetProperties()[THICKNESS];
 
-            for ( unsigned int i = 0; i < NumberOfNodes; ++i )
+            for ( unsigned int i = 0; i < number_of_nodes; ++i )
             {
-                for ( unsigned int j = 0; j < NumberOfNodes; ++j )
+                for ( unsigned int j = 0; j < number_of_nodes; ++j )
                 {
                     for ( unsigned int k = 0; k < dimension; ++k )
-                        rMassMatrix(dimension*i + k, dimension*j + k) += Ncontainer(PointNumber, i) * Ncontainer(PointNumber, j)
-                            * IntToReferenceWeight * DetJ0;
+                        rMassMatrix(dimension*i + k, dimension*j + k) += N(i) * N(j) * IntToReferenceWeight * DetJ0;
                 }
             }
         }
@@ -1666,6 +1670,7 @@ namespace Kratos
         MatrixType TanC( strain_size, strain_size );
         VectorType StrainVector( strain_size );
         VectorType StressVector( strain_size );
+        VectorType N( number_of_nodes );
         MatrixType DN_DX( number_of_nodes, dim );
         MatrixType CurrentDisp( number_of_nodes, dim );
         MatrixType InvJ0(dim, dim);
@@ -1713,9 +1718,10 @@ namespace Kratos
         {
             MathUtils<double>::InvertMatrix( J0[PointNumber], InvJ0, DetJ0 );
             noalias( DN_DX ) = prod( DN_De[PointNumber], InvJ0 );
+            noalias( N ) = row(Ncontainer, PointNumber);
 
             //Initializing B_Operator at the current integration point
-            CalculateBoperator( B, row(Ncontainer, PointNumber), DN_DX );
+            CalculateBoperator( B, N, DN_DX );
 
             if ( rVariable == STRAIN_INTERPOLATION_OPERATOR )
             {
@@ -1817,6 +1823,7 @@ namespace Kratos
             // calculate shape function values and local gradients
             MatrixType B(strain_size, mat_size);
             VectorType StrainVector(strain_size);
+            VectorType N(number_of_nodes);
             MatrixType DN_DX(number_of_nodes, dim);
             MatrixType CurrentDisp(number_of_nodes, dim);
             MatrixType InvJ0(dim, dim);
@@ -1837,9 +1844,10 @@ namespace Kratos
             for (unsigned int i = 0; i < mConstitutiveLawVector.size(); ++i)
             {
                 MathUtils<double>::InvertMatrix( J0[i], InvJ0, DetJ0 );
+                noalias(N) = row(Ncontainer, i);
                 noalias(DN_DX) = prod(DN_De[i], InvJ0);
                 // compute B_Operator at the current integration point
-                CalculateBoperator(B, row(Ncontainer, i), DN_DX);
+                CalculateBoperator(B, N, DN_DX);
 
                 // compute the strain at integration point
                 CalculateStrain(B, CurrentDisp, StrainVector);
@@ -1947,6 +1955,7 @@ namespace Kratos
         if ( rValues.size() != mConstitutiveLawVector.size() )
             rValues.resize( mConstitutiveLawVector.size() );
 
+        const unsigned int dim = GetGeometry().WorkingSpaceDimension();
         #ifdef ENABLE_BEZIER_GEOMETRY
         //initialize the geometry
         GetGeometry().Initialize(mThisIntegrationMethod);

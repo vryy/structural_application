@@ -496,7 +496,7 @@ namespace Kratos
             mConstitutiveLawVector[PointNumber]->CalculateMaterialResponse( const_params, stress_measure );
 
             //calculating weights for integration on the reference configuration
-            double IntToReferenceWeight = this->GetIntegrationWeight(integration_points, PointNumber, Ncontainer, CurrentDisp) * DetJ;
+            double IntToReferenceWeight = this->GetIntegrationWeight(integration_points[PointNumber].Weight(), N, CurrentDisp) * DetJ;
 
             if ( dim == 2 ) IntToReferenceWeight *= GetProperties()[THICKNESS];
 
@@ -1238,8 +1238,8 @@ namespace Kratos
 
         //lumped
         unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-        unsigned int NumberOfNodes = GetGeometry().size();
-        unsigned int MatSize = dimension * NumberOfNodes;
+        unsigned int number_of_nodes = GetGeometry().size();
+        unsigned int MatSize = dimension * number_of_nodes;
 
         if ( rMassMatrix.size1() != MatSize )
             rMassMatrix.resize( MatSize, MatSize, false );
@@ -1261,7 +1261,7 @@ namespace Kratos
 
         // LumpFact = GetGeometry().LumpingFactors( LumpFact );
 
-        // for ( unsigned int i = 0; i < NumberOfNodes; i++ )
+        // for ( unsigned int i = 0; i < number_of_nodes; i++ )
         // {
         //     double temp = LumpFact[i] * TotalMass;
 
@@ -1294,23 +1294,25 @@ namespace Kratos
         for ( unsigned int node = 0; node < GetGeometry().size(); ++node )
             noalias( row( CurrentDisp, node ) ) = GetGeometry()[node].GetSolutionStepValue( DISPLACEMENT );
 
+        VectorType N(number_of_nodes);
+
         for (unsigned int PointNumber = 0; PointNumber < integration_points.size(); ++PointNumber)
         {
             DetJ0 = MathUtils<double>::Det(J0[PointNumber]);
+            noalias(N) = row( Ncontainer, PointNumber );
 
             //calculating weights for integration on the reference configuration
-            double IntToReferenceWeight = density * this->GetIntegrationWeight(integration_points, PointNumber, Ncontainer, CurrentDisp);
+            double IntToReferenceWeight = density * this->GetIntegrationWeight(integration_points[PointNumber].Weight(), N, CurrentDisp);
 
             //modify integration weight in case of 2D
             if ( dimension == 2 ) IntToReferenceWeight *= GetProperties()[THICKNESS];
 
-            for ( unsigned int i = 0; i < NumberOfNodes; ++i )
+            for ( unsigned int i = 0; i < number_of_nodes; ++i )
             {
-                for ( unsigned int j = 0; j < NumberOfNodes; ++j )
+                for ( unsigned int j = 0; j < number_of_nodes; ++j )
                 {
                     for ( unsigned int k = 0; k < dimension; ++k )
-                        rMassMatrix(dimension*i + k, dimension*j + k) += Ncontainer(PointNumber, i) * Ncontainer(PointNumber, j)
-                            * IntToReferenceWeight * DetJ0;
+                        rMassMatrix(dimension*i + k, dimension*j + k) += N(i) * N(j) * IntToReferenceWeight * DetJ0;
                 }
             }
         }

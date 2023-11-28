@@ -260,6 +260,11 @@ protected:
                               const ProcessInfo& rCurrentProcessInfo,
                               bool CalculateStiffnessMatrixFlag,
                               bool CalculateResidualVectorFlag);
+    virtual double GetIntegrationWeight( double Weight, const Vector& N ) const
+    {
+        return Weight;
+    }
+
     ///@}
     ///@name Protected Operations
     ///@{

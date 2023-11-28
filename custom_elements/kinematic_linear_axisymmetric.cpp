@@ -120,17 +120,16 @@ namespace Kratos
         KRATOS_THROW_ERROR(std::logic_error, "Not yet implemented", "")
     }
 
-    double KinematicLinearAxisymmetric::GetIntegrationWeight( const GeometryType::IntegrationPointsArrayType& integration_points,
-            const unsigned int& PointNumber, const Matrix& Ncontainer ) const
+    double KinematicLinearAxisymmetric::GetIntegrationWeight( double Weight, const Vector& N ) const
     {
         // compute r
         double r = 0.0;
         for (std::size_t i = 0; i < GetGeometry().size(); ++i)
         {
-            r += Ncontainer(PointNumber, i) * GetGeometry()[i].X0();
+            r += N(i) * GetGeometry()[i].X0();
         }
 
-        return integration_points[PointNumber].Weight() * 2*SD_MathUtils<double>::Pi()*r;
+        return Weight * 2*SD_MathUtils<double>::Pi()*r;
     }
 
 } // Namespace Kratos

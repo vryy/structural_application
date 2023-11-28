@@ -275,10 +275,9 @@ protected:
     virtual void CalculateF( Matrix& F, const Matrix& G_Operator, const Matrix& CurrentDisp ) const;
 
     /// Get the integration weight
-    virtual double GetIntegrationWeight( const GeometryType::IntegrationPointsArrayType& integration_points,
-            unsigned int PointNumber, const MatrixType& Ncontainer, const Matrix& CurrentDisp ) const
+    virtual double GetIntegrationWeight( double Weight, const VectorType& N, const MatrixType& CurrentDisp ) const
     {
-        return integration_points[PointNumber].Weight();
+        return Weight;
     }
 
     /**

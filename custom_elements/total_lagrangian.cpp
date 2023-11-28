@@ -239,6 +239,7 @@ namespace Kratos
 
         Vector StressVector( StrainSize );
 
+        Vector N( number_of_nodes );
         Matrix DN_DX( number_of_nodes, dim );
 
         Matrix CurrentDisp( number_of_nodes, dim );
@@ -314,6 +315,7 @@ namespace Kratos
             //Calculating the cartesian derivatives (it is avoided storing them to minimize storage)
             MathUtils<double>::InvertMatrix( J0[PointNumber], InvJ0, DetJ0 );
             noalias( DN_DX ) = prod( DN_De[PointNumber], InvJ0 );
+            noalias( N ) = row( Ncontainer, PointNumber );
 
             //deformation gradient
             noalias( F ) = prod( J[PointNumber], InvJ0 );
@@ -332,7 +334,7 @@ namespace Kratos
             CalculateB( B, F, DN_DX, StrainVector.size() );
 
             //calculating weights for integration on the reference configuration
-            double IntToReferenceWeight = integration_points[PointNumber].Weight() * DetJ0;
+            double IntToReferenceWeight = this->GetIntegrationWeight(integration_points[PointNumber].Weight(), N) * DetJ0;
 
             if ( dim == 2 ) IntToReferenceWeight *= GetProperties()[THICKNESS];
 
@@ -434,21 +436,6 @@ namespace Kratos
 
     }
 
-//************************************************************************************
-//************************************************************************************
-
-    double TotalLagrangian::CalculateIntegrationWeight( const double& GaussPointWeight, const double& DetJ0 )
-    {
-        //to permorm the integration over the reference domain we need to include
-        // the thickness in 2D
-        unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-        double weight = GaussPointWeight;
-
-        weight *= DetJ0;
-
-        if ( dimension == 2 ) weight *= GetProperties()[THICKNESS];
-
-        return weight;
     }
 
 //************************************************************************************
@@ -966,7 +953,7 @@ namespace Kratos
             DetJ0 = MathUtils<double>::Det(J0[PointNumber]);
 
             //calculating weights for integration on the reference configuration
-            double IntToReferenceWeight = density * integration_points[PointNumber].Weight();
+            double IntToReferenceWeight = density * this->GetIntegrationWeight(integration_points[PointNumber].Weight(), N) * DetJ0;
 
             //modify integration weight in case of 2D
             if ( dimension == 2 ) IntToReferenceWeight *= GetProperties()[THICKNESS];

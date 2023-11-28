@@ -198,15 +198,16 @@ namespace Kratos
 
     double FiniteStrainAxisymmetric::GetIntegrationWeight( const GeometryType::IntegrationPointsArrayType& integration_points,
             unsigned int PointNumber, const MatrixType& Ncontainer, const Matrix& CurrentDisp ) const
+    double FiniteStrainAxisymmetric::GetIntegrationWeight( double Weight, const VectorType& N, const Matrix& CurrentDisp ) const
     {
         // compute r
         double r = 0.0;
         for (std::size_t i = 0; i < GetGeometry().size(); ++i)
         {
-            r += Ncontainer(PointNumber, i) * (GetGeometry()[i].X0() + CurrentDisp(i, 0));
+            r += N(i) * (GetGeometry()[i].X0() + CurrentDisp(i, 0));
         }
 
-        return integration_points[PointNumber].Weight() * 2*SD_MathUtils<double>::Pi()*r;
+        return Weight * 2*SD_MathUtils<double>::Pi()*r;
     }
 
 } // Namespace Kratos

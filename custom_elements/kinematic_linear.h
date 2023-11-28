@@ -297,10 +297,9 @@ protected:
         return dim * (dim + 1) / 2;
     }
 
-    virtual double GetIntegrationWeight( const GeometryType::IntegrationPointsArrayType& integration_points,
-            const unsigned int& PointNumber, const MatrixType& Ncontainer ) const
+    virtual double GetIntegrationWeight( double Weight, const VectorType& N ) const
     {
-        return integration_points[PointNumber].Weight();
+        return Weight;
     }
 
     virtual void CalculateJacobian( GeometryType::JacobiansType& J ) const;

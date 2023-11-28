@@ -182,9 +182,8 @@ protected:
 
     void CalculateF( Matrix& F, const Matrix& G_Operator, const Matrix& CurrentDisp ) const override;
 
-    double GetIntegrationWeight( const GeometryType::IntegrationPointsArrayType& integration_points,
-            unsigned int PointNumber, const MatrixType& Ncontainer, const Matrix& CurrentDisp ) const override;
 
+    double GetIntegrationWeight( double Weight, const VectorType& N, const Matrix& CurrentDisp ) const override;
     unsigned int GetStrainSize( unsigned int dim ) const override
     {
         return 4;
