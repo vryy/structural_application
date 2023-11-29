@@ -1,6 +1,3 @@
-/*
-LICENSE: see material_point_application/LICENSE.txt
-*/
 /* *********************************************************
 *
 *   Last Modified by:    $Author: hbui $

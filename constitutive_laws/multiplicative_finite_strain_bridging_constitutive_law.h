@@ -304,6 +304,7 @@ private:
     /// Compute Kirchhoff stress (TStressType=1) or Cauchy stress (TStressType=2) from PK2 stress
     void ComputeStress(Matrix& stress_tensor, const Matrix& PK2_stress) const;
 
+    /// Compute tangent matrix A
     void ComputeInfinitesimalTangent(Fourth_Order_Tensor& A) const;
 
     /// Compute necessary terms to derive the consistent tangent for infinitesimal strain

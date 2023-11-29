@@ -1634,13 +1634,9 @@ namespace Kratos
 
     void FiniteStrain::CalculateOnIntegrationPoints( const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo )
     {
-        const unsigned int& size = GetGeometry().IntegrationPoints( mThisIntegrationMethod ).size();
-        unsigned int StrainSize;
-
-        if ( GetGeometry().WorkingSpaceDimension() == 2 )
-            StrainSize = 3;
-        else
-            StrainSize = 6;
+        const unsigned int size = GetGeometry().IntegrationPoints( mThisIntegrationMethod ).size();
+        const unsigned int dim = GetGeometry().WorkingSpaceDimension();
+        const unsigned int StrainSize = this->GetStrainSize(dim);
 
         if ( rValues.size() != size )
             rValues.resize( size );
