@@ -61,6 +61,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "utilities/math_utils.h"
 #include "custom_elements/total_lagrangian.h"
 #include "custom_utilities/geometry_utility.h"
+#include "custom_utilities/sd_math_utils.h"
+#include "custom_utilities/eigen_utility.h"
 #include "structural_application_variables.h"
 
 // #define CHECK_DEFORMATION_GRADIENT
@@ -1268,13 +1270,13 @@ namespace Kratos
                     mConstitutiveLawVector[PointNumber]->GetValue( rVariable, rValues[PointNumber] );
             }
         }
-        else if ( rVariable == PLASTIC_STRAIN_VECTOR )
+        else if ( rVariable == ELASTIC_STRAIN_VECTOR || rVariable == PLASTIC_STRAIN_VECTOR )
         {
             for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); i++ )
             {
                 if ( rValues[i].size() != strain_size )
                     rValues[i].resize( strain_size );
-                noalias( rValues[i] ) = mConstitutiveLawVector[i]->GetValue( PLASTIC_STRAIN_VECTOR, rValues[i] );
+                noalias( rValues[i] ) = mConstitutiveLawVector[i]->GetValue( rVariable, rValues[i] );
             }
         }
         else if ( rVariable == STRESSES )
@@ -1327,12 +1329,15 @@ namespace Kratos
         const unsigned int number_of_nodes = GetGeometry().size();
         const unsigned int dim = GetGeometry().WorkingSpaceDimension();
         const unsigned int strain_size = this->GetStrainSize(dim);
+        const unsigned int f_size = this->GetFSize(dim);
 
-        Matrix F( dim, dim );
+        Matrix F( f_size, f_size );
 
         Matrix D( strain_size, strain_size );
 
-        Matrix C( dim, dim );
+        Matrix strain_tensor( f_size, f_size );
+
+        Matrix stress_tensor( f_size, f_size );
 
         Vector StrainVector( strain_size );
 
@@ -1340,20 +1345,13 @@ namespace Kratos
 
         Matrix DN_DX( number_of_nodes, dim );
 
+        Vector N( number_of_nodes );
+
         Matrix InvJ0(dim, dim);
 
         double DetJ0;
 
-        //constitutive law
-        ConstitutiveLaw::Parameters const_params;
-        const_params.SetStrainVector(StrainVector);
-        const_params.SetDeformationGradientF(F);
-        const_params.SetStressVector(StressVector);
-        const_params.SetConstitutiveMatrix(D);
-        const_params.SetProcessInfo(rCurrentProcessInfo);
-        const_params.SetMaterialProperties(GetProperties());
-        const_params.SetElementGeometry(GetGeometry());
-        ConstitutiveLaw::StressMeasure stress_measure = ConstitutiveLaw::StressMeasure_Cauchy;
+        const Matrix eye = IdentityMatrix(f_size);
 
         #ifdef ENABLE_BEZIER_GEOMETRY
         //initialize the geometry
@@ -1362,6 +1360,8 @@ namespace Kratos
 
         //reading integration points and local gradients
         const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
+
+        const GeometryType::ShapeFunctionsGradientsType& DN_De = GetGeometry().ShapeFunctionsLocalGradients( mThisIntegrationMethod );
 
         const Matrix& Ncontainer = GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod );
 
@@ -1391,46 +1391,89 @@ namespace Kratos
         {
             //deformation gradient
             MathUtils<double>::InvertMatrix( J0[PointNumber], InvJ0, DetJ0 );
-            noalias( F ) = prod( J[PointNumber], InvJ0 );
+            noalias( DN_DX ) = prod( DN_De[PointNumber], InvJ0 );
+            noalias( N ) = row( Ncontainer, PointNumber );
 
-            //strain calculation
-            noalias( C ) = prod( trans( F ), F );
-
-            CalculateStrain( C, StrainVector );
-//            Comprobate_State_Vector( StrainVector ); // I don't understand why we need this
+            //deformation gradient
+            this->CalculateF( F, N, DN_DX, CurrentDisp );
 
             if ( rVariable == GREEN_LAGRANGE_STRAIN_TENSOR )
             {
-                if ( rValues[PointNumber].size2() != StrainVector.size() )
-                    rValues[PointNumber].resize( 1, StrainVector.size(), false );
+                if ( rValues[PointNumber].size1() != f_size || rValues[PointNumber].size2() != f_size )
+                    rValues[PointNumber].resize( f_size, f_size, false );
 
-                for ( unsigned int ii = 0; ii < StrainVector.size(); ii++ )
-                    rValues[PointNumber]( 0, ii ) = StrainVector[ii];
+                //strain calculation
+                noalias( strain_tensor ) = 0.5 * (prod( trans( F ), F ) - eye);
+
+                noalias(rValues[PointNumber]) = strain_tensor;
+            }
+            else if ( rVariable == LEFT_STRETCH_TENSOR || rVariable == RIGHT_STRETCH_TENSOR )
+            {
+                if ( rValues[PointNumber].size1() != f_size || rValues[PointNumber].size2() != f_size )
+                    rValues[PointNumber].resize( f_size, f_size, false );
+
+                Matrix F3d(3, 3);
+                if (f_size == 2)
+                {
+                    for (unsigned int i = 0; i < 2; ++i)
+                        for (unsigned int j = 0; j < 2; ++j)
+                            F3d(i, j) = F(i, j);
+                    F3d(2, 2) = 1.0;
+                }
+                else if (f_size == 3)
+                    noalias(F3d) = F;
+
+                //strain calculation
+                Matrix Aux( 3, 3 );
+                if (rVariable == RIGHT_STRETCH_TENSOR)
+                    noalias( Aux ) = prod( trans( F3d ), F3d );
+                else if (rVariable == LEFT_STRETCH_TENSOR)
+                    noalias( Aux ) = prod( F3d, trans( F3d ) );
+
+                //polar decomposition
+                std::vector<double> pri(3);
+                std::vector<Matrix> eigprj(3);
+                EigenUtility::calculate_principle_stresses( Aux(0, 0), Aux(1, 1), Aux(2, 2),
+                        Aux(0, 1), Aux(1, 2), Aux(0, 2),
+                        pri[0], pri[1], pri[2], eigprj[0], eigprj[1], eigprj[2]);
+
+                Matrix stretch_tensor(3, 3);
+                SD_MathUtils<double>::ComputeIsotropicTensorFunction(EigenUtility::sqrt, stretch_tensor, pri, eigprj);
+
+                if (f_size == 2)
+                {
+                    Matrix& value = rValues[PointNumber];
+                    for (unsigned int i = 0; i < 2; ++i)
+                        for (unsigned int j = 0; j < 2; ++j)
+                            value(i, j) = stretch_tensor(i, j);
+                }
+                else if (f_size == 3)
+                    noalias(rValues[PointNumber]) = stretch_tensor;
+            }
+            else if ( rVariable == CURRENT_DEFORMATION_GRADIENT )
+            {
+                if ( rValues[PointNumber].size1() != f_size || rValues[PointNumber].size2() != f_size )
+                    rValues[PointNumber].resize( f_size, f_size, false );
+
+                noalias(rValues[PointNumber]) = F;
             }
             else if ( rVariable == PK2_STRESS_TENSOR )
             {
-                if ( rValues[PointNumber].size2() != StrainVector.size() )
-                    rValues[PointNumber].resize( 1, StrainVector.size(), false );
+                if ( rValues[PointNumber].size1() != f_size || rValues[PointNumber].size2() != f_size )
+                    rValues[PointNumber].resize( f_size, f_size, false );
 
-                mConstitutiveLawVector[PointNumber]->CalculateMaterialResponse( const_params, stress_measure );
+                mConstitutiveLawVector[PointNumber]->GetValue( rVariable, stress_tensor );
 
-                for ( unsigned int ii = 0; ii < StrainVector.size(); ii++ )
-                {
-                    rValues[PointNumber]( 0, ii ) = StressVector[ii];
-                }
+                noalias(rValues[PointNumber]) = stress_tensor;
             }
             else if ( rVariable == GREEN_LAGRANGE_PLASTIC_STRAIN_TENSOR )
             {
-                Matrix PlasticStrainVector;
-                double size = StrainVector.size();
-                PlasticStrainVector.resize( 1, size, false );
+                if ( rValues[PointNumber].size1() != f_size || rValues[PointNumber].size2() != f_size )
+                    rValues[PointNumber].resize( f_size, f_size, false );
 
-                if ( rValues[PointNumber].size2() != StrainVector.size() )
-                    rValues[PointNumber].resize( 1, size, false );
+                mConstitutiveLawVector[PointNumber]->GetValue( rVariable, stress_tensor );
 
-                mConstitutiveLawVector[PointNumber]->GetValue( GREEN_LAGRANGE_PLASTIC_STRAIN_TENSOR, PlasticStrainVector );
-
-                rValues[PointNumber] = PlasticStrainVector;
+                noalias(rValues[PointNumber]) = stress_tensor;
             }
         }
 

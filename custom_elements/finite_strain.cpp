@@ -62,6 +62,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_elements/finite_strain.h"
 #include "custom_utilities/geometry_utility.h"
 #include "custom_utilities/sd_math_utils.h"
+#include "custom_utilities/eigen_utility.h"
 #include "structural_application_variables.h"
 
 // #define ENABLE_DEBUG_CONSTITUTIVE_LAW
@@ -1654,13 +1655,13 @@ namespace Kratos
                     mConstitutiveLawVector[PointNumber]->GetValue( rVariable, rValues[PointNumber] );
             }
         }
-        else if ( rVariable == PLASTIC_STRAIN_VECTOR )
+        else if ( rVariable == ELASTIC_STRAIN_VECTOR || rVariable == PLASTIC_STRAIN_VECTOR )
         {
             for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); i++ )
             {
                 if ( rValues[i].size() != StrainSize )
                     rValues[i].resize( StrainSize );
-                noalias( rValues[i] ) = mConstitutiveLawVector[i]->GetValue( PLASTIC_STRAIN_VECTOR, rValues[i] );
+                noalias( rValues[i] ) = mConstitutiveLawVector[i]->GetValue( rVariable, rValues[i] );
             }
         }
         else if ( rVariable == STRESSES )
@@ -1716,6 +1717,8 @@ namespace Kratos
 
         Matrix F( f_size, f_size );
 
+        Matrix strain_tensor( f_size, f_size );
+
         Matrix DN_DX( number_of_nodes, dim );
 
         Matrix GX( g_size, number_of_nodes*dim );
@@ -1725,6 +1728,8 @@ namespace Kratos
         Matrix CurrentDisp( number_of_nodes, 3 );
 
         Matrix InvJ0(dim, dim), InvJ(dim, dim);
+
+        const Matrix eye = IdentityMatrix(f_size);
 
         double DetJ0, DetJ;
 
@@ -1848,10 +1853,52 @@ namespace Kratos
                     rValues[PointNumber].resize( f_size, f_size, false );
 
                 //strain calculation
-                Matrix C( f_size, f_size );
-                noalias( C ) = prod( trans( F ), F );
+                noalias( strain_tensor ) = 0.5 * (prod( trans( F ), F ) - eye);
 
-                noalias(rValues[PointNumber]) = C;
+                noalias(rValues[PointNumber]) = strain_tensor;
+            }
+            else if ( rVariable == LEFT_STRETCH_TENSOR || rVariable == RIGHT_STRETCH_TENSOR )
+            {
+                if ( rValues[PointNumber].size1() != f_size || rValues[PointNumber].size2() != f_size )
+                    rValues[PointNumber].resize( f_size, f_size, false );
+
+                Matrix F3d(3, 3);
+                if (f_size == 2)
+                {
+                    for (unsigned int i = 0; i < 2; ++i)
+                        for (unsigned int j = 0; j < 2; ++j)
+                            F3d(i, j) = F(i, j);
+                    F3d(2, 2) = 1.0;
+                }
+                else if (f_size == 3)
+                    noalias(F3d) = F;
+
+                //strain calculation
+                Matrix Aux( 3, 3 );
+                if (rVariable == RIGHT_STRETCH_TENSOR)
+                    noalias( Aux ) = prod( trans( F3d ), F3d );
+                else if (rVariable == LEFT_STRETCH_TENSOR)
+                    noalias( Aux ) = prod( F3d, trans( F3d ) );
+
+                //polar decomposition
+                std::vector<double> pri(3);
+                std::vector<Matrix> eigprj(3);
+                EigenUtility::calculate_principle_stresses( Aux(0, 0), Aux(1, 1), Aux(2, 2),
+                        Aux(0, 1), Aux(1, 2), Aux(0, 2),
+                        pri[0], pri[1], pri[2], eigprj[0], eigprj[1], eigprj[2]);
+
+                Matrix stretch_tensor(3, 3);
+                SD_MathUtils<double>::ComputeIsotropicTensorFunction(EigenUtility::sqrt, stretch_tensor, pri, eigprj);
+
+                if (f_size == 2)
+                {
+                    Matrix& value = rValues[PointNumber];
+                    for (unsigned int i = 0; i < 2; ++i)
+                        for (unsigned int j = 0; j < 2; ++j)
+                            value(i, j) = stretch_tensor(i, j);
+                }
+                else if (f_size == 3)
+                    noalias(rValues[PointNumber]) = stretch_tensor;
             }
             else if ( rVariable == CURRENT_DEFORMATION_GRADIENT )
             {
