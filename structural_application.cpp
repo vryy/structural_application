@@ -62,27 +62,29 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/serializer.h"
 #include "includes/variables.h"
 
-#include "geometries/quadrilateral_2d_4.h"
-#include "geometries/quadrilateral_2d_8.h"
-#include "geometries/quadrilateral_2d_9.h"
+#include "geometries/point_2d.h"
+#include "geometries/point_3d.h"
+#include "geometries/line_2d_2.h"
+#include "geometries/line_2d_3.h"
+#include "geometries/line_3d_2.h"
+#include "geometries/line_3d_3.h"
 #include "geometries/triangle_2d_3.h"
 #include "geometries/triangle_2d_6.h"
 #include "geometries/triangle_3d_3.h"
+#include "geometries/triangle_3d_6.h"
+#include "geometries/quadrilateral_2d_4.h"
+#include "geometries/quadrilateral_2d_8.h"
+#include "geometries/quadrilateral_2d_9.h"
+#include "geometries/quadrilateral_3d_4.h"
+#include "geometries/quadrilateral_3d_8.h"
+#include "geometries/quadrilateral_3d_9.h"
 #include "geometries/tetrahedra_3d_4.h"
 #include "geometries/tetrahedra_3d_10.h"
 #include "geometries/prism_3d_6.h"
 #include "geometries/prism_3d_15.h"
-#include "geometries/quadrilateral_3d_4.h"
-#include "geometries/quadrilateral_3d_8.h"
-#include "geometries/quadrilateral_3d_9.h"
 #include "geometries/hexahedra_3d_8.h"
 #include "geometries/hexahedra_3d_20.h"
 #include "geometries/hexahedra_3d_27.h"
-#include "geometries/line_2d_2.h"
-#include "geometries/line_3d_2.h"
-#include "geometries/line_3d_3.h"
-#include "geometries/point_2d.h"
-#include "geometries/point_3d.h"
 
 #include "structural_application.h"
 #include "structural_application_variables.h"
@@ -98,6 +100,24 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define STRUCTURAL_APP_CREATE_CONDITION(condition_type, geometry_type, number_of_nodes) \
     condition_type( 0, Condition::GeometryType::Pointer( new geometry_type <Node<3> >( Condition::GeometryType::PointsArrayType( number_of_nodes, Node<3>() ) ) ) )
 #endif
+
+#define STRUCTURAL_APPLICATION_CREATE_CONDITION_ALL_GEOMETRIES(condition_type) \
+    STRUCTURAL_APP_CREATE_CONDITION(m##condition_type##2D2N, Line2D2, 2), \
+    STRUCTURAL_APP_CREATE_CONDITION(m##condition_type##2D3N, Line2D3, 3), \
+    STRUCTURAL_APP_CREATE_CONDITION(m##condition_type##3D3N, Triangle3D3, 3), \
+    STRUCTURAL_APP_CREATE_CONDITION(m##condition_type##3D6N, Triangle3D6, 6), \
+    STRUCTURAL_APP_CREATE_CONDITION(m##condition_type##3D4N, Quadrilateral3D4, 4), \
+    STRUCTURAL_APP_CREATE_CONDITION(m##condition_type##3D8N, Quadrilateral3D8, 8), \
+    STRUCTURAL_APP_CREATE_CONDITION(m##condition_type##3D9N, Quadrilateral3D9, 9) \
+
+#define STRUCTURAL_APPLICATION_REGISTER_CONDITION_ALL_GEOMETRIES(condition_type) \
+    KRATOS_REGISTER_CONDITION( #condition_type"2D2N", m##condition_type##2D2N ) \
+    KRATOS_REGISTER_CONDITION( #condition_type"2D3N", m##condition_type##2D3N ) \
+    KRATOS_REGISTER_CONDITION( #condition_type"3D3N", m##condition_type##3D3N ) \
+    KRATOS_REGISTER_CONDITION( #condition_type"3D6N", m##condition_type##3D6N ) \
+    KRATOS_REGISTER_CONDITION( #condition_type"3D4N", m##condition_type##3D4N ) \
+    KRATOS_REGISTER_CONDITION( #condition_type"3D8N", m##condition_type##3D8N ) \
+    KRATOS_REGISTER_CONDITION( #condition_type"3D9N", m##condition_type##3D9N ) \
 
 namespace Kratos
 {
@@ -411,6 +431,10 @@ KratosStructuralApplication::KratosStructuralApplication()
     , mRollerConstraint3D8N( 0, Element::GeometryType::Pointer( new Quadrilateral3D8 <Node<3> >( Element::GeometryType::PointsArrayType( 8, Node<3>() ) ) ) )
     , mRollerConstraint3D9N( 0, Element::GeometryType::Pointer( new Quadrilateral3D9 <Node<3> >( Element::GeometryType::PointsArrayType( 9, Node<3>() ) ) ) )
 
+    , STRUCTURAL_APPLICATION_CREATE_CONDITION_ALL_GEOMETRIES(MeanDisplacementConstraintX)
+    , STRUCTURAL_APPLICATION_CREATE_CONDITION_ALL_GEOMETRIES(MeanDisplacementConstraintY)
+    , STRUCTURAL_APPLICATION_CREATE_CONDITION_ALL_GEOMETRIES(MeanDisplacementConstraintZ)
+
     , mNodeTyingLagrange( 0, Element::GeometryType::Pointer( new Geometry <Node<3> >( Element::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) )
     , mNodeTyingLagrangeZ( 0, Element::GeometryType::Pointer( new Geometry <Node<3> >( Element::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) )
     , mPointPointJointCondition( 0, Element::GeometryType::Pointer( new Line3D2 <Node<3> >( Element::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) )
@@ -646,6 +670,7 @@ void KratosStructuralApplication::Register()
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( LINE_LOAD )
     KRATOS_REGISTER_VARIABLE( IS_CONTACT_NODE )
     KRATOS_REGISTER_VARIABLE( LAGRANGE_MULTIPLIER )
+    KRATOS_REGISTER_VARIABLE( LAGRANGE_MULTIPLIER_INDEX )
     KRATOS_REGISTER_VARIABLE( HAS_STRAIN_AT_NODE )
     KRATOS_REGISTER_VARIABLE( HAS_STRESSES_AT_NODE )
     KRATOS_REGISTER_VARIABLE( HAS_NODAL_ERROR )
@@ -900,9 +925,6 @@ void KratosStructuralApplication::Register()
     KRATOS_REGISTER_VARIABLE( IS_CONTACT_SLAVE )
 //        KRATOS_REGISTER_VARIABLE( IS_BOUNDARY )
 //        KRATOS_REGISTER_VARIABLE( IS_VISITED )
-
-    KRATOS_REGISTER_VARIABLE( LAGRANGE_MULTIPLIER_CONSTRAINT )
-    KRATOS_REGISTER_VARIABLE( LAGRANGE_MULTIPLIER_CONSTRAINT_REACTION )
 
     KRATOS_REGISTER_VARIABLE( IS_SHAPE_FUNCTION_REQUIRED )
     KRATOS_REGISTER_VARIABLE( RESET_CONFIGURATION )
@@ -1203,6 +1225,10 @@ void KratosStructuralApplication::Register()
     KRATOS_REGISTER_CONDITION( "RollerConstraint3D4N", mRollerConstraint3D4N )
     KRATOS_REGISTER_CONDITION( "RollerConstraint3D8N", mRollerConstraint3D8N )
     KRATOS_REGISTER_CONDITION( "RollerConstraint3D9N", mRollerConstraint3D9N )
+
+    STRUCTURAL_APPLICATION_REGISTER_CONDITION_ALL_GEOMETRIES( MeanDisplacementConstraintX )
+    STRUCTURAL_APPLICATION_REGISTER_CONDITION_ALL_GEOMETRIES( MeanDisplacementConstraintY )
+    STRUCTURAL_APPLICATION_REGISTER_CONDITION_ALL_GEOMETRIES( MeanDisplacementConstraintZ )
 
     KRATOS_REGISTER_CONDITION( "NodeTyingLagrange", mNodeTyingLagrange )
     KRATOS_REGISTER_CONDITION( "NodeTyingLagrangeZ", mNodeTyingLagrangeZ )

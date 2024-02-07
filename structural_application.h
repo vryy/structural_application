@@ -148,6 +148,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
     #include "custom_conditions/elastic_face_springs.h"
     #include "custom_conditions/nitsche_isotropic_constraint.h"
     #include "custom_conditions/roller_constraint.h"
+    #include "custom_conditions/mean_displacement_constraint.h"
     #include "custom_conditions/dummy_condition.h"
 
     #include "constitutive_laws/isotropic_2d.h"
@@ -156,6 +157,15 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
     #include "constitutive_laws/drucker_prager.h"
     #include "constitutive_laws/cam_clay_3d.h"
 #endif
+
+#define STRUCTURAL_APPLICATION_DEFINE_CONDITION_ALL_GEOMETRIES(condition_type) \
+    const condition_type m##condition_type##2D2N; \
+    const condition_type m##condition_type##2D3N; \
+    const condition_type m##condition_type##3D3N; \
+    const condition_type m##condition_type##3D6N; \
+    const condition_type m##condition_type##3D4N; \
+    const condition_type m##condition_type##3D8N; \
+    const condition_type m##condition_type##3D9N;
 
 namespace Kratos
 {
@@ -566,6 +576,13 @@ private:
     const RollerConstraint mRollerConstraint3D4N;
     const RollerConstraint mRollerConstraint3D8N;
     const RollerConstraint mRollerConstraint3D9N;
+
+    typedef MeanDisplacementConstraint<0> MeanDisplacementConstraintX;
+    typedef MeanDisplacementConstraint<1> MeanDisplacementConstraintY;
+    typedef MeanDisplacementConstraint<2> MeanDisplacementConstraintZ;
+    STRUCTURAL_APPLICATION_DEFINE_CONDITION_ALL_GEOMETRIES(MeanDisplacementConstraintX)
+    STRUCTURAL_APPLICATION_DEFINE_CONDITION_ALL_GEOMETRIES(MeanDisplacementConstraintY)
+    STRUCTURAL_APPLICATION_DEFINE_CONDITION_ALL_GEOMETRIES(MeanDisplacementConstraintZ)
 
     const DummyCondition mDummySurfaceCondition2D3N;
     const DummyCondition mDummySurfaceCondition2D6N;

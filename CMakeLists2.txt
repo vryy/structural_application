@@ -136,6 +136,7 @@ set( KRATOS_STRUCTURAL_APPLICATION_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/nitsche_isotropic_constraint.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/roller_constraint.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/foundation_condition.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/mean_displacement_constraint.cpp
 
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/eig/eig3.cpp
 
