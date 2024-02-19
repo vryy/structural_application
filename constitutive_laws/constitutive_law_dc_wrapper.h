@@ -146,7 +146,7 @@ public:
         }
 
         if (CalculateTangent)
-            this->ComputeTangent(AlgorithmicTangent);
+            this->ComputeTangent(AlgorithmicTangent, CurrentProcessInfo, props);
         if (CalculateStresses)
             SD_MathUtils<double>::StressTensorToVector(BaseType::m_stress_n1, StressVector);
     }
@@ -172,7 +172,7 @@ public:
 
         // Here we delay the stres update after the first iteration is finished. The tangent
         // from the previous step is used for the first iteration. This approach is used by HYPLAS.
-        this->StressIntegration(mCurrentStrain, TOL);
+        this->StressIntegration(mCurrentStrain, TOL, CurrentProcessInfo, props);
     }
 
     /**
