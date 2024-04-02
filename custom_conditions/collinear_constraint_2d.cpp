@@ -120,10 +120,6 @@ CollinearConstraint2D::~CollinearConstraint2D()
 
 //************************************************************************************
 //************************************************************************************
-
-/**
- * calculates only the RHS vector (certainly to be removed due to contact algorithm)
- */
 void CollinearConstraint2D::CalculateRightHandSide( VectorType& rRightHandSideVector,
         const ProcessInfo& rCurrentProcessInfo)
 {
@@ -141,10 +137,6 @@ void CollinearConstraint2D::CalculateRightHandSide( VectorType& rRightHandSideVe
 
 //************************************************************************************
 //************************************************************************************
-
-/**
- * calculates this contact element's local contributions
- */
 void CollinearConstraint2D::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
         const ProcessInfo& rCurrentProcessInfo)
@@ -161,10 +153,6 @@ void CollinearConstraint2D::CalculateLocalSystem( MatrixType& rLeftHandSideMatri
 
 //************************************************************************************
 //************************************************************************************
-/**
- * calculates the contact related contributions to the system
- * Does nothing as assembling is to be switched to linking objects
- */
 void CollinearConstraint2D::CalculateAll( MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
         const ProcessInfo& rCurrentProcessInfo,
