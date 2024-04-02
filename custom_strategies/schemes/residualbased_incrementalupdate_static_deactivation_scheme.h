@@ -219,7 +219,7 @@ public:
         KRATOS_TRY
         //initialize solution step for all of the elements
         ElementsArrayType& pElements = r_model_part.Elements();
-        ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
+        const ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
 
         bool element_is_active;
         for (typename ElementsArrayType::iterator it = pElements.begin(); it != pElements.end(); ++it)
@@ -262,7 +262,7 @@ public:
     {
         KRATOS_TRY
         ElementsArrayType& pElements = r_model_part.Elements();
-        ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
+        const ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
 
         bool element_is_active;
         for (typename ElementsArrayType::iterator it = pElements.begin(); it != pElements.end(); ++it)
@@ -335,7 +335,7 @@ public:
         // invoking the element and condition finalization after an iteration
 
         ElementsArrayType& pElements = r_model_part.Elements();
-        ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
+        const ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
 
         bool element_is_active;
         for (typename ElementsArrayType::iterator it = pElements.begin(); it != pElements.end(); ++it)
@@ -377,7 +377,7 @@ public:
         KRATOS_TRY
         //finalizes solution step for all of the elements
         ElementsArrayType& rElements = rModelPart.Elements();
-        ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
+        const ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
 
         int NumThreads = OpenMPUtils::GetNumThreads();
         OpenMPUtils::PartitionVector ElementPartition;
