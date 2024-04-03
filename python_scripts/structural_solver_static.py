@@ -85,7 +85,7 @@ class StaticStructuralSolver:
 
     #
     def Solve(self):
-        (self.solver).Solve()
+        return (self.solver).Solve()
 
     #
     def SetEchoLevel(self, level):

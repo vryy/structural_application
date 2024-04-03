@@ -122,12 +122,22 @@ class SolvingStrategyPython:
         #print self.model_part
         self.solveCounter = self.solveCounter + 1
         #solve the nonlinear equilibrium
-        self.PerformNewtonRaphsonIteration()
+        converged = self.PerformNewtonRaphsonIteration()
+        if not converged:
+            self.solveCounter = self.solveCounter - 1
+            #clear if needed - deallocates memory
+            if(self.ReformDofSetAtEachStep == True):
+                print("Clear the system")
+                self.Clear()
+            #reset flags for repeated step
+            self.SolutionStepIsInitialized = False
+            return False
         #finalize the solution step
         self.FinalizeSolutionStep(self.CalculateReactionsFlag)
         #clear if needed - deallocates memory
         if(self.ReformDofSetAtEachStep == True):
             self.Clear()
+        return True
 
     #######################################################################
     def PerformOneIteration( self ):
@@ -239,12 +249,14 @@ class SolvingStrategyPython:
             print("Iteration did not converge at time step " + str(self.model_part.ProcessInfo[TIME]))
             if('stop_Newton_Raphson_if_not_converged' in self.Parameters):
                 if(self.Parameters['stop_Newton_Raphson_if_not_converged'] == True):
-                    sys.exit("Sorry, my boss does not allow me to continue. The time step did not converge at time step " + str(self.model_part.ProcessInfo[TIME]) + ", it = " + str(it) + ", max_iter = " + str(self.max_iter))
+                    raise Exception("Sorry, my boss does not allow me to continue. The time step did not converge at time step " + str(self.model_part.ProcessInfo[TIME]) + ", it = " + str(it) + ", max_iter = " + str(self.max_iter))
                 else:
                     print('However, the iteration will still be proceeded' + ", it = " + str(it) + ", max_iter = " + str(self.max_iter))
+                    return False
             else:
-                sys.exit("Sorry, my boss does not allow me to continue. The time step did not converge at time step " + str(self.model_part.ProcessInfo[TIME]) + ", it = " + str(it) + ", max_iter = " + str(self.max_iter))
+                raise Exception("Sorry, my boss does not allow me to continue. The time step did not converge at time step " + str(self.model_part.ProcessInfo[TIME]) + ", it = " + str(it) + ", max_iter = " + str(self.max_iter))
         print("newton_raphson_strategy.PerformNewtonRaphsonIteration converged after " + str(it) + " steps")
+        return True
 
     #######################################################################
     def Predict(self):
