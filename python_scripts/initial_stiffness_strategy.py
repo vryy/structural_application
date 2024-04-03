@@ -83,13 +83,18 @@ class SolvingStrategyPython:
         else:
             self.erbar = self.Parameters['residuum_tolerance']
 
-        if not('log_residuum_name' in self.Parameters):
-            self.log_residuum = open('residuum_initial_stiffness.log', 'w')
-        else:
-            self.log_residuum = open(self.Parameters['log_residuum_name'], 'w')
+        if 'log_residuum' not in self.Parameters:
+            self.Parameters['log_residuum'] = True
+        self.log_residuum = None
+        if self.Parameters['log_residuum']:
+            if not('log_residuum_name' in self.Parameters):
+                self.log_residuum = open('residuum_initial_stiffness.log', 'w')
+            else:
+                self.log_residuum = open(self.Parameters['log_residuum_name'], 'w')
 
     def __del__(self):
-        self.log_residuum.close()
+        if self.log_residuum != None:
+            self.log_residuum.close()
 
     #######################################################################
     def Initialize(self):
@@ -183,10 +188,11 @@ class SolvingStrategyPython:
 
         er_0 = self.space_utils.TwoNorm(self.b)
         er_n = er_0
-        self.log_residuum.write('time: ' + str(self.model_part.ProcessInfo[TIME]) + '\n')
-        self.log_residuum.write('it\tresidual\tratio\treduction\tremaining\n')
-        self.log_residuum.write('0\t' + str(er_0) + '\n')
-        self.log_residuum.flush()
+        if self.log_residuum != None:
+            self.log_residuum.write('time: ' + str(self.model_part.ProcessInfo[TIME]) + '\n')
+            self.log_residuum.write('it\tresidual\tratio\treduction\tremaining\n')
+            self.log_residuum.write('0\t' + str(er_0) + '\n')
+            self.log_residuum.flush()
 
         #non linear loop
         converged = False
@@ -245,10 +251,12 @@ class SolvingStrategyPython:
                 converged = True
                 print("initial_stiffness_strategy.PerformNewtonRaphsonIteration converged when residuum ratio (" + str(er_ratio) + ") reached tolerance " + str(self.erbar))
 
-            self.log_residuum.write(str(it) + '\t' + str(er) + '\t' + str(er_ratio) + '\t' + str(er_reduction) + '\t' + str(n) + '\n')
-            self.log_residuum.flush()
+            if self.log_residuum != None:
+                self.log_residuum.write(str(it) + '\t' + str(er) + '\t' + str(er_ratio) + '\t' + str(er_reduction) + '\t' + str(n) + '\n')
+                self.log_residuum.flush()
 
-        self.log_residuum.write("------------------------------------------\n")
+        if self.log_residuum != None:
+            self.log_residuum.write("------------------------------------------\n")
 
         if( it == self.max_iter and converged == False):
             print("Iteration did not converge at time step " + str(self.model_part.ProcessInfo[TIME]))
