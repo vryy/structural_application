@@ -183,7 +183,7 @@ namespace Kratos
         if ( mConstitutiveLawVector.size() != integration_points.size() )
         {
             mConstitutiveLawVector.resize( integration_points.size() );
-            InitializeMaterial();
+            InitializeMaterial( rCurrentProcessInfo );
         }
 
         if ( mIsInitialized )
@@ -924,7 +924,7 @@ namespace Kratos
 //************************************************************************************
 //************************************************************************************
 
-    void FiniteStrain::InitializeMaterial()
+    void FiniteStrain::InitializeMaterial(const ProcessInfo& CurrentProcessInfo)
     {
         KRATOS_TRY
 
@@ -934,8 +934,8 @@ namespace Kratos
         int need_shape_function = 0, tmp;
         for ( unsigned int Point = 0; Point < mConstitutiveLawVector.size(); ++Point )
         {
-            mConstitutiveLawVector[Point]->SetValue( PARENT_ELEMENT_ID, this->Id(), *(ProcessInfo*)0);
-            mConstitutiveLawVector[Point]->SetValue( INTEGRATION_POINT_INDEX, Point, *(ProcessInfo*)0);
+            mConstitutiveLawVector[Point]->SetValue( PARENT_ELEMENT_ID, this->Id(), CurrentProcessInfo );
+            mConstitutiveLawVector[Point]->SetValue( INTEGRATION_POINT_INDEX, Point, CurrentProcessInfo );
             tmp = mConstitutiveLawVector[Point]->GetValue(IS_SHAPE_FUNCTION_REQUIRED, tmp);
             need_shape_function += tmp;
         }
@@ -946,12 +946,14 @@ namespace Kratos
             GetGeometry().Initialize(mThisIntegrationMethod);
             #endif
 
+            const Matrix Ncontainer = GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod );
+
             for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); ++i )
             {
-                mConstitutiveLawVector[i]->InitializeMaterial( GetProperties(), GetGeometry(), row( GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod ), i ) );
+                mConstitutiveLawVector[i]->InitializeMaterial( GetProperties(), GetGeometry(), row( Ncontainer, i ) );
 
                 //check constitutive law
-                mConstitutiveLawVector[i]->Check( GetProperties(), GetGeometry(), *(ProcessInfo*)0 );
+                mConstitutiveLawVector[i]->Check( GetProperties(), GetGeometry(), CurrentProcessInfo );
             }
 
             #ifdef ENABLE_BEZIER_GEOMETRY
@@ -966,6 +968,15 @@ namespace Kratos
             }
         }
 
+        // set the integration point for constitutive law
+        const GeometryType::IntegrationPointsArrayType& integration_points =
+                GetGeometry().IntegrationPoints( mThisIntegrationMethod );
+
+        for(std::size_t point = 0; point < integration_points.size(); ++point)
+        {
+            mConstitutiveLawVector[point]->SetValue( INTEGRATION_POINT_LOCAL, integration_points[point], CurrentProcessInfo );
+        }
+
         KRATOS_CATCH( "" )
     }
 
@@ -973,8 +984,35 @@ namespace Kratos
     {
         KRATOS_TRY
 
-        for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); i++ )
-            mConstitutiveLawVector[i]->ResetMaterial( GetProperties(), GetGeometry(), row( GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod ), i ) );
+        int need_shape_function = 0, tmp;
+        for ( unsigned int Point = 0; Point < mConstitutiveLawVector.size(); ++Point )
+        {
+            tmp = mConstitutiveLawVector[Point]->GetValue(IS_SHAPE_FUNCTION_REQUIRED, tmp);
+            need_shape_function += tmp;
+        }
+
+        if (need_shape_function)
+        {
+            #ifdef ENABLE_BEZIER_GEOMETRY
+            GetGeometry().Initialize(mThisIntegrationMethod);
+            #endif
+
+            const Matrix Ncontainer = GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod );
+
+            for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); i++ )
+                mConstitutiveLawVector[i]->ResetMaterial( GetProperties(), GetGeometry(), row( Ncontainer, i ) );
+
+            #ifdef ENABLE_BEZIER_GEOMETRY
+            GetGeometry().Clean();
+            #endif
+        }
+        else
+        {
+            const Vector dummy;
+
+            for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); i++ )
+                mConstitutiveLawVector[i]->ResetMaterial( GetProperties(), GetGeometry(), dummy );
+        }
 
         KRATOS_CATCH( "" )
     }

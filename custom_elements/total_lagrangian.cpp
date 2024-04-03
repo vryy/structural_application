@@ -177,7 +177,7 @@ namespace Kratos
         if ( mConstitutiveLawVector.size() != integration_points.size() )
         {
             mConstitutiveLawVector.resize( integration_points.size() );
-            InitializeMaterial();
+            InitializeMaterial( rCurrentProcessInfo );
         }
 
         if ( mIsInitialized )
@@ -662,7 +662,7 @@ namespace Kratos
 //************************************************************************************
 //************************************************************************************
 
-    void TotalLagrangian::InitializeMaterial()
+    void TotalLagrangian::InitializeMaterial( const ProcessInfo& CurrentProcessInfo )
     {
         KRATOS_TRY
 
@@ -672,8 +672,8 @@ namespace Kratos
         int need_shape_function = 0, tmp;
         for ( unsigned int Point = 0; Point < mConstitutiveLawVector.size(); ++Point )
         {
-            mConstitutiveLawVector[Point]->SetValue( PARENT_ELEMENT_ID, this->Id(), *(ProcessInfo*)0);
-            mConstitutiveLawVector[Point]->SetValue( INTEGRATION_POINT_INDEX, Point, *(ProcessInfo*)0);
+            mConstitutiveLawVector[Point]->SetValue( PARENT_ELEMENT_ID, this->Id(), CurrentProcessInfo );
+            mConstitutiveLawVector[Point]->SetValue( INTEGRATION_POINT_INDEX, Point, CurrentProcessInfo );
             tmp = mConstitutiveLawVector[Point]->GetValue(IS_SHAPE_FUNCTION_REQUIRED, tmp);
             need_shape_function += tmp;
         }
@@ -689,7 +689,7 @@ namespace Kratos
                 mConstitutiveLawVector[i]->InitializeMaterial( GetProperties(), GetGeometry(), row( GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod ), i ) );
 
                 //check constitutive law
-                mConstitutiveLawVector[i]->Check( GetProperties(), GetGeometry(), *(ProcessInfo*)0 );
+                mConstitutiveLawVector[i]->Check( GetProperties(), GetGeometry(), CurrentProcessInfo );
             }
 
             #ifdef ENABLE_BEZIER_GEOMETRY

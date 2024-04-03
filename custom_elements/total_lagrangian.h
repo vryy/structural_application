@@ -403,7 +403,7 @@ private:
 
     void InitializeVariables();
 
-    virtual void InitializeMaterial();
+    virtual void InitializeMaterial( const ProcessInfo& CurrentProcessInfo );
 
     void CalculateB(Matrix& B,
                     const Matrix& F,

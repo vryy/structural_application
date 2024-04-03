@@ -357,7 +357,7 @@ private:
 
     void InitializeVariables();
 
-    virtual void InitializeMaterial();
+    virtual void InitializeMaterial(const ProcessInfo& CurrentProcessInfo);
 
     double CalculateIntegrationWeight(const double& GaussPointWeight, const double& DetJ0);
 
