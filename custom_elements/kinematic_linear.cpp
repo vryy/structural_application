@@ -2097,12 +2097,11 @@ namespace Kratos
         {
             for( unsigned int i = 0; i < rValues.size(); ++i )
             {
-                rValues[i] = this->GetValue(MATERIAL_DENSITY);
+                rValues[i] = this->GetValue(rVariable);
             }
         }
         else
         {
-            //reading integration points and local gradients
             for ( unsigned int Point = 0; Point < mConstitutiveLawVector.size(); Point++ )
             {
                 rValues[Point] = mConstitutiveLawVector[Point]->GetValue( rVariable, rValues[Point] );
@@ -2112,19 +2111,22 @@ namespace Kratos
 
     void KinematicLinear::CalculateOnIntegrationPoints( const Variable<int>& rVariable, std::vector<int>& rValues, const ProcessInfo& rCurrentProcessInfo )
     {
+        if (rValues.size() != mConstitutiveLawVector.size())
+            rValues.resize(mConstitutiveLawVector.size());
+
         if(rVariable == PARENT_ELEMENT_ID)
         {
-            rValues.resize(mConstitutiveLawVector.size());
             std::fill(rValues.begin(), rValues.end(), Id());
         }
-
-        if(rVariable == INTEGRATION_POINT_INDEX)
+        else if(rVariable == INTEGRATION_POINT_INDEX)
         {
-            rValues.resize(mConstitutiveLawVector.size());
             for(unsigned int i = 0; i < mConstitutiveLawVector.size(); ++i)
-            {
                 rValues[i] = i;
-            }
+        }
+        else
+        {
+            for ( unsigned int Point = 0; Point < mConstitutiveLawVector.size(); Point++ )
+                rValues[Point] = mConstitutiveLawVector[Point]->GetValue(rVariable, rValues[Point]);
         }
     }
 
