@@ -14,7 +14,6 @@
 #include "includes/variables.h"
 #include "utilities/math_utils.h"
 #include "custom_utilities/sd_math_utils.h"
-#include "custom_utilities/eigen_utility.h"
 #include "constitutive_laws/multiplicative_finite_strain_bridging_constitutive_law_dc.h"
 #include "structural_application_variables.h"
 
@@ -30,53 +29,11 @@ namespace Kratos
 
 //**********************************************************************
 template<int TStressType>
-MultiplicativeFiniteStrainBridgingConstitutiveLawDC<TStressType>::MultiplicativeFiniteStrainBridgingConstitutiveLawDC()
-    : BaseType()
-{
-}
-
-//**********************************************************************
-template<int TStressType>
-MultiplicativeFiniteStrainBridgingConstitutiveLawDC<TStressType>::MultiplicativeFiniteStrainBridgingConstitutiveLawDC(ConstitutiveLaw::Pointer pConstitutiveLaw)
-    : BaseType(pConstitutiveLaw)
-{
-}
-
-//**********************************************************************
-template<int TStressType>
-MultiplicativeFiniteStrainBridgingConstitutiveLawDC<TStressType>::~MultiplicativeFiniteStrainBridgingConstitutiveLawDC()
-{
-}
-
-//**********************************************************************
-template<int TStressType>
 bool MultiplicativeFiniteStrainBridgingConstitutiveLawDC<TStressType>::Has( const Variable<Matrix>& rThisVariable )
 {
     if (rThisVariable == CURRENT_DEFORMATION_GRADIENT)
         return true;
     return BaseType::mpConstitutiveLaw->Has(rThisVariable);
-}
-
-//**********************************************************************
-template<int TStressType>
-Matrix& MultiplicativeFiniteStrainBridgingConstitutiveLawDC<TStressType>::GetValue( const Variable<Matrix>& rThisVariable, Matrix& rValue )
-{
-    if (rThisVariable == THREED_ALGORITHMIC_TANGENT)
-    {
-        if (rValue.size1() != 9 || rValue.size2() != 9)
-            rValue.resize(9, 9, false);
-        this->ComputeTangent( rValue );
-        return rValue;
-    }
-    else if (rThisVariable == CAUCHY_STRESS_TENSOR)
-    {
-        if (rValue.size1() != 3 || rValue.size2() != 3)
-            rValue.resize(3, 3, false);
-        noalias(rValue) = BaseType::m_stress_n1;
-        return rValue;
-    }
-
-    return BaseType::mpConstitutiveLaw->GetValue(rThisVariable, rValue);
 }
 
 //**********************************************************************
@@ -132,7 +89,7 @@ void MultiplicativeFiniteStrainBridgingConstitutiveLawDC<1>::FinalizeNonLinearIt
     const unsigned int strain_size = this->GetStrainSize(dim);
 
     Vector StrainVector(strain_size);
-    BaseType::ComputeLogarithmicStrain(StrainVector, BaseType::m_left_elastic_cauchy_green_tensor_trial, BaseType::m_F_n1);
+    BaseType::ComputeStrain(StrainVector, BaseType::m_Be_trial, BaseType::m_F_n1);
 
     // integrate the (small strain) constitutive law, obtaining Cauchy stress
     BaseType::mpConstitutiveLaw->SetValue(CURRENT_STRAIN_VECTOR, StrainVector, CurrentProcessInfo);
@@ -169,7 +126,7 @@ void MultiplicativeFiniteStrainBridgingConstitutiveLawDC<2>::FinalizeNonLinearIt
     const unsigned int strain_size = this->GetStrainSize(dim);
 
     Vector StrainVector(strain_size);
-    BaseType::ComputeLogarithmicStrain(StrainVector, BaseType::m_left_elastic_cauchy_green_tensor_trial, BaseType::m_F_n1);
+    BaseType::ComputeStrain(StrainVector, BaseType::m_Be_trial, BaseType::m_F_n1);
 
     // integrate the (small strain) constitutive law, obtaining Kirchhoff stress
     BaseType::mpConstitutiveLaw->SetValue(CURRENT_STRAIN_VECTOR, StrainVector, CurrentProcessInfo);
@@ -219,7 +176,7 @@ void MultiplicativeFiniteStrainBridgingConstitutiveLawDC<TStressType>::Calculate
     if (rValues.IsSetConstitutiveMatrix())
     {
         Matrix& AlgorithmicTangent = rValues.GetConstitutiveMatrix();
-        this->ComputeTangent(AlgorithmicTangent);
+        SuperType::ComputeTangent(AlgorithmicTangent);
     }
     if (rValues.IsSetStressVector())
     {

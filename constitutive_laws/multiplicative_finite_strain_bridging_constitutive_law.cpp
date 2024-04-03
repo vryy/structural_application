@@ -30,181 +30,14 @@ namespace Kratos
 
 //**********************************************************************
 template<int TStressType>
-MultiplicativeFiniteStrainBridgingConstitutiveLaw<TStressType>::MultiplicativeFiniteStrainBridgingConstitutiveLaw()
-    : ConstitutiveLaw()
-{
-}
-
-//**********************************************************************
-template<int TStressType>
-MultiplicativeFiniteStrainBridgingConstitutiveLaw<TStressType>::MultiplicativeFiniteStrainBridgingConstitutiveLaw(ConstitutiveLaw::Pointer pConstitutiveLaw)
-    : ConstitutiveLaw(), mpConstitutiveLaw(pConstitutiveLaw)
-{
-}
-
-//**********************************************************************
-template<int TStressType>
-MultiplicativeFiniteStrainBridgingConstitutiveLaw<TStressType>::~MultiplicativeFiniteStrainBridgingConstitutiveLaw()
-{
-}
-
-//**********************************************************************
-template<int TStressType>
-bool MultiplicativeFiniteStrainBridgingConstitutiveLaw<TStressType>::Has( const Variable<int>& rThisVariable )
-{
-    return mpConstitutiveLaw->Has(rThisVariable);
-}
-
-//**********************************************************************
-template<int TStressType>
-bool MultiplicativeFiniteStrainBridgingConstitutiveLaw<TStressType>::Has( const Variable<double>& rThisVariable )
-{
-    return mpConstitutiveLaw->Has(rThisVariable);
-}
-
-//**********************************************************************
-template<int TStressType>
-bool MultiplicativeFiniteStrainBridgingConstitutiveLaw<TStressType>::Has( const Variable<Vector>& rThisVariable )
-{
-    return mpConstitutiveLaw->Has(rThisVariable);
-}
-
-//**********************************************************************
-template<int TStressType>
-bool MultiplicativeFiniteStrainBridgingConstitutiveLaw<TStressType>::Has( const Variable<Matrix>& rThisVariable )
-{
-    return mpConstitutiveLaw->Has(rThisVariable);
-}
-
-//**********************************************************************
-template<int TStressType>
-int& MultiplicativeFiniteStrainBridgingConstitutiveLaw<TStressType>::GetValue( const Variable<int>& rThisVariable, int& rValue )
-{
-    return mpConstitutiveLaw->GetValue(rThisVariable, rValue);
-}
-
-//**********************************************************************
-template<int TStressType>
-double& MultiplicativeFiniteStrainBridgingConstitutiveLaw<TStressType>::GetValue( const Variable<double>& rThisVariable, double& rValue )
-{
-    return mpConstitutiveLaw->GetValue(rThisVariable, rValue);
-}
-
-//**********************************************************************
-template<int TStressType>
-Vector& MultiplicativeFiniteStrainBridgingConstitutiveLaw<TStressType>::GetValue( const Variable<Vector>& rThisVariable, Vector& rValue )
-{
-    return mpConstitutiveLaw->GetValue(rThisVariable, rValue);
-}
-
-//**********************************************************************
-template<int TStressType>
-Matrix& MultiplicativeFiniteStrainBridgingConstitutiveLaw<TStressType>::GetValue( const Variable<Matrix>& rThisVariable, Matrix& rValue )
-{
-    if (rThisVariable == THREED_ALGORITHMIC_TANGENT)
-    {
-        if (rValue.size1() != 9 || rValue.size2() != 9)
-            rValue.resize(9, 9, false);
-        this->ComputeTangent( rValue );
-        return rValue;
-    }
-    else if (rThisVariable == CAUCHY_STRESS_TENSOR)
-    {
-        if (rValue.size1() != 3 || rValue.size2() != 3)
-            rValue.resize(3, 3, false);
-        noalias(rValue) = m_stress_n1;
-        return rValue;
-    }
-
-    return mpConstitutiveLaw->GetValue(rThisVariable, rValue);
-}
-
-//**********************************************************************
-template<int TStressType>
-void MultiplicativeFiniteStrainBridgingConstitutiveLaw<TStressType>::SetValue( const Variable<int>& rThisVariable, const int& rValue,
-                            const ProcessInfo& rCurrentProcessInfo )
-{
-    mpConstitutiveLaw->SetValue(rThisVariable, rValue, rCurrentProcessInfo);
-}
-
-//**********************************************************************
-template<int TStressType>
-void MultiplicativeFiniteStrainBridgingConstitutiveLaw<TStressType>::SetValue( const Variable<double>& rThisVariable, const double& rValue,
-                            const ProcessInfo& rCurrentProcessInfo )
-{
-    mpConstitutiveLaw->SetValue(rThisVariable, rValue, rCurrentProcessInfo);
-}
-
-//**********************************************************************
-template<int TStressType>
-void MultiplicativeFiniteStrainBridgingConstitutiveLaw<TStressType>::SetValue( const Variable<array_1d<double, 3> >& rThisVariable,
-                            const array_1d<double, 3>& rValue,
-                            const ProcessInfo& rCurrentProcessInfo )
-{
-    mpConstitutiveLaw->SetValue(rThisVariable, rValue, rCurrentProcessInfo);
-}
-
-//**********************************************************************
-template<int TStressType>
-void MultiplicativeFiniteStrainBridgingConstitutiveLaw<TStressType>::SetValue( const Variable<Vector>& rThisVariable, const Vector& rValue,
-                            const ProcessInfo& rCurrentProcessInfo )
-{
-    mpConstitutiveLaw->SetValue(rThisVariable, rValue, rCurrentProcessInfo);
-}
-
-//**********************************************************************
-template<int TStressType>
-void MultiplicativeFiniteStrainBridgingConstitutiveLaw<TStressType>::SetValue( const Variable<Matrix>& rThisVariable, const Matrix& rValue,
-                            const ProcessInfo& rCurrentProcessInfo )
-{
-    mpConstitutiveLaw->SetValue(rThisVariable, rValue, rCurrentProcessInfo);
-}
-
-//**********************************************************************
-template<int TStressType>
-void MultiplicativeFiniteStrainBridgingConstitutiveLaw<TStressType>::SetValue( const Variable<ConstitutiveLaw::Pointer>& rThisVariable, ConstitutiveLaw::Pointer rValue,
-                            const ProcessInfo& rCurrentProcessInfo )
-{
-    if (rThisVariable == CONSTITUTIVE_LAW)
-        mpConstitutiveLaw = rValue;
-    else
-        mpConstitutiveLaw->SetValue(rThisVariable, rValue, rCurrentProcessInfo);
-}
-
-//**********************************************************************
-template<int TStressType>
 void MultiplicativeFiniteStrainBridgingConstitutiveLaw<TStressType>::InitializeMaterial( const Properties& props,
                                       const GeometryType& geom,
                                       const Vector& ShapeFunctionsValues )
 {
-    const unsigned int dim = geom.WorkingSpaceDimension();
-    const unsigned int strain_size = this->GetStrainSize(dim);
+    BaseType::InitializeMaterial(props, geom, ShapeFunctionsValues);
 
-    mpConstitutiveLaw->InitializeMaterial(props, geom, ShapeFunctionsValues);
-
-    m_F_n.resize(3, 3, false);
-    m_F_n1.resize(3, 3, false);
-    noalias(m_F_n) = IdentityMatrix(3);
-    noalias(m_F_n1) = m_F_n;
-
-    m_left_elastic_cauchy_green_tensor_trial.resize(3, 3, false);
-    noalias(m_left_elastic_cauchy_green_tensor_trial) = IdentityMatrix(3);
-
-    m_stress_n1.resize(3, 3, false);
-    noalias(m_stress_n1) = ZeroMatrix(3, 3);
-
-    mPrestressFactor = 1.0;
-    mPrestress.resize(strain_size, false);
-    noalias(mPrestress) = ZeroVector(strain_size);
-}
-
-//**********************************************************************
-template<int TStressType>
-void MultiplicativeFiniteStrainBridgingConstitutiveLaw<TStressType>::ResetMaterial( const Properties& props,
-                                 const GeometryType& geom,
-                                 const Vector& ShapeFunctionsValues )
-{
-    mpConstitutiveLaw->ResetMaterial(props, geom, ShapeFunctionsValues);
+    m_Be_trial.resize(3, 3, false);
+    noalias(m_Be_trial) = IdentityMatrix(3);
 }
 
 //**********************************************************************
@@ -214,79 +47,26 @@ void MultiplicativeFiniteStrainBridgingConstitutiveLaw<TStressType>::InitializeS
         const Vector& ShapeFunctionsValues ,
         const ProcessInfo& CurrentProcessInfo )
 {
-    mpConstitutiveLaw->InitializeSolutionStep(props, geom, ShapeFunctionsValues, CurrentProcessInfo);
+    BaseType::InitializeSolutionStep(props, geom, ShapeFunctionsValues, CurrentProcessInfo);
 
-    if (mpConstitutiveLaw->GetStrainMeasure() == ConstitutiveLaw::StrainMeasure_Infinitesimal)
-    {
-        // reset the trial left Cauchy-Green tensor
-        Matrix elastic_strain_tensor(3, 3), left_elastic_cauchy_green_tensor_n(3, 3);
+    // reset the trial left Cauchy-Green tensor
+    Matrix elastic_strain_tensor(3, 3), Be_n(3, 3);
 
-        if (!mpConstitutiveLaw->Has(ELASTIC_STRAIN_TENSOR))
-            KRATOS_ERROR << "Constitutive law is not able to return ELASTIC_STRAIN_TENSOR";
-        mpConstitutiveLaw->GetValue(ELASTIC_STRAIN_TENSOR, elastic_strain_tensor);
+    if (!mpConstitutiveLaw->Has(ELASTIC_STRAIN_TENSOR))
+        KRATOS_ERROR << "Constitutive law is not able to return ELASTIC_STRAIN_TENSOR";
+    mpConstitutiveLaw->GetValue(ELASTIC_STRAIN_TENSOR, elastic_strain_tensor);
 
-        EigenUtility::ComputeIsotropicTensorFunction(EigenUtility::exp2, left_elastic_cauchy_green_tensor_n, elastic_strain_tensor);
+    EigenUtility::ComputeIsotropicTensorFunction(EigenUtility::exp2, Be_n, elastic_strain_tensor);
 
-        noalias(m_left_elastic_cauchy_green_tensor_trial) = left_elastic_cauchy_green_tensor_n;
-    }
+    // since the tangent depends on m_Be_trial, resetting it
+    // to the last converged value will reset the tangent to the last one
+    noalias(m_Be_trial) = Be_n;
 }
 
 //**********************************************************************
 template<int TStressType>
-void MultiplicativeFiniteStrainBridgingConstitutiveLaw<TStressType>::InitializeNonLinearIteration( const Properties& props,
-        const GeometryType& geom, //this is just to give the array of nodes
-        const Vector& ShapeFunctionsValues ,
-        const ProcessInfo& CurrentProcessInfo )
-{
-    mpConstitutiveLaw->InitializeNonLinearIteration(props, geom, ShapeFunctionsValues, CurrentProcessInfo);
-}
-
-//**********************************************************************
-template<int TStressType>
-void MultiplicativeFiniteStrainBridgingConstitutiveLaw<TStressType>::FinalizeNonLinearIteration( const Properties& props,
-        const GeometryType& geom, //this is just to give the array of nodes
-        const Vector& ShapeFunctionsValues ,
-        const ProcessInfo& CurrentProcessInfo )
-{
-    mpConstitutiveLaw->FinalizeNonLinearIteration(props, geom, ShapeFunctionsValues, CurrentProcessInfo);
-}
-
-//**********************************************************************
-template<int TStressType>
-void MultiplicativeFiniteStrainBridgingConstitutiveLaw<TStressType>::FinalizeSolutionStep( const Properties& props,
-        const GeometryType& geom, //this is just to give the array of nodes
-        const Vector& ShapeFunctionsValues ,
-        const ProcessInfo& CurrentProcessInfo )
-{
-    mpConstitutiveLaw->FinalizeSolutionStep(props, geom, ShapeFunctionsValues, CurrentProcessInfo);
-
-    noalias(m_F_n) = m_F_n1;
-}
-
-//**********************************************************************
-template<int TStressType>
-void MultiplicativeFiniteStrainBridgingConstitutiveLaw<TStressType>::UpdateDeformationGradient(Matrix& F_new, double& J_new, const Parameters& rValues) const
-{
-    const Matrix& F = rValues.GetDeformationGradientF();
-    if (F.size1() == 3)
-    {
-        noalias(F_new) = F;
-    }
-    else if (F.size1() == 2)
-    {
-        F_new.clear();
-        for (int i = 0; i < 2; ++i)
-            for (int j = 0; j < 2; ++j)
-                F_new(i, j) = F(i, j);
-        F_new(2, 2) = 1.0;
-    }
-    J_new = rValues.GetDeterminantF();
-}
-
-//**********************************************************************
-template<int TStressType>
-void MultiplicativeFiniteStrainBridgingConstitutiveLaw<TStressType>::ComputeLogarithmicStrain(Vector& StrainVector,
-        Matrix& left_elastic_cauchy_green_tensor_trial, const Matrix& F) const
+void MultiplicativeFiniteStrainBridgingConstitutiveLaw<TStressType>::ComputeStrain(Vector& StrainVector,
+        Matrix& Be_trial, const Matrix& F) const
 {
     const unsigned int strain_size = StrainVector.size();
 
@@ -297,21 +77,21 @@ void MultiplicativeFiniteStrainBridgingConstitutiveLaw<TStressType>::ComputeLoga
 
     // compute elastic left Cauchy-Green tensor from previous step
     // It is noted that the constitutive law must be able to provide ELASTIC_STRAIN_TENSOR
-    Matrix elastic_strain_tensor(3, 3), elastic_strain_tensor_trial(3, 3), left_elastic_cauchy_green_tensor_n(3, 3);
+    Matrix elastic_strain_tensor(3, 3), elastic_strain_tensor_trial(3, 3), Be_n(3, 3);
 
     mpConstitutiveLaw->GetValue(ELASTIC_STRAIN_TENSOR, elastic_strain_tensor);
-    // EigenUtility::ComputeIsotropicTensorFunction(EigenUtility::exp2, left_elastic_cauchy_green_tensor_n, elastic_strain_tensor);
+    // EigenUtility::ComputeIsotropicTensorFunction(EigenUtility::exp2, Be_n, elastic_strain_tensor);
 
     // special treatment when the elastic strain tensor is very small, e.g. at the beginning of the analysis
     const double norm_es = norm_frobenius(elastic_strain_tensor);
     if (norm_es > 1.0e-10)
     {
         EigenUtility::ComputeIsotropicTensorFunction(EigenUtility::exp2,
-                left_elastic_cauchy_green_tensor_n, elastic_strain_tensor);
+                Be_n, elastic_strain_tensor);
     }
     else
     {
-        noalias(left_elastic_cauchy_green_tensor_n) = IdentityMatrix(3);
+        noalias(Be_n) = IdentityMatrix(3);
     }
 
     // compute trial elastic left Cauchy-Green tensor
@@ -320,37 +100,37 @@ void MultiplicativeFiniteStrainBridgingConstitutiveLaw<TStressType>::ComputeLoga
     MathUtils<double>::InvertMatrix(m_F_n, invFn, detFn);
     noalias(Fincr) = prod(F, invFn);
 
-    noalias(left_elastic_cauchy_green_tensor_trial) = prod(Fincr, Matrix(prod(left_elastic_cauchy_green_tensor_n, trans(Fincr))));
+    noalias(Be_trial) = prod(Fincr, Matrix(prod(Be_n, trans(Fincr))));
 
     #ifdef DEBUG_CONSTITUTIVE_LAW
     // if (ElemId == DEBUG_ELEMENT_ID && GaussId == 0)
     if (ElemId == DEBUG_ELEMENT_ID)
     {
         KRATOS_WATCH(elastic_strain_tensor)
-        KRATOS_WATCH(left_elastic_cauchy_green_tensor_n)
+        KRATOS_WATCH(Be_n)
         KRATOS_WATCH(Fincr)
         KRATOS_WATCH(m_J_n1)
-        KRATOS_WATCH(left_elastic_cauchy_green_tensor_trial)
+        KRATOS_WATCH(Be_trial)
     }
     #endif
 
     // compute trial elastic logarithmic strain tensor
-    std::vector<double> left_elastic_cauchy_green_tensor_trial_pri(3);
-    std::vector<Matrix> left_elastic_cauchy_green_tensor_trial_eigprj(3);
+    std::vector<double> Be_trial_pri(3);
+    std::vector<Matrix> Be_trial_eigprj(3);
     EigenUtility::calculate_principle_stresses(
-            left_elastic_cauchy_green_tensor_trial(0, 0),
-            left_elastic_cauchy_green_tensor_trial(1, 1),
-            left_elastic_cauchy_green_tensor_trial(2, 2),
-            left_elastic_cauchy_green_tensor_trial(0, 1),
-            left_elastic_cauchy_green_tensor_trial(1, 2),
-            left_elastic_cauchy_green_tensor_trial(0, 2),
-            left_elastic_cauchy_green_tensor_trial_pri[0],
-            left_elastic_cauchy_green_tensor_trial_pri[1],
-            left_elastic_cauchy_green_tensor_trial_pri[2],
-            left_elastic_cauchy_green_tensor_trial_eigprj[0],
-            left_elastic_cauchy_green_tensor_trial_eigprj[1],
-            left_elastic_cauchy_green_tensor_trial_eigprj[2]);
-    SD_MathUtils<double>::ComputeIsotropicTensorFunction(EigenUtility::logd2, elastic_strain_tensor_trial, left_elastic_cauchy_green_tensor_trial_pri, left_elastic_cauchy_green_tensor_trial_eigprj);
+            Be_trial(0, 0),
+            Be_trial(1, 1),
+            Be_trial(2, 2),
+            Be_trial(0, 1),
+            Be_trial(1, 2),
+            Be_trial(0, 2),
+            Be_trial_pri[0],
+            Be_trial_pri[1],
+            Be_trial_pri[2],
+            Be_trial_eigprj[0],
+            Be_trial_eigprj[1],
+            Be_trial_eigprj[2]);
+    SD_MathUtils<double>::ComputeIsotropicTensorFunction(EigenUtility::logd2, elastic_strain_tensor_trial, Be_trial_pri, Be_trial_eigprj);
     #ifdef DEBUG_CONSTITUTIVE_LAW
     // if (ElemId == DEBUG_ELEMENT_ID && GaussId == 0)
     if (ElemId == DEBUG_ELEMENT_ID)
@@ -358,12 +138,12 @@ void MultiplicativeFiniteStrainBridgingConstitutiveLaw<TStressType>::ComputeLoga
         KRATOS_WATCH(m_F_n)
         KRATOS_WATCH(m_F_n1)
         KRATOS_WATCH(Fincr)
-        KRATOS_WATCH(left_elastic_cauchy_green_tensor_n)
-        KRATOS_WATCH(left_elastic_cauchy_green_tensor_trial)
-        std::cout << "left_elastic_cauchy_green_tensor_trial_pri:";
-        for (unsigned int i = 0; i < left_elastic_cauchy_green_tensor_trial_pri.size(); ++i)
+        KRATOS_WATCH(Be_n)
+        KRATOS_WATCH(Be_trial)
+        std::cout << "Be_trial_pri:";
+        for (unsigned int i = 0; i < Be_trial_pri.size(); ++i)
         {
-            std::cout << " " << left_elastic_cauchy_green_tensor_trial_pri[i];
+            std::cout << " " << Be_trial_pri[i];
         }
         std::cout << std::endl;
         KRATOS_WATCH(elastic_strain_tensor_trial)
@@ -395,10 +175,11 @@ void MultiplicativeFiniteStrainBridgingConstitutiveLaw<TStressType>::ComputeLoga
 //**********************************************************************
 template<int TStressType>
 void MultiplicativeFiniteStrainBridgingConstitutiveLaw<TStressType>::StressIntegration(const Parameters& rValues,
-        const Matrix& F, Matrix& stress_tensor, Matrix& left_elastic_cauchy_green_tensor_trial) const
+        const Matrix& F, Matrix& stress_tensor, Matrix& Be_trial) const
 {
-    const auto& geom = rValues.GetElementGeometry();
     const auto strain_measure = mpConstitutiveLaw->GetStrainMeasure();
+    if (strain_measure != ConstitutiveLaw::StrainMeasure_Infinitesimal)
+        KRATOS_ERROR << "The strain measure is not StrainMeasure_Infinitesimal";
 
     #ifdef DEBUG_CONSTITUTIVE_LAW
     int ElemId, GaussId;
@@ -417,33 +198,13 @@ void MultiplicativeFiniteStrainBridgingConstitutiveLaw<TStressType>::StressInteg
     }
     #endif
 
+    const auto& geom = rValues.GetElementGeometry();
     const unsigned int dim = geom.WorkingSpaceDimension();
     const unsigned int strain_size = this->GetStrainSize(dim);
 
+    // compute the equivalent (small) strain vector
     Vector StrainVector(strain_size);
-    if (strain_measure == ConstitutiveLaw::StrainMeasure_Infinitesimal)
-    {
-        // compute the equivalent (small) strain vector
-        this->ComputeLogarithmicStrain(StrainVector, left_elastic_cauchy_green_tensor_trial, F);
-    }
-    else if (strain_measure == ConstitutiveLaw::StrainMeasure_GreenLagrange)
-    {
-        // compute the Green-Lagrange strain
-        Matrix C;
-        if (dim == 2)
-        {
-            Matrix F2d(2, 2);
-            noalias(F2d) = subrange(F, 0, 2, 0, 2);
-            C = prod( trans( F2d ), F2d );
-        }
-        else if (dim == 3)
-        {
-            C = prod( trans( F ), F );
-        }
-        this->ComputeGreenLagrangeStrain(StrainVector, C);
-    }
-    else
-        KRATOS_ERROR << "Strain measure " << strain_measure << " is not supported";
+    this->ComputeStrain(StrainVector, Be_trial, F);
 
     // integrate the constitutive law, obtaining stress
     Vector StressVector(strain_size);
@@ -458,28 +219,13 @@ void MultiplicativeFiniteStrainBridgingConstitutiveLaw<TStressType>::StressInteg
     const_params.SetMaterialProperties(rValues.GetMaterialProperties());
     const_params.SetElementGeometry(rValues.GetElementGeometry());
 
-    if (strain_measure == ConstitutiveLaw::StrainMeasure_Infinitesimal)
-    {
-        // for small strain we always integrate the Kirchhoff/Cauchy stress using Cauchy stress integration routine
-        mpConstitutiveLaw->CalculateMaterialResponseCauchy(const_params);
+    // for small strain we always integrate the Kirchhoff/Cauchy stress using Cauchy stress integration routine
+    mpConstitutiveLaw->CalculateMaterialResponseCauchy(const_params);
 
-        // obtain the stress (1:Cauchy stress; 2: Kirchhoff stress)
-        if (!mpConstitutiveLaw->Has(CAUCHY_STRESS_TENSOR))
-            KRATOS_ERROR << "Constitutive law is not able to return CAUCHY_STRESS_TENSOR";
-        mpConstitutiveLaw->GetValue(CAUCHY_STRESS_TENSOR, stress_tensor);
-    }
-    else if (strain_measure == ConstitutiveLaw::StrainMeasure_GreenLagrange)
-    {
-        // integrate the PK2 stress
-        mpConstitutiveLaw->CalculateMaterialResponsePK2(const_params);
-
-        // obtain PK2 stress
-        Matrix pk2_stress(3, 3);
-        mpConstitutiveLaw->GetValue(PK2_STRESS_TENSOR, pk2_stress);
-
-        // transform to Kirchhoff/Cauchy stress
-        this->ComputeStress(stress_tensor, pk2_stress);
-    }
+    // obtain the stress (1:Cauchy stress; 2: Kirchhoff stress)
+    if (!mpConstitutiveLaw->Has(CAUCHY_STRESS_TENSOR))
+        KRATOS_ERROR << "Constitutive law is not able to return CAUCHY_STRESS_TENSOR";
+    mpConstitutiveLaw->GetValue(CAUCHY_STRESS_TENSOR, stress_tensor);
 }
 
 //**********************************************************************
@@ -488,8 +234,8 @@ void MultiplicativeFiniteStrainBridgingConstitutiveLaw<1>::CalculateMaterialResp
 {
     // integrate the Cauchy stress
     const Matrix& F = rValues.GetDeformationGradientF();
-    this->UpdateDeformationGradient(m_F_n1, m_J_n1, rValues);
-    this->StressIntegration(rValues, m_F_n1, m_stress_n1, m_left_elastic_cauchy_green_tensor_trial);
+    BaseType::UpdateDeformationGradient(m_F_n1, m_J_n1, rValues);
+    this->StressIntegration(rValues, m_F_n1, m_stress_n1, m_Be_trial);
 
     // export the stress
     if (rValues.IsSetStressVector())
@@ -502,7 +248,7 @@ void MultiplicativeFiniteStrainBridgingConstitutiveLaw<1>::CalculateMaterialResp
     if (rValues.IsSetConstitutiveMatrix())
     {
         Matrix& AlgorithmicTangent = rValues.GetConstitutiveMatrix();
-        this->ComputeTangent(AlgorithmicTangent);
+        BaseType::ComputeTangent(AlgorithmicTangent);
     }
 }
 
@@ -513,7 +259,7 @@ void MultiplicativeFiniteStrainBridgingConstitutiveLaw<2>::CalculateMaterialResp
     // integrate the Kirchhoff stress
     const Matrix& F = rValues.GetDeformationGradientF();
     this->UpdateDeformationGradient(m_F_n1, m_J_n1, rValues);
-    this->StressIntegration(rValues, m_F_n1, m_stress_n1, m_left_elastic_cauchy_green_tensor_trial);
+    this->StressIntegration(rValues, m_F_n1, m_stress_n1, m_Be_trial);
 
     // transform to Cauchy stress
     m_stress_n1 /= m_J_n1;
@@ -536,7 +282,7 @@ void MultiplicativeFiniteStrainBridgingConstitutiveLaw<2>::CalculateMaterialResp
     if (rValues.IsSetConstitutiveMatrix())
     {
         Matrix& AlgorithmicTangent = rValues.GetConstitutiveMatrix();
-        this->ComputeTangent(AlgorithmicTangent);
+        BaseType::ComputeTangent(AlgorithmicTangent);
     }
 
     // /// compute the numerical tangent (for debugging)
@@ -556,27 +302,11 @@ void MultiplicativeFiniteStrainBridgingConstitutiveLaw<2>::CalculateMaterialResp
 }
 
 //**********************************************************************
-template<int TStressType>
-void MultiplicativeFiniteStrainBridgingConstitutiveLaw<TStressType>::ComputeTangent(Fourth_Order_Tensor& A) const
-{
-    const auto strain_measure = mpConstitutiveLaw->GetStrainMeasure();
-
-    if (strain_measure == ConstitutiveLaw::StrainMeasure_Infinitesimal)
-    {
-        this->ComputeInfinitesimalTangent(A);
-    }
-    else if (strain_measure == ConstitutiveLaw::StrainMeasure_GreenLagrange)
-    {
-        this->ComputeGreenLagrangeTangent(A);
-    }
-}
-
-//**********************************************************************
 template<>
-void MultiplicativeFiniteStrainBridgingConstitutiveLaw<1>::ComputeInfinitesimalTangent(Fourth_Order_Tensor& A) const
+void MultiplicativeFiniteStrainBridgingConstitutiveLaw<1>::ComputeTangent(Fourth_Order_Tensor& A) const
 {
     Fourth_Order_Tensor D, L, B;
-    this->ComputeInfinitesimalTangentTerms(D, L, B);
+    this->ComputeTangentTerms(D, L, B);
 
     Fourth_Order_Tensor DL;
     SD_MathUtils<double>::CalculateFourthOrderZeroTensor(DL);
@@ -595,10 +325,10 @@ void MultiplicativeFiniteStrainBridgingConstitutiveLaw<1>::ComputeInfinitesimalT
 }
 
 template<>
-void MultiplicativeFiniteStrainBridgingConstitutiveLaw<2>::ComputeInfinitesimalTangent(Fourth_Order_Tensor& A) const
+void MultiplicativeFiniteStrainBridgingConstitutiveLaw<2>::ComputeTangent(Fourth_Order_Tensor& A) const
 {
     Fourth_Order_Tensor D, L, B;
-    this->ComputeInfinitesimalTangentTerms(D, L, B);
+    this->ComputeTangentTerms(D, L, B);
 
     double J = MathUtils<double>::Det(m_F_n1);
     Fourth_Order_Tensor DL;
@@ -614,7 +344,7 @@ void MultiplicativeFiniteStrainBridgingConstitutiveLaw<2>::ComputeInfinitesimalT
     if (ElemId == DEBUG_ELEMENT_ID)
     {
         KRATOS_WATCH(g_size)
-        KRATOS_WATCH(m_left_elastic_cauchy_green_tensor_trial)
+        KRATOS_WATCH(m_Be_trial)
 
         Matrix Du(g_size, g_size);
         SD_MathUtils<double>::TensorToUnsymmetricMatrix(D, Du);
@@ -648,16 +378,7 @@ void MultiplicativeFiniteStrainBridgingConstitutiveLaw<2>::ComputeInfinitesimalT
 
 //**********************************************************************
 template<int TStressType>
-void MultiplicativeFiniteStrainBridgingConstitutiveLaw<TStressType>::ComputeTangent(Matrix& AlgorithmicTangent) const
-{
-    Fourth_Order_Tensor A;
-    this->ComputeTangent(A);
-    SD_MathUtils<double>::TensorToUnsymmetricMatrix(A, AlgorithmicTangent);
-}
-
-//**********************************************************************
-template<int TStressType>
-void MultiplicativeFiniteStrainBridgingConstitutiveLaw<TStressType>::ComputeInfinitesimalTangentTerms(Fourth_Order_Tensor& D, Fourth_Order_Tensor& L, Fourth_Order_Tensor& B) const
+void MultiplicativeFiniteStrainBridgingConstitutiveLaw<TStressType>::ComputeTangentTerms(Fourth_Order_Tensor& D, Fourth_Order_Tensor& L, Fourth_Order_Tensor& B) const
 {
     if (!mpConstitutiveLaw->Has(THREED_ALGORITHMIC_TANGENT))
         KRATOS_ERROR << "Constitutive law is not able to return THREED_ALGORITHMIC_TANGENT";
@@ -695,30 +416,30 @@ void MultiplicativeFiniteStrainBridgingConstitutiveLaw<TStressType>::ComputeInfi
     #endif
 
     // spectral decomposition for B trial
-    std::vector<double> left_elastic_cauchy_green_tensor_trial_pri(3);
-    std::vector<Matrix> left_elastic_cauchy_green_tensor_trial_eigprj(3);
+    std::vector<double> Be_trial_pri(3);
+    std::vector<Matrix> Be_trial_eigprj(3);
     EigenUtility::calculate_principle_stresses(
-            m_left_elastic_cauchy_green_tensor_trial(0, 0),
-            m_left_elastic_cauchy_green_tensor_trial(1, 1),
-            m_left_elastic_cauchy_green_tensor_trial(2, 2),
-            m_left_elastic_cauchy_green_tensor_trial(0, 1),
-            m_left_elastic_cauchy_green_tensor_trial(1, 2),
-            m_left_elastic_cauchy_green_tensor_trial(0, 2),
-            left_elastic_cauchy_green_tensor_trial_pri[0],
-            left_elastic_cauchy_green_tensor_trial_pri[1],
-            left_elastic_cauchy_green_tensor_trial_pri[2],
-            left_elastic_cauchy_green_tensor_trial_eigprj[0],
-            left_elastic_cauchy_green_tensor_trial_eigprj[1],
-            left_elastic_cauchy_green_tensor_trial_eigprj[2]);
+            m_Be_trial(0, 0),
+            m_Be_trial(1, 1),
+            m_Be_trial(2, 2),
+            m_Be_trial(0, 1),
+            m_Be_trial(1, 2),
+            m_Be_trial(0, 2),
+            Be_trial_pri[0],
+            Be_trial_pri[1],
+            Be_trial_pri[2],
+            Be_trial_eigprj[0],
+            Be_trial_eigprj[1],
+            Be_trial_eigprj[2]);
 
     // Perform extra kinematical operations required by materials of this
     // class at large strains for computation of the spatial modulus 'a'
     // Eq. (14.95), Computational Plasticity, de Souza Neto
     SD_MathUtils<double>::ComputeDerivativeIsotropicTensorFunction(EigenUtility::logd2, EigenUtility::dlogd2,
         L,
-        m_left_elastic_cauchy_green_tensor_trial,
-        left_elastic_cauchy_green_tensor_trial_pri,
-        left_elastic_cauchy_green_tensor_trial_eigprj,
+        m_Be_trial,
+        Be_trial_pri,
+        Be_trial_eigprj,
         1e-10); // tolerance to compare the eigenvalues
 
     SD_MathUtils<double>::CalculateFourthOrderZeroTensor(B);
@@ -727,118 +448,15 @@ void MultiplicativeFiniteStrainBridgingConstitutiveLaw<TStressType>::ComputeInfi
         for (int j = 0; j < 3; ++j)
             for (int k = 0; k < 3; ++k)
                 for (int l = 0; l < 3; ++l)
-                    B[i][j](k, l) = eye(i, k) * m_left_elastic_cauchy_green_tensor_trial(j, l)
-                                  + eye(j, k) * m_left_elastic_cauchy_green_tensor_trial(i, l);
-}
-
-//**********************************************************************
-template<int TStressType>
-void MultiplicativeFiniteStrainBridgingConstitutiveLaw<TStressType>::ComputeGreenLagrangeTangent(Fourth_Order_Tensor& A) const
-{
-    if (!mpConstitutiveLaw->Has(THREED_ALGORITHMIC_TANGENT))
-        KRATOS_ERROR << "Constitutive law is not able to return THREED_ALGORITHMIC_TANGENT";
-
-    // obtain the tangent from the small strain constitutive law. It must be from
-    // a fourth order tensor to not missing the out-of-plane component in plane strain
-    // analysis
-    Matrix Dmat(6, 6);
-    mpConstitutiveLaw->GetValue(THREED_ALGORITHMIC_TANGENT, Dmat);
-
-    Fourth_Order_Tensor D;
-    SD_MathUtils<double>::CalculateFourthOrderZeroTensor(D);
-    SD_MathUtils<double>::MatrixToTensor(Dmat, D);
-
-    // compute the tensor a
-    const Matrix& F = m_F_n1;
-    double J = m_J_n1;
-    // KRATOS_WATCH(J)
-
-    const Matrix& sigma = m_stress_n1;
-
-    double aux;
-    SD_MathUtils<double>::CalculateFourthOrderZeroTensor(A);
-    const Matrix eye = IdentityMatrix(3);
-    for (int i = 0; i < 3; ++i)
-    {
-        for (int j = 0; j < 3; ++j)
-        {
-            for (int k = 0; k < 3; ++k)
-            {
-                for (int l = 0; l < 3; ++l)
-                {
-                    aux = eye(i, k) * sigma(l, j);
-
-                    for (int m = 0; m < 3; ++m)
-                        for (int u = 0; u < 3; ++u)
-                            for (int p = 0; p < 3; ++p)
-                                for (int q = 0; q < 3; ++q)
-                                    aux += 0.5/J * F(i, m) * F(j, u) * D[m][u](p, q)
-                                            * (F(l, p)*F(k, q) + F(l, q)*F(k, p));
-
-                    A[i][j](k, l) = aux;
-                }
-            }
-        }
-    }
-}
-
-//**********************************************************************
-template<int TStressType>
-void MultiplicativeFiniteStrainBridgingConstitutiveLaw<TStressType>::ComputeGreenLagrangeStrain( Vector& StrainVector, const Matrix& C ) const
-{
-    KRATOS_TRY
-
-    const unsigned int dimension = C.size1();
-
-    if ( dimension == 2 )
-    {
-        if ( StrainVector.size() != 3 ) StrainVector.resize( 3, false );
-
-        StrainVector[0] = 0.5 * ( C( 0, 0 ) - 1.00 );
-
-        StrainVector[1] = 0.5 * ( C( 1, 1 ) - 1.00 );
-
-        StrainVector[2] = C( 0, 1 );
-    }
-
-    if ( dimension == 3 )
-    {
-        if ( StrainVector.size() != 6 ) StrainVector.resize( 6, false );
-
-        StrainVector[0] = 0.5 * ( C( 0, 0 ) - 1.00 );
-
-        StrainVector[1] = 0.5 * ( C( 1, 1 ) - 1.00 );
-
-        StrainVector[2] = 0.5 * ( C( 2, 2 ) - 1.00 );
-
-        StrainVector[3] = C( 0, 1 ); // xy
-
-        StrainVector[4] = C( 1, 2 ); // yz
-
-        StrainVector[5] = C( 0, 2 ); // xz
-    }
-
-    KRATOS_CATCH( "" )
-}
-
-//**********************************************************************
-template<>
-void MultiplicativeFiniteStrainBridgingConstitutiveLaw<1>::ComputeStress(Matrix& stress_tensor, const Matrix& PK2_stress) const
-{
-    noalias(stress_tensor) = 1.0/m_J_n1 * prod(m_F_n1, Matrix(prod(PK2_stress, trans(m_F_n1))));
-}
-
-template<>
-void MultiplicativeFiniteStrainBridgingConstitutiveLaw<2>::ComputeStress(Matrix& stress_tensor, const Matrix& PK2_stress) const
-{
-    noalias(stress_tensor) = prod(m_F_n1, Matrix(prod(PK2_stress, trans(m_F_n1))));
+                    B[i][j](k, l) = eye(i, k) * m_Be_trial(j, l)
+                                  + eye(j, k) * m_Be_trial(i, l);
 }
 
 //**********************************************************************
 template<int TStressType>
 void MultiplicativeFiniteStrainBridgingConstitutiveLaw<TStressType>::ComputeBetrialDerivatives(Fourth_Order_Tensor& B, const Matrix& F, double epsilon) const
 {
-    Matrix elastic_strain_tensor(3, 3), left_elastic_cauchy_green_tensor_n(3, 3);
+    Matrix elastic_strain_tensor(3, 3), Be_n(3, 3);
 
     mpConstitutiveLaw->GetValue(ELASTIC_STRAIN_TENSOR, elastic_strain_tensor);
 
@@ -847,11 +465,11 @@ void MultiplicativeFiniteStrainBridgingConstitutiveLaw<TStressType>::ComputeBetr
     if (norm_es > 1.0e-10)
     {
         EigenUtility::ComputeIsotropicTensorFunction(EigenUtility::exp2,
-                left_elastic_cauchy_green_tensor_n, elastic_strain_tensor);
+                Be_n, elastic_strain_tensor);
     }
     else
     {
-        noalias(left_elastic_cauchy_green_tensor_n) = IdentityMatrix(3);
+        noalias(Be_n) = IdentityMatrix(3);
     }
 
     Matrix Fincr(3, 3), invFn(3, 3);
@@ -859,14 +477,14 @@ void MultiplicativeFiniteStrainBridgingConstitutiveLaw<TStressType>::ComputeBetr
     MathUtils<double>::InvertMatrix(m_F_n, invFn, detFn);
 
     // compute the Be^trial
-    Matrix left_elastic_cauchy_green_tensor_trial(3, 3);
+    Matrix Be_trial(3, 3);
 
     noalias(Fincr) = prod(F, invFn);
-    noalias(left_elastic_cauchy_green_tensor_trial) = prod(Fincr, Matrix(prod(left_elastic_cauchy_green_tensor_n, trans(Fincr))));
-    KRATOS_WATCH(left_elastic_cauchy_green_tensor_trial)
+    noalias(Be_trial) = prod(Fincr, Matrix(prod(Be_n, trans(Fincr))));
+    KRATOS_WATCH(Be_trial)
 
     // compute the new Be^trial and the numerical derivatives
-    Matrix new_left_elastic_cauchy_green_tensor_trial(3, 3), newF(3, 3), aux(3, 3);
+    Matrix new_Be_trial(3, 3), newF(3, 3), aux(3, 3);
 
     for (unsigned int k = 0; k < 3; ++k)
     {
@@ -876,9 +494,9 @@ void MultiplicativeFiniteStrainBridgingConstitutiveLaw<TStressType>::ComputeBetr
             newF(k, l) += epsilon;
 
             noalias(Fincr) = prod(newF, invFn);
-            noalias(new_left_elastic_cauchy_green_tensor_trial) = prod(Fincr, Matrix(prod(left_elastic_cauchy_green_tensor_n, trans(Fincr))));
+            noalias(new_Be_trial) = prod(Fincr, Matrix(prod(Be_n, trans(Fincr))));
 
-            noalias(aux) = (new_left_elastic_cauchy_green_tensor_trial - left_elastic_cauchy_green_tensor_trial) / epsilon;
+            noalias(aux) = (new_Be_trial - Be_trial) / epsilon;
 
             for (unsigned int i = 0; i < 3; ++i)
             {
@@ -925,10 +543,16 @@ void MultiplicativeFiniteStrainBridgingConstitutiveLaw<TStressType>::ComputeStre
 }
 
 //**********************************************************************
-template<int TStressType>
-int MultiplicativeFiniteStrainBridgingConstitutiveLaw<TStressType>::Check( const Properties& props, const GeometryType& geom, const ProcessInfo& CurrentProcessInfo ) const
+template<>
+std::string MultiplicativeFiniteStrainBridgingConstitutiveLaw<1>::Info() const
 {
-    return mpConstitutiveLaw->Check( props, geom, CurrentProcessInfo );
+    return "MultiplicativeFiniteStrainBridgingConstitutiveLaw<Cauchy>";
+}
+
+template<>
+std::string MultiplicativeFiniteStrainBridgingConstitutiveLaw<2>::Info() const
+{
+    return "MultiplicativeFiniteStrainBridgingConstitutiveLaw<Kirchhoff>";
 }
 
 //**********************************************************************

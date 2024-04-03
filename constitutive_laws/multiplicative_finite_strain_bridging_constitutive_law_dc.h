@@ -34,9 +34,10 @@ public:
      * Type Definitions
      */
     typedef MultiplicativeFiniteStrainBridgingConstitutiveLaw<TStressType> BaseType;
+    typedef typename BaseType::BaseType SuperType;
     typedef typename BaseType::SizeType SizeType;
     typedef typename BaseType::GeometryType GeometryType;
-    typedef SD_MathUtils<double>::Fourth_Order_Tensor Fourth_Order_Tensor;
+    typedef typename BaseType::Fourth_Order_Tensor Fourth_Order_Tensor;
     typedef typename BaseType::Parameters Parameters;
 
     /**
@@ -50,12 +51,14 @@ public:
     /**
      * Default constructor.
      */
-    MultiplicativeFiniteStrainBridgingConstitutiveLawDC();
+    MultiplicativeFiniteStrainBridgingConstitutiveLawDC() {}
 
     /**
      * Constructor with nested constitutive law.
      */
-    MultiplicativeFiniteStrainBridgingConstitutiveLawDC(ConstitutiveLaw::Pointer pConstitutiveLaw);
+    MultiplicativeFiniteStrainBridgingConstitutiveLawDC(ConstitutiveLaw::Pointer pConstitutiveLaw)
+    : BaseType(pConstitutiveLaw)
+    {}
 
     ConstitutiveLaw::Pointer Clone() const override
     {
@@ -66,7 +69,8 @@ public:
     /**
      * Destructor.
      */
-    virtual ~MultiplicativeFiniteStrainBridgingConstitutiveLawDC();
+    virtual ~MultiplicativeFiniteStrainBridgingConstitutiveLawDC()
+    {}
 
     /**
      * Operators
@@ -77,8 +81,6 @@ public:
      */
 
     bool Has( const Variable<Matrix>& rThisVariable ) override;
-
-    Matrix& GetValue( const Variable<Matrix>& rThisVariable, Matrix& rValue ) override;
 
     void SetValue( const Variable<double>& rThisVariable, const double& rValue,
                    const ProcessInfo& rCurrentProcessInfo ) override;
@@ -95,12 +97,6 @@ public:
      * @see Parameters
      */
     void CalculateMaterialResponseCauchy (Parameters& rValues) override;
-
-    /**
-     * Computes the material response in terms of Kirchhoff stresses
-     * @see Parameters
-     */
-    // void CalculateMaterialResponseKirchhoff (Parameters& rValues) override;
 
     /**
      * Input and output

@@ -72,7 +72,6 @@ namespace Python
 {
 
 void  AddConstitutiveLawsToPython();
-void  AddCustomPropertiesToPython();
 
 }  // namespace Python.
 

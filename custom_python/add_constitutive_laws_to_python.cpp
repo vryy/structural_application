@@ -155,9 +155,11 @@ void HardeningLaw_Assign(HardeningLaw& rDummy,
 template<int TStressType>
 void AddMultiplicativeFiniteStrainBridgingConstitutiveLaw(const std::string& postfix)
 {
+    typedef FiniteStrainBridgingConstitutiveLaw BaseType;
+
     std::string name;
     name = "MultiplicativeFiniteStrainBridgingConstitutiveLaw_" + postfix;
-    class_< MultiplicativeFiniteStrainBridgingConstitutiveLaw<TStressType>, bases< ConstitutiveLawBaseType >, boost::noncopyable >
+    class_< MultiplicativeFiniteStrainBridgingConstitutiveLaw<TStressType>, bases< BaseType >, boost::noncopyable >
     ( name.c_str(), init<>() )
     .def(init<ConstitutiveLawBaseType::Pointer>())
     ;
@@ -169,7 +171,7 @@ void AddMultiplicativeFiniteStrainBridgingConstitutiveLaw(const std::string& pos
     ;
 
     name = "MultiplicativeFiniteStrainBridgingConstitutiveLawDC_" + postfix;
-    class_< MultiplicativeFiniteStrainBridgingConstitutiveLawDC<TStressType>, bases< ConstitutiveLawBaseType >, boost::noncopyable >
+    class_< MultiplicativeFiniteStrainBridgingConstitutiveLawDC<TStressType>, bases< BaseType >, boost::noncopyable >
     ( name.c_str(), init<>() )
     .def(init<ConstitutiveLawBaseType::Pointer>())
     ;
@@ -367,6 +369,11 @@ void  AddConstitutiveLawsToPython()
 
     class_< ValuesContainerConstitutiveLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
     ( "ValuesContainerConstitutiveLaw", init<>() )
+    .def(init<ConstitutiveLawBaseType::Pointer>())
+    ;
+
+    class_< FiniteStrainBridgingConstitutiveLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
+    ( "FiniteStrainBridgingConstitutiveLaw", init<>() )
     .def(init<ConstitutiveLawBaseType::Pointer>())
     ;
 
