@@ -1887,6 +1887,10 @@ public:
         }
     }
 
+    /**
+     * Computes fourth order zero tensor (also resizing)
+     * @param C the fourth order Tensor
+     */
     static inline void CalculateFourthOrderZeroTensor( Fourth_Order_Tensor& C )
     {
         if (C.size() != 3)
@@ -1904,9 +1908,13 @@ public:
         }
     }
 
+    /**
+     * Computes fourth order symmetric tensor (also resizing)
+     * @param C the fourth order Tensor
+     */
     static inline void CalculateFourthOrderSymmetricTensor( Fourth_Order_Tensor& C )
     {
-        MatrixType kronecker = IdentityMatrix(3);
+        const MatrixType kronecker = IdentityMatrix(3);
         C.resize(3);
         for(unsigned int i = 0; i < 3; ++i)
         {
@@ -1926,7 +1934,7 @@ public:
     /// Note that this tensor is not symmetric
     static inline void CalculateFourthOrderUnitTensor( Fourth_Order_Tensor& C )
     {
-        MatrixType kronecker = IdentityMatrix(3);
+        const MatrixType kronecker = IdentityMatrix(3);
 
         C.resize(3);
         for(unsigned int i = 0; i < 3; ++i)
@@ -2178,7 +2186,7 @@ public:
         }
     }
 
-    // C += alpha A * B
+    // C_ijkl += alpha A_ijmn * B_mnkl
     static inline void ProductFourthOrderTensor(double alpha, const Fourth_Order_Tensor& A, const Fourth_Order_Tensor& B, Fourth_Order_Tensor& Result)
     {
         for(unsigned int i = 0; i < 3; ++i)
@@ -2271,12 +2279,7 @@ public:
     {
         Unity.resize(3);
 
-        MatrixType kronecker(3,3);
-        noalias(kronecker)=ZeroMatrix(3,3);
-        for(unsigned int i=0; i<3; i++)
-        {
-            kronecker(i,i)=1;
-        }
+        const MatrixType kronecker = IdentityMatrix(3);
 
         for(unsigned int i=0; i<3; i++)
         {
@@ -2304,12 +2307,7 @@ public:
      */
     static void DeviatoricUnity(array_1d<double,81>& Unity)
     {
-        MatrixType kronecker(3,3);
-        noalias(kronecker)=ZeroMatrix(3,3);
-        for(unsigned int i=0; i<3; i++)
-        {
-            kronecker(i,i)=1;
-        }
+        const MatrixType kronecker = IdentityMatrix(3);
 
         for(unsigned int i=0; i<3; i++)
             for(unsigned int j=0; j<3; j++)
@@ -2327,10 +2325,7 @@ public:
     */
     static inline void CalculateElasticTensor( Fourth_Order_Tensor& C, double E, double NU )
     {
-        MatrixType kronecker(3, 3);
-        noalias(kronecker) = ZeroMatrix(3, 3);
-        for(unsigned int i = 0; i < 3; ++i)
-            kronecker(i, i) = 1.0;
+        const MatrixType kronecker = IdentityMatrix(3);
 
         double lambda = NU * E / ((1 + NU) * (1 - 2 * NU));
         double mu     = E / (2 * (1 + NU));
