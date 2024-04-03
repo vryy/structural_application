@@ -1157,6 +1157,27 @@ public:
     }
 
     /**
+    * Solve a (small) linear system
+    * @param A the given lhs
+    * @param x the solution
+    * @param b the given rhs
+    */
+    static int Solve( const MatrixType& A, VectorType& x, const VectorType& b )
+    {
+        using namespace boost::numeric::ublas;
+        typedef permutation_matrix<std::size_t> pmatrix;
+        MatrixType Acopy(A);
+        const std::size_t size = A.size1();
+        pmatrix pm(size);
+        const int singular = lu_factorize(Acopy, pm);
+        MatrixType inverse;
+        inverse.assign(IdentityMatrix(size));
+        lu_substitute(Acopy, pm, inverse);
+        noalias(x) = prod(inverse, b);
+        return singular;
+    }
+
+    /**
     * Compute the Frobenius norm of a given second order tensor
     * @param Tensor the given second order tensor
     * @return the norm of the given tensor
@@ -1861,12 +1882,89 @@ public:
         dev(2, 2) -= vol / 3;
     }
 
+    /**
+     * Computes third order zero tensor (also resizing)
+     * @param C the third order Tensor
+     */
+    static inline void CalculateThirdOrderZeroTensor( Third_Order_Tensor& C )
+    {
+        if (C.size() != 3)
+            C.resize(3, false);
+        for(unsigned int i = 0; i < 3; ++i)
+        {
+            if (C[i].size() != 3)
+                C[i].resize(3, false);
+            for(unsigned int j = 0; j < 3; ++j)
+            {
+                if (C[i][j].size() != 3)
+                    C[i][j].resize(3, false);
+                C[i][j].clear();
+            }
+        }
+    }
+
+    /**
+     * Computes third order zero tensor (no resizing)
+     * @param C the third order Tensor
+     */
+    static inline void ZeroThirdOrderTensor( Third_Order_Tensor& C )
+    {
+        for(unsigned int i = 0; i < 3; ++i)
+        {
+            for(unsigned int j = 0; j < 3; ++j)
+            {
+                C[i][j].clear();
+            }
+        }
+    }
+
+    /**
+     * Computes contraction of a third order tensor and a vector
+     * @param alpha
+     * @param A the third order Tensor
+     * @param B the first order Tensor (vector)
+     */
+    static void ContractThirdOrderTensor(double alpha, const Third_Order_Tensor& A, const VectorType& B, MatrixType& Result)
+    {
+        for(unsigned int i = 0; i < 3; ++i)
+        {
+            for(unsigned int j = 0; j < 3; ++j)
+            {
+                for(unsigned int k = 0; k < 3; ++k)
+                {
+                    Result(i, j) += alpha * A[i][j](k) * B(k);
+                }
+            }
+        }
+    }
+
+    /**
+     * Computes contraction of a third order tensor and a matrix
+     * @param alpha
+     * @param A the third order Tensor
+     * @param B the second order Tensor (matrix)
+     */
+    static void ContractThirdOrderTensor(double alpha, const Third_Order_Tensor& A, const MatrixType& B, VectorType& Result)
+    {
+        for(unsigned int i = 0; i < 3; ++i)
+        {
+            for(unsigned int j = 0; j < 3; ++j)
+            {
+                for(unsigned int k = 0; k < 3; ++k)
+                {
+                    Result(i) += alpha * A[i][j](k) * B(j, k);
+                }
+            }
+        }
+    }
+
+    /**
+     * Computes fourth order deviatoric tensor (also resizing)
+     * @param C the fourth order Tensor
+     */
     static inline void CalculateFourthOrderDeviatoricTensor( Fourth_Order_Tensor& C )
     {
-        MatrixType kronecker(3, 3);
-        noalias(kronecker) = ZeroMatrix(3, 3);
-        for(unsigned int i = 0; i < 3; ++i)
-            kronecker(i, i) = 1;
+        const MatrixType kronecker = IdentityMatrix(3);
 
         C.resize(3);
         for(unsigned int i = 0; i < 3; ++i)
@@ -1965,6 +2063,29 @@ public:
                 {
                     for(unsigned int l = 0; l < 3; ++l)
                         C[i][j](k,l) = 0.0;
+                }
+            }
+        }
+    }
+
+    /**
+     * Computes fourth order deviatoric tensor (no resizing)
+     * @param C the fourth order Tensor
+     */
+    static inline void DeviatoricFourthOrderTensor( Fourth_Order_Tensor& C )
+    {
+        const MatrixType kronecker = IdentityMatrix(3);
+
+        for(unsigned int i = 0; i < 3; ++i)
+        {
+            for(unsigned int j = 0; j < 3; ++j)
+            {
+                for(unsigned int k = 0; k < 3; ++k)
+                {
+                    for(unsigned int l = 0; l < 3; ++l)
+                        C[i][j](k,l) = 0.5 * kronecker(i, k) * kronecker(j, l)
+                                     + 0.5 * kronecker(i, l) * kronecker(j, k)
+                                     - 1.0 / 3 * kronecker(i, j) * kronecker(k, l);
                 }
             }
         }
@@ -2210,16 +2331,61 @@ public:
         }
     }
 
-    // // inverse a fourth order tensor
-    // REMARK: this function is likely incorrect
-    // static inline void InverseFourthOrderTensor(const Fourth_Order_Tensor& A, Fourth_Order_Tensor& InvA)
-    // {
-    //     Matrix T(6, 6), InvT(6, 6);
+    // C_ijkl += alpha A_mnij * B_mnkl
+    static inline void ProductFourthOrderTensorTN(double alpha, const Fourth_Order_Tensor& A, const Fourth_Order_Tensor& B, Fourth_Order_Tensor& Result)
+    {
+        for(unsigned int i = 0; i < 3; ++i)
+        {
+            for(unsigned int j = 0; j < 3; ++j)
+            {
+                for(unsigned int k = 0; k < 3; ++k)
+                {
+                    for(unsigned int l = 0; l < 3; ++l)
+                    {
+                        for(unsigned int m = 0; m < 3; ++m)
+                        {
+                            for(unsigned int n = 0; n < 3; ++n)
+                            {
+                                Result[i][j](k, l) += alpha * A[m][n](i, j) * B[m][n](k, l);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
 
-    //     TensorToMatrix(A, T);
-    //     InvertMatrix(T, InvT);
-    //     MatrixToTensor(InvT, InvA);
-    // }
+    // inverse a fourth order tensor
+    static inline void InvertFourthOrderTensor(const Fourth_Order_Tensor& A, Fourth_Order_Tensor& InvA)
+    {
+        Matrix T(9, 9), InvT(9, 9);
+
+        TensorToUnsymmetricMatrix(A, T);
+        InvertMatrix(T, InvT);
+        UnsymmetricMatrixToTensor(InvT, InvA);
+    }
+
+    // Compute D2(J3) / (D (SIGMA x SIGMA))
+    static inline void D2J3DSigma2(Fourth_Order_Tensor& Result, const double alpha, const Matrix& s)
+    {
+        const Matrix eye = IdentityMatrix(3);
+
+        for(unsigned int i = 0; i < 3; ++i)
+        {
+            for(unsigned int j = 0; j < 3; ++j)
+            {
+                for(unsigned int k = 0; k < 3; ++k)
+                {
+                    for(unsigned int l = 0; l < 3; ++l)
+                    {
+                        Result[i][j](k, l) += alpha*( 0.5*(s(i, k)*eye(j, l) + eye(i, k)*s(j, l)
+                                                         + s(i, l)*eye(j, k) + eye(i, l)*s(j, k))
+                                                    - 2.0/3*(s(i, j)*eye(k, l) + eye(i, j)*s(k, l)) );
+                    }
+                }
+            }
+        }
+    }
 
     /**
      * Computes the derivatives of the inverse of matrix
