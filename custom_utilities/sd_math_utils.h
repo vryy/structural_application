@@ -3165,6 +3165,56 @@ public:
         }
     }
 
+    /// Compute the derivatives of a function w.r.t stress providing p, q and Lode angle
+    // In fact, q and theta can be computed from p and s. One shall decompose it outside before calling this function
+    static inline void ComputeDFDSigma(MatrixType& n, const double p, const double q, const double theta,
+            const MatrixType& s, const MatrixType& eye,
+            const double dfdp, const double dfdq, const double dfdt)
+    {
+        const MatrixType dJ3dsigma = prod(s, s) - 2.0/9*pow(q, 2)*eye;
+        noalias(n) = (dfdp/3)*eye + (dfdq - tan(3*theta)/q*dfdt) * 1.5*s/q - 4.5/(pow(q, 3)*cos(3*theta))*dfdt*dJ3dsigma;
+    }
+
+    /// Compute the second derivatives of a function w.r.t stress providing p, q and Lode angle
+    // In fact, q and theta can be computed from p and s. One shall decompose it outside before calling this function
+    static inline void ComputeD2FDSigma2(Fourth_Order_Tensor& dn_dsigma, const double q, const double theta,
+            const MatrixType& s, const MatrixType& eye,
+            const double dfdq, const double dfdt,
+            const double d2fdp2, const double d2fdpdq, const double d2fdpdt,
+            const double d2fdq2, const double d2fdqdt, const double d2fdt2)
+    {
+        const double cos3t = cos(3*theta);
+        const double tan3t = tan(3*theta);
+        const double q2 = q*q;
+        const double q3 = q2*q;
+        const double q4 = q3*q;
+
+        const Matrix dqdsigma = 1.5*s/q;
+        const Matrix dJ3dsigma = prod(s, s) - 2.0/9*q2*eye;
+        const Matrix dtdsigma = -4.5/(q3*cos3t)*dJ3dsigma - tan3t/q*dqdsigma;
+
+        const double aux1 = dfdq - tan3t/q*dfdt;
+        const double aux2 = -4.5/(q3*cos3t)*dfdt;
+
+        const Matrix Aux1 = (d2fdq2 + tan3t/q2*dfdt - tan3t/q*d2fdqdt)*dqdsigma
+                          + (d2fdqdt - 3/(q*pow(cos3t, 2))*dfdt - tan3t/q*d2fdt2)*dtdsigma
+                          + (d2fdpdq/3 - tan3t/(3*q)*d2fdpdt)*eye;
+        const Matrix Aux2 = (-3.0/(q4*cos3t)*dfdt + 1.0/(q3*cos3t)*d2fdqdt)*dqdsigma
+                          + (3.0*tan3t/(q3*cos3t)*dfdt + d2fdt2/(q3*cos3t))*dtdsigma
+                          + 1.0/(3*q3*cos3t)*d2fdpdt*eye;
+
+        CalculateFourthOrderDeviatoricTensor(dn_dsigma);
+        ScaleFourthOrderTensor(dn_dsigma, aux1*1.5/q);
+        OuterProductFourthOrderTensor(-aux1*(9.0/4)/q3, s, s, dn_dsigma);
+        D2J3DSigma2(dn_dsigma, aux2, s);
+
+        OuterProductFourthOrderTensor(1.0, dqdsigma, Aux1, dn_dsigma);
+        OuterProductFourthOrderTensor(-4.5, dJ3dsigma, Aux2, dn_dsigma);
+
+        if (d2fdp2 != 0.0)
+            OuterProductFourthOrderTensor(d2fdp2/9, eye, eye, dn_dsigma);
+    }
+
 };// class SD_MathUtils
 
 }
