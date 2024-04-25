@@ -1380,18 +1380,10 @@ public:
             // Matrix(0, 8) = Tensor[0][0](2, 2); // xx-zz
             //
             for (unsigned int i = 0; i < 3; ++i)
-            {
                 for (unsigned int j = 0; j < 3; ++j)
-                {
                     for (unsigned int k = 0; k < 3; ++k)
-                    {
                         for (unsigned int l = 0; l < 3; ++l)
-                        {
                             Matrix(3*j+i, 3*l+k) = Tensor[i][j](k, l);
-                        }
-                    }
-                }
-            }
         }
         else if(Matrix.size1() == 5)
         {
@@ -1449,18 +1441,10 @@ public:
             // Matrix(3, 3) = Tensor[1][1](1, 1); // yy-yy
             /// Or
             for (unsigned int i = 0; i < 2; ++i)
-            {
                 for (unsigned int j = 0; j < 2; ++j)
-                {
                     for (unsigned int k = 0; k < 2; ++k)
-                    {
                         for (unsigned int l = 0; l < 2; ++l)
-                        {
                             Matrix(2*j+i, 2*l+k) = Tensor[i][j](k, l);
-                        }
-                    }
-                }
-            }
         }
         else
             KRATOS_ERROR << "Invalid matrix size (" << Matrix.size1() << ", " << Matrix.size2() << ")";
@@ -1472,18 +1456,10 @@ public:
         if (Matrix.size1() == 9)
         {
             for (unsigned int i = 0; i < 3; ++i)
-            {
                 for (unsigned int j = 0; j < 3; ++j)
-                {
                     for (unsigned int k = 0; k < 3; ++k)
-                    {
                         for (unsigned int l = 0; l < 3; ++l)
-                        {
                             Tensor[i][j](k, l) = Matrix(3*j+i, 3*l+k);
-                        }
-                    }
-                }
-            }
         }
         else
             KRATOS_ERROR << "If matrix size is not 9, the 4th order tensor can't be filled since information is not sufficient";
@@ -1538,32 +1514,16 @@ public:
             Tensor[0][2](0, 2) = Matrix(5, 5);
 
             for (unsigned int j = 0; j < 3; ++j)
-            {
                 for (unsigned int i = 0; i <= j; ++i)
-                {
                     for (unsigned int k = 0; k < 3; ++k)
-                    {
                         for (unsigned int l = 0; l < k; ++l)
-                        {
                             Tensor[i][j](k, l) = Tensor[i][j](l, k);
-                        }
-                    }
-                }
-            }
 
             for (unsigned int i = 0; i < 3; ++i)
-            {
                 for (unsigned int j = 0; j < i; ++j)
-                {
                     for (unsigned int k = 0; k < 3; ++k)
-                    {
                         for (unsigned int l = 0; l < 3; ++l)
-                        {
                             Tensor[i][j](k, l) = Tensor[j][i](k, l);
-                        }
-                    }
-                }
-            }
         }
         else
             KRATOS_ERROR << "If matrix size is not 6, the 4th order tensor can't be filled since information is not sufficient";
@@ -1910,12 +1870,8 @@ public:
     static inline void ZeroThirdOrderTensor( Third_Order_Tensor& C )
     {
         for(unsigned int i = 0; i < 3; ++i)
-        {
             for(unsigned int j = 0; j < 3; ++j)
-            {
                 C[i][j].clear();
-            }
-        }
     }
 
     /**
@@ -1927,15 +1883,9 @@ public:
     static void ContractThirdOrderTensor(double alpha, const Third_Order_Tensor& A, const VectorType& B, MatrixType& Result)
     {
         for(unsigned int i = 0; i < 3; ++i)
-        {
             for(unsigned int j = 0; j < 3; ++j)
-            {
                 for(unsigned int k = 0; k < 3; ++k)
-                {
                     Result(i, j) += alpha * A[i][j](k) * B(k);
-                }
-            }
-        }
     }
 
     /**
@@ -1947,15 +1897,9 @@ public:
     static void ContractThirdOrderTensor(double alpha, const Third_Order_Tensor& A, const MatrixType& B, VectorType& Result)
     {
         for(unsigned int i = 0; i < 3; ++i)
-        {
             for(unsigned int j = 0; j < 3; ++j)
-            {
                 for(unsigned int k = 0; k < 3; ++k)
-                {
                     Result(i) += alpha * A[i][j](k) * B(j, k);
-                }
-            }
-        }
     }
 
     /**
@@ -2056,16 +2000,10 @@ public:
     static void ZeroFourthOrderTensor( Fourth_Order_Tensor& C )
     {
         for(unsigned int i = 0; i < 3; ++i)
-        {
             for(unsigned int j = 0; j < 3; ++j)
-            {
                 for(unsigned int k = 0; k < 3; ++k)
-                {
                     for(unsigned int l = 0; l < 3; ++l)
                         C[i][j](k,l) = 0.0;
-                }
-            }
-        }
     }
 
     /**
@@ -2077,18 +2015,12 @@ public:
         const MatrixType kronecker = IdentityMatrix(3);
 
         for(unsigned int i = 0; i < 3; ++i)
-        {
             for(unsigned int j = 0; j < 3; ++j)
-            {
                 for(unsigned int k = 0; k < 3; ++k)
-                {
                     for(unsigned int l = 0; l < 3; ++l)
                         C[i][j](k,l) = 0.5 * kronecker(i, k) * kronecker(j, l)
                                      + 0.5 * kronecker(i, l) * kronecker(j, k)
                                      - 1.0 / 3 * kronecker(i, j) * kronecker(k, l);
-                }
-            }
-        }
     }
 
     /**
@@ -2099,16 +2031,10 @@ public:
     static void ScaleFourthOrderTensor( Fourth_Order_Tensor& C, double alpha )
     {
         for(unsigned int i = 0; i < 3; ++i)
-        {
             for(unsigned int j = 0; j < 3; ++j)
-            {
                 for(unsigned int k = 0; k < 3; ++k)
-                {
                     for(unsigned int l = 0; l < 3; ++l)
                         C[i][j](k,l) *= alpha;
-                }
-            }
-        }
     }
 
     /**
@@ -2119,16 +2045,10 @@ public:
     static void CopyFourthOrderTensor( const Fourth_Order_Tensor& A, Fourth_Order_Tensor& B )
     {
         for(unsigned int i = 0; i < 3; ++i)
-        {
             for(unsigned int j = 0; j < 3; ++j)
-            {
                 for(unsigned int k = 0; k < 3; ++k)
-                {
                     for(unsigned int l = 0; l < 3; ++l)
                         B[i][j](k,l) = A[i][j](k,l);
-                }
-            }
-        }
     }
 
     /**
@@ -2140,18 +2060,10 @@ public:
     static void ContractFourthOrderTensor(double alpha, const Fourth_Order_Tensor& A, const MatrixType& B, MatrixType& Result)
     {
         for(unsigned int i = 0; i < 3; ++i)
-        {
             for(unsigned int j = 0; j < 3; ++j)
-            {
                 for(unsigned int k = 0; k < 3; ++k)
-                {
                     for(unsigned int l = 0; l < 3; ++l)
-                    {
                         Result(i, j) += alpha * A[i][j](k, l) * B(k, l);
-                    }
-                }
-            }
-        }
     }
 
     /**
@@ -2163,18 +2075,10 @@ public:
     static void ContractFourthOrderTensor(double alpha, const Fourth_Order_Tensor& A, const SymmetricMatrixType& B, SymmetricMatrixType& Result)
     {
         for(unsigned int i = 0; i < 3; ++i)
-        {
             for(unsigned int j = i; j < 3; ++j)
-            {
                 for(unsigned int k = 0; k < 3; ++k)
-                {
                     for(unsigned int l = 0; l < 3; ++l)
-                    {
                         Result(i, j) += alpha * A[i][j](k, l) * B(k, l);
-                    }
-                }
-            }
-        }
     }
 
     /**
@@ -2186,18 +2090,10 @@ public:
     static void ContractFourthOrderTensor(double alpha, const MatrixType& A, const Fourth_Order_Tensor& BB, MatrixType& Result)
     {
         for(unsigned int i = 0; i < 3; ++i)
-        {
             for(unsigned int j = 0; j < 3; ++j)
-            {
                 for(unsigned int k = 0; k < 3; ++k)
-                {
                     for(unsigned int l = 0; l < 3; ++l)
-                    {
                         Result(k, l) += alpha * A(i, j) * BB[i][j](k, l);
-                    }
-                }
-            }
-        }
     }
 
     /**
@@ -2209,18 +2105,10 @@ public:
     static void ContractFourthOrderTensor(double alpha, const SymmetricMatrixType& A, const Fourth_Order_Tensor& BB, SymmetricMatrixType& Result)
     {
         for(unsigned int i = 0; i < 3; ++i)
-        {
             for(unsigned int j = 0; j < 3; ++j)
-            {
                 for(unsigned int k = 0; k < 3; ++k)
-                {
                     for(unsigned int l = k; l < 3; ++l)
-                    {
                         Result(k, l) += alpha * A(i, j) * BB[i][j](k, l);
-                    }
-                }
-            }
-        }
     }
 
     /**
@@ -2233,18 +2121,10 @@ public:
     static void OuterProductFourthOrderTensor(double alpha, const TMatrixType1& A, const TMatrixType2& B, Fourth_Order_Tensor& Result)
     {
         for(unsigned int i = 0; i < 3; ++i)
-        {
             for(unsigned int j = 0; j < 3; ++j)
-            {
                 for(unsigned int k = 0; k < 3; ++k)
-                {
                     for(unsigned int l = 0; l < 3; ++l)
-                    {
                         Result[i][j](k, l) += alpha * A(i, j) * B(k, l);
-                    }
-                }
-            }
-        }
     }
 
     /**
@@ -2257,18 +2137,10 @@ public:
     static void SpecialProduct1FourthOrderTensor(double alpha, const TMatrixType1& A, const TMatrixType2& B, Fourth_Order_Tensor& Result)
     {
         for(unsigned int i = 0; i < 3; ++i)
-        {
             for(unsigned int j = 0; j < 3; ++j)
-            {
                 for(unsigned int k = 0; k < 3; ++k)
-                {
                     for(unsigned int l = 0; l < 3; ++l)
-                    {
                         Result[i][j](k, l) += alpha * A(i, k) * B(j, l);
-                    }
-                }
-            }
-        }
     }
 
     /**
@@ -2281,78 +2153,42 @@ public:
     static void SpecialProduct2FourthOrderTensor(double alpha, const TMatrixType1& A, const TMatrixType2& B, Fourth_Order_Tensor& Result)
     {
         for(unsigned int i = 0; i < 3; ++i)
-        {
             for(unsigned int j = 0; j < 3; ++j)
-            {
                 for(unsigned int k = 0; k < 3; ++k)
-                {
                     for(unsigned int l = 0; l < 3; ++l)
-                    {
                         Result[i][j](k, l) += alpha * A(i, l) * B(j, k);
-                    }
-                }
-            }
-        }
     }
 
     // C += alpha A
     static inline void AddFourthOrderTensor(double alpha, const Fourth_Order_Tensor& A, Fourth_Order_Tensor& Result)
     {
         for(unsigned int i = 0; i < 3; ++i)
-        {
             for(unsigned int j = 0; j < 3; ++j)
-            {
                 noalias(Result[i][j]) += alpha * A[i][j];
-            }
-        }
     }
 
     // C_ijkl += alpha A_ijmn * B_mnkl
     static inline void ProductFourthOrderTensor(double alpha, const Fourth_Order_Tensor& A, const Fourth_Order_Tensor& B, Fourth_Order_Tensor& Result)
     {
         for(unsigned int i = 0; i < 3; ++i)
-        {
             for(unsigned int j = 0; j < 3; ++j)
-            {
                 for(unsigned int k = 0; k < 3; ++k)
-                {
                     for(unsigned int l = 0; l < 3; ++l)
-                    {
                         for(unsigned int m = 0; m < 3; ++m)
-                        {
                             for(unsigned int n = 0; n < 3; ++n)
-                            {
                                 Result[i][j](k, l) += alpha * A[i][j](m, n) * B[m][n](k, l);
-                            }
-                        }
-                    }
-                }
-            }
-        }
     }
 
     // C_ijkl += alpha A_mnij * B_mnkl
     static inline void ProductFourthOrderTensorTN(double alpha, const Fourth_Order_Tensor& A, const Fourth_Order_Tensor& B, Fourth_Order_Tensor& Result)
     {
         for(unsigned int i = 0; i < 3; ++i)
-        {
             for(unsigned int j = 0; j < 3; ++j)
-            {
                 for(unsigned int k = 0; k < 3; ++k)
-                {
                     for(unsigned int l = 0; l < 3; ++l)
-                    {
                         for(unsigned int m = 0; m < 3; ++m)
-                        {
                             for(unsigned int n = 0; n < 3; ++n)
-                            {
                                 Result[i][j](k, l) += alpha * A[m][n](i, j) * B[m][n](k, l);
-                            }
-                        }
-                    }
-                }
-            }
-        }
     }
 
     // inverse a fourth order tensor
@@ -2371,20 +2207,12 @@ public:
         const Matrix eye = IdentityMatrix(3);
 
         for(unsigned int i = 0; i < 3; ++i)
-        {
             for(unsigned int j = 0; j < 3; ++j)
-            {
                 for(unsigned int k = 0; k < 3; ++k)
-                {
                     for(unsigned int l = 0; l < 3; ++l)
-                    {
                         Result[i][j](k, l) += alpha*( 0.5*(s(i, k)*eye(j, l) + eye(i, k)*s(j, l)
                                                          + s(i, l)*eye(j, k) + eye(i, l)*s(j, k))
                                                     - 2.0/3*(s(i, j)*eye(k, l) + eye(i, j)*s(k, l)) );
-                    }
-                }
-            }
-        }
     }
 
     /**
