@@ -69,6 +69,12 @@ public:
     /// Get the derivative of the hardening function w.r.t consistent parameter
     double GetDerivative(const double& phi) const final;
 
+    /// Turn back information as a string.
+    std::string Info() const override
+    {
+        return "LinearHardeningLaw";
+    }
+
 private:
 
     ///@}
