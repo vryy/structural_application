@@ -1430,6 +1430,96 @@ namespace Kratos
 //************************************************************************************
 //************************************************************************************
 
+    void FiniteStrain::SetValuesOnIntegrationPoints( const Variable<double>& rVariable,
+            const std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo )
+    {
+        if ( rVariable == K0 )
+        {
+            SetValue( K0, rValues[0] );
+        }
+        else
+        {
+            if ( rValues.size() != mConstitutiveLawVector.size() )
+                KRATOS_ERROR << "Error at FiniteStrain element " << Id() << ", The size of rValues (" << rValues.size()
+                             << ") and mConstitutiveLawVector (" << mConstitutiveLawVector.size() << ") is incompatible"
+                             << std::endl;
+
+            for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); ++i )
+            {
+                mConstitutiveLawVector[i]->SetValue( rVariable, rValues[i], rCurrentProcessInfo );
+            }
+        }
+    }
+
+//************************************************************************************
+//************************************************************************************
+
+    void FiniteStrain::SetValuesOnIntegrationPoints( const Variable<int>& rVariable,
+            const std::vector<int>& rValues, const ProcessInfo& rCurrentProcessInfo )
+    {
+        if ( rValues.size() != mConstitutiveLawVector.size() )
+            KRATOS_ERROR << "Error at FiniteStrain element " << Id() << ", The size of rValues (" << rValues.size()
+                         << ") and mConstitutiveLawVector (" << mConstitutiveLawVector.size() << ") is incompatible"
+                         << std::endl;
+
+        for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); ++i )
+        {
+            mConstitutiveLawVector[i]->SetValue( rVariable, rValues[i], rCurrentProcessInfo );
+        }
+    }
+
+//************************************************************************************
+//************************************************************************************
+
+    void FiniteStrain::SetValuesOnIntegrationPoints( const Kratos::Variable<ConstitutiveLaw::Pointer>& rVariable,
+            const std::vector< ConstitutiveLaw::Pointer >& rValues, const ProcessInfo& rCurrentProcessInfo )
+    {
+        if ( rVariable == CONSTITUTIVE_LAW )
+        {
+            #ifdef ENABLE_BEZIER_GEOMETRY
+            GetGeometry().Initialize(mThisIntegrationMethod);
+            #endif
+
+            if( mConstitutiveLawVector.size() != rValues.size() )
+            {
+                mConstitutiveLawVector.resize( rValues.size() );
+            }
+
+            for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); ++i )
+            {
+                mConstitutiveLawVector[i] = rValues[i];
+                mConstitutiveLawVector[i]->InitializeMaterial( GetProperties(), GetGeometry(), row( GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod ), i ) );
+            }
+
+            #ifdef ENABLE_BEZIER_GEOMETRY
+            GetGeometry().Clean();
+            #endif
+        }
+        else if ( rVariable == CONSTITUTIVE_LAW_NO_INITIALIZE )
+        {
+            #ifdef ENABLE_BEZIER_GEOMETRY
+            GetGeometry().Initialize(mThisIntegrationMethod);
+            #endif
+
+            if( mConstitutiveLawVector.size() != rValues.size() )
+            {
+                mConstitutiveLawVector.resize( rValues.size() );
+            }
+
+            for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); ++i )
+            {
+                mConstitutiveLawVector[i] = rValues[i];
+            }
+
+            #ifdef ENABLE_BEZIER_GEOMETRY
+            GetGeometry().Clean();
+            #endif
+        }
+    }
+
+//************************************************************************************
+//************************************************************************************
+
     void FiniteStrain::CalculateOnIntegrationPoints( const Variable<double>& rVariable,
             std::vector<double>& rValues,
             const ProcessInfo& rCurrentProcessInfo )
