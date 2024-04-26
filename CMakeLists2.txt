@@ -76,6 +76,8 @@ set( KRATOS_STRUCTURAL_APPLICATION_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/constitutive_laws/multiplicative_finite_strain_bridging_constitutive_law_dc.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/constitutive_laws/total_lagrangian_bridging_constitutive_law.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/constitutive_laws/hyperelastic_finite_strain_bridging_constitutive_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/constitutive_laws/hypoelastic_finite_strain_bridging_constitutive_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/constitutive_laws/hypoelastic_finite_strain_bridging_constitutive_law_dc.cpp
     #rankine_yield_function.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/fluency_criteria/isotropic_rankine_yield_function.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/fluency_criteria/morh_coulomb_yield_function.cpp

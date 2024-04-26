@@ -103,6 +103,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "constitutive_laws/multiplicative_finite_strain_bridging_constitutive_law_dc.h"
 #include "constitutive_laws/total_lagrangian_bridging_constitutive_law.h"
 #include "constitutive_laws/hyperelastic_finite_strain_bridging_constitutive_law.h"
+#include "constitutive_laws/hypoelastic_finite_strain_bridging_constitutive_law.h"
+#include "constitutive_laws/hypoelastic_finite_strain_bridging_constitutive_law_dc.h"
 #include "includes/node.h"
 #include "includes/variables.h"
 #include "includes/mesh.h"
@@ -181,8 +183,37 @@ void AddMultiplicativeFiniteStrainBridgingConstitutiveLaw(const std::string& pos
     ( name.c_str(), init<>() )
     .def(init<ConstitutiveLawBaseType::Pointer>())
     ;
+}
 
+template<int THWSchemeType, int TStressType>
+void AddHypoelasticFiniteStrainBridgingConstitutiveLaw(const std::string& postfix)
+{
+    typedef FiniteStrainBridgingConstitutiveLaw BaseType;
 
+    std::string name;
+    name = "HypoelasticFiniteStrainBridgingConstitutiveLaw_" + postfix;
+    class_< HypoelasticFiniteStrainBridgingConstitutiveLaw<THWSchemeType, TStressType>, bases< BaseType >, boost::noncopyable >
+    ( name.c_str(), init<>() )
+    .def(init<ConstitutiveLawBaseType::Pointer>())
+    ;
+
+    name = "HypoelasticFiniteStrainAxisymmetricBridgingConstitutiveLaw_" + postfix;
+    class_< HypoelasticFiniteStrainAxisymmetricBridgingConstitutiveLaw<THWSchemeType, TStressType>, bases< HypoelasticFiniteStrainBridgingConstitutiveLaw<THWSchemeType, TStressType> >, boost::noncopyable >
+    ( name.c_str(), init<>() )
+    .def(init<ConstitutiveLawBaseType::Pointer>())
+    ;
+
+    name = "HypoelasticFiniteStrainBridgingConstitutiveLawDC_" + postfix;
+    class_< HypoelasticFiniteStrainBridgingConstitutiveLawDC<THWSchemeType, TStressType>, bases< BaseType >, boost::noncopyable >
+    ( name.c_str(), init<>() )
+    .def(init<ConstitutiveLawBaseType::Pointer>())
+    ;
+
+    name = "HypoelasticFiniteStrainAxisymmetricBridgingConstitutiveLawDC_" + postfix;
+    class_< HypoelasticFiniteStrainAxisymmetricBridgingConstitutiveLawDC<THWSchemeType, TStressType>, bases< HypoelasticFiniteStrainBridgingConstitutiveLawDC<THWSchemeType, TStressType> >, boost::noncopyable >
+    ( name.c_str(), init<>() )
+    .def(init<ConstitutiveLawBaseType::Pointer>())
+    ;
 }
 
 void  AddConstitutiveLawsToPython()
@@ -379,6 +410,10 @@ void  AddConstitutiveLawsToPython()
 
     AddMultiplicativeFiniteStrainBridgingConstitutiveLaw<1>("Cauchy");
     AddMultiplicativeFiniteStrainBridgingConstitutiveLaw<2>("Kirchhoff");
+    AddHypoelasticFiniteStrainBridgingConstitutiveLaw<1, 1>("Cauchy_HW");
+    AddHypoelasticFiniteStrainBridgingConstitutiveLaw<1, 2>("Kirchhoff_HW");
+    AddHypoelasticFiniteStrainBridgingConstitutiveLaw<2, 1>("Cauchy");
+    AddHypoelasticFiniteStrainBridgingConstitutiveLaw<2, 2>("Kirchhoff");
 
     class_< TotalLagrangianBridgingConstitutiveLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
     ( "TotalLagrangianBridgingConstitutiveLaw", init<>() )
