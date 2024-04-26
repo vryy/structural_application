@@ -229,40 +229,19 @@ void MultiplicativeFiniteStrainBridgingConstitutiveLaw<TStressType>::StressInteg
 }
 
 //**********************************************************************
-template<>
-void MultiplicativeFiniteStrainBridgingConstitutiveLaw<1>::CalculateMaterialResponseCauchy(Parameters& rValues)
-{
-    // integrate the Cauchy stress
-    const Matrix& F = rValues.GetDeformationGradientF();
-    BaseType::UpdateDeformationGradient(m_F_n1, m_J_n1, rValues);
-    this->StressIntegration(rValues, m_F_n1, m_stress_n1, m_Be_trial);
-
-    // export the stress
-    if (rValues.IsSetStressVector())
-    {
-        Vector& CauchyStressVector = rValues.GetStressVector();
-        SD_MathUtils<double>::StressTensorToVector(m_stress_n1, CauchyStressVector);
-    }
-
-    // export the tangent
-    if (rValues.IsSetConstitutiveMatrix())
-    {
-        Matrix& AlgorithmicTangent = rValues.GetConstitutiveMatrix();
-        BaseType::ComputeTangent(AlgorithmicTangent);
-    }
-}
-
-//**********************************************************************
-template<>
-void MultiplicativeFiniteStrainBridgingConstitutiveLaw<2>::CalculateMaterialResponseCauchy(Parameters& rValues)
+template<int TStressType>
+void MultiplicativeFiniteStrainBridgingConstitutiveLaw<TStressType>::CalculateMaterialResponseCauchy(Parameters& rValues)
 {
     // integrate the Kirchhoff stress
     const Matrix& F = rValues.GetDeformationGradientF();
     this->UpdateDeformationGradient(m_F_n1, m_J_n1, rValues);
     this->StressIntegration(rValues, m_F_n1, m_stress_n1, m_Be_trial);
 
-    // transform to Cauchy stress
-    m_stress_n1 /= m_J_n1;
+    if constexpr (TStressType == 2)
+    {
+        // transform to Cauchy stress
+        m_stress_n1 /= m_J_n1;
+    }
 
     // export the stress
     if (rValues.IsSetStressVector())

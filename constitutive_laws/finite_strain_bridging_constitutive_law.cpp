@@ -158,6 +158,7 @@ void FiniteStrainBridgingConstitutiveLaw::InitializeMaterial( const Properties& 
     m_F_n1.resize(3, 3, false);
     noalias(m_F_n) = IdentityMatrix(3);
     noalias(m_F_n1) = m_F_n;
+    m_J_n1 = 1.0;
 
     m_stress_n1.resize(3, 3, false);
     noalias(m_stress_n1) = ZeroMatrix(3, 3);
