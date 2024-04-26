@@ -83,7 +83,7 @@ public:
         if ( rThisVariable == CURRENT_STRAIN_VECTOR )
         {
             mCurrentStrain = rValue; // size could be changed to accommodate for axisymmetric analysis
-            SD_MathUtils<double>::StrainVectorToTensor(rValue, BaseType::m_strain_n1);
+            BaseType::SetValue(rThisVariable, rValue, rCurrentProcessInfo);
             return;
         }
 
@@ -140,7 +140,7 @@ public:
         {
             if (CalculateStresses)
             {
-                SD_MathUtils<double>::StressTensorToVector(BaseType::m_stress_n1, StressVector);
+                this->GetValue(STRESSES, StressVector);
                 return;
             }
         }
@@ -148,7 +148,7 @@ public:
         if (CalculateTangent)
             this->ComputeTangent(AlgorithmicTangent, CurrentProcessInfo, props);
         if (CalculateStresses)
-            SD_MathUtils<double>::StressTensorToVector(BaseType::m_stress_n1, StressVector);
+            this->GetValue(STRESSES, StressVector);
     }
 
     /**
