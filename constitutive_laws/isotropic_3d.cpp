@@ -109,6 +109,8 @@ bool Isotropic3D::Has( const Variable<Vector>& rThisVariable )
 
 bool Isotropic3D::Has( const Variable<Matrix>& rThisVariable )
 {
+    if ( rThisVariable == CAUCHY_STRESS_TENSOR )
+        return true;
     return false;
 }
 
@@ -223,7 +225,7 @@ Vector& Isotropic3D::GetValue( const Variable<Vector>& rThisVariable, Vector& rV
         return( rValue );
     }
 
-    KRATOS_THROW_ERROR( std::logic_error, "Vector Variable case not considered", "" );
+    return rValue;
 }
 
 Matrix& Isotropic3D::GetValue( const Variable<Matrix>& rThisVariable, Matrix& rValue )
