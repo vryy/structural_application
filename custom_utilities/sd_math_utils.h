@@ -58,15 +58,15 @@ public:
      * @name type definitions
      * @{
      */
-    typedef Matrix MatrixType;
+    typedef boost::numeric::ublas::matrix<TDataType> MatrixType;
 
-    typedef SymmetricMatrix SymmetricMatrixType;
+    typedef boost::numeric::ublas::symmetric_matrix<TDataType> SymmetricMatrixType;
 
-    typedef Vector VectorType;
+    typedef boost::numeric::ublas::vector<TDataType> VectorType;
 
-    typedef unsigned int IndexType;
+    typedef std::size_t IndexType;
 
-    typedef unsigned int SizeType;
+    typedef std::size_t SizeType;
 
     typedef MathUtils<TDataType> MathUtilsType;
 
@@ -78,7 +78,7 @@ public:
 
     typedef matrix<Second_Order_Tensor> Matrix_Second_Tensor; // Acumulo un tensor de 2 orden en una matriz.
 
-    typedef double (*unitary_func_t)(double);
+    typedef TDataType (*unitary_func_t)(TDataType);
 
     #ifdef SD_APP_FORWARD_COMPATIBILITY
     typedef Point PointType;
@@ -87,7 +87,7 @@ public:
     #endif
 
     /// Return constant Pi
-    static constexpr TDataType Pi()
+    static inline constexpr TDataType Pi()
     {
         #if defined(__clang__)
         return 3.1415926535897932384626433832795028841971693;
@@ -98,9 +98,6 @@ public:
         #endif
     }
 
-    /**
-     * @}
-     */
     /**
      * calculates the solutions for a given cubic polynomial equation
      * 0= a*x^3+b*x^2+c*x+d
@@ -113,8 +110,7 @@ public:
      * WARNING only valid cubic (not quadratic, not linear, not constant) equations with
      * three real (not complex) solutions
      */
-
-    static inline bool CardanoFormula(double a, double b, double c, double d, VectorType& solution)
+    static inline bool CardanoFormula(TDataType a, TDataType b, TDataType c, TDataType d, VectorType& solution)
     {
         solution.resize(3,false);
         noalias(solution)= ZeroVector(3);
@@ -126,11 +122,11 @@ public:
             return false;
         }
 
-        double p= (3.0*a*c-b*b)/(3.0*a*a);
+        TDataType p = (3.0*a*c-b*b)/(3.0*a*a);
 
-        double q= 2.0*b*b*b/(27.0*a*a*a)-b*c/(3.0*a*a)+d/a;
+        TDataType q = 2.0*b*b*b/(27.0*a*a*a)-b*c/(3.0*a*a)+d/a;
 
-        double discriminante= p*p*p/27.0+q*q/4.0;
+        TDataType discriminante = p*p*p/27.0+q*q/4.0;
 
         if(discriminante>0)
         {
@@ -160,7 +156,7 @@ public:
             -b/(3*a);
 
 #ifdef _DEBUG
-        if(std::isnan<double>(solution(0)) || std::isnan<double>(solution(1))|| std::isnan<double>(solution(2)))
+        if(std::isnan<TDataType>(solution(0)) || std::isnan<TDataType>(solution(1))|| std::isnan<TDataType>(solution(2)))
         {
             return false;
         }
@@ -168,9 +164,7 @@ public:
 
         return true;
     }
-    /**
-     * @}
-      */
+
     /**
      * calculates Eigenvalues of given square matrix A.
      * The QR Algorithm with shifts is used
@@ -180,17 +174,15 @@ public:
      * @return Vector of eigenvalues
      * WARNING only valid for 2*2 and 3*3 Matrices yet
      */
-
-    static inline VectorType EigenValues(const MatrixType& A, double crit, double zero)
+    static inline VectorType EigenValues(const MatrixType& A, TDataType crit, TDataType zero)
     {
-        int dim= A.size1();
-
+        SizeType dim = A.size1();
 
         MatrixType Convergence(2,dim);
 
-        double delta;
+        TDataType delta;
 
-        double abs;
+        TDataType abs;
 
         VectorType Result=ZeroVector(dim);
 
@@ -206,7 +198,7 @@ public:
 
         while(!(is_converged))
         {
-            double shift= HelpA((dim-1),(dim-1));
+            TDataType shift= HelpA((dim-1),(dim-1));
             //
             for(int i=0; i<dim; i++)
             {
@@ -271,7 +263,7 @@ public:
     {
         VectorType Result(3);
 
-        double p1 = pow(A(0, 1), 2) + pow(A(1, 2), 2) + pow(A(0, 2), 2);
+        TDataType p1 = pow(A(0, 1), 2) + pow(A(1, 2), 2) + pow(A(0, 2), 2);
         if (p1 == 0)
         {
             // A is diagonal.
@@ -281,15 +273,15 @@ public:
         }
         else
         {
-            double q = (A(0, 0) + A(1, 1) + A(2, 2))/3; // trace(A) is the sum of all diagonal values
-            double p2 = pow(A(0, 0) - q, 2) + pow(A(1, 1) - q, 2) + pow(A(2, 2) - q, 2) + 2 * p1;
-            double p = sqrt(p2 / 6);
+            TDataType q = (A(0, 0) + A(1, 1) + A(2, 2))/3; // trace(A) is the sum of all diagonal values
+            TDataType p2 = pow(A(0, 0) - q, 2) + pow(A(1, 1) - q, 2) + pow(A(2, 2) - q, 2) + 2 * p1;
+            TDataType p = sqrt(p2 / 6);
             MatrixType B = (1 / p) * (A - q * IdentityMatrix(3));
-            double r = MathUtils<TDataType>::Det3(B) / 2;
+            TDataType r = MathUtils<TDataType>::Det3(B) / 2;
 
             // In exact arithmetic for a symmetric matrix  -1 <= r <= 1
             // but computation error can leave it slightly outside this range.
-            double phi;
+            TDataType phi;
             if (r <= -1)
             {
                 phi = Pi() / 3;
@@ -366,10 +358,6 @@ public:
         return Result;
     }
 
-
-    /**
-     * @}
-     */
     /**
      * calculates the QR Factorization of given square matrix A=QR.
      * The Factorization is performed using the householder algorithm
@@ -377,7 +365,6 @@ public:
      * @param Q the result matrix Q
      * @param R the result matrix R
      */
-
     static inline void QRFactorization(const MatrixType& A, MatrixType& Q, MatrixType& R)
     {
 
@@ -423,16 +410,16 @@ public:
 
 
             //Helpvalue l
-            double normy=0.0;
+            TDataType normy=0.0;
 
             for(int i=iteration; i<dim; i++)
                 normy += y(i)*y(i);
 
             normy= sqrt(normy);
 
-            double l= sqrt((normy*(normy+fabs(y(iteration))))/2);
+            TDataType l= sqrt((normy*(normy+fabs(y(iteration))))/2);
 
-            double k=0.0;
+            TDataType k=0.0;
 
             if(y[iteration] !=0)
                 k= - y(iteration)/fabs(y(iteration))*normy;
@@ -441,7 +428,7 @@ public:
 
             for(int i=iteration; i<dim; i++)
             {
-                double e=0;
+                TDataType e=0;
 
                 if(i==iteration)
                     e=1;
@@ -487,9 +474,6 @@ public:
     }
 
     /**
-     * @}
-     */
-    /**
      * calculates the eigenvectors and eigenvalues of given symmetric matrix A.
      * The eigenvectors and eigenvalues are calculated using the iterative
      * Gauss-Seidel-method
@@ -498,9 +482,7 @@ public:
      * @param V the result matrix (will be overwritten with the eigenvectors)
      * @param zero_tolerance the largest value considered to be zero
      */
-
-
-    static inline void EigenVectors(const MatrixType& A, MatrixType& vectors, VectorType& lambda, double zero_tolerance =1e-9, int max_iterations = 10)
+    static inline void EigenVectors(const MatrixType& A, MatrixType& vectors, VectorType& lambda, TDataType zero_tolerance =1e-9, int max_iterations = 10)
     {
         MatrixType Help= A;
 
@@ -528,13 +510,12 @@ public:
 
         MatrixType Rotation(Help.size1(),Help.size2());
 
-
         for(int iterations=0; iterations<max_iterations; iterations++)
         {
 
             is_converged= true;
 
-            double a= 0.0;
+            TDataType a= 0.0;
 
             unsigned int index1= 0;
 
@@ -563,9 +544,9 @@ public:
 
             //Calculation of Rotationangle
 
-            double gamma= (Help(index2,index2)-Help(index1,index1))/(2*Help(index1,index2));
+            TDataType gamma= (Help(index2,index2)-Help(index1,index1))/(2*Help(index1,index2));
 
-            double u=1.0;
+            TDataType u=1.0;
 
             if(fabs(gamma) > zero_tolerance && fabs(gamma)< (1/zero_tolerance))
             {
@@ -577,11 +558,11 @@ public:
                     u= 0.5/gamma;
             }
 
-            double c= 1.0/(sqrt(1.0+u*u));
+            TDataType c= 1.0/(sqrt(1.0+u*u));
 
-            double s= c*u;
+            TDataType s= c*u;
 
-            double teta= s/(1.0+c);
+            TDataType teta= s/(1.0+c);
 
             //Ratotion of the Matrix
             HelpDummy= Help;
@@ -676,9 +657,6 @@ public:
     }
 
     /**
-     * @}
-     */
-    /**
      * calculates the eigenvectors and eigenvalues of given matrix A.
      * The eigenvectors and eigenvalues are calculated using the iterative
      * JACOBI-method
@@ -691,7 +669,7 @@ public:
     static inline void EigenVectors( MatrixType& A,
                                      MatrixType& V,
                                      TDataType& error_tolerance,
-                                     TDataType zero_tolerance)
+                                     const TDataType zero_tolerance )
     {
         //initial error
         TDataType error = 1.0;
@@ -706,7 +684,7 @@ public:
             {
                 for( int j=i+1; j<n; j++ )
                 {
-                    double theta = 0.0;
+                    TDataType theta = 0.0;
                     if( MathUtilsType::Abs( A(i,j) ) >= zero_tolerance )
                     {
                         if( MathUtilsType::Abs( A(i,i)-A(j,j) ) > 0.0 )
@@ -728,8 +706,8 @@ public:
                     V = Mult( V, T );
                 }
             }
-            double sTot = 0.0;
-            double sDiag = 0.0;
+            TDataType sTot = 0.0;
+            TDataType sDiag = 0.0;
             for( unsigned int i=0; i<A.size1(); i++ )
             {
                 for( unsigned int j=0; j<A.size2(); j++ )
@@ -767,7 +745,7 @@ public:
             }
 
         }
-    }//EigenVectors
+    }
 
     /**
      * creates identity matrix.
@@ -782,7 +760,7 @@ public:
             A(i,i) = 1.0;
         }
         return A;
-    }//IdentityMatrix
+    }
 
     /**
      * Adds two matrices. first argument is overwritten by sum of both
@@ -808,7 +786,7 @@ public:
      * @return matrix \f$ C = A B \f$
      */
     static inline MatrixType Mult( MatrixType& A,
-                                   MatrixType& B)
+                                   MatrixType& B )
     {
         MatrixType C(A.size1(),B.size2());
         for( unsigned int i=0; i<A.size1(); i++ )
@@ -822,7 +800,7 @@ public:
             }
         }
         return C;
-    }//Mult
+    }
 
     /**
      * multiplies a matrix by a scalar
@@ -841,13 +819,14 @@ public:
     /**
      * multiplies a vector by a scalar
      */
-    static inline void Mult( VectorType& v, TDataType a )
+    template<typename TVectorType>
+    static inline void Mult( TVectorType& v, TDataType a )
     {
         for( unsigned int i=0; i<v.size(); i++ )
         {
-            v(i) = v(i)*a;
+            v[i] = v[i]*a;
         }
-    }//Mult
+    }
 
     /**
      * transposes matrix A. Matrix A is not overwritten!
@@ -865,14 +844,31 @@ public:
             }
         }
         return AT;
-    }//Transpose
+    }
+
+    /**
+     * compute norm of a vector. It does not use std::sqrt but sqrt.
+     */
+    template<typename TVectorType>
+    static inline TDataType Norm( TVectorType& v )
+    {
+        typename TVectorType::const_iterator i = v.begin();
+        TDataType temp = 0.0;
+        while(i != v.end()) {
+            temp += (*i) * (*i);
+            i++;
+        }
+        return sqrt(temp);
+    }
 
     /**
      * normalises a vector. Vector is scaled by \f$ V_{norm} = \frac{V}{|V|} \f$
      */
-    static inline void Normalize( VectorType& v )
+    template<typename TVectorType>
+    static inline void Normalize( TVectorType& v )
     {
-        Mult( v, 1.0/(MathUtilsType::Norm( v )) );
+        const TDataType norm = Norm(v);
+        Mult( v, 1.0/norm );
     }
 
     /**
@@ -1081,7 +1077,7 @@ public:
     }
 
     template<typename TVectorType, typename TMatrixType>
-    static inline void AddStressTensorToVector(double c, const TMatrixType& StressTensor, TVectorType& StressVector)
+    static inline void AddStressTensorToVector(TDataType c, const TMatrixType& StressTensor, TVectorType& StressVector)
     {
         if(StressVector.size() == 3)
         {
@@ -1131,7 +1127,7 @@ public:
     * @param inverse inverse of the given Matrix
     * @param determinant of the given Matrix
     */
-    static int InvertMatrix( const MatrixType& input, MatrixType& inverse, double& det )
+    static int InvertMatrix( const MatrixType& input, MatrixType& inverse, TDataType& det )
     {
         using namespace boost::numeric::ublas;
         typedef permutation_matrix<std::size_t> pmatrix;
@@ -1183,9 +1179,9 @@ public:
     * @return the norm of the given tensor
     */
     template<typename TMatrixType>
-    static double normTensor(const TMatrixType& Tensor)
+    static TDataType normTensor(const TMatrixType& Tensor)
     {
-        double result=0.0;
+        TDataType result=0.0;
         for(unsigned int i=0; i<Tensor.size1(); i++)
             for(unsigned int j=0; j<Tensor.size2(); j++)
                 result += Tensor(i,j)*Tensor(i,j);
@@ -1197,9 +1193,9 @@ public:
     * @param Tensor the given fourth order tensor
     * @return the norm of the given tensor
     */
-    static double normTensor(const Fourth_Order_Tensor& T)
+    static TDataType normTensor(const Fourth_Order_Tensor& T)
     {
-        double v = 0.0;
+        TDataType v = 0.0;
         for (int i = 0; i < 3; ++i)
             for (int j = 0; j < 3; ++j)
                 v += pow(norm_frobenius(T[i][j]), 2);
@@ -1612,7 +1608,7 @@ public:
     {
         int help1 = 0;
         int help2 = 0;
-        double coeff = 1.0;
+        TDataType coeff = 1.0;
 
         Tensor.resize(3);
 
@@ -1660,11 +1656,11 @@ public:
     * @param Vector the Tensor
     */
     template<typename TMatrixType>
-    static void MatrixToTensor(const TMatrixType& A, array_1d<double, 81>& Tensor)
+    static void MatrixToTensor(const TMatrixType& A, array_1d<TDataType, 81>& Tensor)
     {
         int help1 = 0;
         int help2 = 0;
-        double coeff = 1.0;
+        TDataType coeff = 1.0;
         std::fill(Tensor.begin(), Tensor.end(), 0.0);
         for(unsigned int i=0; i<3; i++)
         {
@@ -1700,6 +1696,7 @@ public:
 
         return;
     }
+
     /**
     * Transforms a given 4th order tensor to a corresponing 6*6 Matrix
     * @param Tensor the given Tensor
@@ -1712,7 +1709,7 @@ public:
         int help2 = 0;
         int help3 = 0;
         int help4 = 0;
-        double coeff = 1.0;
+        TDataType coeff = 1.0;
 
         if(Matrix.size1()!=6 || Matrix.size2()!=6)
             Matrix.resize(6,6,false);
@@ -1782,7 +1779,7 @@ public:
      * @param Vector the Matrix
      */
     template<typename TMatrixType>
-    static void TensorToMatrix( const array_1d<double, 81>& Tensor, TMatrixType& Matrix )
+    static void TensorToMatrix( const array_1d<TDataType, 81>& Tensor, TMatrixType& Matrix )
     {
         if(Matrix.size1()!=6 || Matrix.size2()!=6)
             Matrix.resize(6,6,false);
@@ -1833,7 +1830,7 @@ public:
     }
 
     template<typename TMatrixType1, typename TMatrixType2>
-    static void ExtractVolumetricDeviatoricTensor( const TMatrixType1& C, TMatrixType2& dev, double& vol )
+    static void ExtractVolumetricDeviatoricTensor( const TMatrixType1& C, TMatrixType2& dev, TDataType& vol )
     {
         vol = C(0, 0) + C(1, 1) + C(2, 2);
         noalias(dev) = C;
@@ -1880,7 +1877,7 @@ public:
      * @param A the third order Tensor
      * @param B the first order Tensor (vector)
      */
-    static void ContractThirdOrderTensor(double alpha, const Third_Order_Tensor& A, const VectorType& B, MatrixType& Result)
+    static void ContractThirdOrderTensor(TDataType alpha, const Third_Order_Tensor& A, const VectorType& B, MatrixType& Result)
     {
         for(unsigned int i = 0; i < 3; ++i)
             for(unsigned int j = 0; j < 3; ++j)
@@ -1894,7 +1891,7 @@ public:
      * @param A the third order Tensor
      * @param B the second order Tensor (matrix)
      */
-    static void ContractThirdOrderTensor(double alpha, const Third_Order_Tensor& A, const MatrixType& B, VectorType& Result)
+    static void ContractThirdOrderTensor(TDataType alpha, const Third_Order_Tensor& A, const MatrixType& B, VectorType& Result)
     {
         for(unsigned int i = 0; i < 3; ++i)
             for(unsigned int j = 0; j < 3; ++j)
@@ -1908,7 +1905,7 @@ public:
      */
     static inline void CalculateFourthOrderDeviatoricTensor( Fourth_Order_Tensor& C )
     {
-        const MatrixType kronecker = IdentityMatrix(3);
+        const Matrix eye = IdentityMatrix(3);
 
         C.resize(3);
         for(unsigned int i = 0; i < 3; ++i)
@@ -1921,9 +1918,9 @@ public:
                 for(unsigned int k = 0; k < 3; ++k)
                 {
                     for(unsigned int l = 0; l < 3; ++l)
-                        C[i][j](k,l) = 0.5 * kronecker(i, k) * kronecker(j, l)
-                                     + 0.5 * kronecker(i, l) * kronecker(j, k)
-                                     - 1.0 / 3 * kronecker(i, j) * kronecker(k, l);
+                        C[i][j](k,l) = 0.5 * eye(i, k) * eye(j, l)
+                                     + 0.5 * eye(i, l) * eye(j, k)
+                                     - 1.0 / 3 * eye(i, j) * eye(k, l);
                 }
             }
         }
@@ -1956,7 +1953,7 @@ public:
      */
     static inline void CalculateFourthOrderSymmetricTensor( Fourth_Order_Tensor& C )
     {
-        const MatrixType kronecker = IdentityMatrix(3);
+        const Matrix eye = IdentityMatrix(3);
         C.resize(3);
         for(unsigned int i = 0; i < 3; ++i)
         {
@@ -1967,7 +1964,7 @@ public:
                 noalias(C[i][j]) = ZeroMatrix(3, 3);
                 for(unsigned int k = 0; k < 3; ++k)
                     for(unsigned int l = 0; l < 3; ++l)
-                        C[i][j](k,l) = 0.5 * (kronecker(i, k) * kronecker(j, l) + kronecker(i, l) * kronecker(j, k));
+                        C[i][j](k,l) = 0.5 * (eye(i, k) * eye(j, l) + eye(i, l) * eye(j, k));
             }
         }
     }
@@ -1976,7 +1973,7 @@ public:
     /// Note that this tensor is not symmetric
     static inline void CalculateFourthOrderUnitTensor( Fourth_Order_Tensor& C )
     {
-        const MatrixType kronecker = IdentityMatrix(3);
+        const Matrix eye = IdentityMatrix(3);
 
         C.resize(3);
         for(unsigned int i = 0; i < 3; ++i)
@@ -1988,7 +1985,7 @@ public:
                 noalias(C[i][j]) = ZeroMatrix(3, 3);
                 for(unsigned int k = 0; k < 3; ++k)
                     for(unsigned int l = 0; l < 3; ++l)
-                        C[i][j](k,l) = kronecker(i, k) * kronecker(j, l);
+                        C[i][j](k,l) = eye(i, k) * eye(j, l);
             }
         }
     }
@@ -2012,15 +2009,15 @@ public:
      */
     static inline void DeviatoricFourthOrderTensor( Fourth_Order_Tensor& C )
     {
-        const MatrixType kronecker = IdentityMatrix(3);
+        const Matrix eye = IdentityMatrix(3);
 
         for(unsigned int i = 0; i < 3; ++i)
             for(unsigned int j = 0; j < 3; ++j)
                 for(unsigned int k = 0; k < 3; ++k)
                     for(unsigned int l = 0; l < 3; ++l)
-                        C[i][j](k,l) = 0.5 * kronecker(i, k) * kronecker(j, l)
-                                     + 0.5 * kronecker(i, l) * kronecker(j, k)
-                                     - 1.0 / 3 * kronecker(i, j) * kronecker(k, l);
+                        C[i][j](k,l) = 0.5 * eye(i, k) * eye(j, l)
+                                     + 0.5 * eye(i, l) * eye(j, k)
+                                     - 1.0 / 3 * eye(i, j) * eye(k, l);
     }
 
     /**
@@ -2028,7 +2025,7 @@ public:
      * @param C the given Tensor
      * @param alpha
      */
-    static void ScaleFourthOrderTensor( Fourth_Order_Tensor& C, double alpha )
+    static void ScaleFourthOrderTensor( Fourth_Order_Tensor& C, TDataType alpha )
     {
         for(unsigned int i = 0; i < 3; ++i)
             for(unsigned int j = 0; j < 3; ++j)
@@ -2057,7 +2054,7 @@ public:
      * @param AA the fourth order Tensor
      * @param B the second order Tensor
      */
-    static void ContractFourthOrderTensor(double alpha, const Fourth_Order_Tensor& A, const MatrixType& B, MatrixType& Result)
+    static void ContractFourthOrderTensor(TDataType alpha, const Fourth_Order_Tensor& A, const MatrixType& B, MatrixType& Result)
     {
         for(unsigned int i = 0; i < 3; ++i)
             for(unsigned int j = 0; j < 3; ++j)
@@ -2072,7 +2069,7 @@ public:
      * @param AA the fourth order Tensor
      * @param B the second order Tensor
      */
-    static void ContractFourthOrderTensor(double alpha, const Fourth_Order_Tensor& A, const SymmetricMatrixType& B, SymmetricMatrixType& Result)
+    static void ContractFourthOrderTensor(TDataType alpha, const Fourth_Order_Tensor& A, const SymmetricMatrixType& B, SymmetricMatrixType& Result)
     {
         for(unsigned int i = 0; i < 3; ++i)
             for(unsigned int j = i; j < 3; ++j)
@@ -2087,7 +2084,7 @@ public:
      * @param A the second order Tensor
      * @param BB the fourth order Tensor
      */
-    static void ContractFourthOrderTensor(double alpha, const MatrixType& A, const Fourth_Order_Tensor& BB, MatrixType& Result)
+    static void ContractFourthOrderTensor(TDataType alpha, const MatrixType& A, const Fourth_Order_Tensor& BB, MatrixType& Result)
     {
         for(unsigned int i = 0; i < 3; ++i)
             for(unsigned int j = 0; j < 3; ++j)
@@ -2102,7 +2099,7 @@ public:
      * @param A the second order Tensor
      * @param BB the fourth order Tensor
      */
-    static void ContractFourthOrderTensor(double alpha, const SymmetricMatrixType& A, const Fourth_Order_Tensor& BB, SymmetricMatrixType& Result)
+    static void ContractFourthOrderTensor(TDataType alpha, const SymmetricMatrixType& A, const Fourth_Order_Tensor& BB, SymmetricMatrixType& Result)
     {
         for(unsigned int i = 0; i < 3; ++i)
             for(unsigned int j = 0; j < 3; ++j)
@@ -2118,7 +2115,7 @@ public:
      * @param alpha
      */
     template<typename TMatrixType1, typename TMatrixType2>
-    static void OuterProductFourthOrderTensor(double alpha, const TMatrixType1& A, const TMatrixType2& B, Fourth_Order_Tensor& Result)
+    static void OuterProductFourthOrderTensor(TDataType alpha, const TMatrixType1& A, const TMatrixType2& B, Fourth_Order_Tensor& Result)
     {
         for(unsigned int i = 0; i < 3; ++i)
             for(unsigned int j = 0; j < 3; ++j)
@@ -2134,7 +2131,7 @@ public:
      * TODO make a better name
      */
     template<typename TMatrixType1, typename TMatrixType2>
-    static void SpecialProduct1FourthOrderTensor(double alpha, const TMatrixType1& A, const TMatrixType2& B, Fourth_Order_Tensor& Result)
+    static void SpecialProduct1FourthOrderTensor(TDataType alpha, const TMatrixType1& A, const TMatrixType2& B, Fourth_Order_Tensor& Result)
     {
         for(unsigned int i = 0; i < 3; ++i)
             for(unsigned int j = 0; j < 3; ++j)
@@ -2150,7 +2147,7 @@ public:
      * TODO make a better name
      */
     template<typename TMatrixType1, typename TMatrixType2>
-    static void SpecialProduct2FourthOrderTensor(double alpha, const TMatrixType1& A, const TMatrixType2& B, Fourth_Order_Tensor& Result)
+    static void SpecialProduct2FourthOrderTensor(TDataType alpha, const TMatrixType1& A, const TMatrixType2& B, Fourth_Order_Tensor& Result)
     {
         for(unsigned int i = 0; i < 3; ++i)
             for(unsigned int j = 0; j < 3; ++j)
@@ -2160,7 +2157,7 @@ public:
     }
 
     // C += alpha A
-    static inline void AddFourthOrderTensor(double alpha, const Fourth_Order_Tensor& A, Fourth_Order_Tensor& Result)
+    static inline void AddFourthOrderTensor(TDataType alpha, const Fourth_Order_Tensor& A, Fourth_Order_Tensor& Result)
     {
         for(unsigned int i = 0; i < 3; ++i)
             for(unsigned int j = 0; j < 3; ++j)
@@ -2168,7 +2165,7 @@ public:
     }
 
     // C_ijkl += alpha A_ijmn * B_mnkl
-    static inline void ProductFourthOrderTensor(double alpha, const Fourth_Order_Tensor& A, const Fourth_Order_Tensor& B, Fourth_Order_Tensor& Result)
+    static inline void ProductFourthOrderTensor(TDataType alpha, const Fourth_Order_Tensor& A, const Fourth_Order_Tensor& B, Fourth_Order_Tensor& Result)
     {
         for(unsigned int i = 0; i < 3; ++i)
             for(unsigned int j = 0; j < 3; ++j)
@@ -2179,8 +2176,27 @@ public:
                                 Result[i][j](k, l) += alpha * A[i][j](m, n) * B[m][n](k, l);
     }
 
+    // A_ijkl = alpha A_ijmn * B_mnkl
+    static inline void ProductFourthOrderTensor(TDataType alpha, Fourth_Order_Tensor& A, const Fourth_Order_Tensor& B)
+    {
+        Fourth_Order_Tensor Tmp;
+        CalculateFourthOrderZeroTensor(Tmp);
+        for(unsigned int i = 0; i < 3; ++i)
+            for(unsigned int j = 0; j < 3; ++j)
+                for(unsigned int k = 0; k < 3; ++k)
+                    for(unsigned int l = 0; l < 3; ++l)
+                        for(unsigned int m = 0; m < 3; ++m)
+                            for(unsigned int n = 0; n < 3; ++n)
+                                Tmp[i][j](k, l) += alpha * A[i][j](m, n) * B[m][n](k, l);
+        for(unsigned int i = 0; i < 3; ++i)
+            for(unsigned int j = 0; j < 3; ++j)
+                for(unsigned int k = 0; k < 3; ++k)
+                    for(unsigned int l = 0; l < 3; ++l)
+                        A[i][j](k, l) = Tmp[i][j](k, l);
+    }
+
     // C_ijkl += alpha A_mnij * B_mnkl
-    static inline void ProductFourthOrderTensorTN(double alpha, const Fourth_Order_Tensor& A, const Fourth_Order_Tensor& B, Fourth_Order_Tensor& Result)
+    static inline void ProductFourthOrderTensorTN(TDataType alpha, const Fourth_Order_Tensor& A, const Fourth_Order_Tensor& B, Fourth_Order_Tensor& Result)
     {
         for(unsigned int i = 0; i < 3; ++i)
             for(unsigned int j = 0; j < 3; ++j)
@@ -2191,10 +2207,11 @@ public:
                                 Result[i][j](k, l) += alpha * A[m][n](i, j) * B[m][n](k, l);
     }
 
-    // inverse a fourth order tensor
+    // invert a fourth order tensor
+    // TODO check
     static inline void InvertFourthOrderTensor(const Fourth_Order_Tensor& A, Fourth_Order_Tensor& InvA)
     {
-        Matrix T(9, 9), InvT(9, 9);
+        MatrixType T(9, 9), InvT(9, 9);
 
         TensorToUnsymmetricMatrix(A, T);
         InvertMatrix(T, InvT);
@@ -2202,7 +2219,7 @@ public:
     }
 
     // Compute D2(J3) / (D (SIGMA x SIGMA))
-    static inline void D2J3DSigma2(Fourth_Order_Tensor& Result, const double alpha, const Matrix& s)
+    static inline void D2J3DSigma2(Fourth_Order_Tensor& Result, const TDataType alpha, const MatrixType& s)
     {
         const Matrix eye = IdentityMatrix(3);
 
@@ -2248,7 +2265,7 @@ public:
      * + https://www.quora.com/What-is-the-derivative-of-inverse-matrix
      */
     template<typename TMatrixType>
-    static void AddInverseDerivatives(double alpha, const TMatrixType& InvA, Fourth_Order_Tensor& Result)
+    static void AddInverseDerivatives(TDataType alpha, const TMatrixType& InvA, Fourth_Order_Tensor& Result)
     {
         for(unsigned int i = 0; i < 3; ++i)
         {
@@ -2273,7 +2290,7 @@ public:
     {
         Unity.resize(3);
 
-        const MatrixType kronecker = IdentityMatrix(3);
+        const Matrix eye = IdentityMatrix(3);
 
         for(unsigned int i=0; i<3; i++)
         {
@@ -2287,8 +2304,8 @@ public:
                 {
                     for(unsigned int l=0; l<3; l++)
                     {
-                        Unity[i][j](k,l)=kronecker(i,k)*kronecker(j,l)
-                                         -1.0/3.0*kronecker(i,j)*kronecker(k,l);
+                        Unity[i][j](k,l) = eye(i,k)*eye(j,l)
+                                         - 1.0/3.0*eye(i,j)*eye(k,l);
                     }
                 }
             }
@@ -2299,16 +2316,16 @@ public:
      * Generates the fourth order deviatoric unity tensor
      * @param Unity the deviatoric unity (will be overwritten)
      */
-    static void DeviatoricUnity(array_1d<double,81>& Unity)
+    static void DeviatoricUnity(array_1d<TDataType, 81>& Unity)
     {
-        const MatrixType kronecker = IdentityMatrix(3);
+        const Matrix eye = IdentityMatrix(3);
 
         for(unsigned int i=0; i<3; i++)
             for(unsigned int j=0; j<3; j++)
                 for(unsigned int k=0; k<3; k++)
                     for(unsigned int l=0; l<3; l++)
-                        Unity[27*i+9*j+3*k+l]=kronecker(i,k)*kronecker(j,l)
-                                              -1.0/3.0*kronecker(i,j)*kronecker(k,l);
+                        Unity[27*i+9*j+3*k+l] = eye(i,k)*eye(j,l)
+                                              - 1.0/3.0*eye(i,j)*eye(k,l);
     }
 
     /**
@@ -2317,12 +2334,12 @@ public:
     * @param E Young modulus
     * @param NU Poisson ratio
     */
-    static inline void CalculateElasticTensor( Fourth_Order_Tensor& C, double E, double NU )
+    static inline void CalculateElasticTensor( Fourth_Order_Tensor& C, TDataType E, TDataType NU )
     {
-        const MatrixType kronecker = IdentityMatrix(3);
+        const Matrix eye = IdentityMatrix(3);
 
-        double lambda = NU * E / ((1 + NU) * (1 - 2 * NU));
-        double mu     = E / (2 * (1 + NU));
+        TDataType lambda = NU * E / ((1 + NU) * (1 - 2 * NU));
+        TDataType mu     = E / (2 * (1 + NU));
 
         C.resize(3);
         for(unsigned int i = 0; i < 3; ++i)
@@ -2335,23 +2352,44 @@ public:
                 for(unsigned int k = 0; k < 3; ++k)
                 {
                     for(unsigned int l = 0; l < 3; ++l)
-                        C[i][j](k,l) = lambda * kronecker(i, j) * kronecker(k, l)
-                                     + mu * (kronecker(i, k) * kronecker(j, l)
-                                           + kronecker(i, l) * kronecker(j, k));
+                        C[i][j](k,l) = lambda * eye(i, j) * eye(k, l)
+                                     + mu * (eye(i, k) * eye(j, l)
+                                           + eye(i, l) * eye(j, k));
                   }
              }
         }
     }
 
+    // return a:b
+    template<typename TVectorType1, typename TVectorType2>
+    static TDataType vec_inner_prod(const TVectorType1& a, const TVectorType2& b)
+    {
+        TDataType res = 0.0;
+        SizeType m = a.size();
+        for(IndexType i = 0; i < m; ++i)
+            res += a[i] * b[i];
+        return res;
+    }
+
+    // return a:b
+    template<typename TVectorType1, typename TVectorType2>
+    static TDataType vec_inner_prod(const unsigned int dim, const TVectorType1& a, const TVectorType2& b)
+    {
+        TDataType res = 0.0;
+        for(unsigned int i = 0; i < dim; ++i)
+            res += a[i] * b[i];
+        return res;
+    }
+
     // return A:B
     template<typename TMatrixType1, typename TMatrixType2>
-    static double mat_inner_prod(const TMatrixType1& A, const TMatrixType2& B)
+    static TDataType mat_inner_prod(const TMatrixType1& A, const TMatrixType2& B)
     {
-        double res = 0.0;
-        unsigned int m = A.size1();
-        unsigned int n = A.size2();
-        for(unsigned int i = 0; i < m; ++i)
-            for(unsigned int j = 0; j < n; ++j)
+        TDataType res = 0.0;
+        SizeType m = A.size1();
+        SizeType n = A.size2();
+        for(IndexType i = 0; i < m; ++i)
+            for(IndexType j = 0; j < n; ++j)
                 res += A(i, j) * B(i, j);
         return res;
     }
@@ -2378,10 +2416,10 @@ public:
     }
 
     template<typename TMatrixType>
-    static inline double Trace(const TMatrixType& A)
+    static inline TDataType Trace(const TMatrixType& A)
     {
-        double tr = 0.0;
-        for(unsigned int i = 0; i < A.size1(); ++i)
+        TDataType tr = 0.0;
+        for(IndexType i = 0; i < A.size1(); ++i)
             tr += A(i, i);
         return tr;
     }
@@ -2401,8 +2439,8 @@ public:
     static void ComputeIsotropicTensorFunction(
         unitary_func_t func,
         TMatrixType& Y,
-        const std::vector<double>& e,
-        const std::vector<Matrix>& eigprj
+        const std::vector<TDataType>& e,
+        const std::vector<MatrixType>& eigprj
     )
     {
         if ((Y.size1() != 3) || (Y.size2() != 3))
@@ -2428,9 +2466,9 @@ public:
     static void ComputeIsotropicTensorFunction(
         unitary_func_t func,
         TMatrixType& Y,
-        const std::vector<double>& e,
-        const std::vector<Matrix>& eigprj,
-        double TOL // tolerance to compare eigenvalues
+        const std::vector<TDataType>& e,
+        const std::vector<MatrixType>& eigprj,
+        TDataType TOL // tolerance to compare eigenvalues
     )
     {
         if ((Y.size1() != 3) || (Y.size2() != 3))
@@ -2483,7 +2521,7 @@ public:
         unitary_func_t dfunc,
         Fourth_Order_Tensor& dYdX,
         const TMatrixType& X,
-        const std::vector<double>& e,
+        const std::vector<TDataType>& e,
         const std::vector<TMatrixType>& eigprj
     )
     {
@@ -2511,10 +2549,10 @@ public:
             else if (a == 1) {b = 2; c = 0;}
             else if (a == 2) {b = 0; c = 1;}
 
-            double aux1 = func(e[a]) / ((e[a] - e[b]) * (e[a] - e[c]));
-            double aux2 = -aux1 * (e[b] + e[c]);
-            double aux3 = -aux1 * (e[a] - e[b] + e[a] - e[c]);
-            double aux4 = -aux1 * (e[b] - e[c]);
+            TDataType aux1 = func(e[a]) / ((e[a] - e[b]) * (e[a] - e[c]));
+            TDataType aux2 = -aux1 * (e[b] + e[c]);
+            TDataType aux3 = -aux1 * (e[a] - e[b] + e[a] - e[c]);
+            TDataType aux4 = -aux1 * (e[b] - e[c]);
 
             AddFourthOrderTensor(aux1, dX2dX, dYdX);
             AddFourthOrderTensor(aux2, Is, dYdX);
@@ -2542,9 +2580,9 @@ public:
         unitary_func_t dfunc,
         Fourth_Order_Tensor& dYdX,
         const TMatrixType& X,
-        const std::vector<double>& e,
+        const std::vector<TDataType>& e,
         const std::vector<TMatrixType>& eigprj,
-        double TOL // tolerance to compare eigenvalues
+        TDataType TOL // tolerance to compare eigenvalues
     )
     {
         Fourth_Order_Tensor dX2dX;
@@ -2573,10 +2611,10 @@ public:
                 else if (a == 1) {b = 2; c = 0;}
                 else if (a == 2) {b = 0; c = 1;}
 
-                double aux1 = func(e[a]) / ((e[a] - e[b]) * (e[a] - e[c]));
-                double aux2 = -aux1 * (e[b] + e[c]);
-                double aux3 = -aux1 * (e[a] - e[b] + e[a] - e[c]);
-                double aux4 = -aux1 * (e[b] - e[c]);
+                TDataType aux1 = func(e[a]) / ((e[a] - e[b]) * (e[a] - e[c]));
+                TDataType aux2 = -aux1 * (e[b] + e[c]);
+                TDataType aux3 = -aux1 * (e[a] - e[b] + e[a] - e[c]);
+                TDataType aux4 = -aux1 * (e[b] - e[c]);
 
                 AddFourthOrderTensor(aux1, dX2dX, dYdX);
                 AddFourthOrderTensor(aux2, Is, dYdX);
@@ -2608,12 +2646,12 @@ public:
                     c = 2;
                 }
 
-                const double s1 = (func(e[a]) - func(e[c])) / pow(e[a] - e[c], 2) - dfunc(e[c]) / (e[a] - e[c]);
-                const double s2 = 2.0 * e[c] * (func(e[a]) - func(e[c])) / pow(e[a] - e[c], 2) - dfunc(e[c]) * (e[a] + e[c]) / (e[a] - e[c]);
-                const double s3 = 2.0 * (func(e[a]) - func(e[c])) / pow(e[a] - e[c], 3) - (dfunc(e[a]) + dfunc(e[c])) / pow(e[a] - e[c], 2);
-                const double s4 = e[c] * s3;
-                const double s5 = s4;
-                const double s6 = e[c]*e[c] * s3;
+                const TDataType s1 = (func(e[a]) - func(e[c])) / pow(e[a] - e[c], 2) - dfunc(e[c]) / (e[a] - e[c]);
+                const TDataType s2 = 2.0 * e[c] * (func(e[a]) - func(e[c])) / pow(e[a] - e[c], 2) - dfunc(e[c]) * (e[a] + e[c]) / (e[a] - e[c]);
+                const TDataType s3 = 2.0 * (func(e[a]) - func(e[c])) / pow(e[a] - e[c], 3) - (dfunc(e[a]) + dfunc(e[c])) / pow(e[a] - e[c], 2);
+                const TDataType s4 = e[c] * s3;
+                const TDataType s5 = s4;
+                const TDataType s6 = e[c]*e[c] * s3;
 
                 AddFourthOrderTensor(s1, dX2dX, dYdX);
                 AddFourthOrderTensor(-s2, Is, dYdX);
@@ -2630,12 +2668,12 @@ public:
     /// {ii, mm, jj} are the indices of the sorted pstress
     static inline void ComputeDerivativeGeneralIsotropicTensorFunction(
         int ii, int mm, int jj,
-        const std::vector<double>& pstress,
-        const std::vector<double>& pstrain,
+        const std::vector<TDataType>& pstress,
+        const std::vector<TDataType>& pstrain,
         const MatrixType& dpstrs,
         const std::vector<MatrixType>& E,
         Fourth_Order_Tensor& Dep,
-        double TOL = 1.0e-10
+        const TDataType TOL = 1e-10
     )
     {
         MatrixType X = pstrain[0] * E[0] + pstrain[1] * E[1] + pstrain[2] * E[2];
@@ -2678,10 +2716,10 @@ public:
                 int b = cyc[i1];
                 int c = cyc[i2];
 
-                double aux1 = pstress[a] / (pstrain[a] - pstrain[b]) / (pstrain[a] - pstrain[c]);
-                double aux2 = pstrain[b] + pstrain[c];
-                double aux3 = pstrain[a] - pstrain[b] + pstrain[a] - pstrain[c];
-                double aux4 = pstrain[b] - pstrain[c];
+                TDataType aux1 = pstress[a] / (pstrain[a] - pstrain[b]) / (pstrain[a] - pstrain[c]);
+                TDataType aux2 = pstrain[b] + pstrain[c];
+                TDataType aux3 = pstrain[a] - pstrain[b] + pstrain[a] - pstrain[c];
+                TDataType aux4 = pstrain[b] - pstrain[c];
                 AddFourthOrderTensor(aux1, dX2dX, Dep);
                 AddFourthOrderTensor(-aux1 * aux2, Is, Dep);
                 OuterProductFourthOrderTensor(-aux1 * aux3, E[a], E[a], Dep);
@@ -2714,12 +2752,12 @@ public:
                 #ifdef DEBUG_MOHR_COULOMB_WARNING_BOX_A6
                 std::cout << "Box A.6 second case" << std::endl;
                 #endif
-                double s1 = (pstress[a] - pstress[c]) / pow(pstrain[a] - pstrain[c], 2) + 1.0 / (pstrain[a] - pstrain[c]) * (dpstrs(c, b) - dpstrs(c, c));
-                double s2 = 2 * pstrain[c] * (pstress[a] - pstress[c]) / pow(pstrain[a] - pstrain[c], 2) + (pstrain[a] + pstrain[c]) / (pstrain[a] - pstrain[c]) * (dpstrs(c, b) - dpstrs(c, c));
-                double s3 = 2 * (pstress[a] - pstress[c]) / pow(pstrain[a] - pstrain[c], 3) + 1.0 / pow(pstrain[a] - pstrain[c], 2) * (dpstrs(a, c) + dpstrs(c, a) - dpstrs(a, a) - dpstrs(c, c));
-                double s4 = 2 * pstrain[c] * (pstress[a] - pstress[c]) / pow(pstrain[a] - pstrain[c], 3) + 1.0 / (pstrain[a] - pstrain[c]) * (dpstrs(a, c) - dpstrs(c, b)) + pstrain[c] / pow(pstrain[a] - pstrain[c], 2) * (dpstrs(a, c) + dpstrs(c, a) - dpstrs(a, a) - dpstrs(c, c));
-                double s5 = 2 * pstrain[c] * (pstress[a] - pstress[c]) / pow(pstrain[a] - pstrain[c], 3) + 1.0 / (pstrain[a] - pstrain[c]) * (dpstrs(c, a) - dpstrs(c, b)) + pstrain[c] / pow(pstrain[a] - pstrain[c], 2) * (dpstrs(a, c) + dpstrs(c, a) - dpstrs(a, a) - dpstrs(c, c));
-                double s6 = 2 * pow(pstrain[c], 2) * (pstress[a] - pstress[c]) / pow(pstrain[a] - pstrain[c], 3) + pstrain[a] * pstrain[c] / pow(pstrain[a] - pstrain[c], 2) * (dpstrs(a, c) + dpstrs(c, a)) - pow(pstrain[c], 2) / pow(pstrain[a] - pstrain[c], 2) * (dpstrs(a, a) + dpstrs(c, c)) - (pstrain[a] + pstrain[c]) / (pstrain[a] - pstrain[c]) * dpstrs(c, b);
+                TDataType s1 = (pstress[a] - pstress[c]) / pow(pstrain[a] - pstrain[c], 2) + 1.0 / (pstrain[a] - pstrain[c]) * (dpstrs(c, b) - dpstrs(c, c));
+                TDataType s2 = 2 * pstrain[c] * (pstress[a] - pstress[c]) / pow(pstrain[a] - pstrain[c], 2) + (pstrain[a] + pstrain[c]) / (pstrain[a] - pstrain[c]) * (dpstrs(c, b) - dpstrs(c, c));
+                TDataType s3 = 2 * (pstress[a] - pstress[c]) / pow(pstrain[a] - pstrain[c], 3) + 1.0 / pow(pstrain[a] - pstrain[c], 2) * (dpstrs(a, c) + dpstrs(c, a) - dpstrs(a, a) - dpstrs(c, c));
+                TDataType s4 = 2 * pstrain[c] * (pstress[a] - pstress[c]) / pow(pstrain[a] - pstrain[c], 3) + 1.0 / (pstrain[a] - pstrain[c]) * (dpstrs(a, c) - dpstrs(c, b)) + pstrain[c] / pow(pstrain[a] - pstrain[c], 2) * (dpstrs(a, c) + dpstrs(c, a) - dpstrs(a, a) - dpstrs(c, c));
+                TDataType s5 = 2 * pstrain[c] * (pstress[a] - pstress[c]) / pow(pstrain[a] - pstrain[c], 3) + 1.0 / (pstrain[a] - pstrain[c]) * (dpstrs(c, a) - dpstrs(c, b)) + pstrain[c] / pow(pstrain[a] - pstrain[c], 2) * (dpstrs(a, c) + dpstrs(c, a) - dpstrs(a, a) - dpstrs(c, c));
+                TDataType s6 = 2 * pow(pstrain[c], 2) * (pstress[a] - pstress[c]) / pow(pstrain[a] - pstrain[c], 3) + pstrain[a] * pstrain[c] / pow(pstrain[a] - pstrain[c], 2) * (dpstrs(a, c) + dpstrs(c, a)) - pow(pstrain[c], 2) / pow(pstrain[a] - pstrain[c], 2) * (dpstrs(a, a) + dpstrs(c, c)) - (pstrain[a] + pstrain[c]) / (pstrain[a] - pstrain[c]) * dpstrs(c, b);
                 AddFourthOrderTensor(s1, dX2dX, Dep);
                 AddFourthOrderTensor(-s2, Is, Dep);
                 OuterProductFourthOrderTensor(-s3, X, X, Dep);
@@ -2748,7 +2786,10 @@ public:
     * @param result_points vertices of overlapping polygon
     * @return false= no overlapping polygon, true= overlapping polygon found
     */
-    static bool Clipping(std::vector<PointType* >& clipping_points,std::vector<PointType* >& subjected_points, std::vector<PointType* >& result_points, double tolerance)
+    static bool Clipping(std::vector<PointType*>& clipping_points,
+        std::vector<PointType*>& subjected_points,
+        std::vector<PointType*>& result_points,
+        const TDataType tolerance)
     {
         result_points= subjected_points;
         VectorType actual_edge(3);
@@ -2933,7 +2974,7 @@ public:
      */
     template<class TGeometryType>
     static void CalculateSecondDerivatives(const TGeometryType& rGeometry, std::vector<Vector>& rD2N_DX2,
-        const Matrix& J, const Matrix& DN_DX, const typename TGeometryType::CoordinatesArrayType& rPoint)
+        const MatrixType& J, const MatrixType& DN_DX, const typename TGeometryType::CoordinatesArrayType& rPoint)
     {
         const unsigned int dim = rGeometry.WorkingSpaceDimension();
         const unsigned int number_of_nodes = rGeometry.size();
@@ -2943,9 +2984,9 @@ public:
         D2N_De2 = rGeometry.ShapeFunctionsSecondDerivatives(D2N_De2, rPoint);
 
         // compute the second derivatives of physical coordinates
-        Matrix D2X_De2(dim, dim);
-        Matrix D2Y_De2(dim, dim);
-        Matrix D2Z_De2(dim, dim);
+        MatrixType D2X_De2(dim, dim);
+        MatrixType D2Y_De2(dim, dim);
+        MatrixType D2Z_De2(dim, dim);
         for(unsigned int i = 0; i < dim; ++i)
         {
             for(unsigned int j = 0; j < dim; ++j)
@@ -2969,7 +3010,7 @@ public:
 
         // compute the second derivatives in physical space
         unsigned int mat_size = dim * (dim + 1) / 2;
-        Matrix D2(mat_size, mat_size);
+        MatrixType D2(mat_size, mat_size);
         if(dim == 2)
         {
             D2(0, 0) = pow(J(0, 0), 2);
@@ -3029,7 +3070,7 @@ public:
             D2(5, 5) = J(0, 0) * J(2, 2) + J(0, 2) * J(2, 0);
         }
 
-        Matrix InvD2(mat_size, mat_size);
+        MatrixType InvD2(mat_size, mat_size);
         InvertMatrix(D2, InvD2);
 
         if(rD2N_DX2.size() != number_of_nodes)
@@ -3077,10 +3118,10 @@ public:
         unsigned int number_of_nodes = rGeometry.size();
 
         // compute the Jacobian
-        Matrix J;
+        MatrixType J;
         if(Configuration == 0) // compute the Jacobian in undeformed configuration
         {
-            Matrix DeltaPosition(rGeometry.size(), 3);
+            MatrixType DeltaPosition(rGeometry.size(), 3);
             for ( unsigned int node = 0; node < rGeometry.size(); ++node )
                 noalias( row( DeltaPosition, node ) ) = rGeometry[node].Coordinates() - rGeometry[node].GetInitialPosition();
             J = rGeometry.Jacobian( J, rPoint, DeltaPosition );
@@ -3091,16 +3132,16 @@ public:
         }
 
         // compute inverse of Jacobian
-        Matrix InvJ;
-        double DetJ;
-        MathUtils<double>::InvertMatrix(J, InvJ, DetJ);
+        MatrixType InvJ;
+        TDataType DetJ;
+        MathUtils<TDataType>::InvertMatrix(J, InvJ, DetJ);
 
         // compute the shape function local gradients
-        Matrix DN_De;
+        MatrixType DN_De;
         DN_De = rGeometry.ShapeFunctionsLocalGradients(DN_De, rPoint);
 
         // compute the shape function gradients w.r.t physical coordinates
-        Matrix DN_DX(number_of_nodes, dim);
+        MatrixType DN_DX(number_of_nodes, dim);
         noalias(DN_DX) = prod(DN_De, InvJ);
 
         // compute the second derivatives
@@ -3147,7 +3188,7 @@ public:
             const unsigned int& num2,
             const unsigned int& stride2,
             const unsigned int& begin2,
-            const Matrix& K_PQ)
+            const MatrixType& K_PQ)
     {
         for ( unsigned int prim = 0; prim < num1; ++prim )
         {
@@ -3167,9 +3208,9 @@ public:
 
     /// Compute the derivatives of a function w.r.t stress providing p, q and Lode angle
     // In fact, q and theta can be computed from p and s. One shall decompose it outside before calling this function
-    static inline void ComputeDFDSigma(MatrixType& n, const double p, const double q, const double theta,
+    static inline void ComputeDFDSigma(MatrixType& n, const TDataType p, const TDataType q, const TDataType theta,
             const MatrixType& s, const MatrixType& eye,
-            const double dfdp, const double dfdq, const double dfdt)
+            const TDataType dfdp, const TDataType dfdq, const TDataType dfdt)
     {
         const MatrixType dJ3dsigma = prod(s, s) - 2.0/9*pow(q, 2)*eye;
         noalias(n) = (dfdp/3)*eye + (dfdq - tan(3*theta)/q*dfdt) * 1.5*s/q - 4.5/(pow(q, 3)*cos(3*theta))*dfdt*dJ3dsigma;
@@ -3177,29 +3218,29 @@ public:
 
     /// Compute the second derivatives of a function w.r.t stress providing p, q and Lode angle
     // In fact, q and theta can be computed from p and s. One shall decompose it outside before calling this function
-    static inline void ComputeD2FDSigma2(Fourth_Order_Tensor& dn_dsigma, const double q, const double theta,
+    static inline void ComputeD2FDSigma2(Fourth_Order_Tensor& dn_dsigma, const TDataType q, const TDataType theta,
             const MatrixType& s, const MatrixType& eye,
-            const double dfdq, const double dfdt,
-            const double d2fdp2, const double d2fdpdq, const double d2fdpdt,
-            const double d2fdq2, const double d2fdqdt, const double d2fdt2)
+            const TDataType dfdq, const TDataType dfdt,
+            const TDataType d2fdp2, const TDataType d2fdpdq, const TDataType d2fdpdt,
+            const TDataType d2fdq2, const TDataType d2fdqdt, const TDataType d2fdt2)
     {
-        const double cos3t = cos(3*theta);
-        const double tan3t = tan(3*theta);
-        const double q2 = q*q;
-        const double q3 = q2*q;
-        const double q4 = q3*q;
+        const TDataType cos3t = cos(3*theta);
+        const TDataType tan3t = tan(3*theta);
+        const TDataType q2 = q*q;
+        const TDataType q3 = q2*q;
+        const TDataType q4 = q3*q;
 
-        const Matrix dqdsigma = 1.5*s/q;
-        const Matrix dJ3dsigma = prod(s, s) - 2.0/9*q2*eye;
-        const Matrix dtdsigma = -4.5/(q3*cos3t)*dJ3dsigma - tan3t/q*dqdsigma;
+        const MatrixType dqdsigma = 1.5*s/q;
+        const MatrixType dJ3dsigma = prod(s, s) - 2.0/9*q2*eye;
+        const MatrixType dtdsigma = -4.5/(q3*cos3t)*dJ3dsigma - tan3t/q*dqdsigma;
 
-        const double aux1 = dfdq - tan3t/q*dfdt;
-        const double aux2 = -4.5/(q3*cos3t)*dfdt;
+        const TDataType aux1 = dfdq - tan3t/q*dfdt;
+        const TDataType aux2 = -4.5/(q3*cos3t)*dfdt;
 
-        const Matrix Aux1 = (d2fdq2 + tan3t/q2*dfdt - tan3t/q*d2fdqdt)*dqdsigma
+        const MatrixType Aux1 = (d2fdq2 + tan3t/q2*dfdt - tan3t/q*d2fdqdt)*dqdsigma
                           + (d2fdqdt - 3/(q*pow(cos3t, 2))*dfdt - tan3t/q*d2fdt2)*dtdsigma
                           + (d2fdpdq/3 - tan3t/(3*q)*d2fdpdt)*eye;
-        const Matrix Aux2 = (-3.0/(q4*cos3t)*dfdt + 1.0/(q3*cos3t)*d2fdqdt)*dqdsigma
+        const MatrixType Aux2 = (-3.0/(q4*cos3t)*dfdt + 1.0/(q3*cos3t)*d2fdqdt)*dqdsigma
                           + (3.0*tan3t/(q3*cos3t)*dfdt + d2fdt2/(q3*cos3t))*dtdsigma
                           + 1.0/(3*q3*cos3t)*d2fdpdt*eye;
 
@@ -3213,6 +3254,216 @@ public:
 
         if (d2fdp2 != 0.0)
             OuterProductFourthOrderTensor(d2fdp2/9, eye, eye, dn_dsigma);
+    }
+
+    /// Compute the deformation gradient for plane strain/3D problem
+    template<bool TComputeDDu = false>
+    static inline void CalculateF( const unsigned int dim, MatrixType& F, const MatrixType& G_Operator, const MatrixType& CurrentDisp )
+    {
+        const unsigned int number_of_nodes = CurrentDisp.size1();
+
+        F.clear();
+
+        for (unsigned int i = 0; i < dim; ++i)
+        {
+            for (unsigned int j = 0; j < dim; ++j)
+            {
+                for (unsigned int n = 0; n < number_of_nodes; ++n)
+                    F(i, j) += G_Operator(j*dim, n*dim) * CurrentDisp(n, i);
+            }
+            if constexpr (!TComputeDDu)
+                F(i, i) += 1.0;
+        }
+    }
+
+    /// Compute the deformation gradient for axisymmetric problem
+    template<bool TComputeDDu = false>
+    static inline void CalculateFaxi( MatrixType& F, const MatrixType& G_Operator, const MatrixType& CurrentDisp )
+    {
+        KRATOS_TRY
+
+        const unsigned int number_of_nodes = CurrentDisp.size1();
+
+        F.clear();
+
+        for (unsigned int i = 0; i < 2; ++i)
+        {
+            for (unsigned int j = 0; j < 2; ++j)
+            {
+                for (unsigned int n = 0; n < number_of_nodes; ++n)
+                {
+                    F(i, j) += G_Operator(j*2, n*2) * CurrentDisp(n, i);
+                }
+            }
+            if constexpr (!TComputeDDu)
+                F(i, i) += 1.0;
+        }
+
+        if constexpr (!TComputeDDu) F(2, 2) = 1.0;
+        for (unsigned int n = 0; n < number_of_nodes; ++n)
+            F(2, 2) += G_Operator(4, n*2) * CurrentDisp(n, 0);
+
+        KRATOS_CATCH( "" )
+    }
+
+    /// Calculate G operator for plane strain/3D problem
+    static inline void CalculateG( const unsigned int dim, MatrixType& G_Operator, const MatrixType& DN_DX )
+    {
+        const unsigned int number_of_nodes = DN_DX.size1();
+
+        G_Operator.clear();
+
+        if(dim == 2)
+        {
+            for ( unsigned int i = 0; i < number_of_nodes; ++i )
+            {
+                G_Operator( 0, i*2     ) = DN_DX( i, 0 );
+                G_Operator( 1, i*2 + 1 ) = DN_DX( i, 0 );
+                G_Operator( 2, i*2     ) = DN_DX( i, 1 );
+                G_Operator( 3, i*2 + 1 ) = DN_DX( i, 1 );
+            }
+        }
+        else if(dim == 3)
+        {
+            for ( unsigned int i = 0; i < number_of_nodes; ++i )
+            {
+                G_Operator( 0, i*3     ) = DN_DX( i, 0 );
+                G_Operator( 1, i*3 + 1 ) = DN_DX( i, 0 );
+                G_Operator( 2, i*3 + 2 ) = DN_DX( i, 0 );
+                G_Operator( 3, i*3     ) = DN_DX( i, 1 );
+                G_Operator( 4, i*3 + 1 ) = DN_DX( i, 1 );
+                G_Operator( 5, i*3 + 2 ) = DN_DX( i, 1 );
+                G_Operator( 6, i*3     ) = DN_DX( i, 2 );
+                G_Operator( 7, i*3 + 1 ) = DN_DX( i, 2 );
+                G_Operator( 8, i*3 + 2 ) = DN_DX( i, 2 );
+            }
+        }
+    }
+
+    /// Calculate G operator for axisymmetric problem
+    template<typename TGeometryType>
+    static inline void CalculateGaxi( MatrixType& G_Operator, const TGeometryType& rGeometry,
+            const VectorType& N, const MatrixType& DN_DX )
+    {
+        const unsigned int number_of_nodes = rGeometry.size();
+
+        G_Operator.clear();
+
+        TDataType r = 0.0;
+
+        for ( unsigned int i = 0; i < number_of_nodes; ++i )
+        {
+            r += N[i] * rGeometry[i].X0();
+        }
+
+        for ( unsigned int i = 0; i < number_of_nodes; ++i )
+        {
+            G_Operator( 0, i*2     ) = DN_DX( i, 0 );
+            G_Operator( 1, i*2 + 1 ) = DN_DX( i, 0 );
+            G_Operator( 2, i*2     ) = DN_DX( i, 1 );
+            G_Operator( 3, i*2 + 1 ) = DN_DX( i, 1 );
+            G_Operator( 4, i*2     ) = N( i ) / r;
+        }
+    }
+
+    /// Calculate G operator for axisymmetric problem
+    template<typename TGeometryType>
+    static inline void CalculateGaxi( MatrixType& G_Operator, const TGeometryType& rGeometry,
+            const VectorType& N, const MatrixType& DN_DX, const MatrixType& CurrentDisp )
+    {
+        const unsigned int number_of_nodes = rGeometry.size();
+
+        G_Operator.clear();
+
+        TDataType r = 0.0;
+
+        for ( unsigned int i = 0; i < number_of_nodes; ++i )
+        {
+            r += N[i] * (rGeometry[i].X0() + CurrentDisp(i, 0));
+        }
+
+        for ( unsigned int i = 0; i < number_of_nodes; ++i )
+        {
+            G_Operator( 0, i*2     ) = DN_DX( i, 0 );
+            G_Operator( 1, i*2 + 1 ) = DN_DX( i, 0 );
+            G_Operator( 2, i*2     ) = DN_DX( i, 1 );
+            G_Operator( 3, i*2 + 1 ) = DN_DX( i, 1 );
+            G_Operator( 4, i*2     ) = N( i ) / r;
+        }
+    }
+
+    /// Invert matrix as 2D array
+    template<typename TMatrixType1, typename TMatrixType2>
+    static void Invert2DArray(const unsigned int dim,
+        const TMatrixType1& rInputMatrix,
+        TMatrixType2& rInvertedMatrix,
+        TDataType& rInputMatrixDet
+        )
+    {
+        if (dim == 1)
+            Invert2DArray1x1(rInputMatrix, rInvertedMatrix, rInputMatrixDet);
+        else if (dim == 2)
+            Invert2DArray2x2(rInputMatrix, rInvertedMatrix, rInputMatrixDet);
+        else if (dim == 3)
+            Invert2DArray3x3(rInputMatrix, rInvertedMatrix, rInputMatrixDet);
+        else
+            KRATOS_ERROR << "Unsupported matrix dimension " << dim << " x " << dim;
+    }
+
+    /// Invert matrix as 2D array (dim == 1)
+    template<typename TMatrixType1, typename TMatrixType2>
+    static void Invert2DArray1x1(
+        const TMatrixType1& rInputMatrix,
+        TMatrixType2& rInvertedMatrix,
+        TDataType& rInputMatrixDet
+        )
+    {
+        rInputMatrixDet = rInputMatrix[0][0];
+        rInvertedMatrix[0][0] = 1.0 / rInputMatrixDet;
+    }
+
+    /// Invert matrix as 2D array (dim == 2)
+    template<typename TMatrixType1, typename TMatrixType2>
+    static void Invert2DArray2x2(
+        const TMatrixType1& rInputMatrix,
+        TMatrixType2& rInvertedMatrix,
+        TDataType& rInputMatrixDet
+        )
+    {
+        rInputMatrixDet = rInputMatrix[0][0]*rInputMatrix[1][1] - rInputMatrix[0][1]*rInputMatrix[1][0];
+
+        rInvertedMatrix[0][0] =  rInputMatrix[1][1] / rInputMatrixDet;
+        rInvertedMatrix[0][1] = -rInputMatrix[0][1] / rInputMatrixDet;
+        rInvertedMatrix[1][0] = -rInputMatrix[1][0] / rInputMatrixDet;
+        rInvertedMatrix[1][1] =  rInputMatrix[0][0] / rInputMatrixDet;
+    }
+
+    /// Invert matrix as 2D array (dim == 3)
+    template<class TMatrixType1, class TMatrixType2>
+    static void Invert2DArray3x3(
+        const TMatrixType1& rInputMatrix,
+        TMatrixType2& rInvertedMatrix,
+        TDataType& rInputMatrixDet
+        )
+    {
+        // Calculation of determinant (of the input matrix)
+        rInputMatrixDet = rInputMatrix[0][0]*rInvertedMatrix[0][0] + rInputMatrix[0][1]*rInvertedMatrix[1][0] + rInputMatrix[0][2]*rInvertedMatrix[2][0];
+
+        // Filling the inverted matrix with the algebraic complements
+        // First column
+        rInvertedMatrix[0][0] = (rInputMatrix[1][1]*rInputMatrix[2][2] - rInputMatrix[1][2]*rInputMatrix[2][1]) / rInputMatrixDet;
+        rInvertedMatrix[1][0] = (-rInputMatrix[1][0]*rInputMatrix[2][2] + rInputMatrix[1][2]*rInputMatrix[2][0]) / rInputMatrixDet;
+        rInvertedMatrix[2][0] = (rInputMatrix[1][0]*rInputMatrix[2][1] - rInputMatrix[1][1]*rInputMatrix[2][0]) / rInputMatrixDet;
+
+        // Second column
+        rInvertedMatrix[0][1] = (-rInputMatrix[0][1]*rInputMatrix[2][2] + rInputMatrix[0][2]*rInputMatrix[2][1]) / rInputMatrixDet;
+        rInvertedMatrix[1][1] = (rInputMatrix[0][0]*rInputMatrix[2][2] - rInputMatrix[0][2]*rInputMatrix[2][0]) / rInputMatrixDet;
+        rInvertedMatrix[2][1] = (-rInputMatrix[0][0]*rInputMatrix[2][1] + rInputMatrix[0][1]*rInputMatrix[2][0]) / rInputMatrixDet;
+
+        // Third column
+        rInvertedMatrix[0][2] = (rInputMatrix[0][1]*rInputMatrix[1][2] - rInputMatrix[0][2]*rInputMatrix[1][1]) / rInputMatrixDet;
+        rInvertedMatrix[1][2] = (-rInputMatrix[0][0]*rInputMatrix[1][2] + rInputMatrix[0][2]*rInputMatrix[1][0]) / rInputMatrixDet;
+        rInvertedMatrix[2][2] = (rInputMatrix[0][0]*rInputMatrix[1][1] - rInputMatrix[0][1]*rInputMatrix[1][0]) / rInputMatrixDet;
     }
 
 };// class SD_MathUtils
