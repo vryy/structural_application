@@ -959,29 +959,29 @@ public:
         }
     }
 
-    static inline VectorType TensorToStrainVector( const MatrixType& Tensor )
+    static inline VectorType TensorToStrainVector( const MatrixType& T )
     {
         KRATOS_TRY
         VectorType StrainVector;
 
-        if (Tensor.size1()==2)
+        if (T.size1()==2)
         {
             StrainVector.resize(3);
             noalias(StrainVector) = ZeroVector(3);
-            StrainVector(0) = Tensor(0,0);
-            StrainVector(1) = Tensor(1,1);
-            StrainVector(2) = 2.00*Tensor(0,1);
+            StrainVector(0) = T(0,0);
+            StrainVector(1) = T(1,1);
+            StrainVector(2) = 2.00*T(0,1);
         }
-        else if (Tensor.size1()==3)
+        else if (T.size1()==3)
         {
             StrainVector.resize(6);
             noalias(StrainVector) = ZeroVector(6);
-            StrainVector(0) = Tensor(0,0);
-            StrainVector(1) = Tensor(1,1);
-            StrainVector(2) = Tensor(2,2);
-            StrainVector(3) = 2.0*Tensor(0,1);
-            StrainVector(4) = 2.0*Tensor(1,2);
-            StrainVector(5) = 2.0*Tensor(0,2);
+            StrainVector(0) = T(0,0);
+            StrainVector(1) = T(1,1);
+            StrainVector(2) = T(2,2);
+            StrainVector(3) = 2.0*T(0,1);
+            StrainVector(4) = 2.0*T(1,2);
+            StrainVector(5) = 2.0*T(0,2);
         }
 
         return StrainVector;
@@ -1175,22 +1175,22 @@ public:
 
     /**
     * Compute the Frobenius norm of a given second order tensor
-    * @param Tensor the given second order tensor
+    * @param T the given second order tensor
     * @return the norm of the given tensor
     */
     template<typename TMatrixType>
-    static TDataType normTensor(const TMatrixType& Tensor)
+    static TDataType normTensor(const TMatrixType& T)
     {
         TDataType result=0.0;
-        for(unsigned int i=0; i<Tensor.size1(); i++)
-            for(unsigned int j=0; j<Tensor.size2(); j++)
-                result += Tensor(i,j)*Tensor(i,j);
+        for(unsigned int i=0; i<T.size1(); i++)
+            for(unsigned int j=0; j<T.size2(); j++)
+                result += T(i,j)*T(i,j);
         return sqrt(result);
     }
 
     /**
     * Compute the Frobenius norm of a given fourth order tensor
-    * @param Tensor the given fourth order tensor
+    * @param T the given fourth order tensor
     * @return the norm of the given tensor
     */
     static TDataType normTensor(const Fourth_Order_Tensor& T)
@@ -1203,63 +1203,63 @@ public:
     }
 
     /**
-    * Transforms a given 6*1 Vector to a corresponing symmetric Tensor of second order (3*3)
-    * @param Vector the given vector
-    * @param Tensor the symmetric second order tensor
+    * Transforms a given 6*1 vector to a corresponding symmetric tensor of second order (3*3)
+    * @param Stress the given vector
+    * @param T the symmetric second order tensor
     */
     template<typename TVectorType, typename TMatrixType>
-    static inline void VectorToTensor(const TVectorType& Stress, TMatrixType& Tensor)
+    static inline void VectorToTensor(const TVectorType& Stress, TMatrixType& T)
     {
         if(Stress.size()==6)
         {
-            Tensor.resize(3,3);
-            Tensor(0,0)= Stress(0);
-            Tensor(0,1)= Stress(3);
-            Tensor(0,2)= Stress(5);
-            Tensor(1,0)= Stress(3);
-            Tensor(1,1)= Stress(1);
-            Tensor(1,2)= Stress(4);
-            Tensor(2,0)= Stress(5);
-            Tensor(2,1)= Stress(4);
-            Tensor(2,2)= Stress(2);
+            T.resize(3,3);
+            T(0,0)= Stress(0);
+            T(0,1)= Stress(3);
+            T(0,2)= Stress(5);
+            T(1,0)= Stress(3);
+            T(1,1)= Stress(1);
+            T(1,2)= Stress(4);
+            T(2,0)= Stress(5);
+            T(2,1)= Stress(4);
+            T(2,2)= Stress(2);
         }
         if(Stress.size()==3)
         {
-            Tensor.resize(2,2);
-            Tensor(0,0)= Stress(0);
-            Tensor(0,1)= Stress(2);
-            Tensor(1,0)= Stress(2);
-            Tensor(1,1)= Stress(1);
+            T.resize(2,2);
+            T(0,0)= Stress(0);
+            T(0,1)= Stress(2);
+            T(1,0)= Stress(2);
+            T(1,1)= Stress(1);
         }
         return;
     }
 
     /**
-    * Transforms a given symmetric Tensor of second order (3*3) to a corresponing 6*1 Vector
-    * @param Tensor the given symmetric second order tensor
+    * Transforms a given symmetric tensor of second order (3*3) to a corresponing 6*1 Vector
+    * @param T the given symmetric second order tensor
     * @param Vector the vector
     */
     template<typename TVectorType, typename TMatrixType>
-    static void TensorToVector( const TMatrixType& Tensor, TVectorType& Vector)
+    static void TensorToVector( const TMatrixType& T, TVectorType& Vector)
     {
         //if(Vector.size()!= 6)
-        unsigned int  dim  =  Tensor.size1();
+        unsigned int  dim  =  T.size1();
         if (dim==3)
         {
             Vector.resize(6,false);
-            Vector(0)= Tensor(0,0);
-            Vector(1)= Tensor(1,1);
-            Vector(2)= Tensor(2,2);
-            Vector(3)= Tensor(0,1);
-            Vector(4)= Tensor(1,2);
-            Vector(5)= Tensor(2,0);
+            Vector(0)= T(0,0);
+            Vector(1)= T(1,1);
+            Vector(2)= T(2,2);
+            Vector(3)= T(0,1);
+            Vector(4)= T(1,2);
+            Vector(5)= T(2,0);
         }
         else if(dim==2)
         {
             Vector.resize(3,false);
-            Vector(0)= Tensor(0,0);
-            Vector(1)= Tensor(1,1);
-            Vector(2)= Tensor(0,1);
+            Vector(0)= T(0,0);
+            Vector(1)= T(1,1);
+            Vector(2)= T(0,1);
         }
         return;
     }
@@ -1269,88 +1269,88 @@ public:
     /// This transformation uses the notation [o_xx o_yy o_zz o_xy o_yz o_xz]
     /// Note that, this already accounts for factor 2 in [e_xx e_yy e_zz 2e_xy 2e_yz 2e_xz] (see https://en.wikiversity.org/wiki/Introduction_to_Elasticity/Constitutive_relations)
     template<typename TMatrixType>
-    static inline void TensorToMatrix(const Fourth_Order_Tensor& Tensor, TMatrixType& Matrix)
+    static inline void TensorToMatrix(const Fourth_Order_Tensor& T, TMatrixType& A)
     {
-        if (Matrix.size1() == 6)
+        if (A.size1() == 6)
         {
-            Matrix(0, 0) = Tensor[0][0](0, 0); // xx-xx
-            Matrix(0, 1) = Tensor[0][0](1, 1); // xx-yy
-            Matrix(0, 2) = Tensor[0][0](2, 2); // xx-zz
-            Matrix(0, 3) = Tensor[0][0](0, 1); // xx-xy
-            Matrix(0, 4) = Tensor[0][0](1, 2); // xx-yz
-            Matrix(0, 5) = Tensor[0][0](0, 2); // xx-xz
+            A(0, 0) = T[0][0](0, 0); // xx-xx
+            A(0, 1) = T[0][0](1, 1); // xx-yy
+            A(0, 2) = T[0][0](2, 2); // xx-zz
+            A(0, 3) = T[0][0](0, 1); // xx-xy
+            A(0, 4) = T[0][0](1, 2); // xx-yz
+            A(0, 5) = T[0][0](0, 2); // xx-xz
 
-            Matrix(1, 0) = Tensor[1][1](0, 0);
-            Matrix(1, 1) = Tensor[1][1](1, 1);
-            Matrix(1, 2) = Tensor[1][1](2, 2);
-            Matrix(1, 3) = Tensor[1][1](0, 1);
-            Matrix(1, 4) = Tensor[1][1](1, 2);
-            Matrix(1, 5) = Tensor[1][1](0, 2);
+            A(1, 0) = T[1][1](0, 0);
+            A(1, 1) = T[1][1](1, 1);
+            A(1, 2) = T[1][1](2, 2);
+            A(1, 3) = T[1][1](0, 1);
+            A(1, 4) = T[1][1](1, 2);
+            A(1, 5) = T[1][1](0, 2);
 
-            Matrix(2, 0) = Tensor[2][2](0, 0);
-            Matrix(2, 1) = Tensor[2][2](1, 1);
-            Matrix(2, 2) = Tensor[2][2](2, 2);
-            Matrix(2, 3) = Tensor[2][2](0, 1);
-            Matrix(2, 4) = Tensor[2][2](1, 2);
-            Matrix(2, 5) = Tensor[2][2](0, 2);
+            A(2, 0) = T[2][2](0, 0);
+            A(2, 1) = T[2][2](1, 1);
+            A(2, 2) = T[2][2](2, 2);
+            A(2, 3) = T[2][2](0, 1);
+            A(2, 4) = T[2][2](1, 2);
+            A(2, 5) = T[2][2](0, 2);
 
-            Matrix(3, 0) = Tensor[0][1](0, 0);
-            Matrix(3, 1) = Tensor[0][1](1, 1);
-            Matrix(3, 2) = Tensor[0][1](2, 2);
-            Matrix(3, 3) = Tensor[0][1](0, 1);
-            Matrix(3, 4) = Tensor[0][1](1, 2);
-            Matrix(3, 5) = Tensor[0][1](0, 2);
+            A(3, 0) = T[0][1](0, 0);
+            A(3, 1) = T[0][1](1, 1);
+            A(3, 2) = T[0][1](2, 2);
+            A(3, 3) = T[0][1](0, 1);
+            A(3, 4) = T[0][1](1, 2);
+            A(3, 5) = T[0][1](0, 2);
 
-            Matrix(4, 0) = Tensor[1][2](0, 0);
-            Matrix(4, 1) = Tensor[1][2](1, 1);
-            Matrix(4, 2) = Tensor[1][2](2, 2);
-            Matrix(4, 3) = Tensor[1][2](0, 1);
-            Matrix(4, 4) = Tensor[1][2](1, 2);
-            Matrix(4, 5) = Tensor[1][2](0, 2);
+            A(4, 0) = T[1][2](0, 0);
+            A(4, 1) = T[1][2](1, 1);
+            A(4, 2) = T[1][2](2, 2);
+            A(4, 3) = T[1][2](0, 1);
+            A(4, 4) = T[1][2](1, 2);
+            A(4, 5) = T[1][2](0, 2);
 
-            Matrix(5, 0) = Tensor[0][2](0, 0);
-            Matrix(5, 1) = Tensor[0][2](1, 1);
-            Matrix(5, 2) = Tensor[0][2](2, 2);
-            Matrix(5, 3) = Tensor[0][2](0, 1);
-            Matrix(5, 4) = Tensor[0][2](1, 2);
-            Matrix(5, 5) = Tensor[0][2](0, 2);
+            A(5, 0) = T[0][2](0, 0);
+            A(5, 1) = T[0][2](1, 1);
+            A(5, 2) = T[0][2](2, 2);
+            A(5, 3) = T[0][2](0, 1);
+            A(5, 4) = T[0][2](1, 2);
+            A(5, 5) = T[0][2](0, 2);
         }
-        else if(Matrix.size1() == 4)
+        else if(A.size1() == 4)
         {
-            Matrix(0, 0) = Tensor[0][0](0, 0); // xx-xx
-            Matrix(0, 1) = Tensor[0][0](1, 1); // xx-yy
-            Matrix(0, 2) = Tensor[0][0](0, 1); // xx-xy
-            Matrix(0, 3) = Tensor[0][0](2, 2); // xx-zz
+            A(0, 0) = T[0][0](0, 0); // xx-xx
+            A(0, 1) = T[0][0](1, 1); // xx-yy
+            A(0, 2) = T[0][0](0, 1); // xx-xy
+            A(0, 3) = T[0][0](2, 2); // xx-zz
 
-            Matrix(1, 0) = Tensor[1][1](0, 0); // yy-xx
-            Matrix(1, 1) = Tensor[1][1](1, 1); // yy-yy
-            Matrix(1, 2) = Tensor[1][1](0, 1); // yy-xy
-            Matrix(1, 3) = Tensor[1][1](2, 2); // yy-zz
+            A(1, 0) = T[1][1](0, 0); // yy-xx
+            A(1, 1) = T[1][1](1, 1); // yy-yy
+            A(1, 2) = T[1][1](0, 1); // yy-xy
+            A(1, 3) = T[1][1](2, 2); // yy-zz
 
-            Matrix(2, 0) = Tensor[0][1](0, 0); // xy-xx
-            Matrix(2, 1) = Tensor[0][1](1, 1); // xy-yy
-            Matrix(2, 2) = Tensor[0][1](0, 1); // xy-xy
-            Matrix(2, 3) = Tensor[0][1](2, 2); // xy-zz
+            A(2, 0) = T[0][1](0, 0); // xy-xx
+            A(2, 1) = T[0][1](1, 1); // xy-yy
+            A(2, 2) = T[0][1](0, 1); // xy-xy
+            A(2, 3) = T[0][1](2, 2); // xy-zz
 
-            Matrix(3, 0) = Tensor[2][2](0, 0); // zz-xx
-            Matrix(3, 1) = Tensor[2][2](1, 1); // zz-yy
-            Matrix(3, 2) = Tensor[2][2](0, 1); // zz-xy
-            Matrix(3, 3) = Tensor[2][2](2, 2); // zz-zz
+            A(3, 0) = T[2][2](0, 0); // zz-xx
+            A(3, 1) = T[2][2](1, 1); // zz-yy
+            A(3, 2) = T[2][2](0, 1); // zz-xy
+            A(3, 3) = T[2][2](2, 2); // zz-zz
         }
-        else if(Matrix.size1() == 3)
+        else if(A.size1() == 3)
         {
-            Matrix(0, 0) = Tensor[0][0](0, 0); // xx-xx
-            Matrix(0, 1) = Tensor[0][0](1, 1); // xx-yy
-            Matrix(0, 2) = Tensor[0][0](0, 1); // xx-xy
-            Matrix(1, 0) = Tensor[1][1](0, 0); // yy-xx
-            Matrix(1, 1) = Tensor[1][1](1, 1); // yy-yy
-            Matrix(1, 2) = Tensor[1][1](0, 1); // yy-xy
-            Matrix(2, 0) = Tensor[0][1](0, 0); // xy-xx
-            Matrix(2, 1) = Tensor[0][1](1, 1); // xy-yy
-            Matrix(2, 2) = Tensor[0][1](0, 1); // xy-xy
+            A(0, 0) = T[0][0](0, 0); // xx-xx
+            A(0, 1) = T[0][0](1, 1); // xx-yy
+            A(0, 2) = T[0][0](0, 1); // xx-xy
+            A(1, 0) = T[1][1](0, 0); // yy-xx
+            A(1, 1) = T[1][1](1, 1); // yy-yy
+            A(1, 2) = T[1][1](0, 1); // yy-xy
+            A(2, 0) = T[0][1](0, 0); // xy-xx
+            A(2, 1) = T[0][1](1, 1); // xy-yy
+            A(2, 2) = T[0][1](0, 1); // xy-xy
         }
         else
-            KRATOS_ERROR << "Invalid matrix size (" << Matrix.size1() << ", " << Matrix.size2() << ")";
+            KRATOS_ERROR << "Invalid matrix size (" << A.size1() << ", " << A.size2() << ")";
     }
 
     /// Transformation from a fourth order tensor to unsymmetric matrix. The matrix
@@ -1360,102 +1360,102 @@ public:
     /// For axisymmetric, it is [o_xx o_yx o_xy o_yy o_zz]
     /// Reference: Souza de Neto, Computational Plasticity, Appendix D.2.1
     template<typename TMatrixType>
-    static inline void TensorToUnsymmetricMatrix(const Fourth_Order_Tensor& Tensor, TMatrixType& Matrix)
+    static inline void TensorToUnsymmetricMatrix(const Fourth_Order_Tensor& T, TMatrixType& A)
     {
-        if (Matrix.size1() == 9)
+        if (A.size1() == 9)
         {
             /// ((DO NOT DELETE)) (KEEP AS REFERENCE)
-            // Matrix(0, 0) = Tensor[0][0](0, 0); // xx-xx
-            // Matrix(0, 1) = Tensor[0][0](1, 0); // xx-yx
-            // Matrix(0, 2) = Tensor[0][0](2, 0); // xx-zx
-            // Matrix(0, 3) = Tensor[0][0](0, 1); // xx-xy
-            // Matrix(0, 4) = Tensor[0][0](1, 1); // xx-yy
-            // Matrix(0, 5) = Tensor[0][0](2, 1); // xx-zy
-            // Matrix(0, 6) = Tensor[0][0](0, 2); // xx-xz
-            // Matrix(0, 7) = Tensor[0][0](1, 2); // xx-yz
-            // Matrix(0, 8) = Tensor[0][0](2, 2); // xx-zz
+            // A(0, 0) = T[0][0](0, 0); // xx-xx
+            // A(0, 1) = T[0][0](1, 0); // xx-yx
+            // A(0, 2) = T[0][0](2, 0); // xx-zx
+            // A(0, 3) = T[0][0](0, 1); // xx-xy
+            // A(0, 4) = T[0][0](1, 1); // xx-yy
+            // A(0, 5) = T[0][0](2, 1); // xx-zy
+            // A(0, 6) = T[0][0](0, 2); // xx-xz
+            // A(0, 7) = T[0][0](1, 2); // xx-yz
+            // A(0, 8) = T[0][0](2, 2); // xx-zz
             //
             for (unsigned int i = 0; i < 3; ++i)
                 for (unsigned int j = 0; j < 3; ++j)
                     for (unsigned int k = 0; k < 3; ++k)
                         for (unsigned int l = 0; l < 3; ++l)
-                            Matrix(3*j+i, 3*l+k) = Tensor[i][j](k, l);
+                            A(3*j+i, 3*l+k) = T[i][j](k, l);
         }
-        else if(Matrix.size1() == 5)
+        else if(A.size1() == 5)
         {
-            Matrix(0, 0) = Tensor[0][0](0, 0); // xx-xx
-            Matrix(0, 1) = Tensor[0][0](1, 0); // xx-yx
-            Matrix(0, 2) = Tensor[0][0](0, 1); // xx-xy
-            Matrix(0, 3) = Tensor[0][0](1, 1); // xx-yy
-            Matrix(0, 4) = Tensor[0][0](2, 2); // xx-zz
+            A(0, 0) = T[0][0](0, 0); // xx-xx
+            A(0, 1) = T[0][0](1, 0); // xx-yx
+            A(0, 2) = T[0][0](0, 1); // xx-xy
+            A(0, 3) = T[0][0](1, 1); // xx-yy
+            A(0, 4) = T[0][0](2, 2); // xx-zz
             //
-            Matrix(1, 0) = Tensor[1][0](0, 0); // yx-xx
-            Matrix(1, 1) = Tensor[1][0](1, 0); // yx-yx
-            Matrix(1, 2) = Tensor[1][0](0, 1); // yx-xy
-            Matrix(1, 3) = Tensor[1][0](1, 1); // yx-yy
-            Matrix(1, 4) = Tensor[1][0](2, 2); // yx-zz
+            A(1, 0) = T[1][0](0, 0); // yx-xx
+            A(1, 1) = T[1][0](1, 0); // yx-yx
+            A(1, 2) = T[1][0](0, 1); // yx-xy
+            A(1, 3) = T[1][0](1, 1); // yx-yy
+            A(1, 4) = T[1][0](2, 2); // yx-zz
             //
-            Matrix(2, 0) = Tensor[0][1](0, 0); // xy-xx
-            Matrix(2, 1) = Tensor[0][1](1, 0); // xy-yx
-            Matrix(2, 2) = Tensor[0][1](0, 1); // xy-xy
-            Matrix(2, 3) = Tensor[0][1](1, 1); // xy-yy
-            Matrix(2, 4) = Tensor[0][1](2, 2); // xy-zz
+            A(2, 0) = T[0][1](0, 0); // xy-xx
+            A(2, 1) = T[0][1](1, 0); // xy-yx
+            A(2, 2) = T[0][1](0, 1); // xy-xy
+            A(2, 3) = T[0][1](1, 1); // xy-yy
+            A(2, 4) = T[0][1](2, 2); // xy-zz
             //
-            Matrix(3, 0) = Tensor[1][1](0, 0); // yy-xx
-            Matrix(3, 1) = Tensor[1][1](1, 0); // yy-yx
-            Matrix(3, 2) = Tensor[1][1](0, 1); // yy-xy
-            Matrix(3, 3) = Tensor[1][1](1, 1); // yy-yy
-            Matrix(3, 4) = Tensor[1][1](2, 2); // yy-zz
+            A(3, 0) = T[1][1](0, 0); // yy-xx
+            A(3, 1) = T[1][1](1, 0); // yy-yx
+            A(3, 2) = T[1][1](0, 1); // yy-xy
+            A(3, 3) = T[1][1](1, 1); // yy-yy
+            A(3, 4) = T[1][1](2, 2); // yy-zz
             //
-            Matrix(4, 0) = Tensor[2][2](0, 0); // zz-xx
-            Matrix(4, 1) = Tensor[2][2](1, 0); // zz-yx
-            Matrix(4, 2) = Tensor[2][2](0, 1); // zz-xy
-            Matrix(4, 3) = Tensor[2][2](1, 1); // zz-yy
-            Matrix(4, 4) = Tensor[2][2](2, 2); // zz-zz
+            A(4, 0) = T[2][2](0, 0); // zz-xx
+            A(4, 1) = T[2][2](1, 0); // zz-yx
+            A(4, 2) = T[2][2](0, 1); // zz-xy
+            A(4, 3) = T[2][2](1, 1); // zz-yy
+            A(4, 4) = T[2][2](2, 2); // zz-zz
         }
-        else if(Matrix.size1() == 4)
+        else if(A.size1() == 4)
         {
             /// ((DO NOT DELETE)) (KEEP AS REFERENCE)
-            // Matrix(0, 0) = Tensor[0][0](0, 0); // xx-xx
-            // Matrix(0, 1) = Tensor[0][0](1, 0); // xx-yx
-            // Matrix(0, 2) = Tensor[0][0](0, 1); // xx-xy
-            // Matrix(0, 3) = Tensor[0][0](1, 1); // xx-yy
+            // A(0, 0) = T[0][0](0, 0); // xx-xx
+            // A(0, 1) = T[0][0](1, 0); // xx-yx
+            // A(0, 2) = T[0][0](0, 1); // xx-xy
+            // A(0, 3) = T[0][0](1, 1); // xx-yy
             // //
-            // Matrix(1, 0) = Tensor[1][0](0, 0); // yx-xx
-            // Matrix(1, 1) = Tensor[1][0](1, 0); // yx-yx
-            // Matrix(1, 2) = Tensor[1][0](0, 1); // yx-xy
-            // Matrix(1, 3) = Tensor[1][0](1, 1); // yx-yy
+            // A(1, 0) = T[1][0](0, 0); // yx-xx
+            // A(1, 1) = T[1][0](1, 0); // yx-yx
+            // A(1, 2) = T[1][0](0, 1); // yx-xy
+            // A(1, 3) = T[1][0](1, 1); // yx-yy
             // //
-            // Matrix(2, 0) = Tensor[0][1](0, 0); // xy-xx
-            // Matrix(2, 1) = Tensor[0][1](1, 0); // xy-yx
-            // Matrix(2, 2) = Tensor[0][1](0, 1); // xy-xy
-            // Matrix(2, 3) = Tensor[0][1](1, 1); // xy-yy
+            // A(2, 0) = T[0][1](0, 0); // xy-xx
+            // A(2, 1) = T[0][1](1, 0); // xy-yx
+            // A(2, 2) = T[0][1](0, 1); // xy-xy
+            // A(2, 3) = T[0][1](1, 1); // xy-yy
             // //
-            // Matrix(3, 0) = Tensor[1][1](0, 0); // yy-xx
-            // Matrix(3, 1) = Tensor[1][1](1, 0); // yy-yx
-            // Matrix(3, 2) = Tensor[1][1](0, 1); // yy-xy
-            // Matrix(3, 3) = Tensor[1][1](1, 1); // yy-yy
+            // A(3, 0) = T[1][1](0, 0); // yy-xx
+            // A(3, 1) = T[1][1](1, 0); // yy-yx
+            // A(3, 2) = T[1][1](0, 1); // yy-xy
+            // A(3, 3) = T[1][1](1, 1); // yy-yy
             /// Or
             for (unsigned int i = 0; i < 2; ++i)
                 for (unsigned int j = 0; j < 2; ++j)
                     for (unsigned int k = 0; k < 2; ++k)
                         for (unsigned int l = 0; l < 2; ++l)
-                            Matrix(2*j+i, 2*l+k) = Tensor[i][j](k, l);
+                            A(2*j+i, 2*l+k) = T[i][j](k, l);
         }
         else
-            KRATOS_ERROR << "Invalid matrix size (" << Matrix.size1() << ", " << Matrix.size2() << ")";
+            KRATOS_ERROR << "Invalid matrix size (" << A.size1() << ", " << A.size2() << ")";
     }
 
     template<typename TMatrixType>
-    static inline void UnsymmetricMatrixToTensor(const TMatrixType& Matrix, Fourth_Order_Tensor& Tensor)
+    static inline void UnsymmetricMatrixToTensor(const TMatrixType& A, Fourth_Order_Tensor& T)
     {
-        if (Matrix.size1() == 9)
+        if (A.size1() == 9)
         {
             for (unsigned int i = 0; i < 3; ++i)
                 for (unsigned int j = 0; j < 3; ++j)
                     for (unsigned int k = 0; k < 3; ++k)
                         for (unsigned int l = 0; l < 3; ++l)
-                            Tensor[i][j](k, l) = Matrix(3*j+i, 3*l+k);
+                            T[i][j](k, l) = A(3*j+i, 3*l+k);
         }
         else
             KRATOS_ERROR << "If matrix size is not 9, the 4th order tensor can't be filled since information is not sufficient";
@@ -1463,63 +1463,63 @@ public:
 
     /// Inversed operation of TensorToMatrix
     template<typename TMatrixType>
-    static inline void MatrixToTensor(const TMatrixType& Matrix, Fourth_Order_Tensor& Tensor)
+    static inline void MatrixToTensor(const TMatrixType& A, Fourth_Order_Tensor& T)
     {
-        if (Matrix.size1() == 6)
+        if (A.size1() == 6)
         {
-            Tensor[0][0](0, 0) = Matrix(0, 0); // xx-xx
-            Tensor[0][0](1, 1) = Matrix(0, 1); // xx-yy
-            Tensor[0][0](2, 2) = Matrix(0, 2); // xx-zz
-            Tensor[0][0](0, 1) = Matrix(0, 3); // xx-xy
-            Tensor[0][0](1, 2) = Matrix(0, 4); // xx-yz
-            Tensor[0][0](0, 2) = Matrix(0, 5); // xx-xz
+            T[0][0](0, 0) = A(0, 0); // xx-xx
+            T[0][0](1, 1) = A(0, 1); // xx-yy
+            T[0][0](2, 2) = A(0, 2); // xx-zz
+            T[0][0](0, 1) = A(0, 3); // xx-xy
+            T[0][0](1, 2) = A(0, 4); // xx-yz
+            T[0][0](0, 2) = A(0, 5); // xx-xz
 
-            Tensor[1][1](0, 0) = Matrix(1, 0);
-            Tensor[1][1](1, 1) = Matrix(1, 1);
-            Tensor[1][1](2, 2) = Matrix(1, 2);
-            Tensor[1][1](0, 1) = Matrix(1, 3);
-            Tensor[1][1](1, 2) = Matrix(1, 4);
-            Tensor[1][1](0, 2) = Matrix(1, 5);
+            T[1][1](0, 0) = A(1, 0);
+            T[1][1](1, 1) = A(1, 1);
+            T[1][1](2, 2) = A(1, 2);
+            T[1][1](0, 1) = A(1, 3);
+            T[1][1](1, 2) = A(1, 4);
+            T[1][1](0, 2) = A(1, 5);
 
-            Tensor[2][2](0, 0) = Matrix(2, 0);
-            Tensor[2][2](1, 1) = Matrix(2, 1);
-            Tensor[2][2](2, 2) = Matrix(2, 2);
-            Tensor[2][2](0, 1) = Matrix(2, 3);
-            Tensor[2][2](1, 2) = Matrix(2, 4);
-            Tensor[2][2](0, 2) = Matrix(2, 5);
+            T[2][2](0, 0) = A(2, 0);
+            T[2][2](1, 1) = A(2, 1);
+            T[2][2](2, 2) = A(2, 2);
+            T[2][2](0, 1) = A(2, 3);
+            T[2][2](1, 2) = A(2, 4);
+            T[2][2](0, 2) = A(2, 5);
 
-            Tensor[0][1](0, 0) = Matrix(3, 0);
-            Tensor[0][1](1, 1) = Matrix(3, 1);
-            Tensor[0][1](2, 2) = Matrix(3, 2);
-            Tensor[0][1](0, 1) = Matrix(3, 3);
-            Tensor[0][1](1, 2) = Matrix(3, 4);
-            Tensor[0][1](0, 2) = Matrix(3, 5);
+            T[0][1](0, 0) = A(3, 0);
+            T[0][1](1, 1) = A(3, 1);
+            T[0][1](2, 2) = A(3, 2);
+            T[0][1](0, 1) = A(3, 3);
+            T[0][1](1, 2) = A(3, 4);
+            T[0][1](0, 2) = A(3, 5);
 
-            Tensor[1][2](0, 0) = Matrix(4, 0);
-            Tensor[1][2](1, 1) = Matrix(4, 1);
-            Tensor[1][2](2, 2) = Matrix(4, 2);
-            Tensor[1][2](0, 1) = Matrix(4, 3);
-            Tensor[1][2](1, 2) = Matrix(4, 4);
-            Tensor[1][2](0, 2) = Matrix(4, 5);
+            T[1][2](0, 0) = A(4, 0);
+            T[1][2](1, 1) = A(4, 1);
+            T[1][2](2, 2) = A(4, 2);
+            T[1][2](0, 1) = A(4, 3);
+            T[1][2](1, 2) = A(4, 4);
+            T[1][2](0, 2) = A(4, 5);
 
-            Tensor[0][2](0, 0) = Matrix(5, 0);
-            Tensor[0][2](1, 1) = Matrix(5, 1);
-            Tensor[0][2](2, 2) = Matrix(5, 2);
-            Tensor[0][2](0, 1) = Matrix(5, 3);
-            Tensor[0][2](1, 2) = Matrix(5, 4);
-            Tensor[0][2](0, 2) = Matrix(5, 5);
+            T[0][2](0, 0) = A(5, 0);
+            T[0][2](1, 1) = A(5, 1);
+            T[0][2](2, 2) = A(5, 2);
+            T[0][2](0, 1) = A(5, 3);
+            T[0][2](1, 2) = A(5, 4);
+            T[0][2](0, 2) = A(5, 5);
 
             for (unsigned int j = 0; j < 3; ++j)
                 for (unsigned int i = 0; i <= j; ++i)
                     for (unsigned int k = 0; k < 3; ++k)
                         for (unsigned int l = 0; l < k; ++l)
-                            Tensor[i][j](k, l) = Tensor[i][j](l, k);
+                            T[i][j](k, l) = T[i][j](l, k);
 
             for (unsigned int i = 0; i < 3; ++i)
                 for (unsigned int j = 0; j < i; ++j)
                     for (unsigned int k = 0; k < 3; ++k)
                         for (unsigned int l = 0; l < 3; ++l)
-                            Tensor[i][j](k, l) = Tensor[j][i](k, l);
+                            T[i][j](k, l) = T[j][i](k, l);
         }
         else
             KRATOS_ERROR << "If matrix size is not 6, the 4th order tensor can't be filled since information is not sufficient";
@@ -1528,97 +1528,97 @@ public:
     // THis uses the notation [o_xx o_yy o_zz o_xy o_xz o_yz]
     // Note that, this already accounts for factor 2 in [e_xx e_yy e_zz 2e_xy 2e_xz 2e_yz] (see https://en.wikiversity.org/wiki/Introduction_to_Elasticity/Constitutive_relations)
     template<typename TMatrixType>
-    static inline void TensorToMatrix2(const Fourth_Order_Tensor& Tensor, TMatrixType& Matrix)
+    static inline void TensorToMatrix2(const Fourth_Order_Tensor& T, TMatrixType& A)
     {
         // Simetrias seguras
         //  Cijkl = Cjilk;
         //  Cijkl = Cklji;
-        if (Tensor[0].size()== 3)
+        if (T[0].size()== 3)
         {
-            // Tensor de cuarto orden cuyos componentes correspondes a una matriz de 3x3
-            if(Matrix.size1()!=6 || Matrix.size2()!=6)
-                Matrix.resize(6,6,false);
-            Matrix(0,0) = Tensor[0][0](0,0);
-            Matrix(0,1) = Tensor[0][0](1,1);
-            Matrix(0,2) = Tensor[0][0](2,2);
-            Matrix(0,3) = Tensor[0][0](0,1);
-            Matrix(0,4) = Tensor[0][0](0,2);
-            Matrix(0,5) = Tensor[0][0](1,2);
+            // T de cuarto orden cuyos componentes correspondes a una matriz de 3x3
+            if(A.size1()!=6 || A.size2()!=6)
+                A.resize(6,6,false);
+            A(0,0) = T[0][0](0,0);
+            A(0,1) = T[0][0](1,1);
+            A(0,2) = T[0][0](2,2);
+            A(0,3) = T[0][0](0,1);
+            A(0,4) = T[0][0](0,2);
+            A(0,5) = T[0][0](1,2);
 
-            Matrix(1,0) = Tensor[1][1](0,0);
-            Matrix(1,1) = Tensor[1][1](1,1);
-            Matrix(1,2) = Tensor[1][1](2,2);
-            Matrix(1,3) = Tensor[1][1](0,1);
-            Matrix(1,4) = Tensor[1][1](0,2);
-            Matrix(1,5) = Tensor[1][1](1,2);
+            A(1,0) = T[1][1](0,0);
+            A(1,1) = T[1][1](1,1);
+            A(1,2) = T[1][1](2,2);
+            A(1,3) = T[1][1](0,1);
+            A(1,4) = T[1][1](0,2);
+            A(1,5) = T[1][1](1,2);
 
-            Matrix(2,0) = Tensor[2][2](0,0);
-            Matrix(2,1) = Tensor[2][2](1,1);
-            Matrix(2,2) = Tensor[2][2](2,2);
-            Matrix(2,3) = Tensor[2][2](0,1);
-            Matrix(2,4) = Tensor[2][2](0,2);
-            Matrix(2,5) = Tensor[2][2](1,2);
+            A(2,0) = T[2][2](0,0);
+            A(2,1) = T[2][2](1,1);
+            A(2,2) = T[2][2](2,2);
+            A(2,3) = T[2][2](0,1);
+            A(2,4) = T[2][2](0,2);
+            A(2,5) = T[2][2](1,2);
 
-            Matrix(3,0) = Tensor[0][1](0,0);
-            Matrix(3,1) = Tensor[0][1](1,1);
-            Matrix(3,2) = Tensor[0][1](2,2);
-            Matrix(3,3) = Tensor[0][1](0,1);
-            Matrix(3,4) = Tensor[0][1](0,2);
-            Matrix(3,5) = Tensor[0][1](1,2);
+            A(3,0) = T[0][1](0,0);
+            A(3,1) = T[0][1](1,1);
+            A(3,2) = T[0][1](2,2);
+            A(3,3) = T[0][1](0,1);
+            A(3,4) = T[0][1](0,2);
+            A(3,5) = T[0][1](1,2);
 
-            Matrix(4,0) = Tensor[0][2](0,0);
-            Matrix(4,1) = Tensor[0][2](1,1);
-            Matrix(4,2) = Tensor[0][2](2,2);
-            Matrix(4,3) = Tensor[0][2](0,1);
-            Matrix(4,4) = Tensor[0][2](0,2);
-            Matrix(4,5) = Tensor[0][2](1,2);
+            A(4,0) = T[0][2](0,0);
+            A(4,1) = T[0][2](1,1);
+            A(4,2) = T[0][2](2,2);
+            A(4,3) = T[0][2](0,1);
+            A(4,4) = T[0][2](0,2);
+            A(4,5) = T[0][2](1,2);
 
-            Matrix(5,0) = Tensor[1][2](0,0);
-            Matrix(5,1) = Tensor[1][2](1,1);
-            Matrix(5,2) = Tensor[1][2](2,2);
-            Matrix(5,3) = Tensor[1][2](0,1);
-            Matrix(5,4) = Tensor[1][2](0,2);
-            Matrix(5,5) = Tensor[1][2](1,2);
+            A(5,0) = T[1][2](0,0);
+            A(5,1) = T[1][2](1,1);
+            A(5,2) = T[1][2](2,2);
+            A(5,3) = T[1][2](0,1);
+            A(5,4) = T[1][2](0,2);
+            A(5,5) = T[1][2](1,2);
         }
         else
         {
-            // Tensor de cuarto orden cuyos componentes correspondes a una matriz de 2x2
-            if(Matrix.size1()!=3 || Matrix.size2()!=3)
-                Matrix.resize(3,3,false);
-            Matrix(0,0) = Tensor[0][0](0,0);
-            Matrix(0,1) = Tensor[0][0](1,1);
-            Matrix(0,2) = Tensor[0][0](0,1);
-            Matrix(1,0) = Tensor[1][1](0,0);
-            Matrix(1,1) = Tensor[1][1](1,1);
-            Matrix(1,2) = Tensor[1][1](0,1);
-            Matrix(2,0) = Tensor[0][1](0,0);
-            Matrix(2,1) = Tensor[0][1](1,1);
-            Matrix(2,2) = Tensor[0][1](0,1);
+            // T de cuarto orden cuyos componentes correspondes a una matriz de 2x2
+            if(A.size1()!=3 || A.size2()!=3)
+                A.resize(3,3,false);
+            A(0,0) = T[0][0](0,0);
+            A(0,1) = T[0][0](1,1);
+            A(0,2) = T[0][0](0,1);
+            A(1,0) = T[1][1](0,0);
+            A(1,1) = T[1][1](1,1);
+            A(1,2) = T[1][1](0,1);
+            A(2,0) = T[0][1](0,0);
+            A(2,1) = T[0][1](1,1);
+            A(2,2) = T[0][1](0,1);
         }
         return;
     }
 
     /**
-    * Transforms a given 6*6 Matrix to a corresponding 4th order tensor
-    * @param Tensor the given Matrix
-    * @param Vector the Tensor
+    * Transforms a given 6*6 matrix to a corresponding 4th order tensor
+    * @param A the given matrix
+    * @param T the tensor
     */
     template<typename TMatrixType, typename Fourth_Order_Tensor_Type>
-    static void MatrixToTensor2(const TMatrixType& A, Fourth_Order_Tensor_Type& Tensor)
+    static void MatrixToTensor2(const TMatrixType& A, Fourth_Order_Tensor_Type& T)
     {
         int help1 = 0;
         int help2 = 0;
         TDataType coeff = 1.0;
 
-        Tensor.resize(3);
+        T.resize(3);
 
         for(unsigned int i=0; i<3; i++)
         {
-            Tensor[i].resize(3);
+            T[i].resize(3);
             for(unsigned int j=0; j<3; j++)
             {
-                Tensor[i][j].resize(3,3,false);
-                noalias(Tensor[i][j])= ZeroMatrix(3,3);
+                T[i][j].resize(3,3,false);
+                noalias(T[i][j])= ZeroMatrix(3,3);
                 for(unsigned int k=0; k<3; k++)
                     for(unsigned int l=0; l<3; l++)
                     {
@@ -1642,7 +1642,7 @@ public:
                             if((k==2 && l==0) || (k==0 && l==2)) help2= 5;
                         }
 
-                        Tensor[i][j](k,l)= A(help1,help2)*coeff;
+                        T[i][j](k,l)= A(help1,help2)*coeff;
                     }
             }
         }
@@ -1651,17 +1651,17 @@ public:
     }
 
     /**
-    * Transforms a given 6*6 Matrix to a corresponing 4th order tensor
-    * @param Tensor the given Matrix
-    * @param Vector the Tensor
+    * Transforms a given 6*6 matrix to a corresponing 4th order tensor
+    * @param A the given matrix
+    * @param T the tensor
     */
     template<typename TMatrixType>
-    static void MatrixToTensor(const TMatrixType& A, array_1d<TDataType, 81>& Tensor)
+    static void MatrixToTensor(const TMatrixType& A, array_1d<TDataType, 81>& T)
     {
         int help1 = 0;
         int help2 = 0;
         TDataType coeff = 1.0;
-        std::fill(Tensor.begin(), Tensor.end(), 0.0);
+        std::fill(T.begin(), T.end(), 0.0);
         for(unsigned int i=0; i<3; i++)
         {
             for(unsigned int j=0; j<3; j++)
@@ -1689,7 +1689,7 @@ public:
                             if((k==2 && l==0) || (k==0 && l==2)) help2= 5;
                         }
 
-                        Tensor[i*27+j*9+k*3+l]= A(help1,help2)*coeff;
+                        T[i*27+j*9+k*3+l]= A(help1,help2)*coeff;
                     }
             }
         }
@@ -1698,12 +1698,12 @@ public:
     }
 
     /**
-    * Transforms a given 4th order tensor to a corresponing 6*6 Matrix
-    * @param Tensor the given Tensor
-    * @param Vector the Matrix
+    * Transforms a given 4th order tensor to a corresponing 6*6 matrix
+    * @param T the given tensor
+    * @param A the matrix
     */
     template<typename TMatrixType>
-    static void TensorToMatrix(const std::vector<std::vector<MatrixType> >& Tensor, TMatrixType& Matrix)
+    static void TensorToMatrix(const std::vector<std::vector<MatrixType> >& T, TMatrixType& A)
     {
         int help1 = 0;
         int help2 = 0;
@@ -1711,8 +1711,8 @@ public:
         int help4 = 0;
         TDataType coeff = 1.0;
 
-        if(Matrix.size1()!=6 || Matrix.size2()!=6)
-            Matrix.resize(6,6,false);
+        if(A.size1()!=6 || A.size2()!=6)
+            A.resize(6,6,false);
 
         for(unsigned int i=0; i<6; i++)
             for(unsigned int j=0; j<6; j++)
@@ -1767,64 +1767,64 @@ public:
                     coeff= 2.0;
                 }
 
-                Matrix(i,j)= Tensor[help1][help2](help3,help4)*coeff;
+                A(i,j)= T[help1][help2](help3,help4)*coeff;
             }
 
         return;
     }
 
     /**
-     * Transforms a given 4th order tensor to a corresponing 6*6 Matrix
-     * @param Tensor the given Tensor
-     * @param Vector the Matrix
+     * Transforms a given 4th order tensor to a corresponing 6*6 matrix
+     * @param T the given tensor
+     * @param A the matrix
      */
     template<typename TMatrixType>
-    static void TensorToMatrix( const array_1d<TDataType, 81>& Tensor, TMatrixType& Matrix )
+    static void TensorToMatrix( const array_1d<TDataType, 81>& T, TMatrixType& A )
     {
-        if(Matrix.size1()!=6 || Matrix.size2()!=6)
-            Matrix.resize(6,6,false);
+        if(A.size1()!=6 || A.size2()!=6)
+            A.resize(6,6,false);
 
-        Matrix(0,0) = Tensor[0];
-        Matrix(0,1) = Tensor[4];
-        Matrix(0,2) = Tensor[8];
-        Matrix(0,3) = 2.0*Tensor[1];
-        Matrix(0,4) = 2.0*Tensor[5];
-        Matrix(0,5) = 2.0*Tensor[6];
+        A(0,0) = T[0];
+        A(0,1) = T[4];
+        A(0,2) = T[8];
+        A(0,3) = 2.0*T[1];
+        A(0,4) = 2.0*T[5];
+        A(0,5) = 2.0*T[6];
 
-        Matrix(1,0) = Tensor[36];
-        Matrix(1,1) = Tensor[40];
-        Matrix(1,2) = Tensor[44];
-        Matrix(1,3) = 2.0*Tensor[37];
-        Matrix(1,4) = 0.0*Tensor[41];
-        Matrix(1,5) = 0.0*Tensor[42];
+        A(1,0) = T[36];
+        A(1,1) = T[40];
+        A(1,2) = T[44];
+        A(1,3) = 2.0*T[37];
+        A(1,4) = 0.0*T[41];
+        A(1,5) = 0.0*T[42];
 
-        Matrix(2,0) = Tensor[72];
-        Matrix(2,1) = Tensor[76];
-        Matrix(2,2) = Tensor[80];
-        Matrix(2,3) = 2.0*Tensor[73];
-        Matrix(2,4) = 2.0*Tensor[77];
-        Matrix(2,5) = 2.0*Tensor[78];
+        A(2,0) = T[72];
+        A(2,1) = T[76];
+        A(2,2) = T[80];
+        A(2,3) = 2.0*T[73];
+        A(2,4) = 2.0*T[77];
+        A(2,5) = 2.0*T[78];
 
-        Matrix(3,0) = Tensor[9];
-        Matrix(3,1) = Tensor[13];
-        Matrix(3,2) = Tensor[18];
-        Matrix(3,3) = 2.0*Tensor[10];
-        Matrix(3,4) = 2.0*Tensor[14];
-        Matrix(3,5) = 2.0*Tensor[15];
+        A(3,0) = T[9];
+        A(3,1) = T[13];
+        A(3,2) = T[18];
+        A(3,3) = 2.0*T[10];
+        A(3,4) = 2.0*T[14];
+        A(3,5) = 2.0*T[15];
 
-        Matrix(4,0) = Tensor[45];
-        Matrix(4,1) = Tensor[49];
-        Matrix(4,2) = Tensor[53];
-        Matrix(4,3) = 2.0*Tensor[46];
-        Matrix(4,4) = 0.0*Tensor[50];
-        Matrix(4,5) = 0.0*Tensor[51];
+        A(4,0) = T[45];
+        A(4,1) = T[49];
+        A(4,2) = T[53];
+        A(4,3) = 2.0*T[46];
+        A(4,4) = 0.0*T[50];
+        A(4,5) = 0.0*T[51];
 
-        Matrix(5,0) = Tensor[54];
-        Matrix(5,1) = Tensor[58];
-        Matrix(5,2) = Tensor[62];
-        Matrix(5,3) = 2.0*Tensor[55];
-        Matrix(5,4) = 2.0*Tensor[59];
-        Matrix(5,5) = 2.0*Tensor[60];
+        A(5,0) = T[54];
+        A(5,1) = T[58];
+        A(5,2) = T[62];
+        A(5,3) = 2.0*T[55];
+        A(5,4) = 2.0*T[59];
+        A(5,5) = 2.0*T[60];
 
         return;
     }
@@ -1841,7 +1841,7 @@ public:
 
     /**
      * Computes third order zero tensor (also resizing)
-     * @param C the third order Tensor
+     * @param C the third order tensor
      */
     static inline void CalculateThirdOrderZeroTensor( Third_Order_Tensor& C )
     {
@@ -1862,7 +1862,7 @@ public:
 
     /**
      * Computes third order zero tensor (no resizing)
-     * @param C the third order Tensor
+     * @param C the third order tensor
      */
     static inline void ZeroThirdOrderTensor( Third_Order_Tensor& C )
     {
@@ -1874,8 +1874,8 @@ public:
     /**
      * Computes contraction of a third order tensor and a vector
      * @param alpha
-     * @param A the third order Tensor
-     * @param B the first order Tensor (vector)
+     * @param A the third order tensor
+     * @param B the first order tensor (vector)
      */
     static void ContractThirdOrderTensor(TDataType alpha, const Third_Order_Tensor& A, const VectorType& B, MatrixType& Result)
     {
@@ -1888,8 +1888,8 @@ public:
     /**
      * Computes contraction of a third order tensor and a matrix
      * @param alpha
-     * @param A the third order Tensor
-     * @param B the second order Tensor (matrix)
+     * @param A the third order tensor
+     * @param B the second order tensor (matrix)
      */
     static void ContractThirdOrderTensor(TDataType alpha, const Third_Order_Tensor& A, const MatrixType& B, VectorType& Result)
     {
@@ -1901,7 +1901,7 @@ public:
 
     /**
      * Computes fourth order deviatoric tensor (also resizing)
-     * @param C the fourth order Tensor
+     * @param C the fourth order tensor
      */
     static inline void CalculateFourthOrderDeviatoricTensor( Fourth_Order_Tensor& C )
     {
@@ -1928,7 +1928,7 @@ public:
 
     /**
      * Computes fourth order zero tensor (also resizing)
-     * @param C the fourth order Tensor
+     * @param C the fourth order tensor
      */
     static inline void CalculateFourthOrderZeroTensor( Fourth_Order_Tensor& C )
     {
@@ -1949,7 +1949,7 @@ public:
 
     /**
      * Computes fourth order symmetric tensor (also resizing)
-     * @param C the fourth order Tensor
+     * @param C the fourth order tensor
      */
     static inline void CalculateFourthOrderSymmetricTensor( Fourth_Order_Tensor& C )
     {
@@ -1992,7 +1992,7 @@ public:
 
     /**
      * Zero out a given 4th order tensor
-     * @param C the given Tensor
+     * @param C the given tensor
      */
     static void ZeroFourthOrderTensor( Fourth_Order_Tensor& C )
     {
@@ -2005,7 +2005,7 @@ public:
 
     /**
      * Computes fourth order deviatoric tensor (no resizing)
-     * @param C the fourth order Tensor
+     * @param C the fourth order tensor
      */
     static inline void DeviatoricFourthOrderTensor( Fourth_Order_Tensor& C )
     {
@@ -2022,7 +2022,7 @@ public:
 
     /**
      * Scales a given 4th order tensor by a scalar (C = C*a)
-     * @param C the given Tensor
+     * @param C the given tensor
      * @param alpha
      */
     static void ScaleFourthOrderTensor( Fourth_Order_Tensor& C, TDataType alpha )
@@ -2036,7 +2036,7 @@ public:
 
     /**
      * Copy the fourth order tensor A -> B
-     * @param A the source Tensor
+     * @param A the source tensor
      * @param B the target tensor
      */
     static void CopyFourthOrderTensor( const Fourth_Order_Tensor& A, Fourth_Order_Tensor& B )
@@ -2051,8 +2051,8 @@ public:
     /**
      * Computes contraction of a fourth order tensor and matrix and add to a second order tensor (Result += alpha * (AA : B))
      * @param alpha
-     * @param AA the fourth order Tensor
-     * @param B the second order Tensor
+     * @param AA the fourth order tensor
+     * @param B the second order tensor
      */
     static void ContractFourthOrderTensor(TDataType alpha, const Fourth_Order_Tensor& A, const MatrixType& B, MatrixType& Result)
     {
@@ -2066,8 +2066,8 @@ public:
     /**
      * Computes contraction of a fourth order tensor and matrix and add to a second order tensor (Result += alpha * (AA : B))
      * @param alpha
-     * @param AA the fourth order Tensor
-     * @param B the second order Tensor
+     * @param AA the fourth order tensor
+     * @param B the second order tensor
      */
     static void ContractFourthOrderTensor(TDataType alpha, const Fourth_Order_Tensor& A, const SymmetricMatrixType& B, SymmetricMatrixType& Result)
     {
@@ -2081,8 +2081,8 @@ public:
     /**
      * Computes contraction of a fourth order tensor and matrix and add to a second order tensor (Result += alpha * (A : B))
      * @param alpha
-     * @param A the second order Tensor
-     * @param BB the fourth order Tensor
+     * @param A the second order tensor
+     * @param BB the fourth order tensor
      */
     static void ContractFourthOrderTensor(TDataType alpha, const MatrixType& A, const Fourth_Order_Tensor& BB, MatrixType& Result)
     {
@@ -2096,8 +2096,8 @@ public:
     /**
      * Computes contraction of a fourth order tensor and symmetric matrix and add to a second order tensor (Result += alpha * (A : B))
      * @param alpha
-     * @param A the second order Tensor
-     * @param BB the fourth order Tensor
+     * @param A the second order tensor
+     * @param BB the fourth order tensor
      */
     static void ContractFourthOrderTensor(TDataType alpha, const SymmetricMatrixType& A, const Fourth_Order_Tensor& BB, SymmetricMatrixType& Result)
     {
@@ -2109,9 +2109,9 @@ public:
     }
 
     /**
-     * Computes outer product of two 2nd order tensors (Matrix) and add to a given 4th order tensor (Result += alpha * (A \odot B))
+     * Computes outer product of two 2nd order tensors (matrix) and add to a given 4th order tensor (Result += alpha * (A \odot B))
      * In the indices notation: Result(i,j,k,l) += alpha * A(i, j) * B(k, l)
-     * @param C the given Tensor
+     * @param C the given tensor
      * @param alpha
      */
     template<typename TMatrixType1, typename TMatrixType2>
@@ -2126,7 +2126,7 @@ public:
 
     /**
      * In the indices notation: Result(i,j,k,l) += alpha * A(i, k) * B(j, l)
-     * @param C the given Tensor
+     * @param C the given tensor
      * @param alpha
      * TODO make a better name
      */
@@ -2142,7 +2142,7 @@ public:
 
     /**
      * In the indices notation: Result(i,j,k,l) += alpha * A(i, l) * B(j, k)
-     * @param C the given Tensor
+     * @param C the given tensor
      * @param alpha
      * TODO make a better name
      */
