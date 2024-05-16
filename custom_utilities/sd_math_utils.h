@@ -3446,6 +3446,92 @@ public:
         }
     }
 
+    /// Calculate B operator for plane strain/3D problem
+    static inline void CalculateB( const unsigned int dim, MatrixType& B_Operator, const MatrixType& DN_DX )
+    {
+        const unsigned int number_of_nodes = DN_DX.size1();
+
+        B_Operator.clear();
+
+        if(dim == 2)
+        {
+            for ( unsigned int i = 0; i < number_of_nodes; ++i )
+            {
+                B_Operator( 0, i*2     ) = DN_DX( i, 0 );
+                B_Operator( 1, i*2 + 1 ) = DN_DX( i, 1 );
+                B_Operator( 2, i*2     ) = DN_DX( i, 1 );
+                B_Operator( 2, i*2 + 1 ) = DN_DX( i, 0 );
+            }
+        }
+        else if(dim == 3)
+        {
+            for ( unsigned int i = 0; i < number_of_nodes; ++i )
+            {
+                B_Operator( 0, i*3     ) = DN_DX( i, 0 );
+                B_Operator( 1, i*3 + 1 ) = DN_DX( i, 1 );
+                B_Operator( 2, i*3 + 2 ) = DN_DX( i, 2 );
+                B_Operator( 3, i*3     ) = DN_DX( i, 1 );
+                B_Operator( 3, i*3 + 1 ) = DN_DX( i, 0 );
+                B_Operator( 4, i*3 + 1 ) = DN_DX( i, 2 );
+                B_Operator( 4, i*3 + 2 ) = DN_DX( i, 1 );
+                B_Operator( 5, i*3     ) = DN_DX( i, 2 );
+                B_Operator( 5, i*3 + 2 ) = DN_DX( i, 0 );
+            }
+        }
+    }
+
+    /// Calculate B operator for axisymmetric problem
+    template<typename TGeometryType>
+    static inline void CalculateBaxi( MatrixType& B_Operator, const TGeometryType& rGeometry,
+            const VectorType& N, const MatrixType& DN_DX )
+    {
+        const unsigned int number_of_nodes = rGeometry.size();
+
+        B_Operator.clear();
+
+        double r = 0.0;
+
+        for ( unsigned int i = 0; i < number_of_nodes; ++i )
+        {
+            r += N[i] * rGeometry[i].X0();
+        }
+
+        for ( unsigned int i = 0; i < number_of_nodes; ++i )
+        {
+            B_Operator( 0, i*2     ) = DN_DX( i, 0 );
+            B_Operator( 1, i*2 + 1 ) = DN_DX( i, 1 );
+            B_Operator( 2, i*2     ) = DN_DX( i, 1 );
+            B_Operator( 2, i*2 + 1 ) = DN_DX( i, 0 );
+            B_Operator( 3, i*2     ) = N( i ) / r;
+        }
+    }
+
+    /// Calculate B operator for axisymmetric problem
+    template<typename TGeometryType>
+    static inline void CalculateBaxi( MatrixType& B_Operator, const TGeometryType& rGeometry,
+            const VectorType& N, const MatrixType& DN_DX, const MatrixType& CurrentDisp )
+    {
+        const unsigned int number_of_nodes = rGeometry.size();
+
+        B_Operator.clear();
+
+        double r = 0.0;
+
+        for ( unsigned int i = 0; i < number_of_nodes; ++i )
+        {
+            r += N[i] * (rGeometry[i].X0() + CurrentDisp(i, 0));
+        }
+
+        for ( unsigned int i = 0; i < number_of_nodes; ++i )
+        {
+            B_Operator( 0, i*2     ) = DN_DX( i, 0 );
+            B_Operator( 1, i*2 + 1 ) = DN_DX( i, 1 );
+            B_Operator( 2, i*2     ) = DN_DX( i, 1 );
+            B_Operator( 2, i*2 + 1 ) = DN_DX( i, 0 );
+            B_Operator( 3, i*2     ) = N( i ) / r;
+        }
+    }
+
     /// Invert matrix as 2D array
     template<typename TMatrixType1, typename TMatrixType2>
     static void Invert2DArray(const unsigned int dim,
