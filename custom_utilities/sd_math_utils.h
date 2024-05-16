@@ -1840,6 +1840,30 @@ public:
     }
 
     /**
+     * Create third order zero tensor with size
+     * @param C the third order tensor
+     */
+    static inline void InitializeThirdOrderTensor( Third_Order_Tensor& C,
+        const unsigned int size1, const unsigned int size2, const unsigned int size3,
+        const bool zero = true )
+    {
+        if (C.size() != size1)
+            C.resize(size1, false);
+        for(unsigned int i = 0; i < size1; ++i)
+        {
+            if (C[i].size() != size2)
+                C[i].resize(size2, false);
+            for(unsigned int j = 0; j < size2; ++j)
+            {
+                if (C[i][j].size() != size3)
+                    C[i][j].resize(size3, false);
+                if (zero)
+                    C[i][j].clear();
+            }
+        }
+    }
+
+    /**
      * Computes third order zero tensor (also resizing)
      * @param C the third order tensor
      */
@@ -1866,8 +1890,8 @@ public:
      */
     static inline void ZeroThirdOrderTensor( Third_Order_Tensor& C )
     {
-        for(unsigned int i = 0; i < 3; ++i)
-            for(unsigned int j = 0; j < 3; ++j)
+        for(unsigned int i = 0; i < C.size(); ++i)
+            for(unsigned int j = 0; j < C[i].size(); ++j)
                 C[i][j].clear();
     }
 
@@ -1879,9 +1903,9 @@ public:
      */
     static void ContractThirdOrderTensor(TDataType alpha, const Third_Order_Tensor& A, const VectorType& B, MatrixType& Result)
     {
-        for(unsigned int i = 0; i < 3; ++i)
-            for(unsigned int j = 0; j < 3; ++j)
-                for(unsigned int k = 0; k < 3; ++k)
+        for(unsigned int i = 0; i < A.size(); ++i)
+            for(unsigned int j = 0; j < A[i].size(); ++j)
+                for(unsigned int k = 0; k < B.size(); ++k)
                     Result(i, j) += alpha * A[i][j](k) * B(k);
     }
 
@@ -1893,10 +1917,24 @@ public:
      */
     static void ContractThirdOrderTensor(TDataType alpha, const Third_Order_Tensor& A, const MatrixType& B, VectorType& Result)
     {
-        for(unsigned int i = 0; i < 3; ++i)
-            for(unsigned int j = 0; j < 3; ++j)
-                for(unsigned int k = 0; k < 3; ++k)
+        for(unsigned int i = 0; i < A.size(); ++i)
+            for(unsigned int j = 0; j < A[i].size(); ++j)
+                for(unsigned int k = 0; k < A[i][j].size(); ++k)
                     Result(i) += alpha * A[i][j](k) * B(j, k);
+    }
+
+    /**
+     * Computes outer product of a matrix and a vector, resulting in a third order tensor
+     * @param alpha
+     * @param A the third order tensor
+     * @param B the second order tensor (matrix)
+     */
+    static void OuterProductThirdOrderTensor(TDataType alpha, const MatrixType& A, const VectorType& B, Third_Order_Tensor& Result)
+    {
+        for(unsigned int i = 0; i < Result.size(); ++i)
+            for(unsigned int j = 0; j < Result[i].size(); ++j)
+                for(unsigned int k = 0; k < Result[i][j].size(); ++k)
+                    Result[i][j][k] += alpha * A(i, j) * B(k);
     }
 
     /**
