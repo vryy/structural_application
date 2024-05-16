@@ -1965,6 +1965,22 @@ public:
     }
 
     /**
+     * Add the fourth order deviatoric tensor to existing tensor
+     * @param C the fourth order tensor
+     */
+    static inline void AddFourthOrderDeviatoricTensor( Fourth_Order_Tensor& C,
+            const TDataType alpha, const MatrixType& eye )
+    {
+        for(unsigned int i = 0; i < 3; ++i)
+            for(unsigned int j = 0; j < 3; ++j)
+                for(unsigned int k = 0; k < 3; ++k)
+                    for(unsigned int l = 0; l < 3; ++l)
+                        C[i][j](k,l) += alpha * ( 0.5 * eye(i, k) * eye(j, l)
+                                                + 0.5 * eye(i, l) * eye(j, k)
+                                                - 1.0 / 3 * eye(i, j) * eye(k, l) );
+    }
+
+    /**
      * Computes fourth order zero tensor (also resizing)
      * @param C the fourth order tensor
      */
