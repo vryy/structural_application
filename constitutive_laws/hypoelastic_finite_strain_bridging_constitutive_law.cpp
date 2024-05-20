@@ -399,12 +399,7 @@ void HypoelasticFiniteStrainBridgingConstitutiveLaw<THWSchemeType, TStressType>:
 
     SD_MathUtils<double>::CalculateFourthOrderZeroTensor(AA);
 
-    // /// Method 1: using numerical tangent
-    // Matrix DDu(3, 3);
-    // this->ComputeDDu(DDu, rGeometry, mIntPoint);
-    // const double epsilon = 1e-8;
-    // this->ComputeNumericalTangent(AA, rValues, DDu, epsilon);
-    ///// Method 2: compute the tangent numerically
+    // compute rotation matrix
     Matrix DDu_half(3, 3);
     this->ComputeDDuMidpoint( DDu_half, rGeometry, mIntPoint );
 
@@ -419,10 +414,7 @@ void HypoelasticFiniteStrainBridgingConstitutiveLaw<THWSchemeType, TStressType>:
 
     Matrix qDelta = prod( Auxi, eye + (1 - beta) * DDu_half_skew);
 
-    Fourth_Order_Tensor A, B;
-    SD_MathUtils<double>::CalculateFourthOrderZeroTensor(A);
-    SD_MathUtils<double>::CalculateFourthOrderZeroTensor(B);
-
+    // obtain stress from previous step
     Matrix stress_n(3, 3);
     if constexpr (TStressType == 1)       // Cauchy stress
         noalias(stress_n) = m_stress_n;
@@ -430,6 +422,10 @@ void HypoelasticFiniteStrainBridgingConstitutiveLaw<THWSchemeType, TStressType>:
         noalias(stress_n) = m_J_n*m_stress_n;
 
     // compute tensor A, B
+    Fourth_Order_Tensor A, B;
+    SD_MathUtils<double>::CalculateFourthOrderZeroTensor(A);
+    SD_MathUtils<double>::CalculateFourthOrderZeroTensor(B);
+
     for (int i = 0; i < 3; ++i)
     {
         for (int j = 0; j < 3; ++j)
@@ -674,7 +670,8 @@ void HypoelasticFiniteStrainBridgingConstitutiveLaw<THWSchemeType, TStressType>:
     }
     else if constexpr (TStressType == 2)
     {
-        const double J = MathUtils<double>::Det(m_F_n1);
+        // const double J = MathUtils<double>::Det(m_F_n1);
+        const double J = m_J_n1; // TODO check this if it is OK to use with Fbar
         for (int i = 0; i < 3; ++i)
             for (int j = 0; j < 3; ++j)
                 for (int k = 0; k < 3; ++k)
@@ -704,6 +701,8 @@ void HypoelasticFiniteStrainBridgingConstitutiveLaw<THWSchemeType, TStressType>:
             newDDu(k, l) += epsilon;
 
             // integrate the new stress
+            // for some reason the out-of-plane components of the numerical tangent is always double the correct values
+            // it is probably because the stress tensor is symmetric. Do not know how to make it correctly by 4/2024 -> TODO
             this->ComputeDDuMidpoint(DDu_half, newDDu, rGeometry, mIntPoint);
             this->StressIntegration(rValues, DDu_half, new_stress_tensor);
 
@@ -1018,6 +1017,11 @@ template class HypoelasticFiniteStrainBridgingConstitutiveLaw<1, 1>;
 template class HypoelasticFiniteStrainBridgingConstitutiveLaw<1, 2>;
 template class HypoelasticFiniteStrainBridgingConstitutiveLaw<2, 1>;
 template class HypoelasticFiniteStrainBridgingConstitutiveLaw<2, 2>;
+
+template class HypoelasticFiniteStrainAxisymmetricBridgingConstitutiveLaw<1, 1>;
+template class HypoelasticFiniteStrainAxisymmetricBridgingConstitutiveLaw<1, 2>;
+template class HypoelasticFiniteStrainAxisymmetricBridgingConstitutiveLaw<2, 1>;
+template class HypoelasticFiniteStrainAxisymmetricBridgingConstitutiveLaw<2, 2>;
 
 } // Namespace Kratos
 

@@ -1024,6 +1024,7 @@ namespace Kratos
         //reading integration points and local gradients
         const GeometryType::IntegrationPointsArrayType& integration_points =
             GetGeometry().IntegrationPoints( mThisIntegrationMethod );
+
         const MatrixType& Ncontainer = GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod );
 
         //initializing the Jacobian in the reference configuration
@@ -1541,38 +1542,8 @@ namespace Kratos
     {
         KRATOS_TRY
 
-        const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-
         unsigned int dim = GetGeometry().WorkingSpaceDimension();
-        unsigned int strain_size = this->GetStrainSize(dim);
-
-        noalias( B_Operator ) = ZeroMatrix( strain_size, number_of_nodes * dim );
-
-        if(dim == 2)
-        {
-            for ( unsigned int i = 0; i < number_of_nodes; ++i )
-            {
-                B_Operator( 0, i*2     ) = DN_DX( i, 0 );
-                B_Operator( 1, i*2 + 1 ) = DN_DX( i, 1 );
-                B_Operator( 2, i*2     ) = DN_DX( i, 1 );
-                B_Operator( 2, i*2 + 1 ) = DN_DX( i, 0 );
-            }
-        }
-        else if(dim == 3)
-        {
-            for ( unsigned int i = 0; i < number_of_nodes; ++i )
-            {
-                B_Operator( 0, i*3     ) = DN_DX( i, 0 );
-                B_Operator( 1, i*3 + 1 ) = DN_DX( i, 1 );
-                B_Operator( 2, i*3 + 2 ) = DN_DX( i, 2 );
-                B_Operator( 3, i*3     ) = DN_DX( i, 1 );
-                B_Operator( 3, i*3 + 1 ) = DN_DX( i, 0 );
-                B_Operator( 4, i*3 + 1 ) = DN_DX( i, 2 );
-                B_Operator( 4, i*3 + 2 ) = DN_DX( i, 1 );
-                B_Operator( 5, i*3     ) = DN_DX( i, 2 );
-                B_Operator( 5, i*3 + 2 ) = DN_DX( i, 0 );
-            }
-        }
+        SD_MathUtils<double>::CalculateB( dim, B_Operator, DN_DX );
 
         KRATOS_CATCH( "" )
     }
@@ -1846,6 +1817,7 @@ namespace Kratos
                 MathUtils<double>::InvertMatrix( J0[i], InvJ0, DetJ0 );
                 noalias(N) = row(Ncontainer, i);
                 noalias(DN_DX) = prod(DN_De[i], InvJ0);
+
                 // compute B_Operator at the current integration point
                 CalculateBoperator(B, N, DN_DX);
 

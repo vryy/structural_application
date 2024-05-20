@@ -319,7 +319,6 @@ protected:
     /// Calculate Almansi strain, providing B
     virtual void CalculateStrain( const MatrixType& B, Vector& StrainVector ) const;
 
-
     ///@}
     ///@name Protected Operations
     ///@{

@@ -309,7 +309,8 @@ void MultiplicativeFiniteStrainBridgingConstitutiveLaw<2>::ComputeTangent(Fourth
     Fourth_Order_Tensor D, L, B;
     this->ComputeTangentTerms(D, L, B);
 
-    double J = MathUtils<double>::Det(m_F_n1);
+    // const double J = MathUtils<double>::Det(m_F_n1);
+    const double J = m_J_n1; // it is also OK to use this, even for Fbar
     Fourth_Order_Tensor DL;
     SD_MathUtils<double>::CalculateFourthOrderZeroTensor(DL);
     SD_MathUtils<double>::ProductFourthOrderTensor(1.0/J, D, L, DL);

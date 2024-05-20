@@ -203,6 +203,11 @@ private:
 
     /// Compute tensor M
     void ComputeM( Fourth_Order_Tensor& M, const GeometryType& rGeometry, const array_1d<double, 3>& rPoint ) const;
+
+    /**
+     * Un accessible methods
+     */
+
     void ComputeNumericalM( Fourth_Order_Tensor& M, const Matrix& DDu, const GeometryType& rGeometry,
             const array_1d<double, 3>& rPoint, const double epsilon ) const;
     void ComputeNumericalMskew( Fourth_Order_Tensor& M, const Matrix& DDu, const GeometryType& rGeometry,

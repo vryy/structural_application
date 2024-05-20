@@ -136,11 +136,38 @@ void HypoelasticFiniteStrainBridgingConstitutiveLawDC<THWSchemeType, TStressType
 }
 
 //**********************************************************************
+//**********************************************************************
+
+template<int THWSchemeType, int TStressType>
+void HypoelasticFiniteStrainAxisymmetricBridgingConstitutiveLawDC<THWSchemeType, TStressType>::CalculateDu( const unsigned int dim,
+        Matrix& DDu, const Matrix& G_Operator, const Matrix& CurrentDisp ) const
+{
+    SD_MathUtils<double>::CalculateFaxi<true>( DDu, G_Operator, CurrentDisp );
+}
+
+template<int THWSchemeType, int TStressType>
+void HypoelasticFiniteStrainAxisymmetricBridgingConstitutiveLawDC<THWSchemeType, TStressType>::CalculateG( Matrix& G_Operator,
+        const Vector& N, const Matrix& DN_DX, const GeometryType& rGeometry ) const
+{
+    const unsigned int number_of_nodes = N.size();
+
+    if (G_Operator.size1() != 5 || G_Operator.size2() != 2*number_of_nodes)
+        G_Operator.resize( 5, 2*number_of_nodes, false );
+
+    SD_MathUtils<double>::CalculateGaxi( G_Operator, rGeometry, N, DN_DX );
+}
+
+//**********************************************************************
 
 template class HypoelasticFiniteStrainBridgingConstitutiveLawDC<1, 1>;
 template class HypoelasticFiniteStrainBridgingConstitutiveLawDC<1, 2>;
 template class HypoelasticFiniteStrainBridgingConstitutiveLawDC<2, 1>;
 template class HypoelasticFiniteStrainBridgingConstitutiveLawDC<2, 2>;
+
+template class HypoelasticFiniteStrainAxisymmetricBridgingConstitutiveLawDC<1, 1>;
+template class HypoelasticFiniteStrainAxisymmetricBridgingConstitutiveLawDC<1, 2>;
+template class HypoelasticFiniteStrainAxisymmetricBridgingConstitutiveLawDC<2, 1>;
+template class HypoelasticFiniteStrainAxisymmetricBridgingConstitutiveLawDC<2, 2>;
 
 } // Namespace Kratos
 

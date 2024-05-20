@@ -1081,18 +1081,7 @@ namespace Kratos
     void FiniteStrain::CalculateF( Matrix& F, const Matrix& G_Operator, const Matrix& CurrentDisp ) const
     {
         const unsigned int dim = F.size1();
-        const unsigned int number_of_nodes = CurrentDisp.size1();
-
-        for (unsigned int i = 0; i < dim; ++i)
-        {
-            for (unsigned int j = 0; j < dim; ++j)
-            {
-                F(i, j) = 0.0;
-                for (unsigned int n = 0; n < number_of_nodes; ++n)
-                    F(i, j) += G_Operator(j*dim, n*dim) * CurrentDisp(n, i);
-            }
-            F(i, i) += 1.0;
-        }
+        SD_MathUtils<double>::CalculateF( dim, F, G_Operator, CurrentDisp );
     }
 
 //************************************************************************************
@@ -1142,35 +1131,7 @@ namespace Kratos
         KRATOS_TRY
 
         const unsigned int dim = GetGeometry().WorkingSpaceDimension();
-        const unsigned int number_of_nodes = GetGeometry().size();
-
-        B_Operator.clear();
-
-        if(dim == 2)
-        {
-            for ( unsigned int i = 0; i < number_of_nodes; ++i )
-            {
-                B_Operator( 0, i*2     ) = DN_DX( i, 0 );
-                B_Operator( 1, i*2 + 1 ) = DN_DX( i, 1 );
-                B_Operator( 2, i*2     ) = DN_DX( i, 1 );
-                B_Operator( 2, i*2 + 1 ) = DN_DX( i, 0 );
-            }
-        }
-        else if(dim == 3)
-        {
-            for ( unsigned int i = 0; i < number_of_nodes; ++i )
-            {
-                B_Operator( 0, i*3     ) = DN_DX( i, 0 );
-                B_Operator( 1, i*3 + 1 ) = DN_DX( i, 1 );
-                B_Operator( 2, i*3 + 2 ) = DN_DX( i, 2 );
-                B_Operator( 3, i*3     ) = DN_DX( i, 1 );
-                B_Operator( 3, i*3 + 1 ) = DN_DX( i, 0 );
-                B_Operator( 4, i*3 + 1 ) = DN_DX( i, 2 );
-                B_Operator( 4, i*3 + 2 ) = DN_DX( i, 1 );
-                B_Operator( 5, i*3     ) = DN_DX( i, 2 );
-                B_Operator( 5, i*3 + 2 ) = DN_DX( i, 0 );
-            }
-        }
+        SD_MathUtils<double>::CalculateB( dim, B_Operator, DN_DX );
 
         KRATOS_CATCH( "" )
     }
@@ -1183,35 +1144,7 @@ namespace Kratos
         KRATOS_TRY
 
         const unsigned int dim = GetGeometry().WorkingSpaceDimension();
-        const unsigned int number_of_nodes = GetGeometry().size();
-
-        G_Operator.clear();
-
-        if(dim == 2)
-        {
-            for ( unsigned int i = 0; i < number_of_nodes; ++i )
-            {
-                G_Operator( 0, i*2     ) = DN_DX( i, 0 );
-                G_Operator( 1, i*2 + 1 ) = DN_DX( i, 0 );
-                G_Operator( 2, i*2     ) = DN_DX( i, 1 );
-                G_Operator( 3, i*2 + 1 ) = DN_DX( i, 1 );
-            }
-        }
-        else if(dim == 3)
-        {
-            for ( unsigned int i = 0; i < number_of_nodes; ++i )
-            {
-                G_Operator( 0, i*3     ) = DN_DX( i, 0 );
-                G_Operator( 1, i*3 + 1 ) = DN_DX( i, 0 );
-                G_Operator( 2, i*3 + 2 ) = DN_DX( i, 0 );
-                G_Operator( 3, i*3     ) = DN_DX( i, 1 );
-                G_Operator( 4, i*3 + 1 ) = DN_DX( i, 1 );
-                G_Operator( 5, i*3 + 2 ) = DN_DX( i, 1 );
-                G_Operator( 6, i*3     ) = DN_DX( i, 2 );
-                G_Operator( 7, i*3 + 1 ) = DN_DX( i, 2 );
-                G_Operator( 8, i*3 + 2 ) = DN_DX( i, 2 );
-            }
-        }
+        SD_MathUtils<double>::CalculateG( dim, G_Operator, DN_DX );
 
         KRATOS_CATCH( "" )
     }

@@ -123,16 +123,9 @@ public:
      */
     //virtual void PrintData(std::ostream& rOStream) const;
 
-protected:
-    /**
-     * Member Variables
-     */
-
 private:
 
     ///@}
-    ///@name Serialization
-    ///@{
 
     friend class Serializer;
 
@@ -202,6 +195,12 @@ protected:
     {
         return 4;
     }
+
+    /// Compute the deformation gradient (but minus I)
+    void CalculateDu( const unsigned int dim, Matrix& DDu, const Matrix& G_Operator, const Matrix& CurrentDisp ) const override;
+
+    /// Compute G operator
+    void CalculateG( Matrix& G_Operator, const Vector& N, const Matrix& DN_DX, const GeometryType& rGeometry ) const override;
 
 }; // HypoelasticFiniteStrainAxisymmetricBridgingConstitutiveLawDC
 
