@@ -80,13 +80,24 @@ class SolvingStrategyPython:
         if 'list_plastic_points' not in self.Parameters:
             self.Parameters['list_plastic_points'] = False
 
-        if not('log_residuum_name' in self.Parameters):
-            self.log_residuum = open('residuum_arc_length.log', 'w')
-        else:
-            self.log_residuum = open(self.Parameters['log_residuum_name'], 'w')
+        if 'log_residuum' not in self.Parameters:
+            self.Parameters['log_residuum'] = True
+        self.log_residuum = None
+        if self.Parameters['log_residuum']:
+            if not('log_residuum_name' in self.Parameters):
+                self.log_residuum = open('residuum_arc_length.log', 'w')
+            else:
+                self.log_residuum = open(self.Parameters['log_residuum_name'], 'w')
 
-        self.log_lambda = open('lambda_arc_length.log', 'w')
-        self.log_lambda.write("time\tlambda\n")
+        if 'log_lambda' not in self.Parameters:
+            self.Parameters['log_lambda'] = True
+        self.log_lambda = None
+        if self.Parameters['log_lambda']:
+            if not('log_lambda_name' in self.Parameters):
+                self.log_lambda = open('lambda_arc_length.log', 'w')
+            else:
+                self.log_lambda = open(self.Parameters['log_lambda_name'], 'w')
+            self.log_lambda.write("time\tlambda\n")
 
         self.compute_external_load = True # flag to compute the first external load
 
@@ -121,8 +132,10 @@ class SolvingStrategyPython:
         self.arc_length_is_active = True # flag to turn on/off arc-length control
 
     def __del__(self):
-        self.log_residuum.close()
-        self.log_lambda.close()
+        if self.log_residuum != None:
+            self.log_residuum.close()
+        if self.log_lambda != None:
+            self.log_lambda.close()
 
         if self.Parameters['calculate_strain_energy'] == True:
             self.log_energy.close()
@@ -204,11 +217,12 @@ class SolvingStrategyPython:
 
         er_0 = self.space_utils.TwoNorm(self.b)
         er_n = er_0
-        self.log_residuum.write('time: ' + str(self.model_part.ProcessInfo[TIME]) + '\n')
-        self.log_residuum.write('it\tresidual\tratio\t\treduction\tlambda\n')
-        # self.log_residuum.write('0\t' + str(er_0) + '\n')
-        self.log_residuum.write('%d\t%.6e\n' % (0, er_0))
-        self.log_residuum.flush()
+        if self.log_residuum != None:
+            self.log_residuum.write('time: ' + str(self.model_part.ProcessInfo[TIME]) + '\n')
+            self.log_residuum.write('it\tresidual\tratio\t\treduction\tlambda\n')
+            # self.log_residuum.write('0\t' + str(er_0) + '\n')
+            self.log_residuum.write('%d\t%.6e\n' % (0, er_0))
+            self.log_residuum.flush()
 
         #non linear loop
         converged = False
@@ -250,12 +264,14 @@ class SolvingStrategyPython:
                     er_reduction = 1.0e99
             er_n = er
 
-            # self.log_residuum.write(str(it) + '\t' + str(er) + '\t' + str(er_ratio) + '\t' + str(er_reduction) + '\t' + str(self.arc_length_control_process.GetLambda()) + '\n')
-            self.log_residuum.write('%d\t%.6e\t%.6e\t%.6e\t%.6e\n' % (it, er, er_ratio, er_reduction, self.arc_length_control_process.GetLambda()))
-            self.log_residuum.flush()
+            if self.log_residuum != None:
+                # self.log_residuum.write(str(it) + '\t' + str(er) + '\t' + str(er_ratio) + '\t' + str(er_reduction) + '\t' + str(self.arc_length_control_process.GetLambda()) + '\n')
+                self.log_residuum.write('%d\t%.6e\t%.6e\t%.6e\t%.6e\n' % (it, er, er_ratio, er_reduction, self.arc_length_control_process.GetLambda()))
+                self.log_residuum.flush()
 
-        self.log_lambda.write(str(self.model_part.ProcessInfo[TIME]) + '\t' + str(self.arc_length_control_process.GetLambda()) + '\n')
-        self.log_lambda.flush()
+        if self.log_lambda != None:
+            self.log_lambda.write(str(self.model_part.ProcessInfo[TIME]) + '\t' + str(self.arc_length_control_process.GetLambda()) + '\n')
+            self.log_lambda.flush()
 
         if( it == self.max_iter and converged == False):
             print("Iteration did not converge at time step " + str(self.model_part.ProcessInfo[TIME]))
@@ -482,8 +498,9 @@ class SolvingStrategyPython:
             self.log_energy.write('%.6e\t%.6e\n' % (self.model_part.ProcessInfo[TIME], self.calculate_strain_energy_process.GetEnergy()))
             self.log_energy.flush()
 
-        self.log_residuum.write("----------------------------------------------------------------\n")
-        self.log_residuum.flush()
+        if self.log_residuum != None:
+            self.log_residuum.write("----------------------------------------------------------------\n")
+            self.log_residuum.flush()
 
         print("arc_length_load_control_strategy.FinalizeSolutionStep is called")
 
