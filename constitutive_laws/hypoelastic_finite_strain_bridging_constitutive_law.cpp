@@ -283,7 +283,7 @@ void HypoelasticFiniteStrainBridgingConstitutiveLaw<THWSchemeType, TStressType>:
     }
     else if constexpr (THWSchemeType == 2)
     {
-        Matrix qdelta = 0.5 * prod( qDelta, eye + qDelta );
+        Matrix qdelta = 0.5 * prod( qDelta, eye + trans(qDelta) );
         noalias(elastic_strain_tensor_trial) += prod(qdelta, Matrix(prod(DDu_half_sym, trans(qdelta))));
     }
 
@@ -610,7 +610,7 @@ void HypoelasticFiniteStrainBridgingConstitutiveLaw<THWSchemeType, TStressType>:
         SD_MathUtils<double>::CalculateFourthOrderZeroTensor(D);
         SD_MathUtils<double>::CalculateFourthOrderZeroTensor(E);
 
-        Matrix qdelta = 0.5 * prod( qDelta, eye + qDelta );
+        Matrix qdelta = 0.5 * prod( qDelta, eye + trans(qDelta) );
 
         // compute tensor C, D, E
         for (int i = 0; i < 3; ++i)
@@ -621,7 +621,7 @@ void HypoelasticFiniteStrainBridgingConstitutiveLaw<THWSchemeType, TStressType>:
                 {
                     for (int l = 0; l < 3; ++l)
                     {
-                        C[i][j](k, l) = 0.5*(eye(i, k)*eye(j, l) + eye(i, k)*qDelta(l, j) + qDelta(i, k)*eye(j, l));
+                        C[i][j](k, l) = 0.5*(eye(i, k)*eye(j, l) + eye(i, k)*qDelta(j, l) + qDelta(i, l)*eye(j, k));
 
                         for (int m = 0; m < 3; ++m)
                             D[i][j](k, l) += eye(i, k)*DDu_half_sym(l, m)*qdelta(j, m) + qdelta(i, m)*DDu_half_sym(m, l)*eye(j, k);
