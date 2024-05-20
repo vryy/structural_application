@@ -235,19 +235,9 @@ void HypoelasticFiniteStrainBridgingConstitutiveLaw<THWSchemeType, TStressType>:
 
 template<int THWSchemeType, int TStressType>
 void HypoelasticFiniteStrainBridgingConstitutiveLaw<THWSchemeType, TStressType>::CalculateDu( const unsigned int dim,
-        Matrix& F, const Matrix& G_Operator, const Matrix& CurrentDisp ) const
+        Matrix& DDu, const Matrix& G_Operator, const Matrix& CurrentDisp ) const
 {
-    const unsigned int number_of_nodes = CurrentDisp.size1();
-
-    F.clear();
-    for (unsigned int i = 0; i < dim; ++i)
-    {
-        for (unsigned int j = 0; j < dim; ++j)
-        {
-            for (unsigned int n = 0; n < number_of_nodes; ++n)
-                F(i, j) += G_Operator(j*dim, n*dim) * CurrentDisp(n, i);
-        }
-    }
+    SD_MathUtils<double>::CalculateF<true>( dim, DDu, G_Operator, CurrentDisp );
 }
 
 template<int THWSchemeType, int TStressType>
@@ -259,33 +249,8 @@ void HypoelasticFiniteStrainBridgingConstitutiveLaw<THWSchemeType, TStressType>:
 
     if (G_Operator.size1() != dim*dim || G_Operator.size2() != dim*number_of_nodes)
         G_Operator.resize( dim*dim, dim*number_of_nodes, false );
-    G_Operator.clear();
 
-    if(dim == 2)
-    {
-        for ( unsigned int i = 0; i < number_of_nodes; ++i )
-        {
-            G_Operator( 0, i*2     ) = DN_DX( i, 0 );
-            G_Operator( 1, i*2 + 1 ) = DN_DX( i, 0 );
-            G_Operator( 2, i*2     ) = DN_DX( i, 1 );
-            G_Operator( 3, i*2 + 1 ) = DN_DX( i, 1 );
-        }
-    }
-    else if(dim == 3)
-    {
-        for ( unsigned int i = 0; i < number_of_nodes; ++i )
-        {
-            G_Operator( 0, i*3     ) = DN_DX( i, 0 );
-            G_Operator( 1, i*3 + 1 ) = DN_DX( i, 0 );
-            G_Operator( 2, i*3 + 2 ) = DN_DX( i, 0 );
-            G_Operator( 3, i*3     ) = DN_DX( i, 1 );
-            G_Operator( 4, i*3 + 1 ) = DN_DX( i, 1 );
-            G_Operator( 5, i*3 + 2 ) = DN_DX( i, 1 );
-            G_Operator( 6, i*3     ) = DN_DX( i, 2 );
-            G_Operator( 7, i*3 + 1 ) = DN_DX( i, 2 );
-            G_Operator( 8, i*3 + 2 ) = DN_DX( i, 2 );
-        }
-    }
+    SD_MathUtils<double>::CalculateG( dim, G_Operator, DN_DX );
 }
 
 //**********************************************************************
@@ -1023,6 +988,28 @@ void HypoelasticFiniteStrainBridgingConstitutiveLaw<THWSchemeType, TStressType>:
             }
         }
     }
+}
+
+//**********************************************************************
+//**********************************************************************
+
+template<int THWSchemeType, int TStressType>
+void HypoelasticFiniteStrainAxisymmetricBridgingConstitutiveLaw<THWSchemeType, TStressType>::CalculateDu( const unsigned int dim,
+        Matrix& DDu, const Matrix& G_Operator, const Matrix& CurrentDisp ) const
+{
+    SD_MathUtils<double>::CalculateFaxi<true>( DDu, G_Operator, CurrentDisp );
+}
+
+template<int THWSchemeType, int TStressType>
+void HypoelasticFiniteStrainAxisymmetricBridgingConstitutiveLaw<THWSchemeType, TStressType>::CalculateG( Matrix& G_Operator,
+        const Vector& N, const Matrix& DN_DX, const GeometryType& rGeometry ) const
+{
+    const unsigned int number_of_nodes = N.size();
+
+    if (G_Operator.size1() != 5 || G_Operator.size2() != 2*number_of_nodes)
+        G_Operator.resize( 5, 2*number_of_nodes, false );
+
+    SD_MathUtils<double>::CalculateGaxi( G_Operator, rGeometry, N, DN_DX );
 }
 
 //**********************************************************************

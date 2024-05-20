@@ -91,28 +91,11 @@ namespace Kratos
 
     void KinematicLinearAxisymmetric::CalculateBoperator( Matrix& B_Operator, const Vector& N, const Matrix& DN_DX ) const
     {
-        const unsigned int number_of_nodes = GetGeometry().PointsNumber();
+        KRATOS_TRY
 
-        unsigned int dim = GetGeometry().WorkingSpaceDimension();
-        unsigned int strain_size = this->GetStrainSize(dim);
+        SD_MathUtils<double>::CalculateBaxi( B_Operator, GetGeometry(), N, DN_DX );
 
-        noalias( B_Operator ) = ZeroMatrix( strain_size, number_of_nodes * dim );
-
-        double r = 0.0;
-
-        for ( unsigned int i = 0; i < number_of_nodes; ++i )
-        {
-            r += N[i] * GetGeometry()[i].X0();
-        }
-
-        for ( unsigned int i = 0; i < number_of_nodes; ++i )
-        {
-            B_Operator( 0, i*2     ) = DN_DX( i, 0 );
-            B_Operator( 1, i*2 + 1 ) = DN_DX( i, 1 );
-            B_Operator( 2, i*2     ) = DN_DX( i, 1 );
-            B_Operator( 2, i*2 + 1 ) = DN_DX( i, 0 );
-            B_Operator( 3, i*2     ) = N( i ) / r;
-        }
+        KRATOS_CATCH( "" )
     }
 
     void KinematicLinearAxisymmetric::CalculateBBaroperator( Matrix& B_Operator, const Matrix& DN_DX, const Matrix& Bdil_bar ) const

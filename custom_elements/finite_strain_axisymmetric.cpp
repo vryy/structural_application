@@ -90,54 +90,14 @@ namespace Kratos
 
     void FiniteStrainAxisymmetric::CalculateF( Matrix& F, const Matrix& G_Operator, const Matrix& CurrentDisp ) const
     {
-        KRATOS_TRY
-
-        const unsigned int number_of_nodes = CurrentDisp.size1();
-
-        F.clear();
-
-        for (unsigned int i = 0; i < 2; ++i)
-        {
-            for (unsigned int j = 0; j < 2; ++j)
-            {
-                for (unsigned int n = 0; n < number_of_nodes; ++n)
-                {
-                    F(i, j) += G_Operator(j*2, n*2) * CurrentDisp(n, i);
-                }
-            }
-            F(i, i) += 1.0;
-        }
-
-        F(2, 2) = 1.0;
-        for (unsigned int n = 0; n < number_of_nodes; ++n)
-            F(2, 2) += G_Operator(4, n*2) * CurrentDisp(n, 0);
-
-        KRATOS_CATCH( "" )
+        SD_MathUtils<double>::CalculateFaxi(F, G_Operator, CurrentDisp);
     }
 
     void FiniteStrainAxisymmetric::CalculateB( Matrix& B_Operator, const Vector& N, const Matrix& DN_DX, const Matrix& CurrentDisp ) const
     {
         KRATOS_TRY
 
-        const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-
-        B_Operator.clear();
-
-        double r = 0.0;
-
-        for ( unsigned int i = 0; i < number_of_nodes; ++i )
-        {
-            r += N[i] * (GetGeometry()[i].X0() + CurrentDisp(i, 0));
-        }
-
-        for ( unsigned int i = 0; i < number_of_nodes; ++i )
-        {
-            B_Operator( 0, i*2     ) = DN_DX( i, 0 );
-            B_Operator( 1, i*2 + 1 ) = DN_DX( i, 1 );
-            B_Operator( 2, i*2     ) = DN_DX( i, 1 );
-            B_Operator( 2, i*2 + 1 ) = DN_DX( i, 0 );
-            B_Operator( 3, i*2     ) = N( i ) / r;
-        }
+        SD_MathUtils<double>::CalculateBaxi( B_Operator, GetGeometry(), N, DN_DX, CurrentDisp );
 
         KRATOS_CATCH( "" )
     }
@@ -146,25 +106,7 @@ namespace Kratos
     {
         KRATOS_TRY
 
-        const unsigned int number_of_nodes = GetGeometry().size();
-
-        G_Operator.clear();
-
-        double r = 0.0;
-
-        for ( unsigned int i = 0; i < number_of_nodes; ++i )
-        {
-            r += N[i] * GetGeometry()[i].X0();
-        }
-
-        for ( unsigned int i = 0; i < number_of_nodes; ++i )
-        {
-            G_Operator( 0, i*2     ) = DN_DX( i, 0 );
-            G_Operator( 1, i*2 + 1 ) = DN_DX( i, 0 );
-            G_Operator( 2, i*2     ) = DN_DX( i, 1 );
-            G_Operator( 3, i*2 + 1 ) = DN_DX( i, 1 );
-            G_Operator( 4, i*2     ) = N( i ) / r;
-        }
+        SD_MathUtils<double>::CalculateGaxi( G_Operator, GetGeometry(), N, DN_DX );
 
         KRATOS_CATCH( "" )
     }
@@ -173,25 +115,7 @@ namespace Kratos
     {
         KRATOS_TRY
 
-        const unsigned int number_of_nodes = GetGeometry().size();
-
-        G_Operator.clear();
-
-        double r = 0.0;
-
-        for ( unsigned int i = 0; i < number_of_nodes; ++i )
-        {
-            r += N[i] * (GetGeometry()[i].X0() + CurrentDisp(i, 0));
-        }
-
-        for ( unsigned int i = 0; i < number_of_nodes; ++i )
-        {
-            G_Operator( 0, i*2     ) = DN_DX( i, 0 );
-            G_Operator( 1, i*2 + 1 ) = DN_DX( i, 0 );
-            G_Operator( 2, i*2     ) = DN_DX( i, 1 );
-            G_Operator( 3, i*2 + 1 ) = DN_DX( i, 1 );
-            G_Operator( 4, i*2     ) = N( i ) / r;
-        }
+        SD_MathUtils<double>::CalculateGaxi( G_Operator, GetGeometry(), N, DN_DX, CurrentDisp );
 
         KRATOS_CATCH( "" )
     }

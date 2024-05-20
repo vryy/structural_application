@@ -148,6 +148,12 @@ protected:
     /// Compute the consistent tangent (tensor)
     void ComputeTangent(const Parameters& rValues, Fourth_Order_Tensor& A) const override;
 
+    /// Compute the deformation gradient (but minus I)
+    virtual void CalculateDu( const unsigned int dim, Matrix& DDu, const Matrix& G_Operator, const Matrix& CurrentDisp ) const;
+
+    /// Compute G operator
+    virtual void CalculateG( Matrix& G_Operator, const Vector& N, const Matrix& DN_DX, const GeometryType& rGeometry ) const;
+
 private:
 
     Matrix m_stress_n; // Cauchy stress
@@ -214,15 +220,6 @@ private:
     void ComputeNumericalDqDeltaTnqDeltaDL( Fourth_Order_Tensor& D, const Matrix& DDu, const Matrix& stress_n, const GeometryType& rGeometry,
             const array_1d<double, 3>& rPoint, const double epsilon ) const;
 
-    /// Compute the deformation gradient
-    virtual void CalculateDu( const unsigned int dim, Matrix& F, const Matrix& G_Operator, const Matrix& CurrentDisp ) const;
-
-    /// Compute G operator
-    virtual void CalculateG( Matrix& G_Operator, const Vector& N, const Matrix& DN_DX, const GeometryType& rGeometry ) const;
-
-    /**
-     * Un accessible methods
-     */
 }; // Class HypoelasticFiniteStrainBridgingConstitutiveLaw
 
 /**
@@ -268,6 +265,12 @@ protected:
     {
         return 4;
     }
+
+    /// Compute the deformation gradient (but minus I)
+    void CalculateDu( const unsigned int dim, Matrix& DDu, const Matrix& G_Operator, const Matrix& CurrentDisp ) const override;
+
+    /// Compute G operator
+    void CalculateG( Matrix& G_Operator, const Vector& N, const Matrix& DN_DX, const GeometryType& rGeometry ) const override;
 
 }; // HypoelasticFiniteStrainAxisymmetricBridgingConstitutiveLaw
 
