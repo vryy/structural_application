@@ -201,16 +201,16 @@ void BeamElement::EquationIdVector(EquationIdVectorType& rResult,
     if(rResult.size() != 12)
         rResult.resize(12,false);
 
-    rResult[0]	= GetGeometry()[0].GetDof(DISPLACEMENT_X).EquationId();
-    rResult[1]	= GetGeometry()[0].GetDof(DISPLACEMENT_Y).EquationId();
-    rResult[2]	= GetGeometry()[0].GetDof(DISPLACEMENT_Z).EquationId();
-    rResult[3]	= GetGeometry()[0].GetDof(ROTATION_X).EquationId();
-    rResult[4]	= GetGeometry()[0].GetDof(ROTATION_Y).EquationId();
-    rResult[5]	= GetGeometry()[0].GetDof(ROTATION_Z).EquationId();
-    rResult[6]	= GetGeometry()[1].GetDof(DISPLACEMENT_X).EquationId();
-    rResult[7]	= GetGeometry()[1].GetDof(DISPLACEMENT_Y).EquationId();
-    rResult[8]	= GetGeometry()[1].GetDof(DISPLACEMENT_Z).EquationId();
-    rResult[9]	= GetGeometry()[1].GetDof(ROTATION_X).EquationId();
+    rResult[0]  = GetGeometry()[0].GetDof(DISPLACEMENT_X).EquationId();
+    rResult[1]  = GetGeometry()[0].GetDof(DISPLACEMENT_Y).EquationId();
+    rResult[2]  = GetGeometry()[0].GetDof(DISPLACEMENT_Z).EquationId();
+    rResult[3]  = GetGeometry()[0].GetDof(ROTATION_X).EquationId();
+    rResult[4]  = GetGeometry()[0].GetDof(ROTATION_Y).EquationId();
+    rResult[5]  = GetGeometry()[0].GetDof(ROTATION_Z).EquationId();
+    rResult[6]  = GetGeometry()[1].GetDof(DISPLACEMENT_X).EquationId();
+    rResult[7]  = GetGeometry()[1].GetDof(DISPLACEMENT_Y).EquationId();
+    rResult[8]  = GetGeometry()[1].GetDof(DISPLACEMENT_Z).EquationId();
+    rResult[9]  = GetGeometry()[1].GetDof(ROTATION_X).EquationId();
     rResult[10] = GetGeometry()[1].GetDof(ROTATION_Y).EquationId();
     rResult[11] = GetGeometry()[1].GetDof(ROTATION_Z).EquationId();
 }
@@ -306,18 +306,18 @@ void BeamElement::CalculateRHS(Vector& rRightHandSideVector)
     CalculateTransformationMatrix(Rotation);
     CalculateBodyForce(Rotation, LocalBody, rRightHandSideVector);
 
-    CurrentDisplacement(0)		=   GetGeometry()[0].GetSolutionStepValue(DISPLACEMENT_X) - mInitialDisp(0, 0);
-    CurrentDisplacement(1)		=   GetGeometry()[0].GetSolutionStepValue(DISPLACEMENT_Y) - mInitialDisp(0, 1);
-    CurrentDisplacement(2)		=   GetGeometry()[0].GetSolutionStepValue(DISPLACEMENT_Z) - mInitialDisp(0, 2);
-    CurrentDisplacement(3)		=   GetGeometry()[0].GetSolutionStepValue(ROTATION_X) - mInitialRot(0, 0);
-    CurrentDisplacement(4)		=   GetGeometry()[0].GetSolutionStepValue(ROTATION_Y) - mInitialRot(0, 1);
-    CurrentDisplacement(5)		=   GetGeometry()[0].GetSolutionStepValue(ROTATION_Z) - mInitialRot(0, 2);
-    CurrentDisplacement(6)		=   GetGeometry()[1].GetSolutionStepValue(DISPLACEMENT_X) - mInitialDisp(1, 0);
-    CurrentDisplacement(7)		=   GetGeometry()[1].GetSolutionStepValue(DISPLACEMENT_Y) - mInitialDisp(1, 1);
-    CurrentDisplacement(8)		=   GetGeometry()[1].GetSolutionStepValue(DISPLACEMENT_Z) - mInitialDisp(1, 2);
-    CurrentDisplacement(9)		=   GetGeometry()[1].GetSolutionStepValue(ROTATION_X) - mInitialRot(1, 0);
-    CurrentDisplacement(10)	    =   GetGeometry()[1].GetSolutionStepValue(ROTATION_Y) - mInitialRot(1, 1);
-    CurrentDisplacement(11)	    =   GetGeometry()[1].GetSolutionStepValue(ROTATION_Z) - mInitialRot(1, 2);
+    CurrentDisplacement(0)      =   GetGeometry()[0].GetSolutionStepValue(DISPLACEMENT_X) - mInitialDisp(0, 0);
+    CurrentDisplacement(1)      =   GetGeometry()[0].GetSolutionStepValue(DISPLACEMENT_Y) - mInitialDisp(0, 1);
+    CurrentDisplacement(2)      =   GetGeometry()[0].GetSolutionStepValue(DISPLACEMENT_Z) - mInitialDisp(0, 2);
+    CurrentDisplacement(3)      =   GetGeometry()[0].GetSolutionStepValue(ROTATION_X) - mInitialRot(0, 0);
+    CurrentDisplacement(4)      =   GetGeometry()[0].GetSolutionStepValue(ROTATION_Y) - mInitialRot(0, 1);
+    CurrentDisplacement(5)      =   GetGeometry()[0].GetSolutionStepValue(ROTATION_Z) - mInitialRot(0, 2);
+    CurrentDisplacement(6)      =   GetGeometry()[1].GetSolutionStepValue(DISPLACEMENT_X) - mInitialDisp(1, 0);
+    CurrentDisplacement(7)      =   GetGeometry()[1].GetSolutionStepValue(DISPLACEMENT_Y) - mInitialDisp(1, 1);
+    CurrentDisplacement(8)      =   GetGeometry()[1].GetSolutionStepValue(DISPLACEMENT_Z) - mInitialDisp(1, 2);
+    CurrentDisplacement(9)      =   GetGeometry()[1].GetSolutionStepValue(ROTATION_X) - mInitialRot(1, 0);
+    CurrentDisplacement(10)     =   GetGeometry()[1].GetSolutionStepValue(ROTATION_Y) - mInitialRot(1, 1);
+    CurrentDisplacement(11)     =   GetGeometry()[1].GetSolutionStepValue(ROTATION_Z) - mInitialRot(1, 2);
 
     CalculateLHS(GlobalMatrix);
     noalias(mCurrentForces) = prod(GlobalMatrix, CurrentDisplacement);
@@ -432,67 +432,67 @@ void BeamElement::CalculateLocalMatrix(Matrix& LocalMatrix)
     //const double mlength = GetGeometry().Length();
     const double Poisson = GetProperties()[POISSON_RATIO];
     const double Youngs  = GetProperties()[YOUNG_MODULUS];
-    const double Elasticidad_Cortante	= Youngs /(2.0*(1.0 + Poisson));
+    const double Elasticidad_Cortante   = Youngs /(2.0*(1.0 + Poisson));
 
-    const double L	=	 mlength;
-    const double LL   =	 mlength* mlength;
-    const double LLL	=	 mlength* mlength * mlength;
+    const double L  =    mlength;
+    const double LL   =  mlength* mlength;
+    const double LLL    =    mlength* mlength * mlength;
 
     double const EA   =  mArea          * Youngs;
     double const EIx  =  mInertia_x     * Youngs;
     double const EIy  =  mInertia_y     * Youngs;
     double const JG   =  mInertia_Polar * Elasticidad_Cortante;
 
-    LocalMatrix(0,0)	=   (EA)/(L);
-    LocalMatrix(6,0)	=   -(EA)/(L);
+    LocalMatrix(0,0)    =   (EA)/(L);
+    LocalMatrix(6,0)    =   -(EA)/(L);
 
-    LocalMatrix(1,1)	=   (12*EIx)/(LLL);
-    LocalMatrix(5,1)	=   (6*EIx)/(LL);
-    LocalMatrix(7,1)	=   -(12*EIx)/(LLL);
-    LocalMatrix(11,1)	=   (6*EIx)/(LL);
+    LocalMatrix(1,1)    =   (12*EIx)/(LLL);
+    LocalMatrix(5,1)    =   (6*EIx)/(LL);
+    LocalMatrix(7,1)    =   -(12*EIx)/(LLL);
+    LocalMatrix(11,1)   =   (6*EIx)/(LL);
 
-    LocalMatrix(2,2)	=   (12*EIy)/(LLL);
-    LocalMatrix(4,2)	=   -(6*EIy)/(LL);
-    LocalMatrix(8,2)	=   -(12*EIy)/(LLL);
-    LocalMatrix(10,2)	=   -(6*EIy)/(LL);
+    LocalMatrix(2,2)    =   (12*EIy)/(LLL);
+    LocalMatrix(4,2)    =   -(6*EIy)/(LL);
+    LocalMatrix(8,2)    =   -(12*EIy)/(LLL);
+    LocalMatrix(10,2)   =   -(6*EIy)/(LL);
 
-    LocalMatrix(3,3)	=   (JG)/L;
-    LocalMatrix(9,3)	=   -(JG)/L;
+    LocalMatrix(3,3)    =   (JG)/L;
+    LocalMatrix(9,3)    =   -(JG)/L;
 
-    LocalMatrix(2,4)	=   -(6*EIy)/(LL);
-    LocalMatrix(4,4)	=   (4*EIy)/L;
-    LocalMatrix(8,4)	=    (6*EIy)/(LL);
-    LocalMatrix(10,4)	=    (2*EIy)/L;
+    LocalMatrix(2,4)    =   -(6*EIy)/(LL);
+    LocalMatrix(4,4)    =   (4*EIy)/L;
+    LocalMatrix(8,4)    =    (6*EIy)/(LL);
+    LocalMatrix(10,4)   =    (2*EIy)/L;
 
-    LocalMatrix(1,5)	=   (6*EIx)/(LL);
-    LocalMatrix(5,5)	=   (4*EIx)/L;
-    LocalMatrix(7,5)	=   -(6*EIx)/(LL);
-    LocalMatrix(11,5)	=   (2*EIx)/L;
+    LocalMatrix(1,5)    =   (6*EIx)/(LL);
+    LocalMatrix(5,5)    =   (4*EIx)/L;
+    LocalMatrix(7,5)    =   -(6*EIx)/(LL);
+    LocalMatrix(11,5)   =   (2*EIx)/L;
 
-    LocalMatrix(0,6)	=    -(EA)/( L);
-    LocalMatrix(6,6)	=   (EA)/( L);
+    LocalMatrix(0,6)    =    -(EA)/( L);
+    LocalMatrix(6,6)    =   (EA)/( L);
 
-    LocalMatrix(1,7)	=   -(12*EIx)/(LLL);
-    LocalMatrix(5,7)	=   -(6*EIx)/(LL);
-    LocalMatrix(7,7)	=    (12*EIx)/(LLL);
-    LocalMatrix(11,7)	=	-(6*EIx)/(LL);
+    LocalMatrix(1,7)    =   -(12*EIx)/(LLL);
+    LocalMatrix(5,7)    =   -(6*EIx)/(LL);
+    LocalMatrix(7,7)    =    (12*EIx)/(LLL);
+    LocalMatrix(11,7)   =   -(6*EIx)/(LL);
 
-    LocalMatrix(2,8)	=	 -(12*EIy)/(LLL);
-    LocalMatrix(4,8)	=    (6*EIy)/(LL);
-    LocalMatrix(8,8)	=    (12*EIy)/(LLL);
-    LocalMatrix(10,8)	=    (6*EIy)/(LL);
+    LocalMatrix(2,8)    =    -(12*EIy)/(LLL);
+    LocalMatrix(4,8)    =    (6*EIy)/(LL);
+    LocalMatrix(8,8)    =    (12*EIy)/(LLL);
+    LocalMatrix(10,8)   =    (6*EIy)/(LL);
 
-    LocalMatrix(3,9)	=   -(JG)/L;
-    LocalMatrix(9,9)	=    (JG)/L;
+    LocalMatrix(3,9)    =   -(JG)/L;
+    LocalMatrix(9,9)    =    (JG)/L;
 
-    LocalMatrix(2,10)	=   -(6*EIy)/(LL);
-    LocalMatrix(4,10)	=  (2*EIy)/L;
-    LocalMatrix(8,10)	=  (6*EIy)/(LL);
+    LocalMatrix(2,10)   =   -(6*EIy)/(LL);
+    LocalMatrix(4,10)   =  (2*EIy)/L;
+    LocalMatrix(8,10)   =  (6*EIy)/(LL);
     LocalMatrix(10,10)=  (4*EIy)/L;
 
-    LocalMatrix(1,11)	=   (6*EIx)/(LL);
-    LocalMatrix(5,11)	=   (2*EIx)/L;
-    LocalMatrix(7,11)	=  -(6*EIx)/(LL);
+    LocalMatrix(1,11)   =   (6*EIx)/(LL);
+    LocalMatrix(5,11)   =   (2*EIx)/L;
+    LocalMatrix(7,11)   =  -(6*EIx)/(LL);
     LocalMatrix(11,11)=  (4*EIx)/L;
 
     KRATOS_CATCH("")
@@ -507,10 +507,10 @@ void BeamElement::CalculateTransformationMatrix(Matrix& Rotation)
     Vector Normal_zero(9); // vector que contiene los cosenos directores.
     Vector x_zero(6);
     Vector Vector_zero(3);
-    noalias(Normal_zero) =	zero_vector<double>(9);
-    noalias(x_zero)      =	zero_vector<double>(6);
-    noalias(Vector_zero) =	zero_vector<double>(3);
-    noalias(Rotation)    =	zero_matrix<double> (12,12);
+    noalias(Normal_zero) =  zero_vector<double>(9);
+    noalias(x_zero)      =  zero_vector<double>(6);
+    noalias(Vector_zero) =  zero_vector<double>(3);
+    noalias(Rotation)    =  zero_matrix<double> (12,12);
 
     double nx, ny, nz,teta/*, phi*/;
 
@@ -645,7 +645,7 @@ void BeamElement::CalculateBodyForce(const Matrix& Rotation, Vector& LocalBody, 
         else
         {
             alpha = inner_prod(Normal_Loads,Vector_zero)/(norm_2(Vector_zero)*norm_2( Normal_Loads));
-            alpha	= signo*acos(alpha);
+            alpha   = signo*acos(alpha);
         }
 
         sino   = sin(alpha);
@@ -659,10 +659,10 @@ void BeamElement::CalculateBodyForce(const Matrix& Rotation, Vector& LocalBody, 
 
         Cargas_X[0]=   Load[0]*mlength/2.00;     // Fuerza en X;
         Cargas_X[1]=   -(Load[1]*mlength)/2.00;  // Fuerza en Y; graveded
-        Cargas_X[2]=   0.00;														                                             // Fuerza en Z
-        Cargas_X[3]=   0.00;														                                             // Momento Tersor X;
-        Cargas_X[4]=   0.00;														                                             // Momento Y
-        Cargas_X[5]=  -(Load[1])*mlength*mlength/12.00;;										// Momento Z
+        Cargas_X[2]=   0.00;                                                                                                     // Fuerza en Z
+        Cargas_X[3]=   0.00;                                                                                                     // Momento Tersor X;
+        Cargas_X[4]=   0.00;                                                                                                     // Momento Y
+        Cargas_X[5]=  -(Load[1])*mlength*mlength/12.00;;                                        // Momento Z
         Cargas_X[6]=   Load[0]*mlength/2.00;
         Cargas_X[7]=   -(Load[1])*mlength/2.00;
         Cargas_X[8]=    0.00;
@@ -670,7 +670,7 @@ void BeamElement::CalculateBodyForce(const Matrix& Rotation, Vector& LocalBody, 
         Cargas_X[10]=   0.00;
         Cargas_X[11]=   (Load[1])*mlength*mlength/12.00;
 
-        noalias(GlobalBody) = prod(Rotation,Cargas_X);		// Cargas externas en coordenadas globales.
+        noalias(GlobalBody) = prod(Rotation,Cargas_X);      // Cargas externas en coordenadas globales.
         noalias(LocalBody)  = Cargas_X;
     }
 
@@ -678,9 +678,9 @@ void BeamElement::CalculateBodyForce(const Matrix& Rotation, Vector& LocalBody, 
     //***********************************
     if(Weight[2]!=0.00)
     {
-        Normal_Loads[0]	= Vector_zero[0] ;
-        Normal_Loads[1]	= Vector_zero[1] ;
-        Normal_Loads[2]	= 0.00;
+        Normal_Loads[0] = Vector_zero[0] ;
+        Normal_Loads[1] = Vector_zero[1] ;
+        Normal_Loads[2] = 0.00;
 
         if (Vector_zero[2]<0)
         {
@@ -693,7 +693,7 @@ void BeamElement::CalculateBodyForce(const Matrix& Rotation, Vector& LocalBody, 
         else
         {
             alpha = inner_prod(Normal_Loads,Vector_zero)/(norm_2(Vector_zero)*norm_2( Normal_Loads));
-            alpha	= signo*acos(alpha);
+            alpha   = signo*acos(alpha);
         }
 
         sino = sin(alpha);
@@ -708,9 +708,9 @@ void BeamElement::CalculateBodyForce(const Matrix& Rotation, Vector& LocalBody, 
 
         Cargas_Z[0]=   -Load[0]*mlength/2.00;     // Fuerza en X;
         Cargas_Z[1]=   0.00;
-        Cargas_Z[2]=   -(Load[1]*mlength)/2.00;  // Fuerza en Z; graveded														                                             // Fuerza en Z
-        Cargas_Z[3]=   0.00;														                                             // Momento Tersor X;
-        Cargas_Z[4]=   -(Load[1])*mlength*mlength/12.00;													                                             // Momento Y
+        Cargas_Z[2]=   -(Load[1]*mlength)/2.00;  // Fuerza en Z; graveded                                                                                                    // Fuerza en Z
+        Cargas_Z[3]=   0.00;                                                                                                     // Momento Tersor X;
+        Cargas_Z[4]=   -(Load[1])*mlength*mlength/12.00;                                                                                                 // Momento Y
         Cargas_Z[5]=    0.00;
         Cargas_Z[6]=   -Load[0]*mlength/2.00;
         Cargas_Z[7]=   0.00;
@@ -719,7 +719,7 @@ void BeamElement::CalculateBodyForce(const Matrix& Rotation, Vector& LocalBody, 
         Cargas_Z[10]= (Load[1])*mlength*mlength/12.00;
         Cargas_Z[11]=  0.00;
 
-        noalias(GlobalBody) = prod(Rotation,Cargas_Z);		// Cargas externas en coordenadas globales.
+        noalias(GlobalBody) = prod(Rotation,Cargas_Z);      // Cargas externas en coordenadas globales.
         noalias(LocalBody)  = Cargas_Z;
     }
 
@@ -728,9 +728,9 @@ void BeamElement::CalculateBodyForce(const Matrix& Rotation, Vector& LocalBody, 
     if(Weight[1]!=0.00)
     {
         Normal_Loads      = ZeroVector(3);
-        Normal_Loads[0]	= Vector_zero[0] ;
-        Normal_Loads[1]	= 0.00 ;
-        Normal_Loads[2]	= Vector_zero[2];
+        Normal_Loads[0] = Vector_zero[0] ;
+        Normal_Loads[1] = 0.00 ;
+        Normal_Loads[2] = Vector_zero[2];
 
         if (Vector_zero[1]<0)
         {
@@ -743,7 +743,7 @@ void BeamElement::CalculateBodyForce(const Matrix& Rotation, Vector& LocalBody, 
         else
         {
             alpha = inner_prod(Normal_Loads,Vector_zero)/(norm_2(Vector_zero)*norm_2( Normal_Loads));
-            alpha	= signo*acos(alpha);
+            alpha   = signo*acos(alpha);
         }
 
         sino = sin(alpha);
@@ -759,10 +759,10 @@ void BeamElement::CalculateBodyForce(const Matrix& Rotation, Vector& LocalBody, 
 
         Cargas_Y[0]=   -Load[0]*mlength/2.00;     // Fuerza en X;
         Cargas_Y[1]=   -(Load[1]*mlength)/2.00;  // Fuerza en Y; graveded
-        Cargas_Y[2]=   0.00;														                                             // Fuerza en Z
-        Cargas_Y[3]=   0.00;														                                             // Momento Tersor X;
-        Cargas_Y[4]=   0.00;														                                             // Momento Y
-        Cargas_Y[5]=  -(Load[1])*mlength*mlength/12.00;;										// Momento Z
+        Cargas_Y[2]=   0.00;                                                                                                     // Fuerza en Z
+        Cargas_Y[3]=   0.00;                                                                                                     // Momento Tersor X;
+        Cargas_Y[4]=   0.00;                                                                                                     // Momento Y
+        Cargas_Y[5]=  -(Load[1])*mlength*mlength/12.00;;                                        // Momento Z
         Cargas_Y[6]=   -Load[0]*mlength/2.00;
         Cargas_Y[7]=   -(Load[1])*mlength/2.00;
         Cargas_Y[8]=    0.00;
@@ -770,7 +770,7 @@ void BeamElement::CalculateBodyForce(const Matrix& Rotation, Vector& LocalBody, 
         Cargas_Y[10]=   0.00;
         Cargas_Y[11]=   (Load[1])*mlength*mlength/12.00;
 
-        noalias(GlobalBody) = prod(Rotation,Cargas_Y);		// Cargas externas en coordenadas globales.
+        noalias(GlobalBody) = prod(Rotation,Cargas_Y);      // Cargas externas en coordenadas globales.
         noalias(LocalBody)  = Cargas_Y;
     }
 
@@ -1002,19 +1002,19 @@ void BeamElement::CalculateOnIntegrationPoints( const Variable<array_1d<double,3
 //         Output[0][0] = 0.00;  //Stress[3];
 //         Output[0][1] = 0.00;  //Stress[4];
 //         Output[0][2] = factor * CalculateInternalMoment(Stress[5], Stress[11], Load2[1], 1.00/4.00); //Stress[5];
-// //			Output[0][2] = factor * CalculateInternalMoment(Stress[5], Stress[1], Load2[1], mlength/4.00); //Stress[5];
+// //           Output[0][2] = factor * CalculateInternalMoment(Stress[5], Stress[1], Load2[1], mlength/4.00); //Stress[5];
 //         // hbui: It is noted that, the location of the integration point is not the one from Gauss quadrature
 
 //         Output[1][0] = 0.00;
 //         Output[1][1] = 0.00;
 //         Output[1][2] = factor * CalculateInternalMoment(Stress[5], Stress[11], Load2[1], 1./2);
-// //			Output[1][2] = factor * CalculateInternalMoment(Stress[5], Stress[1], Load2[1], mlength/2);
+// //           Output[1][2] = factor * CalculateInternalMoment(Stress[5], Stress[1], Load2[1], mlength/2);
 
 
 //         Output[2][0] = 0.00;
 //         Output[2][1] = 0.00;
 //         Output[2][2] = factor * CalculateInternalMoment(Stress[5], Stress[11], Load2[1], 3.00/4.00);
-// //			Output[2][2] = factor * CalculateInternalMoment(Stress[5], Stress[1], Load2[1], 3.00*mlength/4.00);
+// //           Output[2][2] = factor * CalculateInternalMoment(Stress[5], Stress[1], Load2[1], 3.00*mlength/4.00);
         /*******end of old *********/
 
         /***** new *********/
@@ -1110,7 +1110,7 @@ void BeamElement::CalculateOnIntegrationPoints( const Variable<Vector>& rVariabl
 
 double BeamElement::CalculateInternalMoment(const double& Mo, const double& Vo, const double& Load, const double& X)
 {
-//	     return Mo - Vo*X + 0.5 * Load * X * X;
+//       return Mo - Vo*X + 0.5 * Load * X * X;
     return Mo *(1-X) - Vo*X;
 }
 
@@ -1140,25 +1140,25 @@ void BeamElement::CalculateLocalNodalStress(Vector& Stress)
     Rotation.resize(12,12, false);
     Stress.resize(12, false);
 
-    CurrentDisplacement(0)		=   GetGeometry()[0].GetSolutionStepValue(DISPLACEMENT_X);
-    CurrentDisplacement(1)		=   GetGeometry()[0].GetSolutionStepValue(DISPLACEMENT_Y);
-    CurrentDisplacement(2)		=   GetGeometry()[0].GetSolutionStepValue(DISPLACEMENT_Z);
-    CurrentDisplacement(3)		=   GetGeometry()[0].GetSolutionStepValue(ROTATION_X);
-    CurrentDisplacement(4)		=   GetGeometry()[0].GetSolutionStepValue(ROTATION_Y);
-    CurrentDisplacement(5)		=   GetGeometry()[0].GetSolutionStepValue(ROTATION_Z);
-    CurrentDisplacement(6)		=   GetGeometry()[1].GetSolutionStepValue(DISPLACEMENT_X);
-    CurrentDisplacement(7)		=   GetGeometry()[1].GetSolutionStepValue(DISPLACEMENT_Y);
-    CurrentDisplacement(8)		=   GetGeometry()[1].GetSolutionStepValue(DISPLACEMENT_Z);
-    CurrentDisplacement(9)		=   GetGeometry()[1].GetSolutionStepValue(ROTATION_X);
-    CurrentDisplacement(10)	        =   GetGeometry()[1].GetSolutionStepValue(ROTATION_Y);
-    CurrentDisplacement(11)	        =   GetGeometry()[1].GetSolutionStepValue(ROTATION_Z);
+    CurrentDisplacement(0)      =   GetGeometry()[0].GetSolutionStepValue(DISPLACEMENT_X);
+    CurrentDisplacement(1)      =   GetGeometry()[0].GetSolutionStepValue(DISPLACEMENT_Y);
+    CurrentDisplacement(2)      =   GetGeometry()[0].GetSolutionStepValue(DISPLACEMENT_Z);
+    CurrentDisplacement(3)      =   GetGeometry()[0].GetSolutionStepValue(ROTATION_X);
+    CurrentDisplacement(4)      =   GetGeometry()[0].GetSolutionStepValue(ROTATION_Y);
+    CurrentDisplacement(5)      =   GetGeometry()[0].GetSolutionStepValue(ROTATION_Z);
+    CurrentDisplacement(6)      =   GetGeometry()[1].GetSolutionStepValue(DISPLACEMENT_X);
+    CurrentDisplacement(7)      =   GetGeometry()[1].GetSolutionStepValue(DISPLACEMENT_Y);
+    CurrentDisplacement(8)      =   GetGeometry()[1].GetSolutionStepValue(DISPLACEMENT_Z);
+    CurrentDisplacement(9)      =   GetGeometry()[1].GetSolutionStepValue(ROTATION_X);
+    CurrentDisplacement(10)         =   GetGeometry()[1].GetSolutionStepValue(ROTATION_Y);
+    CurrentDisplacement(11)         =   GetGeometry()[1].GetSolutionStepValue(ROTATION_Z);
 
     CalculateTransformationMatrix(Rotation);
     CalculateLocalMatrix(LocalMatrix);
     noalias(LocalDisplacement) = prod(Matrix(trans(Rotation)), CurrentDisplacement);
     CalculateBodyForce(Rotation, LocalBody, GlobalBody);
     noalias(Stress) = -LocalBody + prod(LocalMatrix, LocalDisplacement);
-//		noalias(Stress) = -LocalBody + prod(Matrix(prod(Rotation,LocalMatrix)), LocalDisplacement);
+//      noalias(Stress) = -LocalBody + prod(Matrix(prod(Rotation,LocalMatrix)), LocalDisplacement);
 
     return;
 }
@@ -1211,7 +1211,7 @@ void BeamElement::CalculateDistributedBodyForce(const int Direction, Vector& Loa
     else
     {
         alpha = inner_prod(Normal_Loads,Vector_zero)/(norm_2(Vector_zero)*norm_2( Normal_Loads));
-        alpha	= signo*acos(alpha);
+        alpha   = signo*acos(alpha);
     }
 
     sino = sin(alpha);
@@ -1228,9 +1228,9 @@ void BeamElement::CalculateDistributedBodyForce(const int Direction, Vector& Loa
     if(Direction==2) // 1=x, 2=y, 3=z
     {
         Normal_Loads    = ZeroVector(3);
-        Normal_Loads[0]	= Vector_zero[0] ;
-        Normal_Loads[1]	= 0.00 ;
-        Normal_Loads[2]	= Vector_zero[2];
+        Normal_Loads[0] = Vector_zero[0] ;
+        Normal_Loads[1] = 0.00 ;
+        Normal_Loads[2] = Vector_zero[2];
 
         if (Vector_zero[1]<0)
         {
@@ -1260,9 +1260,9 @@ void BeamElement::CalculateDistributedBodyForce(const int Direction, Vector& Loa
 
     if(Direction==3) // 1=x, 2=y, 3=z
     {
-        Normal_Loads[0]	= Vector_zero[0] ;
-        Normal_Loads[1]	= Vector_zero[1] ;
-        Normal_Loads[2]	= 0.00;
+        Normal_Loads[0] = Vector_zero[0] ;
+        Normal_Loads[1] = Vector_zero[1] ;
+        Normal_Loads[2] = 0.00;
 
         if (Vector_zero[2]<0)
         {
@@ -1275,7 +1275,7 @@ void BeamElement::CalculateDistributedBodyForce(const int Direction, Vector& Loa
         else
         {
             alpha = inner_prod(Normal_Loads,Vector_zero)/(norm_2(Vector_zero)*norm_2( Normal_Loads));
-            alpha	= signo*acos(alpha);
+            alpha   = signo*acos(alpha);
         }
 
         sino = sin(alpha);

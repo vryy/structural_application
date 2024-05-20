@@ -112,19 +112,19 @@ public:
     }
 
     /// Set the predictor flag
-    void SetPredictor(const bool& rValue)
+    void SetPredictor(const bool rValue)
     {
         mIsPredictor = rValue;
     }
 
     /// Set the force flag
-    void SetForcedMode(const int& rValue)
+    void SetForcedMode(const int rValue)
     {
         mForcedFlag = rValue;
     }
 
     /// Set the solve option
-    void SetSolveMode(const int& rValue)
+    void SetSolveMode(const int rValue)
     {
         mSolveMode = rValue;
     }
@@ -278,27 +278,27 @@ protected:
         return *mpConstraint;
     }
 
-    const bool& IsPredictor() const
+    bool IsPredictor() const
     {
         return mIsPredictor;
     }
 
-    const int& ForcedMode() const
+    int ForcedMode() const
     {
         return mForcedFlag;
     }
 
-    const double& Lambda() const
+    double Lambda() const
     {
         return mLambda;
     }
 
-    const double& LambdaOld() const
+    double LambdaOld() const
     {
         return mLambdaOld;
     }
 
-    const double& LambdaOldOld() const
+    double LambdaOldOld() const
     {
         return mLambdaOldOld;
     }
