@@ -300,7 +300,7 @@ void MultiplicativeFiniteStrainBridgingConstitutiveLaw<1>::ComputeTangent(Fourth
         for (int j = 0; j < 3; ++j)
             for (int k = 0; k < 3; ++k)
                 for (int l = 0; l < 3; ++l)
-                    A[i][j](k, l) += (m_stress_n1(i, j) * eye(k, l) - m_stress_n1(i, l) * eye(j, k));
+                    A[i][j][k][l] += (m_stress_n1(i, j) * eye(k, l) - m_stress_n1(i, l) * eye(j, k));
 }
 
 template<>
@@ -352,7 +352,7 @@ void MultiplicativeFiniteStrainBridgingConstitutiveLaw<2>::ComputeTangent(Fourth
         for (int j = 0; j < 3; ++j)
             for (int k = 0; k < 3; ++k)
                 for (int l = 0; l < 3; ++l)
-                    A[i][j](k, l) -= m_stress_n1(i, l) * eye(j, k);
+                    A[i][j][k][l] -= m_stress_n1(i, l) * eye(j, k);
 }
 
 //**********************************************************************
@@ -427,7 +427,7 @@ void MultiplicativeFiniteStrainBridgingConstitutiveLaw<TStressType>::ComputeTang
         for (int j = 0; j < 3; ++j)
             for (int k = 0; k < 3; ++k)
                 for (int l = 0; l < 3; ++l)
-                    B[i][j](k, l) = eye(i, k) * m_Be_trial(j, l)
+                    B[i][j][k][l] = eye(i, k) * m_Be_trial(j, l)
                                   + eye(j, k) * m_Be_trial(i, l);
 }
 
@@ -481,7 +481,7 @@ void MultiplicativeFiniteStrainBridgingConstitutiveLaw<TStressType>::ComputeBetr
             {
                 for (unsigned int j = 0; j < 3; ++j)
                 {
-                    B[i][j](k, l) = aux(i, j);
+                    B[i][j][k][l] = aux(i, j);
                 }
             }
         }
@@ -514,7 +514,7 @@ void MultiplicativeFiniteStrainBridgingConstitutiveLaw<TStressType>::ComputeStre
             {
                 for (unsigned int j = 0; j < 3; ++j)
                 {
-                    D[i][j](k, l) = aux(i, j);
+                    D[i][j][k][l] = aux(i, j);
                 }
             }
         }

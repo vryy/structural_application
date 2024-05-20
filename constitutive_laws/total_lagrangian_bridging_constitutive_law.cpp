@@ -402,7 +402,7 @@ void TotalLagrangianBridgingConstitutiveLaw::CalculateMaterialResponsePK2(Parame
                                 {
                                     for (unsigned int q = 0; q < 3; ++q)
                                     {
-                                        DSDE[i][j](k, l) += J * D[m][n](p, q)
+                                        DSDE[i][j][k][l] += J * D[m][n][p][q]
                                             * Ui(i, m) * Ui(j, n) * Ui(k, p) * Ui(l, q);
                                     }
                                 }

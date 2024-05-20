@@ -70,13 +70,19 @@ public:
 
     typedef MathUtils<TDataType> MathUtilsType;
 
-    typedef boost::numeric::ublas::vector<VectorType> Second_Order_Tensor; // dos opciones: un tensor de segundo orden y/o un vector que almacena un vector
+    typedef boost::numeric::ublas::c_vector<TDataType, 3> First_Order_Tensor;
 
-    typedef boost::numeric::ublas::vector<Second_Order_Tensor> Third_Order_Tensor;
+    typedef boost::numeric::ublas::c_vector<First_Order_Tensor, 3> Second_Order_Tensor;
 
-    typedef boost::numeric::ublas::vector<boost::numeric::ublas::vector<MatrixType> > Fourth_Order_Tensor;
+    typedef boost::numeric::ublas::vector<VectorType> General_Second_Order_Tensor;
 
-    typedef matrix<Second_Order_Tensor> Matrix_Second_Tensor; // Acumulo un tensor de 2 orden en una matriz.
+    typedef boost::numeric::ublas::c_vector<Second_Order_Tensor, 3> Third_Order_Tensor;
+
+    typedef boost::numeric::ublas::vector<General_Second_Order_Tensor> General_Third_Order_Tensor;
+
+    typedef boost::numeric::ublas::c_vector<Third_Order_Tensor, 3> Fourth_Order_Tensor;
+
+    typedef boost::numeric::ublas::vector<General_Third_Order_Tensor> General_Fourth_Order_Tensor;
 
     typedef TDataType (*unitary_func_t)(TDataType);
 
@@ -1198,7 +1204,8 @@ public:
         TDataType v = 0.0;
         for (int i = 0; i < 3; ++i)
             for (int j = 0; j < 3; ++j)
-                v += pow(norm_frobenius(T[i][j]), 2);
+               for (int k = 0; k < 3; ++k)
+                    v += pow(norm_2(T[i][j][k]), 2);
         return sqrt(v);
     }
 
@@ -1273,81 +1280,81 @@ public:
     {
         if (A.size1() == 6)
         {
-            A(0, 0) = T[0][0](0, 0); // xx-xx
-            A(0, 1) = T[0][0](1, 1); // xx-yy
-            A(0, 2) = T[0][0](2, 2); // xx-zz
-            A(0, 3) = T[0][0](0, 1); // xx-xy
-            A(0, 4) = T[0][0](1, 2); // xx-yz
-            A(0, 5) = T[0][0](0, 2); // xx-xz
+            A(0, 0) = T[0][0][0][0]; // xx-xx
+            A(0, 1) = T[0][0][1][1]; // xx-yy
+            A(0, 2) = T[0][0][2][2]; // xx-zz
+            A(0, 3) = T[0][0][0][1]; // xx-xy
+            A(0, 4) = T[0][0][1][2]; // xx-yz
+            A(0, 5) = T[0][0][0][2]; // xx-xz
 
-            A(1, 0) = T[1][1](0, 0);
-            A(1, 1) = T[1][1](1, 1);
-            A(1, 2) = T[1][1](2, 2);
-            A(1, 3) = T[1][1](0, 1);
-            A(1, 4) = T[1][1](1, 2);
-            A(1, 5) = T[1][1](0, 2);
+            A(1, 0) = T[1][1][0][0];
+            A(1, 1) = T[1][1][1][1];
+            A(1, 2) = T[1][1][2][2];
+            A(1, 3) = T[1][1][0][1];
+            A(1, 4) = T[1][1][1][2];
+            A(1, 5) = T[1][1][0][2];
 
-            A(2, 0) = T[2][2](0, 0);
-            A(2, 1) = T[2][2](1, 1);
-            A(2, 2) = T[2][2](2, 2);
-            A(2, 3) = T[2][2](0, 1);
-            A(2, 4) = T[2][2](1, 2);
-            A(2, 5) = T[2][2](0, 2);
+            A(2, 0) = T[2][2][0][0];
+            A(2, 1) = T[2][2][1][1];
+            A(2, 2) = T[2][2][2][2];
+            A(2, 3) = T[2][2][0][1];
+            A(2, 4) = T[2][2][1][2];
+            A(2, 5) = T[2][2][0][2];
 
-            A(3, 0) = T[0][1](0, 0);
-            A(3, 1) = T[0][1](1, 1);
-            A(3, 2) = T[0][1](2, 2);
-            A(3, 3) = T[0][1](0, 1);
-            A(3, 4) = T[0][1](1, 2);
-            A(3, 5) = T[0][1](0, 2);
+            A(3, 0) = T[0][1][0][0];
+            A(3, 1) = T[0][1][1][1];
+            A(3, 2) = T[0][1][2][2];
+            A(3, 3) = T[0][1][0][1];
+            A(3, 4) = T[0][1][1][2];
+            A(3, 5) = T[0][1][0][2];
 
-            A(4, 0) = T[1][2](0, 0);
-            A(4, 1) = T[1][2](1, 1);
-            A(4, 2) = T[1][2](2, 2);
-            A(4, 3) = T[1][2](0, 1);
-            A(4, 4) = T[1][2](1, 2);
-            A(4, 5) = T[1][2](0, 2);
+            A(4, 0) = T[1][2][0][0];
+            A(4, 1) = T[1][2][1][1];
+            A(4, 2) = T[1][2][2][2];
+            A(4, 3) = T[1][2][0][1];
+            A(4, 4) = T[1][2][1][2];
+            A(4, 5) = T[1][2][0][2];
 
-            A(5, 0) = T[0][2](0, 0);
-            A(5, 1) = T[0][2](1, 1);
-            A(5, 2) = T[0][2](2, 2);
-            A(5, 3) = T[0][2](0, 1);
-            A(5, 4) = T[0][2](1, 2);
-            A(5, 5) = T[0][2](0, 2);
+            A(5, 0) = T[0][2][0][0];
+            A(5, 1) = T[0][2][1][1];
+            A(5, 2) = T[0][2][2][2];
+            A(5, 3) = T[0][2][0][1];
+            A(5, 4) = T[0][2][1][2];
+            A(5, 5) = T[0][2][0][2];
         }
         else if(A.size1() == 4)
         {
-            A(0, 0) = T[0][0](0, 0); // xx-xx
-            A(0, 1) = T[0][0](1, 1); // xx-yy
-            A(0, 2) = T[0][0](0, 1); // xx-xy
-            A(0, 3) = T[0][0](2, 2); // xx-zz
+            A(0, 0) = T[0][0][0][0]; // xx-xx
+            A(0, 1) = T[0][0][1][1]; // xx-yy
+            A(0, 2) = T[0][0][0][1]; // xx-xy
+            A(0, 3) = T[0][0][2][2]; // xx-zz
 
-            A(1, 0) = T[1][1](0, 0); // yy-xx
-            A(1, 1) = T[1][1](1, 1); // yy-yy
-            A(1, 2) = T[1][1](0, 1); // yy-xy
-            A(1, 3) = T[1][1](2, 2); // yy-zz
+            A(1, 0) = T[1][1][0][0]; // yy-xx
+            A(1, 1) = T[1][1][1][1]; // yy-yy
+            A(1, 2) = T[1][1][0][1]; // yy-xy
+            A(1, 3) = T[1][1][2][2]; // yy-zz
 
-            A(2, 0) = T[0][1](0, 0); // xy-xx
-            A(2, 1) = T[0][1](1, 1); // xy-yy
-            A(2, 2) = T[0][1](0, 1); // xy-xy
-            A(2, 3) = T[0][1](2, 2); // xy-zz
+            A(2, 0) = T[0][1][0][0]; // xy-xx
+            A(2, 1) = T[0][1][1][1]; // xy-yy
+            A(2, 2) = T[0][1][0][1]; // xy-xy
+            A(2, 3) = T[0][1][2][2]; // xy-zz
 
-            A(3, 0) = T[2][2](0, 0); // zz-xx
-            A(3, 1) = T[2][2](1, 1); // zz-yy
-            A(3, 2) = T[2][2](0, 1); // zz-xy
-            A(3, 3) = T[2][2](2, 2); // zz-zz
+            A(3, 0) = T[2][2][0][0]; // zz-xx
+            A(3, 1) = T[2][2][1][1]; // zz-yy
+            A(3, 2) = T[2][2][0][1]; // zz-xy
+            A(3, 3) = T[2][2][2][2]; // zz-zz
         }
         else if(A.size1() == 3)
         {
-            A(0, 0) = T[0][0](0, 0); // xx-xx
-            A(0, 1) = T[0][0](1, 1); // xx-yy
-            A(0, 2) = T[0][0](0, 1); // xx-xy
-            A(1, 0) = T[1][1](0, 0); // yy-xx
-            A(1, 1) = T[1][1](1, 1); // yy-yy
-            A(1, 2) = T[1][1](0, 1); // yy-xy
-            A(2, 0) = T[0][1](0, 0); // xy-xx
-            A(2, 1) = T[0][1](1, 1); // xy-yy
-            A(2, 2) = T[0][1](0, 1); // xy-xy
+            A(0, 0) = T[0][0][0][0]; // xx-xx
+            A(0, 1) = T[0][0][1][1]; // xx-yy
+            A(0, 2) = T[0][0][0][1]; // xx-xy
+            A(1, 0) = T[1][1][0][0]; // yy-xx
+            A(1, 1) = T[1][1][1][1]; // yy-yy
+            A(1, 2) = T[1][1][0][1]; // yy-xy
+            A(2, 0) = T[0][1][0][0]; // xy-xx
+            A(2, 1) = T[0][1][1][1]; // xy-yy
+            A(2, 2) = T[0][1][0][1]; // xy-xy
         }
         else
             KRATOS_ERROR << "Invalid matrix size (" << A.size1() << ", " << A.size2() << ")";
@@ -1365,82 +1372,82 @@ public:
         if (A.size1() == 9)
         {
             /// ((DO NOT DELETE)) (KEEP AS REFERENCE)
-            // A(0, 0) = T[0][0](0, 0); // xx-xx
-            // A(0, 1) = T[0][0](1, 0); // xx-yx
+            // A(0, 0) = T[0][0][0][0]; // xx-xx
+            // A(0, 1) = T[0][0][1][0]; // xx-yx
             // A(0, 2) = T[0][0](2, 0); // xx-zx
-            // A(0, 3) = T[0][0](0, 1); // xx-xy
-            // A(0, 4) = T[0][0](1, 1); // xx-yy
+            // A(0, 3) = T[0][0][0][1]; // xx-xy
+            // A(0, 4) = T[0][0][1][1]; // xx-yy
             // A(0, 5) = T[0][0](2, 1); // xx-zy
-            // A(0, 6) = T[0][0](0, 2); // xx-xz
-            // A(0, 7) = T[0][0](1, 2); // xx-yz
-            // A(0, 8) = T[0][0](2, 2); // xx-zz
+            // A(0, 6) = T[0][0][0][2]; // xx-xz
+            // A(0, 7) = T[0][0][1][2]; // xx-yz
+            // A(0, 8) = T[0][0][2][2]; // xx-zz
             //
             for (unsigned int i = 0; i < 3; ++i)
                 for (unsigned int j = 0; j < 3; ++j)
                     for (unsigned int k = 0; k < 3; ++k)
                         for (unsigned int l = 0; l < 3; ++l)
-                            A(3*j+i, 3*l+k) = T[i][j](k, l);
+                            A(3*j+i, 3*l+k) = T[i][j][k][l];
         }
         else if(A.size1() == 5)
         {
-            A(0, 0) = T[0][0](0, 0); // xx-xx
-            A(0, 1) = T[0][0](1, 0); // xx-yx
-            A(0, 2) = T[0][0](0, 1); // xx-xy
-            A(0, 3) = T[0][0](1, 1); // xx-yy
-            A(0, 4) = T[0][0](2, 2); // xx-zz
+            A(0, 0) = T[0][0][0][0]; // xx-xx
+            A(0, 1) = T[0][0][1][0]; // xx-yx
+            A(0, 2) = T[0][0][0][1]; // xx-xy
+            A(0, 3) = T[0][0][1][1]; // xx-yy
+            A(0, 4) = T[0][0][2][2]; // xx-zz
             //
-            A(1, 0) = T[1][0](0, 0); // yx-xx
-            A(1, 1) = T[1][0](1, 0); // yx-yx
-            A(1, 2) = T[1][0](0, 1); // yx-xy
-            A(1, 3) = T[1][0](1, 1); // yx-yy
-            A(1, 4) = T[1][0](2, 2); // yx-zz
+            A(1, 0) = T[1][0][0][0]; // yx-xx
+            A(1, 1) = T[1][0][1][0]; // yx-yx
+            A(1, 2) = T[1][0][0][1]; // yx-xy
+            A(1, 3) = T[1][0][1][1]; // yx-yy
+            A(1, 4) = T[1][0][2][2]; // yx-zz
             //
-            A(2, 0) = T[0][1](0, 0); // xy-xx
-            A(2, 1) = T[0][1](1, 0); // xy-yx
-            A(2, 2) = T[0][1](0, 1); // xy-xy
-            A(2, 3) = T[0][1](1, 1); // xy-yy
-            A(2, 4) = T[0][1](2, 2); // xy-zz
+            A(2, 0) = T[0][1][0][0]; // xy-xx
+            A(2, 1) = T[0][1][1][0]; // xy-yx
+            A(2, 2) = T[0][1][0][1]; // xy-xy
+            A(2, 3) = T[0][1][1][1]; // xy-yy
+            A(2, 4) = T[0][1][2][2]; // xy-zz
             //
-            A(3, 0) = T[1][1](0, 0); // yy-xx
-            A(3, 1) = T[1][1](1, 0); // yy-yx
-            A(3, 2) = T[1][1](0, 1); // yy-xy
-            A(3, 3) = T[1][1](1, 1); // yy-yy
-            A(3, 4) = T[1][1](2, 2); // yy-zz
+            A(3, 0) = T[1][1][0][0]; // yy-xx
+            A(3, 1) = T[1][1][1][0]; // yy-yx
+            A(3, 2) = T[1][1][0][1]; // yy-xy
+            A(3, 3) = T[1][1][1][1]; // yy-yy
+            A(3, 4) = T[1][1][2][2]; // yy-zz
             //
-            A(4, 0) = T[2][2](0, 0); // zz-xx
-            A(4, 1) = T[2][2](1, 0); // zz-yx
-            A(4, 2) = T[2][2](0, 1); // zz-xy
-            A(4, 3) = T[2][2](1, 1); // zz-yy
-            A(4, 4) = T[2][2](2, 2); // zz-zz
+            A(4, 0) = T[2][2][0][0]; // zz-xx
+            A(4, 1) = T[2][2][1][0]; // zz-yx
+            A(4, 2) = T[2][2][0][1]; // zz-xy
+            A(4, 3) = T[2][2][1][1]; // zz-yy
+            A(4, 4) = T[2][2][2][2]; // zz-zz
         }
         else if(A.size1() == 4)
         {
             /// ((DO NOT DELETE)) (KEEP AS REFERENCE)
-            // A(0, 0) = T[0][0](0, 0); // xx-xx
-            // A(0, 1) = T[0][0](1, 0); // xx-yx
-            // A(0, 2) = T[0][0](0, 1); // xx-xy
-            // A(0, 3) = T[0][0](1, 1); // xx-yy
+            // A(0, 0) = T[0][0][0][0]; // xx-xx
+            // A(0, 1) = T[0][0][1][0]; // xx-yx
+            // A(0, 2) = T[0][0][0][1]; // xx-xy
+            // A(0, 3) = T[0][0][1][1]; // xx-yy
             // //
-            // A(1, 0) = T[1][0](0, 0); // yx-xx
-            // A(1, 1) = T[1][0](1, 0); // yx-yx
-            // A(1, 2) = T[1][0](0, 1); // yx-xy
-            // A(1, 3) = T[1][0](1, 1); // yx-yy
+            // A(1, 0) = T[1][0][0][0]; // yx-xx
+            // A(1, 1) = T[1][0][1][0]; // yx-yx
+            // A(1, 2) = T[1][0][0][1]; // yx-xy
+            // A(1, 3) = T[1][0][1][1]; // yx-yy
             // //
-            // A(2, 0) = T[0][1](0, 0); // xy-xx
-            // A(2, 1) = T[0][1](1, 0); // xy-yx
-            // A(2, 2) = T[0][1](0, 1); // xy-xy
-            // A(2, 3) = T[0][1](1, 1); // xy-yy
+            // A(2, 0) = T[0][1][0][0]; // xy-xx
+            // A(2, 1) = T[0][1][1][0]; // xy-yx
+            // A(2, 2) = T[0][1][0][1]; // xy-xy
+            // A(2, 3) = T[0][1][1][1]; // xy-yy
             // //
-            // A(3, 0) = T[1][1](0, 0); // yy-xx
-            // A(3, 1) = T[1][1](1, 0); // yy-yx
-            // A(3, 2) = T[1][1](0, 1); // yy-xy
-            // A(3, 3) = T[1][1](1, 1); // yy-yy
+            // A(3, 0) = T[1][1][0][0]; // yy-xx
+            // A(3, 1) = T[1][1][1][0]; // yy-yx
+            // A(3, 2) = T[1][1][0][1]; // yy-xy
+            // A(3, 3) = T[1][1][1][1]; // yy-yy
             /// Or
             for (unsigned int i = 0; i < 2; ++i)
                 for (unsigned int j = 0; j < 2; ++j)
                     for (unsigned int k = 0; k < 2; ++k)
                         for (unsigned int l = 0; l < 2; ++l)
-                            A(2*j+i, 2*l+k) = T[i][j](k, l);
+                            A(2*j+i, 2*l+k) = T[i][j][k][l];
         }
         else
             KRATOS_ERROR << "Invalid matrix size (" << A.size1() << ", " << A.size2() << ")";
@@ -1455,7 +1462,7 @@ public:
                 for (unsigned int j = 0; j < 3; ++j)
                     for (unsigned int k = 0; k < 3; ++k)
                         for (unsigned int l = 0; l < 3; ++l)
-                            T[i][j](k, l) = A(3*j+i, 3*l+k);
+                            T[i][j][k][l] = A(3*j+i, 3*l+k);
         }
         else
             KRATOS_ERROR << "If matrix size is not 9, the 4th order tensor can't be filled since information is not sufficient";
@@ -1467,59 +1474,59 @@ public:
     {
         if (A.size1() == 6)
         {
-            T[0][0](0, 0) = A(0, 0); // xx-xx
-            T[0][0](1, 1) = A(0, 1); // xx-yy
-            T[0][0](2, 2) = A(0, 2); // xx-zz
-            T[0][0](0, 1) = A(0, 3); // xx-xy
-            T[0][0](1, 2) = A(0, 4); // xx-yz
-            T[0][0](0, 2) = A(0, 5); // xx-xz
+            T[0][0][0][0] = A(0, 0); // xx-xx
+            T[0][0][1][1] = A(0, 1); // xx-yy
+            T[0][0][2][2] = A(0, 2); // xx-zz
+            T[0][0][0][1] = A(0, 3); // xx-xy
+            T[0][0][1][2] = A(0, 4); // xx-yz
+            T[0][0][0][2] = A(0, 5); // xx-xz
 
-            T[1][1](0, 0) = A(1, 0);
-            T[1][1](1, 1) = A(1, 1);
-            T[1][1](2, 2) = A(1, 2);
-            T[1][1](0, 1) = A(1, 3);
-            T[1][1](1, 2) = A(1, 4);
-            T[1][1](0, 2) = A(1, 5);
+            T[1][1][0][0] = A(1, 0);
+            T[1][1][1][1] = A(1, 1);
+            T[1][1][2][2] = A(1, 2);
+            T[1][1][0][1] = A(1, 3);
+            T[1][1][1][2] = A(1, 4);
+            T[1][1][0][2] = A(1, 5);
 
-            T[2][2](0, 0) = A(2, 0);
-            T[2][2](1, 1) = A(2, 1);
-            T[2][2](2, 2) = A(2, 2);
-            T[2][2](0, 1) = A(2, 3);
-            T[2][2](1, 2) = A(2, 4);
-            T[2][2](0, 2) = A(2, 5);
+            T[2][2][0][0] = A(2, 0);
+            T[2][2][1][1] = A(2, 1);
+            T[2][2][2][2] = A(2, 2);
+            T[2][2][0][1] = A(2, 3);
+            T[2][2][1][2] = A(2, 4);
+            T[2][2][0][2] = A(2, 5);
 
-            T[0][1](0, 0) = A(3, 0);
-            T[0][1](1, 1) = A(3, 1);
-            T[0][1](2, 2) = A(3, 2);
-            T[0][1](0, 1) = A(3, 3);
-            T[0][1](1, 2) = A(3, 4);
-            T[0][1](0, 2) = A(3, 5);
+            T[0][1][0][0] = A(3, 0);
+            T[0][1][1][1] = A(3, 1);
+            T[0][1][2][2] = A(3, 2);
+            T[0][1][0][1] = A(3, 3);
+            T[0][1][1][2] = A(3, 4);
+            T[0][1][0][2] = A(3, 5);
 
-            T[1][2](0, 0) = A(4, 0);
-            T[1][2](1, 1) = A(4, 1);
-            T[1][2](2, 2) = A(4, 2);
-            T[1][2](0, 1) = A(4, 3);
-            T[1][2](1, 2) = A(4, 4);
-            T[1][2](0, 2) = A(4, 5);
+            T[1][2][0][0] = A(4, 0);
+            T[1][2][1][1] = A(4, 1);
+            T[1][2][2][2] = A(4, 2);
+            T[1][2][0][1] = A(4, 3);
+            T[1][2][1][2] = A(4, 4);
+            T[1][2][0][2] = A(4, 5);
 
-            T[0][2](0, 0) = A(5, 0);
-            T[0][2](1, 1) = A(5, 1);
-            T[0][2](2, 2) = A(5, 2);
-            T[0][2](0, 1) = A(5, 3);
-            T[0][2](1, 2) = A(5, 4);
-            T[0][2](0, 2) = A(5, 5);
+            T[0][2][0][0] = A(5, 0);
+            T[0][2][1][1] = A(5, 1);
+            T[0][2][2][2] = A(5, 2);
+            T[0][2][0][1] = A(5, 3);
+            T[0][2][1][2] = A(5, 4);
+            T[0][2][0][2] = A(5, 5);
 
             for (unsigned int j = 0; j < 3; ++j)
                 for (unsigned int i = 0; i <= j; ++i)
                     for (unsigned int k = 0; k < 3; ++k)
                         for (unsigned int l = 0; l < k; ++l)
-                            T[i][j](k, l) = T[i][j](l, k);
+                            T[i][j][k][l] = T[i][j][l][k];
 
             for (unsigned int i = 0; i < 3; ++i)
                 for (unsigned int j = 0; j < i; ++j)
                     for (unsigned int k = 0; k < 3; ++k)
                         for (unsigned int l = 0; l < 3; ++l)
-                            T[i][j](k, l) = T[j][i](k, l);
+                            T[i][j][k][l] = T[j][i][k][l];
         }
         else
             KRATOS_ERROR << "If matrix size is not 6, the 4th order tensor can't be filled since information is not sufficient";
@@ -1712,7 +1719,7 @@ public:
         TDataType coeff = 1.0;
 
         if(A.size1()!=6 || A.size2()!=6)
-            A.resize(6,6,false);
+            A.resize(6, 6, false);
 
         for(unsigned int i=0; i<6; i++)
             for(unsigned int j=0; j<6; j++)
@@ -1782,7 +1789,7 @@ public:
     static void TensorToMatrix( const array_1d<TDataType, 81>& T, TMatrixType& A )
     {
         if(A.size1()!=6 || A.size2()!=6)
-            A.resize(6,6,false);
+            A.resize(6, 6, false);
 
         A(0,0) = T[0];
         A(0,1) = T[4];
@@ -1869,19 +1876,9 @@ public:
      */
     static inline void CalculateThirdOrderZeroTensor( Third_Order_Tensor& C )
     {
-        if (C.size() != 3)
-            C.resize(3, false);
         for(unsigned int i = 0; i < 3; ++i)
-        {
-            if (C[i].size() != 3)
-                C[i].resize(3, false);
             for(unsigned int j = 0; j < 3; ++j)
-            {
-                if (C[i][j].size() != 3)
-                    C[i][j].resize(3, false);
                 C[i][j].clear();
-            }
-        }
     }
 
     /**
@@ -1889,6 +1886,17 @@ public:
      * @param C the third order tensor
      */
     static inline void ZeroThirdOrderTensor( Third_Order_Tensor& C )
+    {
+        for(unsigned int i = 0; i < 3; ++i)
+            for(unsigned int j = 0; j < 3; ++j)
+                C[i][j].clear();
+    }
+
+    /**
+     * Computes third order zero tensor (no resizing)
+     * @param C the third order tensor
+     */
+    static inline void ZeroThirdOrderTensor( General_Third_Order_Tensor& C )
     {
         for(unsigned int i = 0; i < C.size(); ++i)
             for(unsigned int j = 0; j < C[i].size(); ++j)
@@ -1901,12 +1909,13 @@ public:
      * @param A the third order tensor
      * @param B the first order tensor (vector)
      */
-    static void ContractThirdOrderTensor(TDataType alpha, const Third_Order_Tensor& A, const VectorType& B, MatrixType& Result)
+    template<typename Third_Order_Tensor_Type>
+    static void ContractThirdOrderTensor(TDataType alpha, const Third_Order_Tensor_Type& A, const VectorType& B, MatrixType& Result)
     {
         for(unsigned int i = 0; i < A.size(); ++i)
             for(unsigned int j = 0; j < A[i].size(); ++j)
                 for(unsigned int k = 0; k < B.size(); ++k)
-                    Result(i, j) += alpha * A[i][j](k) * B(k);
+                    Result(i, j) += alpha * A[i][j][k] * B(k);
     }
 
     /**
@@ -1915,12 +1924,13 @@ public:
      * @param A the third order tensor
      * @param B the second order tensor (matrix)
      */
-    static void ContractThirdOrderTensor(TDataType alpha, const Third_Order_Tensor& A, const MatrixType& B, VectorType& Result)
+    template<typename Third_Order_Tensor_Type>
+    static void ContractThirdOrderTensor(TDataType alpha, const Third_Order_Tensor_Type& A, const MatrixType& B, VectorType& Result)
     {
         for(unsigned int i = 0; i < A.size(); ++i)
             for(unsigned int j = 0; j < A[i].size(); ++j)
                 for(unsigned int k = 0; k < A[i][j].size(); ++k)
-                    Result(i) += alpha * A[i][j](k) * B(j, k);
+                    Result(i) += alpha * A[i][j][k] * B(j, k);
     }
 
     /**
@@ -1929,7 +1939,8 @@ public:
      * @param A the third order tensor
      * @param B the second order tensor (matrix)
      */
-    static void OuterProductThirdOrderTensor(TDataType alpha, const MatrixType& A, const VectorType& B, Third_Order_Tensor& Result)
+    template<typename Third_Order_Tensor_Type>
+    static void OuterProductThirdOrderTensor(TDataType alpha, const MatrixType& A, const VectorType& B, Third_Order_Tensor_Type& Result)
     {
         for(unsigned int i = 0; i < Result.size(); ++i)
             for(unsigned int j = 0; j < Result[i].size(); ++j)
@@ -1945,20 +1956,17 @@ public:
     {
         const Matrix eye = IdentityMatrix(3);
 
-        C.resize(3);
         for(unsigned int i = 0; i < 3; ++i)
         {
-            C[i].resize(3);
             for(unsigned int j = 0; j < 3; ++j)
             {
-                C[i][j].resize(3, 3);
-                noalias(C[i][j]) = ZeroMatrix(3, 3);
                 for(unsigned int k = 0; k < 3; ++k)
                 {
+                    C[i][j][k].clear();
                     for(unsigned int l = 0; l < 3; ++l)
-                        C[i][j](k,l) = 0.5 * eye(i, k) * eye(j, l)
-                                     + 0.5 * eye(i, l) * eye(j, k)
-                                     - 1.0 / 3 * eye(i, j) * eye(k, l);
+                        C[i][j][k][l] = 0.5 * eye(i, k) * eye(j, l)
+                                      + 0.5 * eye(i, l) * eye(j, k)
+                                      - 1.0 / 3 * eye(i, j) * eye(k, l);
                 }
             }
         }
@@ -1975,30 +1983,55 @@ public:
             for(unsigned int j = 0; j < 3; ++j)
                 for(unsigned int k = 0; k < 3; ++k)
                     for(unsigned int l = 0; l < 3; ++l)
-                        C[i][j](k,l) += alpha * ( 0.5 * eye(i, k) * eye(j, l)
-                                                + 0.5 * eye(i, l) * eye(j, k)
-                                                - 1.0 / 3 * eye(i, j) * eye(k, l) );
+                        C[i][j][k][l] += alpha * ( 0.5 * eye(i, k) * eye(j, l)
+                                                 + 0.5 * eye(i, l) * eye(j, k)
+                                                 - 1.0 / 3 * eye(i, j) * eye(k, l) );
     }
 
     /**
      * Computes fourth order zero tensor (also resizing)
      * @param C the fourth order tensor
      */
-    static inline void CalculateFourthOrderZeroTensor( Fourth_Order_Tensor& C )
+    static inline void CalculateFourthOrderZeroTensor( General_Fourth_Order_Tensor& C,
+        const unsigned int size )
     {
-        if (C.size() != 3)
-            C.resize(3, false);
-        for(unsigned int i = 0; i < 3; ++i)
+        CalculateFourthOrderZeroTensor( C, size, size, size, size );
+    }
+
+    /**
+     * Computes fourth order zero tensor (also resizing)
+     * @param C the fourth order tensor
+     */
+    static inline void CalculateFourthOrderZeroTensor( General_Fourth_Order_Tensor& C,
+        const unsigned int size1, const unsigned int size2,
+        const unsigned int size3, const unsigned int size4 )
+    {
+        if (C.size() != size1) C.resize(size1, false);
+        for(unsigned int i = 0; i < size1; ++i)
         {
-            if (C[i].size() != 3)
-                C[i].resize(3, false);
-            for(unsigned int j = 0; j < 3; ++j)
+            if (C[i].size() != size2) C[i].resize(size2, false);
+            for(unsigned int j = 0; j < size2; ++j)
             {
-                if (C[i][j].size1() != 3 || C[i][j].size2() != 3)
-                    C[i][j].resize(3, 3, false);
-                C[i][j].clear();
+                if (C[i][j].size() != size2) C[i][j].resize(size3, false);
+                for(unsigned int k = 0; k < size3; ++k)
+                {
+                    if (C[i][j][k].size() != size4) C[i][j][k].resize(size4, false);
+                    C[i][j][k].clear();
+                }
             }
         }
+    }
+
+    /**
+     * Computes fourth order zero tensor
+     * @param C the fourth order tensor
+     */
+    static inline void CalculateFourthOrderZeroTensor( Fourth_Order_Tensor& C )
+    {
+        for(unsigned int i = 0; i < 3; ++i)
+            for(unsigned int j = 0; j < 3; ++j)
+                for(unsigned int k = 0; k < 3; ++k)
+                    C[i][j][k].clear();
     }
 
     /**
@@ -2008,17 +2041,16 @@ public:
     static inline void CalculateFourthOrderSymmetricTensor( Fourth_Order_Tensor& C )
     {
         const Matrix eye = IdentityMatrix(3);
-        C.resize(3);
         for(unsigned int i = 0; i < 3; ++i)
         {
-            C[i].resize(3);
             for(unsigned int j = 0; j < 3; ++j)
             {
-                C[i][j].resize(3, 3);
-                noalias(C[i][j]) = ZeroMatrix(3, 3);
                 for(unsigned int k = 0; k < 3; ++k)
+                {
+                    C[i][j][k].clear();
                     for(unsigned int l = 0; l < 3; ++l)
-                        C[i][j](k,l) = 0.5 * (eye(i, k) * eye(j, l) + eye(i, l) * eye(j, k));
+                        C[i][j][k][l] = 0.5 * (eye(i, k) * eye(j, l) + eye(i, l) * eye(j, k));
+                }
             }
         }
     }
@@ -2029,17 +2061,15 @@ public:
     {
         const Matrix eye = IdentityMatrix(3);
 
-        C.resize(3);
         for(unsigned int i = 0; i < 3; ++i)
         {
-            C[i].resize(3);
             for(unsigned int j = 0; j < 3; ++j)
             {
-                C[i][j].resize(3, 3);
-                noalias(C[i][j]) = ZeroMatrix(3, 3);
                 for(unsigned int k = 0; k < 3; ++k)
+                {
                     for(unsigned int l = 0; l < 3; ++l)
-                        C[i][j](k,l) = eye(i, k) * eye(j, l);
+                        C[i][j][k][l] = eye(i, k) * eye(j, l);
+                }
             }
         }
     }
@@ -2054,7 +2084,7 @@ public:
             for(unsigned int j = 0; j < 3; ++j)
                 for(unsigned int k = 0; k < 3; ++k)
                     for(unsigned int l = 0; l < 3; ++l)
-                        C[i][j](k,l) = 0.0;
+                        C[i][j][k][l] = 0.0;
     }
 
     /**
@@ -2069,9 +2099,9 @@ public:
             for(unsigned int j = 0; j < 3; ++j)
                 for(unsigned int k = 0; k < 3; ++k)
                     for(unsigned int l = 0; l < 3; ++l)
-                        C[i][j](k,l) = 0.5 * eye(i, k) * eye(j, l)
-                                     + 0.5 * eye(i, l) * eye(j, k)
-                                     - 1.0 / 3 * eye(i, j) * eye(k, l);
+                        C[i][j][k][l] = 0.5 * eye(i, k) * eye(j, l)
+                                      + 0.5 * eye(i, l) * eye(j, k)
+                                      - 1.0 / 3 * eye(i, j) * eye(k, l);
     }
 
     /**
@@ -2085,7 +2115,7 @@ public:
             for(unsigned int j = 0; j < 3; ++j)
                 for(unsigned int k = 0; k < 3; ++k)
                     for(unsigned int l = 0; l < 3; ++l)
-                        C[i][j](k,l) *= alpha;
+                        C[i][j][k][l] *= alpha;
     }
 
     /**
@@ -2099,7 +2129,7 @@ public:
             for(unsigned int j = 0; j < 3; ++j)
                 for(unsigned int k = 0; k < 3; ++k)
                     for(unsigned int l = 0; l < 3; ++l)
-                        B[i][j](k,l) = A[i][j](k,l);
+                        B[i][j][k][l] = A[i][j][k][l];
     }
 
     /**
@@ -2114,7 +2144,7 @@ public:
             for(unsigned int j = 0; j < 3; ++j)
                 for(unsigned int k = 0; k < 3; ++k)
                     for(unsigned int l = 0; l < 3; ++l)
-                        Result(i, j) += alpha * A[i][j](k, l) * B(k, l);
+                        Result(i, j) += alpha * A[i][j][k][l] * B(k, l);
     }
 
     /**
@@ -2129,7 +2159,7 @@ public:
             for(unsigned int j = i; j < 3; ++j)
                 for(unsigned int k = 0; k < 3; ++k)
                     for(unsigned int l = 0; l < 3; ++l)
-                        Result(i, j) += alpha * A[i][j](k, l) * B(k, l);
+                        Result(i, j) += alpha * A[i][j][k][l] * B(k, l);
     }
 
     /**
@@ -2144,7 +2174,7 @@ public:
             for(unsigned int j = 0; j < 3; ++j)
                 for(unsigned int k = 0; k < 3; ++k)
                     for(unsigned int l = 0; l < 3; ++l)
-                        Result(k, l) += alpha * A(i, j) * BB[i][j](k, l);
+                        Result(k, l) += alpha * A(i, j) * BB[i][j][k][l];
     }
 
     /**
@@ -2159,7 +2189,7 @@ public:
             for(unsigned int j = 0; j < 3; ++j)
                 for(unsigned int k = 0; k < 3; ++k)
                     for(unsigned int l = k; l < 3; ++l)
-                        Result(k, l) += alpha * A(i, j) * BB[i][j](k, l);
+                        Result(k, l) += alpha * A(i, j) * BB[i][j][k][l];
     }
 
     /**
@@ -2175,7 +2205,7 @@ public:
             for(unsigned int j = 0; j < 3; ++j)
                 for(unsigned int k = 0; k < 3; ++k)
                     for(unsigned int l = 0; l < 3; ++l)
-                        Result[i][j](k, l) += alpha * A(i, j) * B(k, l);
+                        Result[i][j][k][l] += alpha * A(i, j) * B(k, l);
     }
 
     /**
@@ -2191,7 +2221,7 @@ public:
             for(unsigned int j = 0; j < 3; ++j)
                 for(unsigned int k = 0; k < 3; ++k)
                     for(unsigned int l = 0; l < 3; ++l)
-                        Result[i][j](k, l) += alpha * A(i, k) * B(j, l);
+                        Result[i][j][k][l] += alpha * A(i, k) * B(j, l);
     }
 
     /**
@@ -2207,7 +2237,7 @@ public:
             for(unsigned int j = 0; j < 3; ++j)
                 for(unsigned int k = 0; k < 3; ++k)
                     for(unsigned int l = 0; l < 3; ++l)
-                        Result[i][j](k, l) += alpha * A(i, l) * B(j, k);
+                        Result[i][j][k][l] += alpha * A(i, l) * B(j, k);
     }
 
     // C += alpha A
@@ -2215,7 +2245,17 @@ public:
     {
         for(unsigned int i = 0; i < 3; ++i)
             for(unsigned int j = 0; j < 3; ++j)
-                noalias(Result[i][j]) += alpha * A[i][j];
+                for(unsigned int k = 0; k < 3; ++k)
+                    noalias(Result[i][j][k]) += alpha * A[i][j][k];
+    }
+
+    // C += alpha A
+    static inline void AddFourthOrderTensor(TDataType alpha, const General_Fourth_Order_Tensor& A, General_Fourth_Order_Tensor& Result)
+    {
+        for(unsigned int i = 0; i < A.size(); ++i)
+            for(unsigned int j = 0; j < A[i].size(); ++j)
+                for(unsigned int k = 0; k < A[i][j].size(); ++k)
+                    noalias(Result[i][j][k]) += alpha * A[i][j][k];
     }
 
     // C_ijkl += alpha A_ijmn * B_mnkl
@@ -2227,7 +2267,7 @@ public:
                     for(unsigned int l = 0; l < 3; ++l)
                         for(unsigned int m = 0; m < 3; ++m)
                             for(unsigned int n = 0; n < 3; ++n)
-                                Result[i][j](k, l) += alpha * A[i][j](m, n) * B[m][n](k, l);
+                                Result[i][j][k][l] += alpha * A[i][j][m][n] * B[m][n][k][l];
     }
 
     // A_ijkl = alpha A_ijmn * B_mnkl
@@ -2241,12 +2281,12 @@ public:
                     for(unsigned int l = 0; l < 3; ++l)
                         for(unsigned int m = 0; m < 3; ++m)
                             for(unsigned int n = 0; n < 3; ++n)
-                                Tmp[i][j](k, l) += alpha * A[i][j](m, n) * B[m][n](k, l);
+                                Tmp[i][j][k][l] += alpha * A[i][j][m][n] * B[m][n][k][l];
         for(unsigned int i = 0; i < 3; ++i)
             for(unsigned int j = 0; j < 3; ++j)
                 for(unsigned int k = 0; k < 3; ++k)
                     for(unsigned int l = 0; l < 3; ++l)
-                        A[i][j](k, l) = Tmp[i][j](k, l);
+                        A[i][j][k][l] = Tmp[i][j][k][l];
     }
 
     // C_ijkl += alpha A_mnij * B_mnkl
@@ -2258,7 +2298,7 @@ public:
                     for(unsigned int l = 0; l < 3; ++l)
                         for(unsigned int m = 0; m < 3; ++m)
                             for(unsigned int n = 0; n < 3; ++n)
-                                Result[i][j](k, l) += alpha * A[m][n](i, j) * B[m][n](k, l);
+                                Result[i][j][k][l] += alpha * A[m][n][i][j] * B[m][n][k][l];
     }
 
     // invert a fourth order tensor
@@ -2281,7 +2321,7 @@ public:
             for(unsigned int j = 0; j < 3; ++j)
                 for(unsigned int k = 0; k < 3; ++k)
                     for(unsigned int l = 0; l < 3; ++l)
-                        Result[i][j](k, l) += alpha*( 0.5*(s(i, k)*eye(j, l) + eye(i, k)*s(j, l)
+                        Result[i][j][k][l] += alpha*( 0.5*(s(i, k)*eye(j, l) + eye(i, k)*s(j, l)
                                                          + s(i, l)*eye(j, k) + eye(i, l)*s(j, k))
                                                     - 2.0/3*(s(i, j)*eye(k, l) + eye(i, j)*s(k, l)) );
     }
@@ -2304,7 +2344,7 @@ public:
                 {
                     for(unsigned int l = 0; l < 3; ++l)
                     {
-                        Result[i][j](k, l) = -InvA(i, k) * InvA(l, j);
+                        Result[i][j][k][l] = -InvA(i, k) * InvA(l, j);
                     }
                 }
             }
@@ -2329,7 +2369,7 @@ public:
                 {
                     for(unsigned int l = 0; l < 3; ++l)
                     {
-                        Result[i][j](k, l) += -alpha*InvA(i, k) * InvA(l, j);
+                        Result[i][j][k][l] += -alpha*InvA(i, k) * InvA(l, j);
                     }
                 }
             }
@@ -2358,7 +2398,7 @@ public:
                 {
                     for(unsigned int l=0; l<3; l++)
                     {
-                        Unity[i][j](k,l) = eye(i,k)*eye(j,l)
+                        Unity[i][j][k][l] = eye(i,k)*eye(j,l)
                                          - 1.0/3.0*eye(i,j)*eye(k,l);
                     }
                 }
@@ -2395,20 +2435,16 @@ public:
         TDataType lambda = NU * E / ((1 + NU) * (1 - 2 * NU));
         TDataType mu     = E / (2 * (1 + NU));
 
-        C.resize(3);
         for(unsigned int i = 0; i < 3; ++i)
         {
-            C[i].resize(3);
             for(unsigned int j = 0; j < 3; ++j)
             {
-                C[i][j].resize(3, 3);
-                noalias(C[i][j]) = ZeroMatrix(3, 3);
                 for(unsigned int k = 0; k < 3; ++k)
                 {
                     for(unsigned int l = 0; l < 3; ++l)
-                        C[i][j](k,l) = lambda * eye(i, j) * eye(k, l)
-                                     + mu * (eye(i, k) * eye(j, l)
-                                           + eye(i, l) * eye(j, k));
+                        C[i][j][k][l] = lambda * eye(i, j) * eye(k, l)
+                                      + mu * (eye(i, k) * eye(j, l)
+                                            + eye(i, l) * eye(j, k));
                   }
              }
         }
@@ -2586,7 +2622,7 @@ public:
             for(int j = 0; j < 3; ++j)
                 for(int k = 0; k < 3; ++k)
                     for(int l = 0; l < 3; ++l)
-                        dX2dX[i][j](k, l) = 0.5 * (I(i, k) * X(l, j)
+                        dX2dX[i][j][k][l] = 0.5 * (I(i, k) * X(l, j)
                                                  + I(i, l) * X(k, j)
                                                  + X(i, k) * I(j, l)
                                                  + X(i, l) * I(k, j));
@@ -2646,7 +2682,7 @@ public:
             for(int j = 0; j < 3; ++j)
                 for(int k = 0; k < 3; ++k)
                     for(int l = 0; l < 3; ++l)
-                        dX2dX[i][j](k, l) = 0.5 * (I(i, k) * X(l, j)
+                        dX2dX[i][j][k][l] = 0.5 * (I(i, k) * X(l, j)
                                                  + I(i, l) * X(k, j)
                                                  + X(i, k) * I(j, l)
                                                  + X(i, l) * I(k, j));
@@ -2738,7 +2774,7 @@ public:
             for(int j = 0; j < 3; ++j)
                 for(int k = 0; k < 3; ++k)
                     for(int l = 0; l < 3; ++l)
-                        dX2dX[i][j](k, l) = 0.5 * (I(i, k) * X(l, j)
+                        dX2dX[i][j][k][l] = 0.5 * (I(i, k) * X(l, j)
                                                  + I(i, l) * X(k, j)
                                                  + X(i, k) * I(j, l)
                                                  + X(i, l) * I(k, j));

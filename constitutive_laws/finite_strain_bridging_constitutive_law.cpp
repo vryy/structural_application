@@ -284,7 +284,7 @@ void FiniteStrainBridgingConstitutiveLaw::ComputeStressDerivatives(Fourth_Order_
             {
                 for (unsigned int j = 0; j < 3; ++j)
                 {
-                    D[i][j](k, l) = aux(i, j);
+                    D[i][j][k][l] = aux(i, j);
                 }
             }
         }

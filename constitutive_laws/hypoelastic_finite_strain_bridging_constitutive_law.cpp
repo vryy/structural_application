@@ -230,7 +230,7 @@ void HypoelasticFiniteStrainBridgingConstitutiveLaw<THWSchemeType, TStressType>:
         for (int j = 0; j < 3; ++j)
             for (int k = 0; k < 3; ++k)
                 for (int l = 0; l < 3; ++l)
-                    M[i][j](k, l) += Dx_0_half(i, k) * Dx_1_half(l, j);
+                    M[i][j][k][l] += Dx_0_half(i, k) * Dx_1_half(l, j);
 }
 
 template<int THWSchemeType, int TStressType>
@@ -439,9 +439,9 @@ void HypoelasticFiniteStrainBridgingConstitutiveLaw<THWSchemeType, TStressType>:
                 for (int l = 0; l < 3; ++l)
                 {
                     for (int m = 0; m < 3; ++m)
-                        A[i][j](k, l) += eye(i, k)*stress_n(l, m)*qDelta(j, m) + qDelta(i, m)*stress_n(m, l)*eye(j, k);
+                        A[i][j][k][l] += eye(i, k)*stress_n(l, m)*qDelta(j, m) + qDelta(i, m)*stress_n(m, l)*eye(j, k);
 
-                    B[i][j](k, l) = 0.5*Auxi(i, k)*(eye(l, j) + qDelta(l, j));
+                    B[i][j][k][l] = 0.5*Auxi(i, k)*(eye(l, j) + qDelta(l, j));
                 }
             }
         }
@@ -463,8 +463,8 @@ void HypoelasticFiniteStrainBridgingConstitutiveLaw<THWSchemeType, TStressType>:
             {
                 for (int l = 0; l < 3; ++l)
                 {
-                    Msym[i][j](k, l) = 0.5 * (M[i][j](k, l) + M[j][i](k, l));
-                    Mskew[i][j](k, l) = 0.5 * (M[i][j](k, l) - M[j][i](k, l));
+                    Msym[i][j][k][l] = 0.5 * (M[i][j][k][l] + M[j][i][k][l]);
+                    Mskew[i][j][k][l] = 0.5 * (M[i][j][k][l] - M[j][i][k][l]);
                 }
             }
         }
@@ -517,7 +517,7 @@ void HypoelasticFiniteStrainBridgingConstitutiveLaw<THWSchemeType, TStressType>:
             for (int j = 0; j < 3; ++j)
                 for (int k = 0; k < 3; ++k)
                     for (int l = 0; l < 3; ++l)
-                        DADL[i][j](k, l) = -0.5*Mskew[i][j](k, l);
+                        DADL[i][j][k][l] = -0.5*Mskew[i][j][k][l];
 
         KRATOS_WATCH(DADL)
         KRATOS_WATCH(Numerical_DADL)
@@ -539,7 +539,7 @@ void HypoelasticFiniteStrainBridgingConstitutiveLaw<THWSchemeType, TStressType>:
                     for (int l = 0; l < 3; ++l)
                         for (int m = 0; m < 3; ++m)
                             for (int n = 0; n < 3; ++n)
-                                DinvADL[i][j](k, l) += 0.5*Auxi(i, m)*Mskew[m][n](k, l)*(Auxi(n, j));
+                                DinvADL[i][j][k][l] += 0.5*Auxi(i, m)*Mskew[m][n][k][l]*(Auxi(n, j));
 
         KRATOS_WATCH(DinvADL)
         KRATOS_WATCH(Numerical_DinvADL)
@@ -621,12 +621,12 @@ void HypoelasticFiniteStrainBridgingConstitutiveLaw<THWSchemeType, TStressType>:
                 {
                     for (int l = 0; l < 3; ++l)
                     {
-                        C[i][j](k, l) = 0.5*(eye(i, k)*eye(j, l) + eye(i, k)*qDelta(j, l) + qDelta(i, l)*eye(j, k));
+                        C[i][j][k][l] = 0.5*(eye(i, k)*eye(j, l) + eye(i, k)*qDelta(j, l) + qDelta(i, l)*eye(j, k));
 
                         for (int m = 0; m < 3; ++m)
-                            D[i][j](k, l) += eye(i, k)*DDu_half_sym(l, m)*qdelta(j, m) + qdelta(i, m)*DDu_half_sym(m, l)*eye(j, k);
+                            D[i][j][k][l] += eye(i, k)*DDu_half_sym(l, m)*qdelta(j, m) + qdelta(i, m)*DDu_half_sym(m, l)*eye(j, k);
 
-                        E[i][j](k, l) = qdelta(i, k)*qdelta(j, l);
+                        E[i][j][k][l] = qdelta(i, k)*qdelta(j, l);
                     }
                 }
             }
@@ -670,7 +670,7 @@ void HypoelasticFiniteStrainBridgingConstitutiveLaw<THWSchemeType, TStressType>:
             for (int j = 0; j < 3; ++j)
                 for (int k = 0; k < 3; ++k)
                     for (int l = 0; l < 3; ++l)
-                        AA[i][j](k, l) += (m_stress_n1(i, j) * eye(k, l) - m_stress_n1(i, l) * eye(j, k));
+                        AA[i][j][k][l] += (m_stress_n1(i, j) * eye(k, l) - m_stress_n1(i, l) * eye(j, k));
     }
     else if constexpr (TStressType == 2)
     {
@@ -679,7 +679,7 @@ void HypoelasticFiniteStrainBridgingConstitutiveLaw<THWSchemeType, TStressType>:
             for (int j = 0; j < 3; ++j)
                 for (int k = 0; k < 3; ++k)
                     for (int l = 0; l < 3; ++l)
-                        AA[i][j](k, l) = AA[i][j](k, l) / J - m_stress_n1(i, l) * eye(j, k);
+                        AA[i][j][k][l] = AA[i][j][k][l] / J - m_stress_n1(i, l) * eye(j, k);
     }
 }
 
@@ -713,7 +713,7 @@ void HypoelasticFiniteStrainBridgingConstitutiveLaw<THWSchemeType, TStressType>:
             {
                 for (unsigned int j = 0; j < 3; ++j)
                 {
-                    D[i][j](k, l) = aux(i, j);
+                    D[i][j][k][l] = aux(i, j);
                 }
             }
         }
@@ -750,7 +750,7 @@ void HypoelasticFiniteStrainBridgingConstitutiveLaw<THWSchemeType, TStressType>:
             {
                 for (unsigned int j = 0; j < 3; ++j)
                 {
-                    M[i][j](k, l) = aux(i, j);
+                    M[i][j][k][l] = aux(i, j);
                 }
             }
         }
@@ -786,7 +786,7 @@ void HypoelasticFiniteStrainBridgingConstitutiveLaw<THWSchemeType, TStressType>:
             {
                 for (unsigned int j = 0; j < 3; ++j)
                 {
-                    M[i][j](k, l) = aux(i, j);
+                    M[i][j][k][l] = aux(i, j);
                 }
             }
         }
@@ -837,7 +837,7 @@ void HypoelasticFiniteStrainBridgingConstitutiveLaw<THWSchemeType, TStressType>:
             {
                 for (unsigned int j = 0; j < 3; ++j)
                 {
-                    D[i][j](k, l) = aux(i, j);
+                    D[i][j][k][l] = aux(i, j);
                 }
             }
         }
@@ -892,7 +892,7 @@ void HypoelasticFiniteStrainBridgingConstitutiveLaw<THWSchemeType, TStressType>:
             {
                 for (unsigned int j = 0; j < 3; ++j)
                 {
-                    D[i][j](k, l) = aux(i, j);
+                    D[i][j][k][l] = aux(i, j);
                 }
             }
         }
@@ -935,7 +935,7 @@ void HypoelasticFiniteStrainBridgingConstitutiveLaw<THWSchemeType, TStressType>:
             {
                 for (unsigned int j = 0; j < 3; ++j)
                 {
-                    D[i][j](k, l) = aux(i, j);
+                    D[i][j][k][l] = aux(i, j);
                 }
             }
         }
@@ -983,7 +983,7 @@ void HypoelasticFiniteStrainBridgingConstitutiveLaw<THWSchemeType, TStressType>:
             {
                 for (unsigned int j = 0; j < 3; ++j)
                 {
-                    D[i][j](k, l) = aux(i, j);
+                    D[i][j][k][l] = aux(i, j);
                 }
             }
         }

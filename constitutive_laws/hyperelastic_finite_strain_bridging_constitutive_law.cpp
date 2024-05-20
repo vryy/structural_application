@@ -160,10 +160,10 @@ void HyperelasticFiniteStrainBridgingConstitutiveLaw::ComputeTangent(Fourth_Orde
                         for (int u = 0; u < 3; ++u)
                             for (int p = 0; p < 3; ++p)
                                 for (int q = 0; q < 3; ++q)
-                                    aux += 0.5/J * F(i, m) * F(j, u) * D[m][u](p, q)
+                                    aux += 0.5/J * F(i, m) * F(j, u) * D[m][u][p][q]
                                             * (F(l, p)*F(k, q) + F(l, q)*F(k, p));
 
-                    A[i][j](k, l) = aux;
+                    A[i][j][k][l] = aux;
                 }
             }
         }
@@ -239,7 +239,7 @@ void HyperelasticFiniteStrainBridgingConstitutiveLaw::ComputeStress(Matrix& stre
 //             {
 //                 for (unsigned int j = 0; j < 3; ++j)
 //                 {
-//                     D[i][j](k, l) = aux(i, j);
+//                     D[i][j][k][l] = aux(i, j);
 //                 }
 //             }
 //         }
