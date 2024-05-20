@@ -397,8 +397,8 @@ void CorotationalLinearBeamElement::CalculateInitialLocalCS(Matrix& transformati
         }
         else
         {
-            noalias(v2) = MathUtils<double>::UnitCrossProduct(global_z, direction_vector_x);
-            noalias(v3) = MathUtils<double>::UnitCrossProduct(direction_vector_x, v2);
+            MathUtils<double>::UnitCrossProduct(v2, global_z, direction_vector_x);
+            MathUtils<double>::UnitCrossProduct(v3, direction_vector_x, v2);
         }
 
         for (int i = 0; i < 3; ++i) {
