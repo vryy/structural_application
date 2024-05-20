@@ -99,6 +99,20 @@ Matrix& FiniteStrainBridgingConstitutiveLaw::GetValue( const Variable<Matrix>& r
 }
 
 //**********************************************************************
+Matrix& FiniteStrainBridgingConstitutiveLaw::CalculateValue( Parameters& rParameterValues, const Variable<Matrix>& rThisVariable, Matrix& rValue )
+{
+    if (rThisVariable == THREED_ALGORITHMIC_TANGENT)
+    {
+        if (rValue.size1() != 9 || rValue.size2() != 9)
+            rValue.resize(9, 9, false);
+        this->ComputeTangent( rParameterValues, rValue );
+        return rValue;
+    }
+
+    return mpConstitutiveLaw->CalculateValue(rParameterValues, rThisVariable, rValue);
+}
+
+//**********************************************************************
 void FiniteStrainBridgingConstitutiveLaw::SetValue( const Variable<int>& rThisVariable, const int& rValue,
                             const ProcessInfo& rCurrentProcessInfo )
 {

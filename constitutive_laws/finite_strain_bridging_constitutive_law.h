@@ -120,6 +120,8 @@ public:
     Vector& GetValue( const Variable<Vector>& rThisVariable, Vector& rValue ) override;
     Matrix& GetValue( const Variable<Matrix>& rThisVariable, Matrix& rValue ) override;
 
+    Matrix& CalculateValue(Parameters& rParameterValues, const Variable<Matrix>& rThisVariable, Matrix& rValue) override;
+
     void SetValue( const Variable<int>& rThisVariable, const int& rValue,
                    const ProcessInfo& rCurrentProcessInfo ) override;
     void SetValue( const Variable<double>& rThisVariable, const double& rValue,
