@@ -26,7 +26,7 @@ namespace Kratos
 /**
  * A wrapper/bridging constitutive law to use with the FiniteStrain element
  */
-class FiniteStrainBridgingConstitutiveLaw : public ConstitutiveLaw
+class FiniteStrainBridgingConstitutiveLaw : virtual public ConstitutiveLaw
 {
 public:
     /**
