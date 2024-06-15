@@ -547,12 +547,6 @@ namespace Kratos
         GetGeometry().Clean();
         #endif
 
-        // if (Id() == 1)
-        // {
-        //     KRATOS_WATCH(rRightHandSideVector)
-        //     KRATOS_WATCH(rLeftHandSideMatrix)
-        // }
-
         KRATOS_CATCH( "" )
     }
 

@@ -256,7 +256,6 @@ namespace Kratos
 
         Matrix F( f_size, f_size );
 
-        Matrix InvF( f_size, f_size );
 
         Matrix A( g_size, g_size );
 

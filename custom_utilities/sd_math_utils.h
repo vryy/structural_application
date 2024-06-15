@@ -754,21 +754,6 @@ public:
     }
 
     /**
-     * creates identity matrix.
-     * Given matrix will be overwritten
-     * @param given matrix to be overwritten by identity matrix
-     */
-    static inline MatrixType IdentityMatrix( SizeType size )
-    {
-        MatrixType A = ZeroMatrix( size );
-        for( unsigned int i=0; i<size ; i++ )
-        {
-            A(i,i) = 1.0;
-        }
-        return A;
-    }
-
-    /**
      * Adds two matrices. first argument is overwritten by sum of both
      * Matrices are assumed to be of same dimension (no check on boundaries is made!)
      * @param A first matrix argument (overwritten by solution)
@@ -1954,7 +1939,7 @@ public:
      */
     static inline void CalculateFourthOrderDeviatoricTensor( Fourth_Order_Tensor& C )
     {
-        const Matrix eye = IdentityMatrix(3);
+        const auto eye = [](int i, int j) { return i == j ? 1.0 : 0.0; };
 
         for(unsigned int i = 0; i < 3; ++i)
         {
@@ -2040,7 +2025,8 @@ public:
      */
     static inline void CalculateFourthOrderSymmetricTensor( Fourth_Order_Tensor& C )
     {
-        const Matrix eye = IdentityMatrix(3);
+        const auto eye = [](int i, int j) { return i == j ? 1.0 : 0.0; };
+
         for(unsigned int i = 0; i < 3; ++i)
         {
             for(unsigned int j = 0; j < 3; ++j)
@@ -2059,7 +2045,7 @@ public:
     /// Note that this tensor is not symmetric
     static inline void CalculateFourthOrderUnitTensor( Fourth_Order_Tensor& C )
     {
-        const Matrix eye = IdentityMatrix(3);
+        const auto eye = [](int i, int j) { return i == j ? 1.0 : 0.0; };
 
         for(unsigned int i = 0; i < 3; ++i)
         {
@@ -2093,7 +2079,7 @@ public:
      */
     static inline void DeviatoricFourthOrderTensor( Fourth_Order_Tensor& C )
     {
-        const Matrix eye = IdentityMatrix(3);
+        const auto eye = [](int i, int j) { return i == j ? 1.0 : 0.0; };
 
         for(unsigned int i = 0; i < 3; ++i)
             for(unsigned int j = 0; j < 3; ++j)
@@ -2315,7 +2301,7 @@ public:
     // Compute D2(J3) / (D (SIGMA x SIGMA))
     static inline void D2J3DSigma2(Fourth_Order_Tensor& Result, const TDataType alpha, const MatrixType& s)
     {
-        const Matrix eye = IdentityMatrix(3);
+        const auto eye = [](int i, int j) { return i == j ? 1.0 : 0.0; };
 
         for(unsigned int i = 0; i < 3; ++i)
             for(unsigned int j = 0; j < 3; ++j)
@@ -2384,7 +2370,7 @@ public:
     {
         Unity.resize(3);
 
-        const Matrix eye = IdentityMatrix(3);
+        const auto eye = [](int i, int j) { return i == j ? 1.0 : 0.0; };
 
         for(unsigned int i=0; i<3; i++)
         {
@@ -2412,7 +2398,7 @@ public:
      */
     static void DeviatoricUnity(array_1d<TDataType, 81>& Unity)
     {
-        const Matrix eye = IdentityMatrix(3);
+        const auto eye = [](int i, int j) { return i == j ? 1.0 : 0.0; };
 
         for(unsigned int i=0; i<3; i++)
             for(unsigned int j=0; j<3; j++)
@@ -2430,7 +2416,7 @@ public:
     */
     static inline void CalculateElasticTensor( Fourth_Order_Tensor& C, TDataType E, TDataType NU )
     {
-        const Matrix eye = IdentityMatrix(3);
+        const auto eye = [](int i, int j) { return i == j ? 1.0 : 0.0; };
 
         TDataType lambda = NU * E / ((1 + NU) * (1 - 2 * NU));
         TDataType mu     = E / (2 * (1 + NU));
@@ -2617,7 +2603,7 @@ public:
     {
         Fourth_Order_Tensor dX2dX;
         CalculateFourthOrderZeroTensor(dX2dX);
-        TMatrixType I = IdentityMatrix(3);
+        const auto I = [](int i, int j) { return i == j ? 1.0 : 0.0; };
         for(int i = 0; i < 3; ++i)
             for(int j = 0; j < 3; ++j)
                 for(int k = 0; k < 3; ++k)
@@ -2677,7 +2663,7 @@ public:
     {
         Fourth_Order_Tensor dX2dX;
         CalculateFourthOrderZeroTensor(dX2dX);
-        TMatrixType I = IdentityMatrix(3);
+        const auto I = [](int i, int j) { return i == j ? 1.0 : 0.0; };
         for(int i = 0; i < 3; ++i)
             for(int j = 0; j < 3; ++j)
                 for(int k = 0; k < 3; ++k)
@@ -2769,7 +2755,7 @@ public:
         MatrixType X = pstrain[0] * E[0] + pstrain[1] * E[1] + pstrain[2] * E[2];
         Fourth_Order_Tensor dX2dX;
         CalculateFourthOrderZeroTensor(dX2dX);
-        MatrixType I = IdentityMatrix(3);
+        const auto I = [](int i, int j) { return i == j ? 1.0 : 0.0; };
         for(int i = 0; i < 3; ++i)
             for(int j = 0; j < 3; ++j)
                 for(int k = 0; k < 3; ++k)

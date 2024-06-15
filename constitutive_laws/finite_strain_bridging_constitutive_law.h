@@ -185,7 +185,10 @@ public:
      */
     std::string Info() const override
     {
-        return "FiniteStrainBridgingConstitutiveLaw";
+        std::stringstream ss;
+        ss << "FiniteStrainBridgingConstitutiveLaw("
+           << mpConstitutiveLaw->Info() << ")";
+        return ss.str();
     }
 
     /**
@@ -200,7 +203,9 @@ public:
      * Print object's data.
      */
     void PrintData(std::ostream& rOStream) const override
-    {}
+    {
+        mpConstitutiveLaw->PrintData(rOStream);
+    }
 
 protected:
     /**
@@ -217,12 +222,6 @@ protected:
 
     /// Update the internal deformation gradient
     void UpdateDeformationGradient(Matrix& F, double& J, const Parameters& rValues) const;
-
-    // /// Compute an equivalent strain for integrating with the small strain constitutive law
-    // virtual void ComputeStrain(Vector& StrainVector, const Matrix& F) const
-    // {
-    //     KRATOS_ERROR << "Calling base class function";
-    // }
 
     /// Integrate the stress
     virtual void StressIntegration(const Parameters& rValues, const Matrix& F, Matrix& stress_tensor) const
