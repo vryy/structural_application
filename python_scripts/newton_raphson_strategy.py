@@ -49,7 +49,7 @@ class SolvingStrategyPython:
         (self.builder_and_solver).SetCalculateReactionsFlag(self.CalculateReactionsFlag)
         (self.builder_and_solver).SetReshapeMatrixFlag(self.ReformDofSetAtEachStep)
 
-        self.solveCounter = 0; #hbui added this variable
+        self.solveCounter = 0
 
         self.system_reorderer = Process()
 #        self.system_reorderer = SystemRCMReordererProcess(self.model_part)
@@ -64,14 +64,22 @@ class SolvingStrategyPython:
 
         if 'calculate_strain_energy' not in self.Parameters:
             self.Parameters['calculate_strain_energy'] = False
+        if 'log_strain_energy' not in self.Parameters:
+            self.Parameters['log_strain_energy'] = False
         if self.Parameters['calculate_strain_energy'] == True:
             self.calculate_strain_energy_process = CalculateStrainEnergyProcess(self.model_part)
             self.attached_processes.append(self.calculate_strain_energy_process)
+        if self.Parameters['log_strain_energy'] == True:
             self.log_energy = open('strain_energy_newton_raphson.log', 'w')
             self.log_energy.write("time\tenergy\n")
 
+        if 'stop_Newton_Raphson_if_not_converged' not in self.Parameters:
+            self.Parameters['stop_Newton_Raphson_if_not_converged'] = True
         if 'stop_Newton_Raphson_if_not_converge' in self.Parameters:
             self.Parameters['stop_Newton_Raphson_if_not_converged'] = self.Parameters['stop_Newton_Raphson_if_not_converge']
+
+        if 'include_plastic_check_in_convergence_check' not in self.Parameters:
+            self.Parameters['include_plastic_check_in_convergence_check'] = False
 
         if 'list_plastic_points' not in self.Parameters:
             self.Parameters['list_plastic_points'] = False
@@ -85,11 +93,13 @@ class SolvingStrategyPython:
             else:
                 self.log_residuum = open(self.Parameters['log_residuum_name'], 'w')
 
+        self.iteration_counts = [] # record the number of iterations in each step
+
     def __del__(self):
         if self.log_residuum != None:
             self.log_residuum.close()
 
-        if self.Parameters['calculate_strain_energy'] == True:
+        if self.Parameters['log_strain_energy'] == True:
             self.log_energy.close()
 
     #######################################################################
@@ -122,7 +132,8 @@ class SolvingStrategyPython:
         #print self.model_part
         self.solveCounter = self.solveCounter + 1
         #solve the nonlinear equilibrium
-        converged = self.PerformNewtonRaphsonIteration()
+        converged, it = self.PerformNewtonRaphsonIteration()
+        self.iteration_counts.append(it)
         if not converged:
             self.solveCounter = self.solveCounter - 1
             #clear if needed - deallocates memory
@@ -159,7 +170,7 @@ class SolvingStrategyPython:
 
         #execute single iteration
         calculate_norm = False
-        self.iterationCounter = 0 #hbui added this variable
+        self.iterationCounter = 0
         self.iterationCounter = self.iterationCounter + 1
         normDx = self.ExecuteIteration(self.echo_level,self.MoveMeshFlag,calculate_norm)
         self.FinalizeNonLinIteration(False,self.MoveMeshFlag)
@@ -186,7 +197,7 @@ class SolvingStrategyPython:
 
         #execute iteration - first iteration is ALWAYS executed
         calculate_norm = False
-        self.iterationCounter = 0 #hbui added this variable
+        self.iterationCounter = 0
         self.iterationCounter = self.iterationCounter + 1
         normDx = self.ExecuteIteration(self.echo_level,calculate_norm)
         self.FinalizeNonLinIteration(False,self.MoveMeshFlag)
@@ -245,6 +256,18 @@ class SolvingStrategyPython:
                 self.log_residuum.write('%d\t%.6e\t%.6e\t%.6e\n' % (it, er, er_ratio, er_reduction))
                 self.log_residuum.flush()
 
+            if self.Parameters['include_plastic_check_in_convergence_check']:
+                failed_points_count = 0
+                for elem in self.model_part.Elements:
+                    pm = elem.CalculateOnIntegrationPoints(PLASTIC_MODE, self.model_part.ProcessInfo)
+                    for v in pm:
+                        if v[0] == -1:
+                            failed_points_count += 1
+                print("Number of failed plastic points: %d" % (failed_points_count))
+                if failed_points_count > 0:
+                    converged = False
+                    return False, it
+
         if( it == self.max_iter and converged == False):
             print("Iteration did not converge at time step " + str(self.model_part.ProcessInfo[TIME]))
             if('stop_Newton_Raphson_if_not_converged' in self.Parameters):
@@ -252,11 +275,11 @@ class SolvingStrategyPython:
                     raise Exception("Sorry, my boss does not allow me to continue. The time step did not converge at time step " + str(self.model_part.ProcessInfo[TIME]) + ", it = " + str(it) + ", max_iter = " + str(self.max_iter))
                 else:
                     print('However, the iteration will still be proceeded' + ", it = " + str(it) + ", max_iter = " + str(self.max_iter))
-                    return False
+                    return False, it
             else:
                 raise Exception("Sorry, my boss does not allow me to continue. The time step did not converge at time step " + str(self.model_part.ProcessInfo[TIME]) + ", it = " + str(it) + ", max_iter = " + str(self.max_iter))
         print("newton_raphson_strategy.PerformNewtonRaphsonIteration converged after " + str(it) + " steps")
-        return True
+        return True, it
 
     #######################################################################
     def Predict(self):
@@ -417,7 +440,7 @@ class SolvingStrategyPython:
         for proc in self.attached_processes:
             proc.ExecuteFinalizeSolutionStep()
 
-        if self.Parameters['calculate_strain_energy'] == True:
+        if self.Parameters['calculate_strain_energy'] and self.Parameters['log_strain_energy']:
             self.log_energy.write('%.6e\t%.10e\n' % (self.model_part.ProcessInfo[TIME], self.calculate_strain_energy_process.GetEnergy()))
 
         if self.log_residuum != None:

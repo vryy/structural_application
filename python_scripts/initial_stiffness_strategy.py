@@ -6,7 +6,7 @@ CheckForPreviousImport()
 import os,time,math
 
 # Reference:
-# Vermeer et al, Automatic Step Size Correction for Non-associated Plasticity Problems
+# + Vermeer et al, Automatic Step Size Correction for Non-associated Plasticity Problems
 
 class SolvingStrategyPython:
     #######################################################################
@@ -54,7 +54,7 @@ class SolvingStrategyPython:
         (self.builder_and_solver).SetCalculateReactionsFlag(self.CalculateReactionsFlag)
         (self.builder_and_solver).SetReshapeMatrixFlag(self.ReformDofSetAtEachStep)
 
-        self.solveCounter = 0 #hbui added this variable
+        self.solveCounter = 0
 
         self.system_reorderer = Process()
 #        self.system_reorderer = SystemRCMReordererProcess(self.model_part)
@@ -67,6 +67,8 @@ class SolvingStrategyPython:
         # turn off the calculate reaction flag
         self.model_part.ProcessInfo[SET_CALCULATE_REACTION] = False
 
+        if 'stop_Newton_Raphson_if_not_converged' not in self.Parameters:
+            self.Parameters['stop_Newton_Raphson_if_not_converged'] = True
         if 'stop_Newton_Raphson_if_not_converge' in self.Parameters:
             self.Parameters['stop_Newton_Raphson_if_not_converged'] = self.Parameters['stop_Newton_Raphson_if_not_converge']
 
@@ -91,6 +93,8 @@ class SolvingStrategyPython:
                 self.log_residuum = open('residuum_initial_stiffness.log', 'w')
             else:
                 self.log_residuum = open(self.Parameters['log_residuum_name'], 'w')
+
+        self.iteration_counts = [] # record the number of iterations in each step
 
     def __del__(self):
         if self.log_residuum != None:
@@ -126,12 +130,23 @@ class SolvingStrategyPython:
         #print self.model_part
         self.solveCounter = self.solveCounter + 1
         #solve the nonlinear equilibrium
-        self.PerformNewtonRaphsonIteration()
+        converged, it = self.PerformNewtonRaphsonIteration()
+        self.iteration_counts.append(it)
+        if not converged:
+            self.solveCounter = self.solveCounter - 1
+            #clear if needed - deallocates memory
+            if(self.ReformDofSetAtEachStep == True):
+                print("Clear the system")
+                self.Clear()
+            #reset flags for repeated step
+            self.SolutionStepIsInitialized = False
+            return False
         #finalize the solution step
         self.FinalizeSolutionStep(self.CalculateReactionsFlag)
         #clear if needed - deallocates memory
         if(self.ReformDofSetAtEachStep == True):
             self.Clear()
+        return True
 
     #######################################################################
     def PerformOneIteration( self ):
@@ -153,7 +168,7 @@ class SolvingStrategyPython:
 
         #execute single iteration
         calculate_norm = False
-        self.iterationCounter = 0 #hbui added this variable
+        self.iterationCounter = 0
         self.iterationCounter = self.iterationCounter + 1
         normDx = self.ExecuteIteration(self.echo_level,self.MoveMeshFlag,calculate_norm,0)
         self.FinalizeNonLinIteration(False,self.MoveMeshFlag)
@@ -179,8 +194,8 @@ class SolvingStrategyPython:
         self.Predict()
 
         #execute iteration - first iteration is ALWAYS executed
-        calculate_norm = True
-        self.iterationCounter = 0 #hbui added this variable
+        calculate_norm = False
+        self.iterationCounter = 0
         self.iterationCounter = self.iterationCounter + 1
         normDx = self.ExecuteIteration(self.echo_level,calculate_norm,0)
         self.FinalizeNonLinIteration(False,self.MoveMeshFlag)
@@ -262,12 +277,14 @@ class SolvingStrategyPython:
             print("Iteration did not converge at time step " + str(self.model_part.ProcessInfo[TIME]))
             if('stop_Newton_Raphson_if_not_converged' in self.Parameters):
                 if(self.Parameters['stop_Newton_Raphson_if_not_converged'] == True):
-                    sys.exit("Sorry, my boss does not allow me to continue. The time step did not converge at time step " + str(self.model_part.ProcessInfo[TIME]) + ", it = " + str(it) + ", max_iter = " + str(self.max_iter))
+                    raise Exception("Sorry, my boss does not allow me to continue. The time step did not converge at time step " + str(self.model_part.ProcessInfo[TIME]) + ", it = " + str(it) + ", max_iter = " + str(self.max_iter))
                 else:
                     print('However, the iteration will still be proceeded' + ", it = " + str(it) + ", max_iter = " + str(self.max_iter))
+                    return False, it
             else:
-                sys.exit("Sorry, my boss does not allow me to continue. The time step did not converge at time step " + str(self.model_part.ProcessInfo[TIME]) + ", it = " + str(it) + ", max_iter = " + str(self.max_iter))
+                raise Exception("Sorry, my boss does not allow me to continue. The time step did not converge at time step " + str(self.model_part.ProcessInfo[TIME]) + ", it = " + str(it) + ", max_iter = " + str(self.max_iter))
         print("initial_stiffness_strategy.PerformNewtonRaphsonIteration converged after " + str(it) + " steps")
+        return True, it
 
     #######################################################################
     def Predict(self):
@@ -439,6 +456,11 @@ class SolvingStrategyPython:
 
         for proc in self.attached_processes:
             proc.ExecuteFinalizeSolutionStep()
+
+        if self.log_residuum != None:
+            self.log_residuum.write("----------------------------------------------------\n")
+            self.log_residuum.flush()
+
         print("initial_stiffness_strategy.FinalizeSolutionStep is called")
 
     #######################################################################
