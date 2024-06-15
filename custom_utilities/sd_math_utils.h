@@ -3628,6 +3628,33 @@ public:
         rInvertedMatrix[2][2] = (rInputMatrix[0][0]*rInputMatrix[1][1] - rInputMatrix[0][1]*rInputMatrix[1][0]) / rInputMatrixDet;
     }
 
+    /// Transform the deformation gradient to vector
+    template<typename TMatrixType, typename TVectorType>
+    static void DeformationGradientToVector( const unsigned int dim, const TMatrixType& F, TVectorType& Fv )
+    {
+        for (unsigned int i = 0; i < dim; ++i)
+            for (unsigned int j = 0; j < dim; ++j)
+                Fv(dim*i + j) = F(i, j);
+    }
+
+    /// Copy the values of the deformation gradient from full 3D (3x3) to the reduced-size one
+    template<typename TMatrixType>
+    static void CopyDeformationGradient(const TMatrixType& F3d, TMatrixType& F)
+    {
+        if (F.size1() == 3)
+        {
+            noalias(F) = F3d;
+        }
+        else if (F.size1() == 2)
+        {
+            for (int i = 0; i < 2; ++i)
+                for (int j = 0; j < 2; ++j)
+                    F(i, j) = F3d(i, j);
+        }
+        else
+            KRATOS_ERROR << "Invalid dimension (" << F.size1() << ", " << F.size2() << ") of the deformation gradient";
+    }
+
 };// class SD_MathUtils
 
 }
