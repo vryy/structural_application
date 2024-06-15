@@ -233,7 +233,6 @@ template<int TStressType>
 void MultiplicativeFiniteStrainBridgingConstitutiveLaw<TStressType>::CalculateMaterialResponseCauchy(Parameters& rValues)
 {
     // integrate the Kirchhoff stress
-    const Matrix& F = rValues.GetDeformationGradientF();
     this->UpdateDeformationGradient(m_F_n1, m_J_n1, rValues);
     this->StressIntegration(rValues, m_F_n1, m_stress_n1, m_Be_trial);
 
@@ -309,15 +308,15 @@ void MultiplicativeFiniteStrainBridgingConstitutiveLaw<2>::ComputeTangent(Fourth
     Fourth_Order_Tensor D, L, B;
     this->ComputeTangentTerms(D, L, B);
 
-    // const double J = MathUtils<double>::Det(m_F_n1);
-    const double J = m_J_n1; // it is also OK to use this, even for Fbar
     Fourth_Order_Tensor DL;
     SD_MathUtils<double>::CalculateFourthOrderZeroTensor(DL);
-    SD_MathUtils<double>::ProductFourthOrderTensor(1.0/J, D, L, DL);
+    SD_MathUtils<double>::ProductFourthOrderTensor(1.0, D, L, DL);
 
     // compute tangent tensor A
+    // const double J = MathUtils<double>::Det(m_F_n1);
+    const double J = m_J_n1; // it is also OK to use this, even for Fbar
     SD_MathUtils<double>::CalculateFourthOrderZeroTensor(A);
-    SD_MathUtils<double>::ProductFourthOrderTensor(1.0, DL, B, A);
+    SD_MathUtils<double>::ProductFourthOrderTensor(1.0/J, DL, B, A);
 
     #ifdef DEBUG_CONSTITUTIVE_LAW
     const unsigned int g_size = 9;

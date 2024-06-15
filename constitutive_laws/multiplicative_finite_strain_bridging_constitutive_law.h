@@ -124,6 +124,9 @@ protected:
     /// Compute the consistent tangent (tensor A)
     void ComputeTangent(Fourth_Order_Tensor& A) const override;
 
+    /// Compute necessary terms to derive the consistent tangent for infinitesimal strain
+    void ComputeTangentTerms(Fourth_Order_Tensor& D, Fourth_Order_Tensor& L, Fourth_Order_Tensor& B) const;
+
 private:
 
     ///@name Serialization
@@ -158,9 +161,6 @@ private:
     /// Integrate the stress; depending on the TStressType, the output is Cauchy stress (TStressType=1) or
     /// Kirchhoff stress (TStressType=2)
     void StressIntegration(const Parameters& rValues, const Matrix& F, Matrix& stress_tensor, Matrix& Be_trial) const;
-
-    /// Compute necessary terms to derive the consistent tangent for infinitesimal strain
-    void ComputeTangentTerms(Fourth_Order_Tensor& D, Fourth_Order_Tensor& L, Fourth_Order_Tensor& B) const;
 
     /// Compute the numerical derivatives of Be^trial with respect to F
     void ComputeBetrialDerivatives(Fourth_Order_Tensor& B, const Matrix& F, double epsilon) const;
