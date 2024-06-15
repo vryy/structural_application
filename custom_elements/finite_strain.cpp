@@ -530,7 +530,7 @@ namespace Kratos
                     mConstitutiveLawVector[PointNumber]->GetValue(CAUCHY_STRESS_TENSOR, stress_tensor);
                     if ( dim == 2)
                     {
-                        mConstitutiveLawVector[PointNumber]->GetValue(THREED_ALGORITHMIC_TANGENT, A3d);
+                        mConstitutiveLawVector[PointNumber]->CalculateValue(const_params, THREED_ALGORITHMIC_TANGENT, A3d);
                         SD_MathUtils<double>::UnsymmetricMatrixToTensor(A3d, Atensor);
                     }
                     else if (dim == 3)
