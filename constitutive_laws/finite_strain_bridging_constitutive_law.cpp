@@ -11,7 +11,6 @@
 // External includes
 
 // Project includes
-#include "includes/variables.h"
 #include "constitutive_laws/finite_strain_bridging_constitutive_law.h"
 #include "structural_application_variables.h"
 
