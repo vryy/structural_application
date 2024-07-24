@@ -175,7 +175,7 @@ def CheckAndConvertParameters(analysis_parameters):
         new_analysis_parameters['convergence_criteria'] = "multiphase"
         return new_analysis_parameters
     else:
-        print 'unsupported type of analysis parameters'
+        print('unsupported type of analysis parameters')
         sys.exit(0)
 
 #######################################################################

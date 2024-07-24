@@ -265,6 +265,8 @@ class SolvingStrategyPython:
             if (converged == False)  and (er_ratio < self.erbar):
                 converged = True
                 print("initial_stiffness_strategy.PerformNewtonRaphsonIteration converged when residuum ratio (" + str(er_ratio) + ") reached tolerance " + str(self.erbar))
+            else:
+                print("initial_stiffness_strategy.PerformNewtonRaphsonIteration it " + str(it) + " ratio (" + str(er_ratio) + ") > tolerance " + str(self.erbar))
 
             if self.log_residuum != None:
                 self.log_residuum.write(str(it) + '\t' + str(er) + '\t' + str(er_ratio) + '\t' + str(er_reduction) + '\t' + str(n) + '\n')
