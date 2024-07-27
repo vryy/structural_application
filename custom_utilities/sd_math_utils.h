@@ -3637,6 +3637,16 @@ public:
                 Fv(dim*i + j) = F(i, j);
     }
 
+    /// Transform the deformation gradient to vector
+    template<typename TMatrixType, typename TVectorType>
+    static void DeformationGradientToVectorAxi( const TMatrixType& F, TVectorType& Fv )
+    {
+        for (unsigned int i = 0; i < 2; ++i)
+            for (unsigned int j = 0; j < 2; ++j)
+                Fv(2*i + j) = F(i, j);
+        Fv(4) = F(2, 2);
+    }
+
     /// Copy the values of the deformation gradient from full 3D (3x3) to the reduced-size one
     template<typename TMatrixType>
     static void CopyDeformationGradient(const TMatrixType& F3d, TMatrixType& F)
