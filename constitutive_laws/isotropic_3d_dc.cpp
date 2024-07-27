@@ -95,6 +95,10 @@ bool Isotropic3DDC::Has( const Variable<Vector>& rThisVariable )
         return true;
     if(rThisVariable == CURRENT_STRAIN_VECTOR)
         return true;
+    if(rThisVariable == STRAIN)
+        return true;
+    if(rThisVariable == STRAIN_OLD)
+        return true;
 
     return false;
 }
@@ -186,9 +190,13 @@ Vector& Isotropic3DDC::GetValue( const Variable<Vector>& rThisVariable, Vector& 
         rValue(4) = 2*m_strain_n(1, 2);
         rValue(5) = 2*m_strain_n(0, 2);
     }
-    else if ( rThisVariable == ELASTIC_STRAIN_VECTOR || rThisVariable == STRAIN )
+    else if ( rThisVariable == STRAIN_OLD )
     {
         SD_MathUtils<double>::StrainTensorToVector(m_strain_n, rValue);
+    }
+    else if ( rThisVariable == ELASTIC_STRAIN_VECTOR || rThisVariable == STRAIN )
+    {
+        SD_MathUtils<double>::StrainTensorToVector(m_strain_n1, rValue);
     }
 
     return rValue;

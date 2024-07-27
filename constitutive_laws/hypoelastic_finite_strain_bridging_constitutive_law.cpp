@@ -290,7 +290,10 @@ void HypoelasticFiniteStrainBridgingConstitutiveLaw<THWSchemeType, TStressType>:
     // create the strain vector as input to the small strain constitutive law
     Vector IncrementalStrainVector(StrainVector.size());
     SD_MathUtils<double>::StrainTensorToVector(elastic_strain_tensor_trial - elastic_strain_tensor, IncrementalStrainVector);
-    mpConstitutiveLaw->GetValue(STRAIN, StrainVector);
+    if (mpConstitutiveLaw->Has(STRAIN_OLD))
+        mpConstitutiveLaw->GetValue(STRAIN_OLD, StrainVector);
+    else
+        KRATOS_ERROR << mpConstitutiveLaw->Info() << " does not provide the STRAIN_OLD variable";
     noalias(StrainVector) += IncrementalStrainVector;
 }
 
