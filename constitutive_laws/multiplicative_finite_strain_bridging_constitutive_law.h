@@ -183,7 +183,7 @@ public:
     typedef MultiplicativeFiniteStrainBridgingConstitutiveLaw<TStressType> BaseType;
 
     /**
-     * Counted pointer of MultiplicativeFiniteStrainBridgingConstitutiveLaw
+     * Counted pointer of MultiplicativeFiniteStrainAxisymmetricBridgingConstitutiveLaw
      */
     KRATOS_CLASS_POINTER_DEFINITION(MultiplicativeFiniteStrainAxisymmetricBridgingConstitutiveLaw);
 
