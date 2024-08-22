@@ -64,6 +64,10 @@ class SolvingStrategyPython:
 
         if 'calculate_strain_energy' not in self.Parameters:
             self.Parameters['calculate_strain_energy'] = False
+        else:
+            if self.Parameters['calculate_strain_energy']:
+                if 'log_strain_energy' not in self.Parameters:
+                    self.Parameters['log_strain_energy'] = True
         if 'log_strain_energy' not in self.Parameters:
             self.Parameters['log_strain_energy'] = False
         if self.Parameters['calculate_strain_energy'] == True:
