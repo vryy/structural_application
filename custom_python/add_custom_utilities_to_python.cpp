@@ -80,12 +80,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include "spaces/ublas_space.h"
 #include "linear_solvers/linear_solver.h"
-#include "custom_utilities/contact_utility.h"
-#include "custom_utilities/restart_utility.h"
-#include "custom_elements/rigid_body_3D.h"
 #include "custom_utilities/output_utility.h"
 #include "custom_utilities/dof_utility.h"
-#include "custom_utilities/smoothing_utility.h"
 #include "custom_utilities/tip_utility.h"
 #include "custom_utilities/pile_utility.h"
 #include "custom_utilities/foundation_utility.h"
@@ -105,98 +101,6 @@ namespace Python
 {
 
 using namespace boost::python;
-
-void AddNewRigidBody3D( ModelPart& structural_model_part,
-                        ModelPart& skin_model_part,
-                        Variable<double>& rSelectionVariable,
-                        double selection_value,
-                        Node<3>::Pointer CenterNode,
-                        Element::PropertiesType::Pointer pProperties,
-                        double nodal_mass,
-                        Matrix& Inertia
-                      )
-{
-    Geometry<Node<3> >::Pointer skin_nodes_geometry( new Geometry<Node<3> > ); ;
-
-    //selecting the nodes in the model part having rSelectionVariable==selection_value
-
-    for ( ModelPart::NodesContainerType::iterator it = skin_model_part.NodesBegin(); it != skin_model_part.NodesEnd(); it++ )
-    {
-        if ( it->FastGetSolutionStepValue( rSelectionVariable ) == selection_value )
-            skin_nodes_geometry->push_back( *( it.base() ) );
-    }
-
-    //creating a geometry containing the center node
-    Geometry<Node<3> >::Pointer center_node_geometry( new Geometry<Node<3> > ) ;
-
-    center_node_geometry->push_back( Node<3>::Pointer( CenterNode ) );
-
-    unsigned int last_id = 1;
-
-    if ( structural_model_part.Elements().size() != 0 )
-        last_id = ( structural_model_part.ElementsEnd() - 1 )->Id() + 1;
-
-    array_1d<double, 3> zero = ZeroVector( 3 );
-
-    Element::Pointer new_el = RigidBody3D::Pointer( new  RigidBody3D( last_id,
-                              center_node_geometry,
-                              pProperties,
-                              skin_nodes_geometry,
-                              nodal_mass,
-                              Inertia, zero, zero ) );
-
-    structural_model_part.Elements().push_back(
-        new_el
-    );
-}
-
-void AddNewRigidBodyAndSpring3D( ModelPart& structural_model_part,
-                                 ModelPart& skin_model_part,
-                                 Variable<double>& rSelectionVariable,
-                                 double selection_value,
-                                 Node<3>::Pointer CenterNode,
-                                 Element::PropertiesType::Pointer pProperties,
-                                 double nodal_mass,
-                                 Matrix& Inertia,
-                                 array_1d<double, 3>& translational_stiffness,
-                                 array_1d<double, 3>& rotational_stiffness
-                               )
-{
-    Geometry<Node<3> >::Pointer skin_nodes_geometry( new Geometry<Node<3> > ); ;
-
-    //selecting the nodes in the model part having rSelectionVariable==selection_value
-
-    for ( ModelPart::NodesContainerType::iterator it = skin_model_part.NodesBegin(); it != skin_model_part.NodesEnd(); it++ )
-    {
-        if ( it->FastGetSolutionStepValue( rSelectionVariable ) == selection_value )
-            skin_nodes_geometry->push_back( *( it.base() ) );
-    }
-
-    //creating a geometry containing the center node
-    Geometry<Node<3> >::Pointer center_node_geometry( new Geometry<Node<3> > ) ;
-
-    center_node_geometry->push_back( Node<3>::Pointer( CenterNode ) );
-
-    unsigned int last_id = 1;
-
-    if ( structural_model_part.Elements().size() != 0 )
-        last_id = ( structural_model_part.ElementsEnd() - 1 )->Id() + 1;
-
-    array_1d<double, 3> zero = ZeroVector( 3 );
-
-    Element::Pointer new_el = RigidBody3D::Pointer( new  RigidBody3D( last_id,
-                              center_node_geometry,
-                              pProperties,
-                              skin_nodes_geometry,
-                              nodal_mass,
-                              Inertia,
-                              translational_stiffness,
-                              rotational_stiffness ) );
-
-    structural_model_part.Elements().push_back(
-        new_el
-    );
-}
 
 void DoubleTransferVariablesToNodes(VariableTransferUtility& dummy,
         ModelPart& model_part, Variable<double>& rThisVariable)
@@ -313,13 +217,13 @@ void VectorTransferVariablesToNodesComponentsForConditionsAsList(VariableTransfe
 }
 
 void DoubleTransferVariablesToNode(VariableTransferUtility& dummy,
-        ElementsContainerType& rElements, Variable<double>& rThisVariable, Element::GeometryType::PointType& rNode)
+        ModelPart::ElementsContainerType& rElements, Variable<double>& rThisVariable, Element::GeometryType::PointType& rNode)
 {
     dummy.TransferVariablesToNode(rElements, rThisVariable, rNode);
 }
 
 void Array1DTransferVariablesToNode(VariableTransferUtility& dummy,
-        ElementsContainerType& rElements, Variable<array_1d<double, 3> >& rThisVariable, Element::GeometryType::PointType& rNode)
+        ModelPart::ElementsContainerType& rElements, Variable<array_1d<double, 3> >& rThisVariable, Element::GeometryType::PointType& rNode)
 {
     dummy.TransferVariablesToNode(rElements, rThisVariable, rNode);
 }
@@ -802,28 +706,6 @@ void  AddCustomUtilitiesToPython()
     ;
 #endif
 
-    class_<ContactUtility, boost::noncopyable >
-    ( "ContactUtility",
-      init<int>() )
-    .def( "SetUpContactConditions", &ContactUtility::SetUpContactConditions )
-    .def( "SetUpContactConditionsLagrangeTying", &ContactUtility::SetUpContactConditionsLagrangeTying )
-    .def( "Update", &ContactUtility::Update )
-    .def( "IsConverged", &ContactUtility::IsConverged )
-    .def( "Clean", &ContactUtility::Clean )
-    .def( "CleanLagrangeTying", &ContactUtility::CleanLagrangeTying )
-    ;
-
-    class_<RestartUtility, boost::noncopyable >
-    ( "RestartUtility",
-      init< std::string const& >() )
-    .def( "ChangeFileName", &RestartUtility::ChangeFileName )
-    .def( "StoreNodalVariables", &RestartUtility::StoreNodalVariables )
-    .def( "WriteNodalVariables", &RestartUtility::WriteNodalVariables )
-    .def( "StoreInSituStress", &RestartUtility::StoreInSituStress )
-    .def( "WriteConstitutiveLawVariables", &RestartUtility::WriteConstitutiveLawVariables )
-    .def( "StoreConstitutiveLawVariables", &RestartUtility::StoreConstitutiveLawVariables )
-    .def( "WriteInSituStress", &RestartUtility::WriteInSituStress )
-    ;
 
     class_<OutputUtility, boost::noncopyable >
     ( "OutputUtility",
@@ -834,23 +716,6 @@ void  AddCustomUtilitiesToPython()
     .def( "GetNumberOfPlasticPoints", &OutputUtility::GetNumberOfPlasticPoints )
     .def( "ListPlasticPoints", &OutputUtility::ListPlasticPoints )
     ;
-
-    def( "AddNewRigidBody3D", AddNewRigidBody3D );
-    def( "AddNewRigidBodyAndSpring3D", AddNewRigidBodyAndSpring3D );
-    ;
-
-    class_<Smoothing_Utility, boost::noncopyable >
-    ( "SmoothingUtility", init<ModelPart&, int >() )
-    .def( "WeightedRecoveryGradients", &Smoothing_Utility::WeightedRecoveryGradients<double> )
-    .def( "WeightedRecoveryGradients", &Smoothing_Utility::WeightedRecoveryGradients<Matrix> ) // for matrices
-    .def( "InterpolatedRecoveryGradients", &Smoothing_Utility::InterpolatedRecoveryGradients<Matrix> )
-    .def( "SettingNodalValues", &Smoothing_Utility::SettingNodalValues )
-    .def( "RecomputeValuesForNewMesh", &Smoothing_Utility::Recompute_Values_For_New_Mesh )
-    .def( "Finalize", &Smoothing_Utility::Finalize )
-    .def( "SettingNodalValues", &Smoothing_Utility::SettingNodalValues )
-    ;
-
-
     class_<DofUtility, boost::noncopyable >
     ( "DofUtility", init<>() )
     .def( "ListDofs", &ListDofs )

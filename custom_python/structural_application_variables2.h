@@ -73,7 +73,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/legacy_structural_app_vars.h"
 #include "includes/deprecated_variables.h"
 
-#include "constitutive_laws/hardening_law.h"
+#include "phase_laws/hardening_law.h"
 
 namespace Kratos
 {

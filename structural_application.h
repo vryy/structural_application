@@ -92,8 +92,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #else
     #include "custom_elements/total_lagrangian.h"
     #include "custom_elements/total_lagrangian_axisymmetric.h"
-    //#include "custom_elements/linear_incompresible_element.h"
-    #include "custom_elements/mixed_lagrangian.h"
     #include "custom_elements/finite_strain.h"
     #include "custom_elements/finite_strain_axisymmetric.h"
     #include "custom_elements/beam_element.h"
@@ -103,15 +101,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
     #include "custom_elements/kinematic_linear.h"
     #include "custom_elements/kinematic_linear_axisymmetric.h"
     #include "custom_elements/updated_kinematic_linear.h"
-    #include "custom_elements/membrane_element.h"
-    #include "custom_elements/unsaturated_soils_element_2phase_small_strain.h"
-    #include "custom_elements/unsaturated_soils_element_2phase_small_strain_staggered.h"
-    #include "custom_elements/unsaturated_soils_element_3phase_small_strain.h"
-    #include "custom_elements/unsaturated_soils_element_3phase_small_strain_liakopolous.h"
-    // #include "custom_elements/upc_test_element.h"
     #include "custom_elements/shell_isotropic.h"
     #include "custom_elements/shell_anisotropic.h"
-    #include "custom_elements/shell_anisotropic_linear.h"
     #include "custom_elements/crisfield_truss_element.h"
     #include "custom_elements/truss_element.h"
     #include "custom_elements/ebst.h"
@@ -119,8 +110,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
     #include "custom_elements/eas_element_q4e4.h"
     #include "custom_elements/dummy_element.h"
 
-    #include "custom_conditions/node_tying_lagrange.h"
-    #include "custom_conditions/node_tying_lagrange_z.h"
     #include "custom_conditions/face2D.h"
     #include "custom_conditions/face3D.h"
     #include "custom_conditions/face_pressure3D.h"
@@ -130,18 +119,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
     #include "custom_conditions/line_force.h"
     #include "custom_conditions/line_pressure.h"
     #include "custom_conditions/line_traction.h"
-    #include "custom_conditions/contact_link_3D.h"
-    #include "custom_conditions/contact_link_3D_newmark.h"
-    #include "custom_conditions/master_contact_face_3D.h"
-    #include "custom_conditions/master_contact_face_3D_newmark.h"
-    #include "custom_conditions/slave_contact_face_3D.h"
-    #include "custom_conditions/slave_contact_face_3D_newmark.h"
     #include "custom_conditions/pointforce3D.h"
     #include "custom_conditions/pointforce2D.h"
-    #include "custom_conditions/pointmoment3D.h"
-    #include "custom_conditions/master_contact_face_2d.h"
-    #include "custom_conditions/slave_contact_point_2d.h"
-    #include "custom_conditions/face_vel_3D.h"
     #include "custom_conditions/point_point_joint_condition.h"
     #include "custom_conditions/point_point_lagrange_condition.h"
     #include "custom_conditions/elastic_constraint.h"
@@ -151,10 +130,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
     #include "custom_conditions/mean_displacement_constraint.h"
     #include "custom_conditions/dummy_condition.h"
 
-    #include "constitutive_laws/isotropic_2d.h"
     #include "constitutive_laws/isotropic_3d.h"
     #include "constitutive_laws/dummy_constitutive_law.h"
-    #include "constitutive_laws/drucker_prager.h"
     #include "constitutive_laws/cam_clay_3d.h"
 #endif
 
@@ -309,7 +286,6 @@ private:
 
     const PointForce2D  mPointForce2D;
     const PointForce3D  mPointForce3D;
-    const PointMoment3D mPointMoment3D;
     const Face2D  mFace2D;
     const Face3D  mFace3D3N;
     const Face3D  mFace3D6N;
@@ -361,11 +337,6 @@ private:
     const CorotationalLinearBeamElement mCorotationalLinearBeamElement3D2N;
     const ShellIsotropic mIsoShellElement;
     const ShellAnisotropic mAnisoShellElement;
-    // const ShellAnisotropicLinear mAnisoLinearShellElement;
-    const MembraneElement mMembraneElement;
-
-    //const LinearIncompresibleElement mLinearIncompresibleElement2D3N;
-    //const LinearIncompresibleElement mLinearIncompresibleElement3D4N;
 
     const TotalLagrangian mTotalLagrangian2D3N;
     const TotalLagrangian mTotalLagrangian2D4N;
@@ -386,17 +357,6 @@ private:
     const TotalLagrangianAxisymmetric mTotalLagrangianAxisymmetric8N;
     const TotalLagrangianAxisymmetric mTotalLagrangianAxisymmetric9N;
 
-    const MixedLagrangian mMixedLagrangian2D3N;
-    const MixedLagrangian mMixedLagrangian2D4N;
-    const MixedLagrangian mMixedLagrangian2D6N;
-    const MixedLagrangian mMixedLagrangian2D8N;
-    const MixedLagrangian mMixedLagrangian3D4N;
-    const MixedLagrangian mMixedLagrangian3D10N;
-    const MixedLagrangian mMixedLagrangian3D6N;
-    const MixedLagrangian mMixedLagrangian3D15N;
-    const MixedLagrangian mMixedLagrangian3D8N;
-    const MixedLagrangian mMixedLagrangian3D20N;
-    const MixedLagrangian mMixedLagrangian3D27N;
 
     const FiniteStrain mFiniteStrain2D3N;
     const FiniteStrain mFiniteStrain2D4N;
@@ -449,22 +409,6 @@ private:
     const UpdatedKinematicLinear mUpdatedKinematicLinear3D6N;
     const UpdatedKinematicLinear mUpdatedKinematicLinear3D15N;
 
-    const UnsaturatedSoilsElement_2phase_SmallStrain mUnsaturatedSoilsElement2PhaseSmallStrain3D4N;
-    const UnsaturatedSoilsElement_2phase_SmallStrain mUnsaturatedSoilsElement2PhaseSmallStrain3D6N;
-    const UnsaturatedSoilsElement_2phase_SmallStrain mUnsaturatedSoilsElement2PhaseSmallStrain3D8N;
-    const UnsaturatedSoilsElement_2phase_SmallStrain mUnsaturatedSoilsElement2PhaseSmallStrain3D10N;
-    const UnsaturatedSoilsElement_2phase_SmallStrain mUnsaturatedSoilsElement2PhaseSmallStrain3D15N;
-    const UnsaturatedSoilsElement_2phase_SmallStrain mUnsaturatedSoilsElement2PhaseSmallStrain3D20N;
-    const UnsaturatedSoilsElement_2phase_SmallStrain mUnsaturatedSoilsElement2PhaseSmallStrain3D27N;
-    const UnsaturatedSoilsElement_2phase_SmallStrain_Staggered mUnsaturatedSoilsElement2PhaseSmallStrainStaggered3D27N;
-    const UnsaturatedSoilsElement_3phase_SmallStrain mUnsaturatedSoilsElement3PhaseSmallStrain3D4N;
-    const UnsaturatedSoilsElement_3phase_SmallStrain mUnsaturatedSoilsElement3PhaseSmallStrain3D8N;
-    const UnsaturatedSoilsElement_3phase_SmallStrain mUnsaturatedSoilsElement3PhaseSmallStrain3D10N;
-    const UnsaturatedSoilsElement_3phase_SmallStrain mUnsaturatedSoilsElement3PhaseSmallStrain3D15N;
-    const UnsaturatedSoilsElement_3phase_SmallStrain mUnsaturatedSoilsElement3PhaseSmallStrain3D20N;
-    const UnsaturatedSoilsElement_3phase_SmallStrain mUnsaturatedSoilsElement3PhaseSmallStrain3D27N;
-    const UnsaturatedSoilsElement_3phase_SmallStrain_Liakopolous mUnsaturatedSoilsElement3PhaseSmallStrainLiakopolous3D20N;
-    const UnsaturatedSoilsElement_3phase_SmallStrain_Liakopolous mUnsaturatedSoilsElement3PhaseSmallStrainLiakopolous3D27N;
     const Ebst mEbst3D3N;
     const EbstVel mEbstVel3D3N;
     const EASElementQ4E4 mEASElementQ4E4;
@@ -521,30 +465,8 @@ private:
     const FaceForce3D mFaceForce3D4N;
     const FaceForce3D mFaceForce3D8N;
     const FaceForce3D mFaceForce3D9N;
-    const MasterContactFace3D mMasterContactFace3D;
-    const MasterContactFace3D mMasterContactFace3D3;
-    const MasterContactFace3D mMasterContactFace3D6;
-    const MasterContactFace3D mMasterContactFace3D8;
-    const MasterContactFace3D mMasterContactFace3D9;
-    const SlaveContactFace3D mSlaveContactFace3D;
-    const SlaveContactFace3D mSlaveContactFace3D3;
-    const SlaveContactFace3D mSlaveContactFace3D6;
-    const SlaveContactFace3D mSlaveContactFace3D8;
-    const SlaveContactFace3D mSlaveContactFace3D9;
-    const MasterContactFace3DNewmark mMasterContactFace3DNewmark;
-    const MasterContactFace3DNewmark mMasterContactFace3D3Newmark;
-    const MasterContactFace3DNewmark mMasterContactFace3D6Newmark;
-    const MasterContactFace3DNewmark mMasterContactFace3D8Newmark;
-    const MasterContactFace3DNewmark mMasterContactFace3D9Newmark;
-    const SlaveContactFace3DNewmark mSlaveContactFace3DNewmark;
-    const SlaveContactFace3DNewmark mSlaveContactFace3D3Newmark;
-    const SlaveContactFace3DNewmark mSlaveContactFace3D6Newmark;
-    const SlaveContactFace3DNewmark mSlaveContactFace3D8Newmark;
-    const SlaveContactFace3DNewmark mSlaveContactFace3D9Newmark;
-    const FaceVel3D  mFaceVel3D3N;
     const PointForce3D  mPointForce3D;
     const PointForce2D  mPointForce2D;
-    const PointMoment3D mPointMoment3D;
     const ElasticConstraint mElasticPointConstraint;
     const ElasticConstraint mElasticLineConstraint2N;
     const ElasticConstraint mElasticLineConstraint3N;
@@ -558,8 +480,6 @@ private:
     const ElasticFaceSprings mElasticFaceSprings4N;
     const ElasticFaceSprings mElasticFaceSprings8N;
     const ElasticFaceSprings mElasticFaceSprings9N;
-    const NodeTyingLagrange mNodeTyingLagrange;
-    const NodeTyingLagrangeZ mNodeTyingLagrangeZ;
     const PointPointJointCondition mPointPointJointCondition;
     const PointPointLagrangeCondition mPointPointLagrangeCondition;
     const NitscheIsotropicConstraint mNitscheIsotropicConstraint2D2N;
@@ -613,12 +533,8 @@ private:
     const DummyCondition mDummyCondition3D6N;
     const DummyCondition mDummyCondition3D15N;
 
-    const SlaveContactPoint2D mSlaveContactPoint2D;
-    const MasterContactFace2D mMasterContactFace2D;
-
     const Isotropic3D mIsotropic3D;
     const DummyConstitutiveLaw mDummyConstitutiveLaw;
-    const DruckerPrager mDruckerPrager;
     const CamClay3D mCamClay3D;
 #endif
 

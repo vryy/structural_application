@@ -68,32 +68,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //convergence criteria
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
 #include "custom_strategies/convergencecriterias/multiphaseflow_criteria.h"
-// #include "custom_strategies/convergencecriterias/resisualbased_multiphase_criteria.h"
-//#include "custom_strategies/convergencecriterias/residual_displacement_criteria.h"
-//#include "custom_strategies/convergencecriterias/res_dis_criteria.h"
-// #include "solving_strategies/convergencecriterias/displacement_criteria.h"
-//#include "solving_strategies/convergencecriterias/new_galerkin_displacement_criteria.h"
-
-
-//strategies
-#include "solving_strategies/strategies/solving_strategy.h"
-#include "custom_strategies/strategies/residualbased_arc_length_strategy.h"
-#include "custom_strategies/strategies/residualbased_newton_raphson_line_search_strategy.h"
-// #include "solving_strategies/strategies/residualbased_linear_strategy.h"
-// #include "solving_strategies/strategies/residualbased_newton_raphson_strategy.h"
-// #include "custom_strategies/strategies/residualbased_newton_raphson_strategy_newmark.h"
-// #include "custom_strategies/strategies/residualbased_uzawa_newton_raphson_strategy.h"
-// #include "custom_strategies/strategies/residualbased_uzawa_newton_raphson_strategy_newmark.h"
 
 //schemes
 #include "solving_strategies/schemes/scheme.h"
 #include "custom_strategies/schemes/residualbased_incrementalupdate_static_deactivation_scheme.h"
-#include "custom_strategies/schemes/residualbased_predictorcorrector_bossak_scheme.h"
-#include "custom_strategies/strategies/residualbased_central_differences_strategy.h"
-//#include "custom_strategies/schemes/residualbased_central_diferences_scheme.h"
-// #include "custom_strategies/schemes/testing_scheme.h"
-#include "custom_strategies/schemes/residualbased_predictorcorrector_bossak_scheme_rotation.h"
-#include "custom_strategies/schemes/residualbased_predictorcorrector_relaxation_scheme.h"
 #include "custom_strategies/schemes/residualbased_newmark_scheme.h"
 #include "custom_strategies/schemes/residualbased_theta_scheme.h"
 #include "custom_strategies/schemes/residualbased_state_based_theta_scheme.h"
@@ -101,20 +79,12 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_strategies/schemes/residualbased_acc_based_forward_euler_scheme.h"
 #include "custom_strategies/schemes/residualbased_acc_based_central_difference_scheme.h"
 #include "custom_strategies/schemes/residualbased_mixed_forward_euler_scheme.h"
-#include "custom_strategies/schemes/composit_scheme.h"
-#include "custom_strategies/schemes/volumetric_scheme.h"
-#include "custom_strategies/schemes/inner_volumetric_scheme.h"
-#include "custom_strategies/schemes/inner_volumetric_dynamic_scheme.h"
 #include "custom_strategies/schemes/arc_length_displacement_control_support_scheme.h"
 #include "custom_strategies/schemes/arc_length_displacement_control_energy_release_support_scheme.h"
-//#include "custom_strategies/schemes/residualbased_predictorcorrector_velocity_bossak_scheme.h"
-
-//#include "structural_application/custom_strategies/schemes/residualbased_galerkin_scheme.h"
 
 //builder_and_solvers
 #include "solving_strategies/builder_and_solvers/builder_and_solver.h"
 #include "solving_strategies/builder_and_solvers/residualbased_elimination_builder_and_solver.h"
-// #include "custom_strategies/builder_and_solvers/multiphase_builder_and_solver.h"
 #include "custom_strategies/builder_and_solvers/modal_analysis_builder_and_solver.h"
 
 //linear solvers
@@ -156,15 +126,8 @@ void  AddCustomStrategiesToPython()
     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
 
     typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
-    typedef SolvingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > BaseSolvingStrategyType;
-
-    //typedef ResidualBasedUzawaNewtonRaphsonStrategy< SparseSpaceType, LocalSpaceType,
-    //LinearSolverType > ResidualBasedUzawaNewtonRaphsonStrategyType;
 
     typedef Scheme< SparseSpaceType, LocalSpaceType > BaseSchemeType;
-    typedef ResidualBasedPredictorCorrectorBossakScheme< SparseSpaceType, LocalSpaceType > ResidualBasedPredictorCorrectorBossakSchemeType;
-    typedef ResidualBasedPredictorCorrectorBossakRotationScheme< SparseSpaceType, LocalSpaceType > ResidualBasedPredictorCorrectorBossakRotationSchemeType;
-    typedef ResidualBasedPredictorCorrectorRelaxationScheme< SparseSpaceType, LocalSpaceType > ResidualBasedPredictorCorrectorRelaxationSchemeType;
     typedef ResidualBasedIncrementalUpdateStaticDeactivationScheme< SparseSpaceType, LocalSpaceType > ResidualBasedIncrementalUpdateStaticDeactivationSchemeType;
     typedef ResidualBasedNewmarkScheme< SparseSpaceType, LocalSpaceType > ResidualBasedNewmarkSchemeType;
     typedef ResidualBasedNewmarkScheme< SparseSpaceType, LocalSpaceType, 1 > ResidualBasedNonlinearMassDampingNewmarkSchemeType;
@@ -175,79 +138,21 @@ void  AddCustomStrategiesToPython()
     typedef ResidualBasedAccBasedCentralDifferenceScheme< SparseSpaceType, LocalSpaceType > ResidualBasedAccBasedCentralDifferenceSchemeType;
     typedef ResidualBasedMixedForwardEulerScheme< SparseSpaceType, LocalSpaceType > ResidualBasedMixedForwardEulerSchemeType;
 
-//             typedef TestingScheme< SparseSpaceType, LocalSpaceType >
-//                     TestingSchemeType;
-
     typedef ConvergenceCriteria< SparseSpaceType, LocalSpaceType > ConvergenceCriteriaBaseType;
 
     typedef MultiPhaseFlowCriteria< SparseSpaceType,  LocalSpaceType > MultiPhaseFlowCriteriaType;
 
-//     typedef ResidualBasedMultiPhaseCriteria< SparseSpaceType, LocalSpaceType > ResidualBasedMultiPhaseCriteriaType;
-
     typedef BuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType> BuilderAndSolverType;
 
-//            typedef MultiPhaseBuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType> MultiPhaseBuilderAndSolverType;
-
-//  typedef ResidualBasedPredictorCorrectorVelocityBossakScheme< SparseSpaceType, LocalSpaceType > //ResidualBasedPredictorCorrectorVelocityBossakSchemeType;
-
     typedef ModalAnalysisBuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType> ModalAnalysisBuilderAndSolverType;
-    typedef CompositScheme< SparseSpaceType, LocalSpaceType > CompositSchemeType;
-
-    typedef VolumetricScheme< 2, SparseSpaceType, LocalSpaceType > VolumetricSchemeType2D;
-    typedef VolumetricScheme< 3, SparseSpaceType, LocalSpaceType > VolumetricSchemeType3D;
-
-    typedef InnerVolumetricScheme< 2, SparseSpaceType, LocalSpaceType > InnerVolumetricSchemeType2D;
-    typedef InnerVolumetricScheme< 3, SparseSpaceType, LocalSpaceType > InnerVolumetricSchemeType3D;
-
-    typedef InnerVolumetricDynamicScheme< 2, SparseSpaceType, LocalSpaceType > InnerVolumetricDynamicSchemeType2D;
-    typedef InnerVolumetricDynamicScheme< 3, SparseSpaceType, LocalSpaceType > InnerVolumetricDynamicSchemeType3D;
-
-
-    typedef ConvergenceCriteria< SparseSpaceType, LocalSpaceType > TConvergenceCriteriaType;
-    //typedef ResidualCriteria < SparseSpaceType, LocalSpaceType >::Pointer TResidual;
-    //typedef DisplacementCriteria < SparseSpaceType, LocalSpaceType>::Pointer TDisplacement;
 
     //********************************************************************
     //********************************************************************
-    class_< ResidualBasedPredictorCorrectorBossakSchemeType,
-            bases< BaseSchemeType >,  boost::noncopyable >
-            (
-                "ResidualBasedPredictorCorrectorBossakScheme", init< double >()
-            );
-
-
-
-
-    enum_<Constraint_Enforcement>("Constraint_Enforcement")
-    .value("Penalty_Methods", Penalty_Methods)
-    .value("Lagrange_Multiplier_Methods", Lagrange_Multiplier_Methods)
-    ;
-
-    class_< ResidualBasedCentralDiferencesStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType >,bases< BaseSolvingStrategyType >,  boost::noncopyable >
-    ("ResidualBasedCentralDiferencesStrategy", init< ModelPart&, Constraint_Enforcement, int, double, double, double, double,  bool, bool, bool, LinearSolverType::Pointer, BaseSchemeType::Pointer, BuilderAndSolverType::Pointer>())
-    .def("Initialize", &ResidualBasedCentralDiferencesStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>::Initialize)
-    .def("ComputeCriticalTime",  &ResidualBasedCentralDiferencesStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType >::ComputeCriticalTime)
-    .def("SetFractionDeltaTime", &ResidualBasedCentralDiferencesStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType >::ChangeFractionDeltaTime)
-    .def("SetConditionsFlag", &ResidualBasedCentralDiferencesStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType >::ChangeContactConditions)
-    .def("CalculateBoundaryContours", &ResidualBasedCentralDiferencesStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType >::RecalculateBoundaryContours)
-    ;
 
     class_< ResidualBasedIncrementalUpdateStaticDeactivationSchemeType,
             bases< BaseSchemeType >,  boost::noncopyable >
             (
             "ResidualBasedIncrementalUpdateStaticDeactivationScheme", init< >()
-            );
-
-    class_< ResidualBasedPredictorCorrectorBossakRotationSchemeType,
-            bases< BaseSchemeType >,  boost::noncopyable >
-            (
-                "ResidualBasedPredictorCorrectorBossakRotationScheme", init< double >()
-            );
-
-    class_< ResidualBasedPredictorCorrectorRelaxationSchemeType,
-            bases< BaseSchemeType >,  boost::noncopyable >
-            (
-                "ResidualBasedPredictorCorrectorRelaxationScheme", init< double, double >()
             );
 
     class_< ResidualBasedNewmarkSchemeType,
@@ -333,28 +238,11 @@ void  AddCustomStrategiesToPython()
 
     AddArcLengthDisplacementControlSupportScheme<ResidualBasedIncrementalUpdateStaticDeactivationSchemeType>("ResidualBasedIncrementalUpdateStaticDeactivationScheme");
 
-//          class_< TestingSchemeType,
-//          bases< BaseSchemeType >,  boost::noncopyable >
-//                  (
-//                  "TestingScheme", init< >()
-//                  );
-
     class_< MultiPhaseFlowCriteriaType,
             bases< ConvergenceCriteriaBaseType >, boost::noncopyable >
             ("MultiPhaseFlowCriteria", init<double, double >() )
             .def("SetType", &MultiPhaseFlowCriteriaType::SetType)
             ;
-
-//             class_< ResidualBasedMultiPhaseCriteriaType,
-//             bases< ConvergenceCriteriaBaseType >, boost::noncopyable >
-//             ("ResidualBasedMultiPhaseCriteria", init<double, double >() )
-//             ;
-
-            //class_ < MultiPhaseBuilderAndSolverType, bases<BuilderAndSolverType>, boost::noncopyable >
-            //( "MultiPhaseBuilderAndSolver", init<LinearSolverType::Pointer>() )
-            //;
-
-
 
     class_< ModalAnalysisBuilderAndSolverType, bases<BuilderAndSolverType>, boost::noncopyable>
     ("ModalAnalysisBuilderAndSolver", init<LinearSolverType::Pointer>())
@@ -364,75 +252,6 @@ void  AddCustomStrategiesToPython()
     .def("ResizeAndInitializeEigenSystem", &ModalAnalysisBuilderAndSolverType::ResizeAndInitializeEigenSystem)
     .def("BuildEigenSystem", &ModalAnalysisBuilderAndSolverType::BuildEigenSystem)
     ;
-
-
-
-//  class_< ResidualBasedPredictorCorrectorVelocityBossakSchemeType,
-//          bases< BaseSchemeType >,  boost::noncopyable >
-//                  (
-//                  "ResidualBasedPredictorCorrectorVelocityBossakScheme", init< double >()
-//                  );
-
-    class_< VolumetricSchemeType2D,
-            bases< BaseSchemeType >,  boost::noncopyable >
-            (
-                "VolumetricScheme2D"
-            )
-            .def("CalculateCauchyStress",&VolumetricSchemeType2D::CalculateCauchyStress)
-            ;
-
-    class_< InnerVolumetricSchemeType2D,
-            bases< BaseSchemeType >,  boost::noncopyable >
-            (
-                "InnerVolumetricScheme2D"
-            );
-
-    class_< InnerVolumetricDynamicSchemeType2D,
-            bases< BaseSchemeType >,  boost::noncopyable >
-            (
-                "InnerVolumetricDynamicScheme2D"
-            );
-
-    class_< CompositSchemeType,
-            bases< BaseSchemeType >,  boost::noncopyable >
-            (
-                "CompositScheme", init< BaseSchemeType&, BaseSchemeType& >()
-            );
-
-    class_< ResidualBasedArcLengthStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >,bases< BaseSolvingStrategyType >,  boost::noncopyable >
-    ("ResidualBasedArcLenghtStrategy",
-     init<ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, TConvergenceCriteriaType::Pointer,
-     unsigned int, unsigned int,double,bool, bool, bool,bool
-     >() )
-    ;
-
-
-
-    class_< ResidualBasedNewtonRaphsonLineSearchesStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >,bases< BaseSolvingStrategyType >,  boost::noncopyable >
-    ("ResidualBasedNewtonRaphsonLineSearchesStrategy",
-     init<ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, TConvergenceCriteriaType::Pointer, unsigned int, unsigned int, double, double, double, double, bool, bool, bool, bool
-     >() )
-    ;
-
-
-
-
-//          class_<Residual_Displacement_Criteria<SparseSpaceType, LocalSpaceType >,
-//                   bases<ConvergenceCriteria< SparseSpaceType, LocalSpaceType > >,
-//                   boost::noncopyable >
-//                  ("ResidualDisplacementCriteria", init< double, double>() );
-//
-//          class_<ResDisCriteria<SparseSpaceType, LocalSpaceType >,
-//                   bases<ConvergenceCriteria< SparseSpaceType, LocalSpaceType > >,
-//                   boost::noncopyable >
-//                  ("ResDisCriteria", init< TResidual,TDisplacement >());
-
-    /*
-    class_< ModalAnalysisBuilderAndSolverType, bases<BuilderAndSolverType>, boost::noncopyable >
-            (
-             "ModalAnalysisBuilderAndSolver", init<LinearSolverType::Pointer>()
-            );
-    */
 }
 }  // namespace Python.
 

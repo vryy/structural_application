@@ -64,12 +64,11 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "structural_application_variables.h"
 #include "custom_python/add_custom_strategies_to_python.h"
 #include "custom_python/add_constitutive_laws_to_python.h"
+#include "custom_python/add_phase_laws_to_python.h"
 #include "custom_python/add_custom_utilities_to_python.h"
 #include "custom_python/add_custom_io_to_python.h"
-#include "custom_python/add_custom_parallel_strategies_to_python.h"
 #include "custom_python/add_elements_to_python.h"
 #include "custom_python/add_conditions_to_python.h"
-#include "custom_python/add_fluency_criteria_to_python.h"
 #include "custom_python/add_custom_processes_to_python.h"
 
 namespace Kratos
@@ -79,7 +78,6 @@ namespace Python
 {
 
 using namespace boost::python;
-
 
 
 BOOST_PYTHON_MODULE( KratosStructuralApplication )
@@ -92,17 +90,16 @@ BOOST_PYTHON_MODULE( KratosStructuralApplication )
 
     AddCustomStrategiesToPython();
     AddConstitutiveLawsToPython();
+    AddPhaseLawsToPython();
     AddCustomUtilitiesToPython();
     AddCustomIOToPython();
-    AddCustomParallelStrategiesToPython();
     AddCustomElementsToPython();
     AddCustomConditionsToPython();
-    AddFluencyCriteriaToPython();
     AddCustomProcessesToPython();
 
     //registering variables in python
-            KRATOS_REGISTER_IN_PYTHON_VARIABLE( DAMAGE_E0 )
-            KRATOS_REGISTER_IN_PYTHON_VARIABLE( DAMAGE_EF )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE( DAMAGE_E0 )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE( DAMAGE_EF )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( MATRIX_A )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( MATRIX_B )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( MATRIX_D )
