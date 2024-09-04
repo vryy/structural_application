@@ -56,7 +56,7 @@ public:
      * Operations
      */
 
-    void AddPoint(const double& x, const double& y)
+    void AddPoint(const double x, const double y)
     {
         mPx.push_back(x);
         mPy.push_back(y);
@@ -66,14 +66,14 @@ public:
 
     double& GetValue( const Variable<double>& rThisVariable, double& rValue ) final;
 
-    void SetValue( const Variable<double>& rThisVariable, const double& rValue,
+    void SetValue( const Variable<double>& rThisVariable, const double rValue,
                    const ProcessInfo& rCurrentProcessInfo ) final;
 
     /// Get the value of the hardening function w.r.t consistent parameter
-    double GetValue(const double& phi) const final;
+    double GetValue(const double phi) const final;
 
     /// Get the derivative of the hardening function w.r.t consistent parameter
-    double GetDerivative(const double& phi) const final;
+    double GetDerivative(const double phi) const final;
 
     /// Turn back information as a string.
     std::string Info() const override

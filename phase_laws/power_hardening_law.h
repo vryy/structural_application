@@ -23,7 +23,7 @@ namespace Kratos
 {
 
 /**
- * Power hardening law of the form q = K*(alpha+e0)^n
+ * Power hardening law of the form q = K*(alpha+e0)^n or y = a*(x+b)^n
  */
 class PowerHardeningLaw : public HardeningLaw
 {
@@ -37,7 +37,7 @@ public:
      * Constructor.
      */
     PowerHardeningLaw();
-    PowerHardeningLaw(const double& K, const double& e0, const double& n);
+    PowerHardeningLaw(const double K, const double e0, const double n);
 
     /**
      * Destructor.
@@ -67,14 +67,14 @@ public:
     void SetE0(const double value) {me0 = value;}
     void SetN(const double value) {mn = value;}
 
-    void SetValue( const Variable<double>& rThisVariable, const double& rValue,
+    void SetValue( const Variable<double>& rThisVariable, const double rValue,
                    const ProcessInfo& rCurrentProcessInfo ) final;
 
     /// Get the value of the hardening function w.r.t consistent parameter
-    double GetValue(const double& phi) const final;
+    double GetValue(const double phi) const final;
 
     /// Get the derivative of the hardening function w.r.t consistent parameter
-    double GetDerivative(const double& phi) const final;
+    double GetDerivative(const double phi) const final;
 
     /// Turn back information as a string.
     std::string Info() const override
@@ -125,4 +125,3 @@ private:
 } /* namespace Kratos.*/
 
 #endif /* KRATOS_STRUCTURAL_APP_POWER_HARDENING_LAW_H_INCLUDED  defined */
-

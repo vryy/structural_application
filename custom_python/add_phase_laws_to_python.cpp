@@ -87,7 +87,7 @@ void AddPhaseLawsToPython()
 {
     class_<Variable<HardeningLaw::Pointer>, bases<VariableData>, boost::noncopyable >( "HardeningLawVariable", no_init );
 
-    double(HardeningLaw::*pointer_to_GetValue)(const double&) const = &HardeningLaw::GetValue;
+    double(HardeningLaw::*pointer_to_GetValue)(const double) const = &HardeningLaw::GetValue;
 
     class_< HardeningLaw, bases< Flags >, boost::noncopyable >
     ( "HardeningLaw", init<>() )
@@ -98,12 +98,12 @@ void AddPhaseLawsToPython()
 
     class_< LinearHardeningLaw, bases< HardeningLaw >, boost::noncopyable >
     ( "LinearHardeningLaw", init<>() )
-    .def(init<const double&, const double&>())
+    .def(init<const double, const double>())
     ;
 
     class_< ExponentialHardeningLaw, bases< HardeningLaw >, boost::noncopyable >
     ( "ExponentialHardeningLaw", init<>() )
-    .def(init<const double&, const double&, const double&>())
+    .def(init<const double, const double, const double>())
     ;
 
     class_< PiecewiseLinearHardeningLaw, bases< HardeningLaw >, boost::noncopyable >
@@ -113,7 +113,7 @@ void AddPhaseLawsToPython()
 
     class_< PowerHardeningLaw, bases< HardeningLaw >, boost::noncopyable >
     ( "PowerHardeningLaw", init<>() )
-    .def(init<const double&, const double&, const double&>())
+    .def(init<const double, const double, const double>())
     .add_property("K", &PowerHardeningLaw::GetK, &PowerHardeningLaw::SetK)
     .add_property("e0", &PowerHardeningLaw::GetE0, &PowerHardeningLaw::SetE0)
     .add_property("n", &PowerHardeningLaw::GetN, &PowerHardeningLaw::SetN)

@@ -69,9 +69,9 @@ public:
     virtual Vector& GetValue( const Variable<Vector>& rThisVariable, Vector& rValue );
     virtual Matrix& GetValue( const Variable<Matrix>& rThisVariable, Matrix& rValue );
 
-    virtual void SetValue( const Variable<int>& rThisVariable, const int& rValue,
+    virtual void SetValue( const Variable<int>& rThisVariable, const int rValue,
                    const ProcessInfo& rCurrentProcessInfo );
-    virtual void SetValue( const Variable<double>& rThisVariable, const double& rValue,
+    virtual void SetValue( const Variable<double>& rThisVariable, const double rValue,
                    const ProcessInfo& rCurrentProcessInfo );
     virtual void SetValue( const Variable<array_1d<double, 3> >& rThisVariable,
                    const array_1d<double, 3>& rValue, const ProcessInfo& rCurrentProcessInfo );
@@ -81,16 +81,22 @@ public:
                    const ProcessInfo& rCurrentProcessInfo );
 
     /// Get the value of the hardening function w.r.t consistent parameter
-    virtual double GetValue(const double& phi) const;
+    virtual double GetValue(const double phi) const;
 
     /// Get the derivative of the hardening function w.r.t consistent parameter
-    virtual double GetDerivative(const double& phi) const;
+    virtual double GetDerivative(const double phi) const;
 
     /// Utility function to set the hardening_law to the properties
     static void Assign( const Variable<HardeningLaw::Pointer>& rThisVariable, const HardeningLaw::Pointer pValue,
                 const Properties::Pointer pProperties )
     {
         pProperties->SetValue(rThisVariable, pValue);
+    }
+
+    /// Fit a specific hardening curve
+    virtual void Fit(const Vector& x, const Vector& y) const
+    {
+        KRATOS_ERROR << "Calling base class function";
     }
 
     /// Turn back information as a string.

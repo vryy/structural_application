@@ -57,12 +57,12 @@ Matrix& HardeningLaw::GetValue( const Variable<Matrix>& rThisVariable, Matrix& r
 {
 }
 
-void HardeningLaw::SetValue( const Variable<int>& rThisVariable, const int& rValue,
+void HardeningLaw::SetValue( const Variable<int>& rThisVariable, const int rValue,
                            const ProcessInfo& rCurrentProcessInfo )
 {
 }
 
-void HardeningLaw::SetValue( const Variable<double>& rThisVariable, const double& rValue,
+void HardeningLaw::SetValue( const Variable<double>& rThisVariable, const double rValue,
                            const ProcessInfo& rCurrentProcessInfo )
 {
 }
@@ -83,12 +83,12 @@ void HardeningLaw::SetValue( const Variable<Matrix>& rThisVariable, const Matrix
 {
 }
 
-double HardeningLaw::GetValue(const double& phi) const
+double HardeningLaw::GetValue(const double phi) const
 {
     return 0.0;
 }
 
-double HardeningLaw::GetDerivative(const double& phi) const
+double HardeningLaw::GetDerivative(const double phi) const
 {
     return 0.0;
 }

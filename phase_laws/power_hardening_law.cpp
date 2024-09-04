@@ -18,7 +18,7 @@ namespace Kratos
 PowerHardeningLaw::PowerHardeningLaw() : HardeningLaw(), mK(0.0), me0(1.0e-10), mn(0.0)
 {}
 
-PowerHardeningLaw::PowerHardeningLaw(const double& K, const double& e0, const double& n)
+PowerHardeningLaw::PowerHardeningLaw(const double K, const double e0, const double n)
 : HardeningLaw(), mK(K), me0(e0), mn(n)
 {}
 
@@ -38,17 +38,17 @@ double& PowerHardeningLaw::GetValue( const Variable<double>& rThisVariable, doub
 {
 }
 
-void PowerHardeningLaw::SetValue( const Variable<double>& rThisVariable, const double& rValue,
+void PowerHardeningLaw::SetValue( const Variable<double>& rThisVariable, const double rValue,
                            const ProcessInfo& rCurrentProcessInfo )
 {
 }
 
-double PowerHardeningLaw::GetValue(const double& phi) const
+double PowerHardeningLaw::GetValue(const double phi) const
 {
     return mK*pow(phi + me0, mn);
 }
 
-double PowerHardeningLaw::GetDerivative(const double& phi) const
+double PowerHardeningLaw::GetDerivative(const double phi) const
 {
     return mK*mn*pow(phi + me0, mn-1);
 }

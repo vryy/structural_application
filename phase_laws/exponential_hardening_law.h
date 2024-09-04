@@ -37,7 +37,7 @@ public:
      * Constructor.
      */
     ExponentialHardeningLaw();
-    ExponentialHardeningLaw(const double& C0, const double& Cinf, const double& Rho);
+    ExponentialHardeningLaw(const double C0, const double Cinf, const double Rho);
 
     /**
      * Destructor.
@@ -60,14 +60,14 @@ public:
 
     double& GetValue( const Variable<double>& rThisVariable, double& rValue ) final;
 
-    void SetValue( const Variable<double>& rThisVariable, const double& rValue,
+    void SetValue( const Variable<double>& rThisVariable, const double rValue,
                    const ProcessInfo& rCurrentProcessInfo ) final;
 
     /// Get the value of the hardening function w.r.t consistent parameter
-    double GetValue(const double& phi) const final;
+    double GetValue(const double phi) const final;
 
     /// Get the derivative of the hardening function w.r.t consistent parameter
-    double GetDerivative(const double& phi) const final;
+    double GetDerivative(const double phi) const final;
 
     /// Turn back information as a string.
     std::string Info() const override
@@ -113,4 +113,3 @@ private:
 } /* namespace Kratos.*/
 
 #endif /* KRATOS_STRUCTURAL_APP_LINEAR_HARDENING_LAW_H_INCLUDED  defined */
-

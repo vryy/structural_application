@@ -36,12 +36,12 @@ double& PiecewiseLinearHardeningLaw::GetValue( const Variable<double>& rThisVari
     return rValue;
 }
 
-void PiecewiseLinearHardeningLaw::SetValue( const Variable<double>& rThisVariable, const double& rValue,
+void PiecewiseLinearHardeningLaw::SetValue( const Variable<double>& rThisVariable, const double rValue,
                            const ProcessInfo& rCurrentProcessInfo )
 {
 }
 
-double PiecewiseLinearHardeningLaw::GetValue(const double& phi) const
+double PiecewiseLinearHardeningLaw::GetValue(const double phi) const
 {
     const std::size_t n = mPx.size();
 
@@ -59,7 +59,7 @@ double PiecewiseLinearHardeningLaw::GetValue(const double& phi) const
     return mPy[n-1];
 }
 
-double PiecewiseLinearHardeningLaw::GetDerivative(const double& phi) const
+double PiecewiseLinearHardeningLaw::GetDerivative(const double phi) const
 {
     const std::size_t n = mPx.size();
 

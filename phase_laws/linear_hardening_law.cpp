@@ -18,7 +18,7 @@ namespace Kratos
 LinearHardeningLaw::LinearHardeningLaw() : HardeningLaw(), mOy(0.0), mH(0.0)
 {}
 
-LinearHardeningLaw::LinearHardeningLaw(const double& Oy, const double& H) : HardeningLaw(), mOy(Oy), mH(H)
+LinearHardeningLaw::LinearHardeningLaw(const double Oy, const double H) : HardeningLaw(), mOy(Oy), mH(H)
 {}
 
 LinearHardeningLaw::~LinearHardeningLaw()
@@ -51,7 +51,7 @@ double& LinearHardeningLaw::GetValue( const Variable<double>& rThisVariable, dou
     return rValue;
 }
 
-void LinearHardeningLaw::SetValue( const Variable<double>& rThisVariable, const double& rValue,
+void LinearHardeningLaw::SetValue( const Variable<double>& rThisVariable, const double rValue,
                            const ProcessInfo& rCurrentProcessInfo )
 {
     if( rThisVariable == TENSILE_STRENGTH )
@@ -62,12 +62,12 @@ void LinearHardeningLaw::SetValue( const Variable<double>& rThisVariable, const 
         mH = rValue;
 }
 
-double LinearHardeningLaw::GetValue(const double& phi) const
+double LinearHardeningLaw::GetValue(const double phi) const
 {
     return mOy + mH*phi;
 }
 
-double LinearHardeningLaw::GetDerivative(const double& phi) const
+double LinearHardeningLaw::GetDerivative(const double phi) const
 {
     return mH;
 }

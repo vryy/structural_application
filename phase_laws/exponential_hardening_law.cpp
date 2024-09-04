@@ -18,7 +18,7 @@ namespace Kratos
 ExponentialHardeningLaw::ExponentialHardeningLaw() : HardeningLaw(), mCinf(0.0), mC0(0.0), mRho(0.0)
 {}
 
-ExponentialHardeningLaw::ExponentialHardeningLaw(const double& C0, const double& Cinf, const double& Rho)
+ExponentialHardeningLaw::ExponentialHardeningLaw(const double C0, const double Cinf, const double Rho)
 : HardeningLaw(), mCinf(Cinf), mC0(C0), mRho(Rho)
 {}
 
@@ -38,17 +38,17 @@ double& ExponentialHardeningLaw::GetValue( const Variable<double>& rThisVariable
 {
 }
 
-void ExponentialHardeningLaw::SetValue( const Variable<double>& rThisVariable, const double& rValue,
+void ExponentialHardeningLaw::SetValue( const Variable<double>& rThisVariable, const double rValue,
                            const ProcessInfo& rCurrentProcessInfo )
 {
 }
 
-double ExponentialHardeningLaw::GetValue(const double& phi) const
+double ExponentialHardeningLaw::GetValue(const double phi) const
 {
     return mCinf - (mCinf-mC0)*std::exp(-mRho*phi);
 }
 
-double ExponentialHardeningLaw::GetDerivative(const double& phi) const
+double ExponentialHardeningLaw::GetDerivative(const double phi) const
 {
     return (mCinf-mC0)*mRho*std::exp(-mRho*phi);
 }
