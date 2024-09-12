@@ -80,6 +80,11 @@ class NeoHookean3D : public ConstitutiveLaw
             return StressMeasure_PK2;
         }
 
+        void GetLawFeatures(Features& rFeatures) final
+        {
+            rFeatures.SetStrainMeasure(this->GetStrainMeasure());
+        }
+
         bool Has( const Variable<int>& rThisVariable );
         bool Has( const Variable<double>& rThisVariable );
         bool Has( const Variable<Vector>& rThisVariable );
@@ -166,7 +171,7 @@ class NeoHookean3D : public ConstitutiveLaw
          * Computes the material response in terms of Cauchy stresses and constitutive tensor
          * @see Parameters
          */
-        void CalculateMaterialResponseCauchy (Parameters& rValues) final;
+        void CalculateMaterialResponsePK2(Parameters& rValues) final;
 
         void CalculateMaterialResponse( const Vector& StrainVector,
                                         const Matrix& DeformationGradient,

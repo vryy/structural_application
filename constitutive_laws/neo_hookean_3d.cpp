@@ -262,7 +262,7 @@ void NeoHookean3D::FinalizeSolutionStep( const Properties& props,
 }
 
 //**********************************************************************
-void NeoHookean3D::CalculateMaterialResponseCauchy (Parameters& rValues)
+void NeoHookean3D::CalculateMaterialResponsePK2(Parameters& rValues)
 {
     const Vector& StrainVector = rValues.GetStrainVector();
 
