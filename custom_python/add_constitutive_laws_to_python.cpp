@@ -78,6 +78,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "constitutive_laws/multiplicative_finite_strain_bridging_constitutive_law.h"
 #include "constitutive_laws/multiplicative_finite_strain_bridging_constitutive_law_dc.h"
 #include "constitutive_laws/total_lagrangian_bridging_constitutive_law.h"
+#include "constitutive_laws/total_lagrangian_numerical_tangent_bridging_constitutive_law.h"
 #include "constitutive_laws/hyperelastic_finite_strain_bridging_constitutive_law.h"
 #include "constitutive_laws/hypoelastic_finite_strain_bridging_constitutive_law.h"
 #include "constitutive_laws/hypoelastic_finite_strain_bridging_constitutive_law_dc.h"
@@ -251,6 +252,11 @@ void  AddConstitutiveLawsToPython()
 
     class_< TotalLagrangianBridgingConstitutiveLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
     ( "TotalLagrangianBridgingConstitutiveLaw", init<>() )
+    .def(init<ConstitutiveLawBaseType::Pointer>())
+    ;
+
+    class_< TotalLagrangianNumericalTangentBridgingConstitutiveLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
+    ( "TotalLagrangianNumericalTangentBridgingConstitutiveLaw", init<>() )
     .def(init<ConstitutiveLawBaseType::Pointer>())
     ;
 
