@@ -244,9 +244,6 @@ private:
      * Member Variables
      */
 
-    Matrix mLastF;
-    Matrix mCurrentF;
-
     /**
      * Un accessible methods
      */

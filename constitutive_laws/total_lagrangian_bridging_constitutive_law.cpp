@@ -140,11 +140,6 @@ void TotalLagrangianBridgingConstitutiveLaw::InitializeMaterial( const Propertie
                                       const Vector& ShapeFunctionsValues )
 {
     mpConstitutiveLaw->InitializeMaterial(props, geom, ShapeFunctionsValues);
-
-    mLastF.resize(3, 3, false);
-    mCurrentF.resize(3, 3, false);
-    noalias(mLastF) = IdentityMatrix(3);
-    noalias(mCurrentF) = mLastF;
 }
 
 //**********************************************************************
@@ -189,8 +184,6 @@ void TotalLagrangianBridgingConstitutiveLaw::FinalizeSolutionStep( const Propert
         const ProcessInfo& CurrentProcessInfo )
 {
     mpConstitutiveLaw->FinalizeSolutionStep(props, geom, ShapeFunctionsValues, CurrentProcessInfo);
-
-    noalias(mLastF) = mCurrentF;
 }
 
 //**********************************************************************
@@ -210,17 +203,18 @@ void TotalLagrangianBridgingConstitutiveLaw::CalculateMaterialResponsePK2(Parame
 
     /* compute the current logarithmic strain */
     const Matrix& F = rValues.GetDeformationGradientF();
+    Matrix F3D(3, 3);
     if (F.size1() == 3)
     {
-        noalias(mCurrentF) = F;
+        noalias(F3D) = F;
     }
     else if (F.size1() == 2)
     {
-        mCurrentF.clear();
+        F3D.clear();
         for (int i = 0; i < 2; ++i)
             for (int j = 0; j < 2; ++j)
-                mCurrentF(i, j) = F(i, j);
-        mCurrentF(2, 2) = 1.0;
+                F3D(i, j) = F(i, j);
+        F3D(2, 2) = 1.0;
     }
     else
         KRATOS_ERROR << "Invalid F size";
@@ -228,12 +222,12 @@ void TotalLagrangianBridgingConstitutiveLaw::CalculateMaterialResponsePK2(Parame
     #ifdef DEBUG_CONSTITUTIVE_LAW
     if (ElemId == 1)
     {
-        KRATOS_WATCH(mCurrentF)
+        KRATOS_WATCH(F3D)
     }
     #endif
 
     Matrix right_cauchy_green_tensor(3, 3); // C
-    noalias(right_cauchy_green_tensor) = prod(trans(mCurrentF), mCurrentF);
+    noalias(right_cauchy_green_tensor) = prod(trans(F3D), F3D);
 
     std::vector<double> right_cauchy_green_tensor_pri(3);
     std::vector<Matrix> right_cauchy_green_tensor_eigprj(3);
@@ -298,7 +292,7 @@ void TotalLagrangianBridgingConstitutiveLaw::CalculateMaterialResponsePK2(Parame
 
     /* compute the rotation tensor (R) */
     Matrix rotation_tensor(3, 3);
-    noalias(rotation_tensor) = prod(mCurrentF, right_stretch_tensor_inversed);
+    noalias(rotation_tensor) = prod(F3D, right_stretch_tensor_inversed);
 
     #ifdef DEBUG_CONSTITUTIVE_LAW
     if (ElemId == 1)
