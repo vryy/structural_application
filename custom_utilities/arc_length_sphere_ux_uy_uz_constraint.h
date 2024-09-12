@@ -43,7 +43,7 @@ public:
     ///@name Life Cycle
     ///@{
 
-    ArcLengthSphereUxUyUzConstraint(const double& Psi, const double& Radius)
+    ArcLengthSphereUxUyUzConstraint(const double Psi, const double Radius)
     : BaseType(Radius), mPsi(Psi)
     {
         std::cout << "ArcLengthSphereUxUyUzConstraint is used, radius = " << BaseType::Radius() << ", load scale factor = " << mPsi << std::endl;
@@ -53,7 +53,7 @@ public:
     ///@name Access
     ///@{
 
-    void SetScale(const double& Psi)
+    void SetScale(const double Psi)
     {
         mPsi = Psi;
     }

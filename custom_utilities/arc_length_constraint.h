@@ -41,7 +41,7 @@ public:
     ///@{
 
     /// Default constructor
-    ArcLengthConstraint(const double& Radius)
+    ArcLengthConstraint(const double Radius)
     : mRadius(Radius), mpLambda(NULL), mpLambdaOld(NULL), mpLambdaOldOld(NULL)
     , mp_model_part(NULL), mp_builder_and_solver(NULL)
     {}
@@ -57,7 +57,7 @@ public:
     ///@{
 
     /// Set the arc length
-    void SetRadius(const double& Radius)
+    void SetRadius(const double Radius)
     {
         mRadius = Radius;
     }
@@ -69,19 +69,19 @@ public:
     }
 
     /// Set the multiplier
-    void SetLambda(const double& Lambda)
+    void SetLambda(const double Lambda)
     {
         mpLambda = &Lambda;
     }
 
     /// Set the multiplier
-    void SetLambdaOld(const double& Lambda)
+    void SetLambdaOld(const double Lambda)
     {
         mpLambdaOld = &Lambda;
     }
 
     /// Set the multiplier
-    void SetLambdaOldOld(const double& Lambda)
+    void SetLambdaOldOld(const double Lambda)
     {
         mpLambdaOldOld = &Lambda;
     }
@@ -214,22 +214,22 @@ public:
 
 protected:
 
-    const double& Radius() const
+    const double Radius() const
     {
         return mRadius;
     }
 
-    const double& Lambda() const
+    const double Lambda() const
     {
         return *mpLambda;
     }
 
-    const double& LambdaOld() const
+    const double LambdaOld() const
     {
         return *mpLambdaOld;
     }
 
-    const double& LambdaOldOld() const
+    const double LambdaOldOld() const
     {
         return *mpLambdaOldOld;
     }

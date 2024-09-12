@@ -42,7 +42,7 @@ public:
     ///@name Life Cycle
     ///@{
 
-    ArcLengthDisplacementControlEnergyReleaseConstraint(const double& Radius)
+    ArcLengthDisplacementControlEnergyReleaseConstraint(const double Radius)
     : BaseType(Radius), mp_ext_f(NULL)
     {
         std::cout << "ArcLengthDisplacementControlEnergyReleaseConstraint is used, radius = " << BaseType::Radius() << std::endl;
