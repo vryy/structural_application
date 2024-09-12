@@ -78,7 +78,6 @@ set( KRATOS_STRUCTURAL_APPLICATION_SOURCES
 
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/eig/eig3.cpp
 
-    ${CMAKE_CURRENT_SOURCE_DIR}/phase_laws/hardening_law.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/phase_laws/linear_hardening_law.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/phase_laws/exponential_hardening_law.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/phase_laws/piecewise_linear_hardening_law.cpp

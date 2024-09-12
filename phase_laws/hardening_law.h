@@ -40,12 +40,14 @@ public:
     /**
      * Constructor.
      */
-    HardeningLaw();
+    HardeningLaw()
+    {}
 
     /**
      * Destructor.
      */
-    virtual ~HardeningLaw();
+    virtual ~HardeningLaw()
+    {}
 
     /**
      * Clone function (has to be implemented by any derived class)
@@ -54,37 +56,47 @@ public:
      *      HardeningLaw::Pointer p_clone(new HardeningLaw());
      *      return p_clone;
      */
-    virtual HardeningLaw::Pointer Clone() const;
+    virtual HardeningLaw::Pointer Clone() const
+    {
+        return HardeningLaw::Pointer(new HardeningLaw());
+    }
 
     /**
      * Operations
      */
-    virtual bool Has( const Variable<int>& rThisVariable );
-    virtual bool Has( const Variable<double>& rThisVariable );
-    virtual bool Has( const Variable<Vector>& rThisVariable );
-    virtual bool Has( const Variable<Matrix>& rThisVariable );
 
-    virtual int& GetValue( const Variable<int>& rThisVariable, int& rValue );
-    virtual double& GetValue( const Variable<double>& rThisVariable, double& rValue );
-    virtual Vector& GetValue( const Variable<Vector>& rThisVariable, Vector& rValue );
-    virtual Matrix& GetValue( const Variable<Matrix>& rThisVariable, Matrix& rValue );
+    virtual bool Has( const Variable<int>& rThisVariable ) {}
+    virtual bool Has( const Variable<double>& rThisVariable ) {}
+    virtual bool Has( const Variable<Vector>& rThisVariable ) {}
+    virtual bool Has( const Variable<Matrix>& rThisVariable ) {}
+
+    virtual int& GetValue( const Variable<int>& rThisVariable, int& rValue ) {}
+    virtual double& GetValue( const Variable<double>& rThisVariable, double& rValue ) {}
+    virtual Vector& GetValue( const Variable<Vector>& rThisVariable, Vector& rValue ) {}
+    virtual Matrix& GetValue( const Variable<Matrix>& rThisVariable, Matrix& rValue ) {}
 
     virtual void SetValue( const Variable<int>& rThisVariable, const int rValue,
-                   const ProcessInfo& rCurrentProcessInfo );
+                   const ProcessInfo& rCurrentProcessInfo ) {}
     virtual void SetValue( const Variable<double>& rThisVariable, const double rValue,
-                   const ProcessInfo& rCurrentProcessInfo );
+                   const ProcessInfo& rCurrentProcessInfo ) {}
     virtual void SetValue( const Variable<array_1d<double, 3> >& rThisVariable,
-                   const array_1d<double, 3>& rValue, const ProcessInfo& rCurrentProcessInfo );
+                   const array_1d<double, 3>& rValue, const ProcessInfo& rCurrentProcessInfo ) {}
     virtual void SetValue( const Variable<Vector>& rThisVariable, const Vector& rValue,
-                   const ProcessInfo& rCurrentProcessInfo );
+                   const ProcessInfo& rCurrentProcessInfo ) {}
     virtual void SetValue( const Variable<Matrix>& rThisVariable, const Matrix& rValue,
-                   const ProcessInfo& rCurrentProcessInfo );
+                   const ProcessInfo& rCurrentProcessInfo ) {}
 
-    /// Get the value of the hardening function w.r.t consistent parameter
-    virtual double GetValue(const double phi) const;
+    /// Get the value of the hardening function w.r.t constitutive variable
+    virtual double GetValue(const double phi) const {return 0.0;}
 
-    /// Get the derivative of the hardening function w.r.t consistent parameter
-    virtual double GetDerivative(const double phi) const;
+    /// Get the value of the hardening function w.r.t constitutive variables
+    virtual double GetValue(const std::vector<double>& values) const {return 0.0;}
+
+    /// Get the derivative of the hardening function w.r.t constitutive variable
+    virtual double GetDerivative(const double phi) const {return 0.0;}
+
+    /// Get the partial derivative of the hardening function w.r.t constitutive variable
+    virtual double GetDerivative(const unsigned int i, const std::vector<double>& values) const {return 0.0;}
 
     /// Utility function to set the hardening_law to the properties
     static void Assign( const Variable<HardeningLaw::Pointer>& rThisVariable, const HardeningLaw::Pointer pValue,
@@ -124,12 +136,12 @@ private:
 
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const
+    void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Flags );
     }
 
-    virtual void load(Serializer& rSerializer)
+    void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Flags );
     }
@@ -177,4 +189,3 @@ inline std::ostream & operator <<(std::ostream& rOStream,
 } /* namespace Kratos.*/
 
 #endif /* KRATOS_STRUCTURAL_APPLICATION_HARDENING_LAW_H_INCLUDED  defined */
-

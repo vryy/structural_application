@@ -111,4 +111,3 @@ private:
 } /* namespace Kratos.*/
 
 #endif /* KRATOS_STRUCTURAL_APP_LINEAR_HARDENING_LAW_H_INCLUDED  defined */
-

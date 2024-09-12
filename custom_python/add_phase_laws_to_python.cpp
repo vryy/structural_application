@@ -51,10 +51,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
 
-#if !defined(KRATOS_ADD_CONSTITUTIVE_LAWS_TO_PYTHON_H_INCLUDED )
-#define  KRATOS_ADD_CONSTITUTIVE_LAWS_TO_PYTHON_H_INCLUDED
-
-
 // System includes
 
 // External includes
@@ -88,11 +84,12 @@ void AddPhaseLawsToPython()
     class_<Variable<HardeningLaw::Pointer>, bases<VariableData>, boost::noncopyable >( "HardeningLawVariable", no_init );
 
     double(HardeningLaw::*pointer_to_GetValue)(const double) const = &HardeningLaw::GetValue;
+    double(HardeningLaw::*pointer_to_GetDerivative)(const double) const = &HardeningLaw::GetDerivative;
 
     class_< HardeningLaw, bases< Flags >, boost::noncopyable >
     ( "HardeningLaw", init<>() )
     .def("GetValue", pointer_to_GetValue)
-    .def("GetDerivative", &HardeningLaw::GetDerivative)
+    .def("GetDerivative", pointer_to_GetDerivative)
     .def("Assign", &HardeningLaw_Assign)
     ;
 
@@ -123,5 +120,3 @@ void AddPhaseLawsToPython()
 }  // namespace Python.
 
 }  // namespace Kratos.
-
-#endif // KRATOS_ADD_CONSTITUTIVE_LAWS_TO_PYTHON_H_INCLUDED defined
