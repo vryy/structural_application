@@ -51,6 +51,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace Kratos
 {
+
 template<class TDataType> class SD_MathUtils
 {
 public:
@@ -118,8 +119,8 @@ public:
      */
     static inline bool CardanoFormula(TDataType a, TDataType b, TDataType c, TDataType d, VectorType& solution)
     {
-        solution.resize(3,false);
-        noalias(solution)= ZeroVector(3);
+        solution.resize(3, false);
+        noalias(solution) = ZeroVector(3);
 
         if(a==0)
         {
@@ -359,7 +360,7 @@ public:
             }
         }
         else
-            KRATOS_THROW_ERROR(std::logic_error, "Something must be wrong. This case can't happe. At", __FUNCTION__)
+            KRATOS_ERROR << "Something must be wrong. This case can't happen.";
 
         return Result;
     }
@@ -373,7 +374,6 @@ public:
      */
     static inline void QRFactorization(const MatrixType& A, MatrixType& Q, MatrixType& R)
     {
-
         //QR Factorization with Householder-Algo
         int dim= A.size1();
 
@@ -476,7 +476,6 @@ public:
         }
         if(dim-1==1)
             noalias(Q)=HelpQ[0];
-
     }
 
     /**
@@ -658,8 +657,6 @@ public:
 
         for(unsigned int i=0; i<Help.size1(); i++)
             lambda(i)= Help(i,i);
-
-        return;
     }
 
     /**
@@ -1223,7 +1220,6 @@ public:
             T(1,0)= Stress(2);
             T(1,1)= Stress(1);
         }
-        return;
     }
 
     /**
@@ -1253,7 +1249,6 @@ public:
             Vector(1)= T(1,1);
             Vector(2)= T(0,1);
         }
-        return;
     }
 
     /// Transformation from a fourth order tensor to symmetric matrix. The matrix
@@ -1587,7 +1582,6 @@ public:
             A(2,1) = T[0][1](1,1);
             A(2,2) = T[0][1](0,1);
         }
-        return;
     }
 
     /**
@@ -1612,6 +1606,7 @@ public:
                 T[i][j].resize(3,3,false);
                 noalias(T[i][j])= ZeroMatrix(3,3);
                 for(unsigned int k=0; k<3; k++)
+                {
                     for(unsigned int l=0; l<3; l++)
                     {
                         if(i==j) help1= i;
@@ -1636,10 +1631,9 @@ public:
 
                         T[i][j](k,l)= A(help1,help2)*coeff;
                     }
+                }
             }
         }
-
-        return;
     }
 
     /**
@@ -1685,8 +1679,6 @@ public:
                     }
             }
         }
-
-        return;
     }
 
     /**
@@ -1707,6 +1699,7 @@ public:
             A.resize(6, 6, false);
 
         for(unsigned int i=0; i<6; i++)
+        {
             for(unsigned int j=0; j<6; j++)
             {
                 if(i<3)
@@ -1761,8 +1754,7 @@ public:
 
                 A(i,j)= T[help1][help2](help3,help4)*coeff;
             }
-
-        return;
+        }
     }
 
     /**
@@ -1817,8 +1809,6 @@ public:
         A(5,3) = 2.0*T[55];
         A(5,4) = 2.0*T[59];
         A(5,5) = 2.0*T[60];
-
-        return;
     }
 
     template<typename TMatrixType1, typename TMatrixType2>
@@ -2418,8 +2408,8 @@ public:
     {
         const auto eye = [](int i, int j) { return i == j ? 1.0 : 0.0; };
 
-        TDataType lambda = NU * E / ((1 + NU) * (1 - 2 * NU));
-        TDataType mu     = E / (2 * (1 + NU));
+        const TDataType lambda = NU * E / ((1 + NU) * (1 - 2 * NU));
+        const TDataType mu     = E / (2 * (1 + NU));
 
         for(unsigned int i = 0; i < 3; ++i)
         {
@@ -2468,6 +2458,26 @@ public:
             for(IndexType j = 0; j < n; ++j)
                 res += A(i, j) * B(i, j);
         return res;
+    }
+
+    // return inner prod of two strain vectors in Voigt notation
+    template<typename TVectorType1, typename TVectorType2>
+    static TDataType strain_inner_prod(const TVectorType1& A, const TVectorType2& B)
+    {
+        MatrixType e1(3, 3), e2(3, 3);
+        StrainVectorToTensor(A, e1);
+        StrainVectorToTensor(B, e2);
+        return mat_inner_prod(e1, e2);
+    }
+
+    // return inner prod of two stress vectors in Voigt notation
+    template<typename TVectorType1, typename TVectorType2>
+    static TDataType stress_inner_prod(const TVectorType1& A, const TVectorType2& B)
+    {
+        MatrixType e1(3, 3), e2(3, 3);
+        StressVectorToTensor(A, e1);
+        StressVectorToTensor(B, e2);
+        return mat_inner_prod(e1, e2);
     }
 
     // perform the Fortran vector product, i.e. element-by-element product (C[i] = A[i]*B[i])
@@ -3556,11 +3566,10 @@ public:
 
     /// Invert matrix as 2D array
     template<typename TMatrixType1, typename TMatrixType2>
-    static void Invert2DArray(const unsigned int dim,
-        const TMatrixType1& rInputMatrix,
-        TMatrixType2& rInvertedMatrix,
-        TDataType& rInputMatrixDet
-        )
+    static void Invert2DArray( const unsigned int dim,
+            const TMatrixType1& rInputMatrix,
+            TMatrixType2& rInvertedMatrix,
+            TDataType& rInputMatrixDet )
     {
         if (dim == 1)
             Invert2DArray1x1(rInputMatrix, rInvertedMatrix, rInputMatrixDet);
@@ -3575,10 +3584,9 @@ public:
     /// Invert matrix as 2D array (dim == 1)
     template<typename TMatrixType1, typename TMatrixType2>
     static void Invert2DArray1x1(
-        const TMatrixType1& rInputMatrix,
-        TMatrixType2& rInvertedMatrix,
-        TDataType& rInputMatrixDet
-        )
+            const TMatrixType1& rInputMatrix,
+            TMatrixType2& rInvertedMatrix,
+            TDataType& rInputMatrixDet )
     {
         rInputMatrixDet = rInputMatrix[0][0];
         rInvertedMatrix[0][0] = 1.0 / rInputMatrixDet;
@@ -3589,8 +3597,7 @@ public:
     static void Invert2DArray2x2(
         const TMatrixType1& rInputMatrix,
         TMatrixType2& rInvertedMatrix,
-        TDataType& rInputMatrixDet
-        )
+        TDataType& rInputMatrixDet )
     {
         rInputMatrixDet = rInputMatrix[0][0]*rInputMatrix[1][1] - rInputMatrix[0][1]*rInputMatrix[1][0];
 
@@ -3605,8 +3612,7 @@ public:
     static void Invert2DArray3x3(
         const TMatrixType1& rInputMatrix,
         TMatrixType2& rInvertedMatrix,
-        TDataType& rInputMatrixDet
-        )
+        TDataType& rInputMatrixDet )
     {
         // Calculation of determinant (of the input matrix)
         rInputMatrixDet = rInputMatrix[0][0]*rInvertedMatrix[0][0] + rInputMatrix[0][1]*rInvertedMatrix[1][0] + rInputMatrix[0][2]*rInvertedMatrix[2][0];
