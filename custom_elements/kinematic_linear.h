@@ -317,7 +317,7 @@ protected:
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer,  Element );
         rSerializer.save( "mInitialDisp", mInitialDisp );
-//        rSerializer.save( "mThisIntegrationMethod", mThisIntegrationMethod );
+        rSerializer.save( "mThisIntegrationMethod", static_cast<int>(mThisIntegrationMethod) );
         rSerializer.save( "mConstitutiveLawVector", mConstitutiveLawVector );
     }
 
@@ -325,25 +325,23 @@ protected:
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer,  Element );
         rSerializer.load( "mInitialDisp", mInitialDisp );
-//        rSerializer.load( "mThisIntegrationMethod", mThisIntegrationMethod );
+        int tmp;
+        rSerializer.load( "mThisIntegrationMethod", tmp );
+        mThisIntegrationMethod = static_cast<IntegrationMethod>(tmp);
         rSerializer.load( "mConstitutiveLawVector", mConstitutiveLawVector );
     }
-
 
     ///@}
     ///@name Protected  Access
     ///@{
 
-
     ///@}
     ///@name Protected Inquiry
     ///@{
 
-
     ///@}
     ///@name Protected LifeCycle
     ///@{
-
 
     ///@}
 

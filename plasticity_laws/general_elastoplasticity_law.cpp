@@ -269,13 +269,6 @@ int GeneralElastoplasticityLaw::PlasticIntegration(Matrix& stress, Vector& q, Ve
         #ifdef DEBUG_GENERAL_PLASTICITY_LAW
         if (debug_level > 2)
         {
-            const Matrix sv = Soils_MathUtils<double>::ComputeDeviatoricTensor(stress);
-            const double qv = sqrt(1.5)*norm_frobenius(sv);
-            KRATOS_WATCH(qv)
-            const double theta = Soils_MathUtils<double>::ComputeLodeAngle(sv);
-            KRATOS_WATCH(theta)
-            const double j3 = Soils_MathUtils<double>::ComputeJ3(sv);
-            KRATOS_WATCH(j3)
         }
         #endif
 
@@ -502,9 +495,6 @@ int GeneralElastoplasticityLaw::PlasticIntegration_CuttingPlane(Matrix& stress, 
         #ifdef DEBUG_GENERAL_PLASTICITY_LAW
         if (debug_level > 2)
         {
-            const Matrix s = Soils_MathUtils<double>::ComputeDeviatoricTensor(stress);
-            const double qv = sqrt(1.5)*norm_frobenius(s);
-            KRATOS_WATCH(qv)
         }
         #endif
 

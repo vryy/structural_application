@@ -550,7 +550,7 @@ namespace Kratos
         KRATOS_CATCH( "" )
     }
 
-    void KinematicLinear::ApplyPrescribedDofs(const MatrixType& LHS_Contribution, VectorType& RHS_Constribution, const ProcessInfo& CurrentProcessInfo) const
+    void KinematicLinear::ApplyPrescribedDofs(const MatrixType& LHS_Contribution, VectorType& RHS_Contribution, const ProcessInfo& CurrentProcessInfo) const
     {
         // modify the right hand side to account for prescribed displacement
         // according to the book of Bazant & Jirasek, this scheme is more stable than the total displacement scheme for prescribing displacement.
@@ -563,7 +563,7 @@ namespace Kratos
                 double temp = GetGeometry()[node].GetSolutionStepValue(PRESCRIBED_DELTA_DISPLACEMENT_X);
                 if (temp != 0.0)
                     for( unsigned int i = 0; i < mat_size; ++i )
-                        RHS_Constribution[i] -= LHS_Contribution(i, node * dim) * temp;
+                        RHS_Contribution[i] -= LHS_Contribution(i, node * dim) * temp;
             }
 
             if(GetGeometry()[node].IsFixed(DISPLACEMENT_Y))
@@ -571,7 +571,7 @@ namespace Kratos
                 double temp = GetGeometry()[node].GetSolutionStepValue(PRESCRIBED_DELTA_DISPLACEMENT_Y);
                 if (temp != 0.0)
                     for( unsigned int i = 0; i < mat_size; ++i )
-                        RHS_Constribution[i] -= LHS_Contribution(i, node * dim + 1) * temp;
+                        RHS_Contribution[i] -= LHS_Contribution(i, node * dim + 1) * temp;
             }
 
             if (dim > 2)
@@ -581,7 +581,7 @@ namespace Kratos
                     double temp = GetGeometry()[node].GetSolutionStepValue(PRESCRIBED_DELTA_DISPLACEMENT_Z);
                     if (temp != 0.0)
                         for( unsigned int i = 0; i < mat_size; ++i )
-                            RHS_Constribution[i] -= LHS_Contribution(i, node * dim + 2) * temp;
+                            RHS_Contribution[i] -= LHS_Contribution(i, node * dim + 2) * temp;
                 }
             }
         }
