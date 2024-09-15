@@ -698,6 +698,38 @@ namespace Kratos
                 CalculateStiffnessMatrixFlag, CalculateResidualVectorFlag );
     }
 
+    void KinematicLinear::CalculateNumericalStiffness(Matrix& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo, const double epsilon)
+    {
+        unsigned int dim_disp = ( GetGeometry().WorkingSpaceDimension() );
+        unsigned int mat_size = GetGeometry().size() * dim_disp;
+
+        Vector RefRhs(mat_size), NewRhs(mat_size);
+        Matrix dummy;
+        CalculateAll( dummy, RefRhs, rCurrentProcessInfo, false, true );
+
+        for (unsigned int i = 0; i < GetGeometry().size(); ++i)
+        {
+            const auto disp = GetGeometry()[i].GetSolutionStepValue(DISPLACEMENT);
+            auto new_disp = disp;
+
+            for (unsigned int j = 0; j < dim_disp; ++j)
+            {
+                noalias(new_disp) = disp;
+                new_disp[j] += epsilon;
+                noalias(GetGeometry()[i].GetSolutionStepValue(DISPLACEMENT)) = new_disp;
+
+                CalculateAll( dummy, NewRhs, rCurrentProcessInfo, false, true );
+
+                column(rLeftHandSideMatrix, i*dim_disp + j) = (RefRhs - NewRhs) / epsilon;
+
+                noalias(GetGeometry()[i].GetSolutionStepValue(DISPLACEMENT)) = disp;
+            }
+        }
+
+        // calculate one more time to restore the element state
+        CalculateAll( dummy, NewRhs, rCurrentProcessInfo, false, true );
+    }
+
     /**
      * THIS method is called from the scheme at the start of each solution step
      * @param rCurrentProcessInfo
