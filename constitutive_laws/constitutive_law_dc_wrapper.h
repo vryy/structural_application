@@ -15,7 +15,6 @@
 
 // Project includes
 #include "includes/constitutive_law.h"
-#include "custom_utilities/sd_math_utils.h"
 #include "structural_application_variables.h"
 
 

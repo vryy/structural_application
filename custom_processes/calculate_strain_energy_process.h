@@ -132,7 +132,6 @@ public:
     /// this function will be executed at every time step AFTER performing the solve phase
     void ExecuteFinalizeSolutionStep() override
     {
-        std::cout << "At CalculateStrainEnergyProcess::" << __FUNCTION__ << std::endl;
 
         const ElementsContainerType& rElements = mr_model_part.Elements();
 
@@ -167,7 +166,6 @@ public:
         mr_model_part.GetCommunicator().SumAll(mEnergy);
         #endif
 
-        std::cout << "CalculateStrainEnergyProcess::" << __FUNCTION__ << " completed" << std::endl;
     }
 
     ///@}
