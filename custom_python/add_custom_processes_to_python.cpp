@@ -96,7 +96,7 @@ void AddCustomProcessesToPython()
 
     typedef ArcLengthConstraint<BuilderAndSolverType> ArcLengthConstraintType;
     class_<ArcLengthConstraintType, ArcLengthConstraintType::Pointer, boost::noncopyable>
-    ( "ArcLengthConstraint", init<const double&>() )
+    ( "ArcLengthConstraint", init<const double>() )
     .def("SetRadius", &ArcLengthConstraintType::SetRadius)
     .def("GetRadius", &ArcLengthConstraintType::GetRadius)
     .def("NeedForceVector", &ArcLengthConstraintType::NeedForceVector)
@@ -105,39 +105,39 @@ void AddCustomProcessesToPython()
 
     typedef ArcLengthCylinderConstraint<BuilderAndSolverType> ArcLengthCylinderConstraintType;
     class_<ArcLengthCylinderConstraintType, ArcLengthCylinderConstraintType::Pointer, bases<ArcLengthConstraintType>, boost::noncopyable>
-    ( "ArcLengthCylinderConstraint", init<const double&>() )
+    ( "ArcLengthCylinderConstraint", init<const double>() )
     ;
 
     typedef ArcLengthCylinderScalarConstraint<BuilderAndSolverType> ArcLengthCylinderScalarConstraintType;
     class_<ArcLengthCylinderScalarConstraintType, ArcLengthCylinderScalarConstraintType::Pointer, bases<ArcLengthConstraintType>, boost::noncopyable>
-    ( "ArcLengthCylinderScalarConstraint", init<const Variable<double>&, const double&>() )
+    ( "ArcLengthCylinderScalarConstraint", init<const Variable<double>&, const double>() )
     ;
 
     typedef ArcLengthCylinderUxUyUzConstraint<BuilderAndSolverType> ArcLengthCylinderUxUyUzConstraintType;
     class_<ArcLengthCylinderUxUyUzConstraintType, ArcLengthCylinderUxUyUzConstraintType::Pointer, bases<ArcLengthConstraintType>, boost::noncopyable>
-    ( "ArcLengthCylinderUxUyUzConstraint", init<const double&>() )
+    ( "ArcLengthCylinderUxUyUzConstraint", init<const double>() )
     ;
 
     typedef ArcLengthSphereConstraint<BuilderAndSolverType> ArcLengthSphereConstraintType;
     class_<ArcLengthSphereConstraintType, ArcLengthSphereConstraintType::Pointer, bases<ArcLengthConstraintType>, boost::noncopyable>
-    ( "ArcLengthSphereConstraint", init<const double&, const double&>() )
+    ( "ArcLengthSphereConstraint", init<const double, const double>() )
     .def("SetScale", &ArcLengthSphereConstraintType::SetScale)
     ;
 
     typedef ArcLengthSphereUxUyUzConstraint<BuilderAndSolverType> ArcLengthSphereUxUyUzConstraintType;
     class_<ArcLengthSphereUxUyUzConstraintType, ArcLengthSphereUxUyUzConstraintType::Pointer, bases<ArcLengthConstraintType>, boost::noncopyable>
-    ( "ArcLengthSphereUxUyUzConstraint", init<const double&, const double&>() )
+    ( "ArcLengthSphereUxUyUzConstraint", init<const double, const double>() )
     .def("SetScale", &ArcLengthSphereUxUyUzConstraintType::SetScale)
     ;
 
     typedef ArcLengthLoadControlEnergyReleaseConstraint<BuilderAndSolverType> ArcLengthLoadControlEnergyReleaseConstraintType;
     class_<ArcLengthLoadControlEnergyReleaseConstraintType, ArcLengthLoadControlEnergyReleaseConstraintType::Pointer, bases<ArcLengthConstraintType>, boost::noncopyable>
-    ( "ArcLengthLoadControlEnergyReleaseConstraint", init<const double&>() )
+    ( "ArcLengthLoadControlEnergyReleaseConstraint", init<const double>() )
     ;
 
     typedef ArcLengthDisplacementControlEnergyReleaseConstraint<BuilderAndSolverType> ArcLengthDisplacementControlEnergyReleaseConstraintType;
     class_<ArcLengthDisplacementControlEnergyReleaseConstraintType, ArcLengthDisplacementControlEnergyReleaseConstraintType::Pointer, bases<ArcLengthConstraintType>, boost::noncopyable>
-    ( "ArcLengthDisplacementControlEnergyReleaseConstraint", init<const double&>() )
+    ( "ArcLengthDisplacementControlEnergyReleaseConstraint", init<const double>() )
     ;
 
     typedef ArcLengthControlProcess<BuilderAndSolverType> ArcLengthControlProcessType;

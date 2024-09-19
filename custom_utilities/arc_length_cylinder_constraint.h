@@ -43,7 +43,7 @@ public:
     ///@name Life Cycle
     ///@{
 
-    ArcLengthCylinderConstraint(const double& Radius)
+    ArcLengthCylinderConstraint(const double Radius)
     : BaseType(Radius)
     {
         std::cout << "ArcLengthCylinderConstraint is used, radius = " << BaseType::Radius() << std::endl;

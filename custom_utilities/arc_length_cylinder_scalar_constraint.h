@@ -43,7 +43,7 @@ public:
     ///@name Life Cycle
     ///@{
 
-    ArcLengthCylinderScalarConstraint(const Variable<double>& rVariable, const double& Radius)
+    ArcLengthCylinderScalarConstraint(const Variable<double>& rVariable, const double Radius)
     : BaseType(Radius), mrVariable(rVariable)
     {
         std::cout << "ArcLengthCylinderScalarConstraint is used, variable = " << mrVariable.Name() << ", radius = " << BaseType::Radius() << std::endl;
