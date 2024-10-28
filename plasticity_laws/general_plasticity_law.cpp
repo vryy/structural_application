@@ -249,6 +249,45 @@ void GeneralPlasticityLaw::Num_d2GdSigma2(Fourth_Order_Tensor& dm_dsigma, const 
     }
 }
 
+void GeneralPlasticityLaw::Num_dFdQ(Vector& dfdq, const Matrix& stress, const Vector& q, const double epsilon,
+            const ProcessInfo& CurrentProcessInfo, const Properties& props) const
+{
+    const double F = this->F(stress, q, CurrentProcessInfo, props);
+
+    Vector new_q(q.size());
+    for (unsigned int i = 0; i < q.size(); ++i)
+    {
+        noalias(new_q) = q;
+        new_q(i) += epsilon;
+        double new_F = this->F(stress, new_q, CurrentProcessInfo, props);
+
+        dfdq(i) = (new_F - F) / epsilon;
+    }
+}
+
+void GeneralPlasticityLaw::Num_d2GdSigmadQ(Third_Order_Tensor& dmdq, const Matrix& stress, const Vector& q, const double epsilon,
+            const ProcessInfo& CurrentProcessInfo, const Properties& props) const
+{
+    Matrix m(3, 3), new_m(3, 3);
+    this->dGdSigma(m, stress, q, CurrentProcessInfo, props);
+
+    Vector new_q(q.size());
+    for (unsigned int k = 0; k < q.size(); ++k)
+    {
+        noalias(new_q) = q;
+        new_q(k) += epsilon;
+        this->dGdSigma(new_m, stress, new_q, CurrentProcessInfo, props);
+
+        for (unsigned int i = 0; i < 3; ++i)
+        {
+            for (unsigned int j = 0; j < 3; ++j)
+            {
+                dmdq[i][j][k] = (new_m(i, j) - m(i, j)) / epsilon;
+            }
+        }
+    }
+}
+
 } // Namespace Kratos
 
 #undef CHECK_DERIVATIVES

@@ -282,6 +282,14 @@ public:
     void Num_d2GdSigma2(Fourth_Order_Tensor& dm_dsigma, const Matrix& stress, const Vector& q, const double epsilon,
             const ProcessInfo& CurrentProcessInfo, const Properties& props) const;
 
+    /// Compute dFdQ numerically using finite difference scheme
+    void Num_dFdQ(Vector& dfdq, const Matrix& stress, const Vector& q, const double epsilon,
+            const ProcessInfo& CurrentProcessInfo, const Properties& props) const;
+
+    /// Compute d2GdSigmadQ numerically using finite difference scheme
+    void Num_d2GdSigmadQ(Third_Order_Tensor& dmdq, const Matrix& stress, const Vector& q, const double epsilon,
+            const ProcessInfo& CurrentProcessInfo, const Properties& props) const;
+
 private:
 
     ///@name Serialization
