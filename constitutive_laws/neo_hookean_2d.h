@@ -285,6 +285,7 @@ class NeoHookean2D : public ConstitutiveLaw
         double mPrestressFactor;
         Vector mCurrentStress;
         double mE, mNU, mDE;
+        int mElemId, mGaussId;
 
         /**
          * Un accessible methods

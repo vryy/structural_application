@@ -75,6 +75,10 @@ int& NeoHookean2D::GetValue( const Variable<int>& rThisVariable, int& rValue )
 {
     if (rThisVariable == IS_SHAPE_FUNCTION_REQUIRED)
         rValue = 0;
+    if (rThisVariable == PARENT_ELEMENT_ID)
+        rValue = mElemId;
+    if (rThisVariable == INTEGRATION_POINT_INDEX)
+        rValue = mGaussId;
 
     return rValue;
 }
@@ -173,6 +177,10 @@ Matrix& NeoHookean2D::GetValue( const Variable<Matrix>& rThisVariable, Matrix& r
 void NeoHookean2D::SetValue( const Variable<int>& rThisVariable, const int& rValue,
                             const ProcessInfo& rCurrentProcessInfo )
 {
+    if (rThisVariable == PARENT_ELEMENT_ID)
+        mElemId = rValue;
+    if (rThisVariable == INTEGRATION_POINT_INDEX)
+        mGaussId = rValue;
 }
 
 //**********************************************************************
