@@ -55,11 +55,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #if defined(KRATOS_PYTHON)
 
 // External includes
-#include <boost/python.hpp>
 
 
 // Project includes
-#include "includes/define.h"
+#include "includes/define_python.h"
 #include "structural_application.h"
 #include "structural_application_variables.h"
 #include "custom_python/add_custom_strategies_to_python.h"
@@ -77,11 +76,9 @@ namespace Kratos
 namespace Python
 {
 
-using namespace boost::python;
-
-
 BOOST_PYTHON_MODULE( KratosStructuralApplication )
 {
+    using namespace boost::python;
 
     class_ < KratosStructuralApplication,
            KratosStructuralApplication::Pointer,
