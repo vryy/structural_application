@@ -17,7 +17,6 @@ see license.txt
 // System includes
 
 // External includes 
-#include "boost/progress.hpp"
 
 // Project includes
 #include "includes/define.h"
@@ -27,6 +26,7 @@ see license.txt
 #include "includes/model_part.h"
 #include "includes/variables.h"
 #include "utilities/math_utils.h"
+#include "utilities/progress.h"
 #include "geometries/point_3d.h"
 //#include "spatial_containers/bounding_volume_tree.h"
 #include "structural_application_variables.h"
@@ -106,7 +106,7 @@ namespace Kratos
                 // setup the tying links
                 TyingLinkType SampleLink;
                 ModelPart::ConditionsContainerType LinkingConditions;
-                boost::progress_display show_progress( rpSlaveElements.size() );
+                Kratos::progress_display show_progress( rpSlaveElements.size() );
                 GeometryData::IntegrationMethod ThisIntegrationMethod;
                 PointType LocalPoint;
                 PointType GlobalPoint;

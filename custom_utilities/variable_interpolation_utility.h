@@ -59,13 +59,13 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #endif
 
 //External includes
-#include "boost/progress.hpp"
 
 //Project includes
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "includes/variables.h"
 #include "utilities/openmp_utils.h"
+#include "utilities/progress.h"
 #include "custom_utilities/variable_utility.h"
 
 namespace Kratos
@@ -335,7 +335,7 @@ protected:
             std::cout << " " << element_partition[i];
         std::cout << std::endl;
         // KRATOS_WATCH( element_partition );
-        boost::progress_display show_progress( TargetMeshElementsArray.size() );
+        Kratos::progress_display show_progress( TargetMeshElementsArray.size() );
 #ifdef _OPENMP
         #pragma omp parallel for
 #endif
@@ -417,7 +417,7 @@ protected:
         for (std::size_t i = 0; i < node_partition.size(); ++i)
             std::cout << " " << node_partition[i];
         std::cout << std::endl;
-boost::progress_display show_progress( rTargetNodes.size() );
+Kratos::progress_display show_progress( rTargetNodes.size() );
 #ifdef _OPENMP
         #pragma omp parallel for
 #endif

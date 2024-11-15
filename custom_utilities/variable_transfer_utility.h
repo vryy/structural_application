@@ -59,8 +59,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #endif
 
 //External includes
-#include "boost/timer.hpp"
-#include "boost/progress.hpp"
 
 //Project includes
 #include "includes/define.h"
@@ -75,6 +73,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "spaces/ublas_space.h"
 #include "geometries/hexahedra_3d_8.h"
 #include "geometries/tetrahedra_3d_4.h"
+#include "utilities/progress.h"
+#include "utilities/timing.h"
 #include "structural_application_variables.h"
 
 namespace Kratos
@@ -181,8 +181,8 @@ public:
 
         ElementsArrayType& OldMeshElementsArray= rSource.Elements();
         Element::Pointer correspondingElement;
-//				FixDataValueContainer newNodalValues;
-//				FixDataValueContainer oldNodalValues;
+//              FixDataValueContainer newNodalValues;
+//              FixDataValueContainer oldNodalValues;
         PointType  localPoint;
 
         for(ModelPart::NodeIterator it = rTarget.NodesBegin() ;
@@ -301,8 +301,8 @@ public:
 
         ElementsArrayType& OldMeshElementsArray= rSource.Elements();
         Element::Pointer correspondingElement;
-//				FixDataValueContainer newNodalValues;
-//				FixDataValueContainer oldNodalValues;
+//              FixDataValueContainer newNodalValues;
+//              FixDataValueContainer oldNodalValues;
         PointType  localPoint;
         Vector shape_functions_values;
 
@@ -464,8 +464,8 @@ public:
                  */
     void TransferSpecificVariable( ModelPart& rSource, ModelPart& rTarget, Variable<Vector>& rThisVariable )
     {
-        boost::timer timer1;
-//                 std::cout << "line 243" << std::endl;
+        Kratos::timer timer1;
+
         //reset original model part to reference configuration
         for( ModelPart::NodeIterator it = rSource.NodesBegin() ;
                 it != rSource.NodesEnd(); it++ )
@@ -474,9 +474,6 @@ public:
             (*it).Y() = (*it).Y0();
             (*it).Z() = (*it).Z0();
         }
-
-
-//                 std::cout << "line 253" << std::endl;
 
         for( ModelPart::NodeIterator it = rTarget.NodesBegin() ;
                 it != rTarget.NodesEnd(); it++ )
@@ -487,27 +484,22 @@ public:
         }
 
         std::cout << "time for resetting to reference configuration: " << timer1.elapsed() << std::endl;
-        timer1.restart();
-//                 std::cout << "line 263" << std::endl;
+
+        Kratos::timer timer2;
 
         TransferVariablesToNodes(rSource, rThisVariable);
 
-        std::cout << "time for transferring GP variables to nodes: " << timer1.elapsed() << std::endl;
-        timer1.restart();
+        std::cout << "time for transferring GP variables to nodes: " << timer2.elapsed() << std::endl;
 
-// 				TransferVariablesBetweenMeshes(rSource, rTarget,INSITU_STRESS);
+        Kratos::timer timer3;
 
-//                 std::cout << "line 268" << std::endl;
-
-// 				TransferVariablesToGaussPoints(rTarget, INSITU_STRESS);
         TransferVariablesToGaussPoints(rSource, rTarget, rThisVariable );
 
-        std::cout << "time for transferring variables to gauss points: " << timer1.elapsed() << std::endl;
-        timer1.restart();
+        std::cout << "time for transferring variables to gauss points: " << timer3.elapsed() << std::endl;
 
         //restore model_part
 
-//                 std::cout << "line 272" << std::endl;
+        Kratos::timer timer4;
 
         for( ModelPart::NodeIterator it = rSource.NodesBegin() ;
                 it != rSource.NodesEnd(); it++ )
@@ -524,8 +516,7 @@ public:
             (*it).Z() = (*it).Z0()+(*it).GetSolutionStepValue( DISPLACEMENT_Z );
         }
 
-        std::cout << "time for restoring model part: " << timer1.elapsed() << std::endl;
-//                 std::cout << "line 290" << std::endl;
+        std::cout << "time for restoring model part: " << timer4.elapsed() << std::endl;
     }
 
     /**
@@ -536,8 +527,8 @@ public:
                  */
     void TransferSpecificVariableWithComponents( ModelPart& rSource, ModelPart& rTarget, Variable<Vector>& rThisVariable, const std::size_t& ncomponents )
     {
-        boost::timer timer1;
-//                 std::cout << "line 243" << std::endl;
+        Kratos::timer timer1;
+
         //reset original model part to reference configuration
         for( ModelPart::NodeIterator it = rSource.NodesBegin() ;
                 it != rSource.NodesEnd(); it++ )
@@ -546,9 +537,6 @@ public:
             (*it).Y() = (*it).Y0();
             (*it).Z() = (*it).Z0();
         }
-
-
-//                 std::cout << "line 253" << std::endl;
 
         for( ModelPart::NodeIterator it = rTarget.NodesBegin() ;
                 it != rTarget.NodesEnd(); it++ )
@@ -559,27 +547,22 @@ public:
         }
 
         std::cout << "time for resetting to reference configuration: " << timer1.elapsed() << std::endl;
-        timer1.restart();
-//                 std::cout << "line 263" << std::endl;
+
+        Kratos::timer timer2;
 
         TransferVariablesToNodes(rSource, rThisVariable, ncomponents);
 
-        std::cout << "time for transferring GP variables to nodes: " << timer1.elapsed() << std::endl;
-        timer1.restart();
+        std::cout << "time for transferring GP variables to nodes: " << timer2.elapsed() << std::endl;
 
-// 				TransferVariablesBetweenMeshes(rSource, rTarget,INSITU_STRESS);
+        Kratos::timer timer3;
 
-//                 std::cout << "line 268" << std::endl;
-
-// 				TransferVariablesToGaussPoints(rTarget, INSITU_STRESS);
         TransferVariablesToGaussPoints(rSource, rTarget, rThisVariable, ncomponents );
 
-        std::cout << "time for transferring variables to gauss points: " << timer1.elapsed() << std::endl;
-        timer1.restart();
+        std::cout << "time for transferring variables to gauss points: " << timer3.elapsed() << std::endl;
 
         //restore model_part
 
-//                 std::cout << "line 272" << std::endl;
+        Kratos::timer timer4;
 
         for( ModelPart::NodeIterator it = rSource.NodesBegin() ;
                 it != rSource.NodesEnd(); it++ )
@@ -596,8 +579,7 @@ public:
             (*it).Z() = (*it).Z0()+(*it).GetSolutionStepValue( DISPLACEMENT_Z );
         }
 
-        std::cout << "time for restoring model part: " << timer1.elapsed() << std::endl;
-//                 std::cout << "line 290" << std::endl;
+        std::cout << "time for restoring model part: " << timer4.elapsed() << std::endl;
     }
 
     /**
@@ -634,9 +616,9 @@ public:
 
         TransferVariablesToNodes(rSource, ELASTIC_LEFT_CAUCHY_GREEN_OLD);
 
-// 				TransferVariablesBetweenMeshes(rSource, rTarget,ELASTIC_LEFT_CAUCHY_GREEN_OLD);
+//              TransferVariablesBetweenMeshes(rSource, rTarget,ELASTIC_LEFT_CAUCHY_GREEN_OLD);
         //
-// 				TransferVariablesToGaussPoints(rTarget, ELASTIC_LEFT_CAUCHY_GREEN_OLD);
+//              TransferVariablesToGaussPoints(rTarget, ELASTIC_LEFT_CAUCHY_GREEN_OLD);
 
         TransferVariablesToGaussPoints( rSource, rTarget, ELASTIC_LEFT_CAUCHY_GREEN_OLD);
 
@@ -647,7 +629,7 @@ public:
             (*it).Y() = (*it).Y0()+(*it).GetSolutionStepValue( DISPLACEMENT_Y );
             (*it).Z() = (*it).Z0()+(*it).GetSolutionStepValue( DISPLACEMENT_Z );
         }
-// 				restore target model_part
+//              restore target model_part
         for( ModelPart::NodeIterator it = rTarget.NodesBegin() ;
                 it != rTarget.NodesEnd(); it++ )
         {
@@ -890,7 +872,7 @@ public:
         CreatePartition(number_of_threads, TargetMeshElementsArray.size(), element_partition);
         KRATOS_WATCH( number_of_threads );
         KRATOS_WATCH( element_partition );
-        boost::progress_display show_progress( TargetMeshElementsArray.size() );
+        Kratos::progress_display show_progress( TargetMeshElementsArray.size() );
 #ifdef _OPENMP
         #pragma omp parallel for
 #endif
@@ -1094,7 +1076,7 @@ public:
         CreatePartition(number_of_threads, TargetMeshElementsArray.size(), element_partition);
         KRATOS_WATCH( number_of_threads );
         KRATOS_WATCH( element_partition );
-        boost::progress_display show_progress( TargetMeshElementsArray.size() );
+        Kratos::progress_display show_progress( TargetMeshElementsArray.size() );
 #ifdef _OPENMP
         #pragma omp parallel for
 #endif
@@ -1185,7 +1167,7 @@ public:
         CreatePartition(number_of_threads, TargetMeshElementsArray.size(), element_partition);
         KRATOS_WATCH( number_of_threads );
         KRATOS_WATCH( element_partition );
-        boost::progress_display show_progress( TargetMeshElementsArray.size() );
+        Kratos::progress_display show_progress( TargetMeshElementsArray.size() );
 #ifdef _OPENMP
         #pragma omp parallel for
 #endif
@@ -1837,7 +1819,7 @@ public:
 #endif
         vector<unsigned int> element_partition;
         CreatePartition(number_of_threads, ElementsArray.size(), element_partition);
-        boost::progress_display show_progress( ElementsArray.size() );
+        Kratos::progress_display show_progress( ElementsArray.size() );
 
         // create the structure for M a priori
 //        Timer::Start("ConstructMatrixStructure");
@@ -2036,7 +2018,7 @@ public:
 #endif
         vector<unsigned int> element_partition;
         CreatePartition(number_of_threads, ElementsArray.size(), element_partition);
-        boost::progress_display show_progress( ElementsArray.size() );
+        Kratos::progress_display show_progress( ElementsArray.size() );
 
         // create the structure for M a priori
 //        Timer::Start("ConstructMatrixStructure");
@@ -2288,7 +2270,7 @@ public:
 //#endif
 //        vector<unsigned int> element_partition;
 //        CreatePartition(number_of_threads, ElementsArray.size(), element_partition);
-//        boost::progress_display show_progress( ElementsArray.size() );
+//        Kratos::progress_display show_progress( ElementsArray.size() );
 
 //        // create the structure for M a priori
 ////        Timer::Start("ConstructMatrixStructure");
@@ -2478,7 +2460,7 @@ public:
 #endif
         vector<unsigned int> element_partition;
         CreatePartition(number_of_threads, ElementsArray.size(), element_partition);
-        boost::progress_display show_progress( ElementsArray.size() );
+        Kratos::progress_display show_progress( ElementsArray.size() );
 
         // create the structure for M a priori
 //        Timer::Start("ConstructMatrixStructure");
@@ -2690,7 +2672,7 @@ public:
 #endif
         vector<unsigned int> element_partition;
         CreatePartition(number_of_threads, ElementsArray.size(), element_partition);
-        boost::progress_display show_progress( ElementsArray.size() );
+        Kratos::progress_display show_progress( ElementsArray.size() );
 
         // create the structure for M a priori
 //        Timer::Start("ConstructMatrixStructure");

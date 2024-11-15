@@ -55,9 +55,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 /* External includes */
 
-
 /* Project includes */
 #include "includes/define.h"
+#include "utilities/timing.h"
 #include "solving_strategies/builder_and_solvers/builder_and_solver.h"
 #include "linear_solvers/power_iteration_eigenvalue_solver.h"
 
@@ -337,7 +337,7 @@ public:
     {
         KRATOS_TRY
 
-        boost::timer building_time;
+        Kratos::timer building_time;
 
         //build matrices
         BuildSystemMatrices( pScheme, r_model_part, K, M );
@@ -368,7 +368,7 @@ public:
     {
         KRATOS_TRY
 
-        boost::timer building_time;
+        Kratos::timer building_time;
 
         //getting the elements from the model
         ElementsArrayType& pElements = r_model_part.Elements();
@@ -398,7 +398,7 @@ public:
             std::cout << "RHS vector = " << b << std::endl;
         }
 
-        boost::timer solve_time;
+        Kratos::timer solve_time;
 
         typedef PowerIterationEigenvalueSolver<TSparseSpace, TDenseSpace, TLinearSolver> EigenvalueSolverType;
         EigenvalueSolverType eigenvalue_solver( mTolerance, mMaxIterations, mMaxEigenSolutions, BaseType::mpLinearSystemSolver );
@@ -426,7 +426,7 @@ public:
     void Clear()
     {
         this->mDofSet = DofsArrayType();
-        
+
         if(this->mpReactionsVector != NULL)
         {
             TSparseSpace::Clear( (this->mpReactionsVector) );

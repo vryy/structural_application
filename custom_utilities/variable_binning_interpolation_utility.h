@@ -59,12 +59,12 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #endif
 
 //External includes
-#include "boost/progress.hpp"
 
 //Project includes
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "includes/variables.h"
+#include "utilities/progress.h"
 #include "custom_utilities/variable_interpolation_utility.h"
 
 namespace Kratos
@@ -120,7 +120,7 @@ protected:
         double start_init = omp_get_wtime();
 #endif
 
-        boost::progress_display show_progress( pElements.size() );
+        Kratos::progress_display show_progress( pElements.size() );
         std::vector<double> vmin(3);
         std::vector<double> vmax(3);
         for ( ElementsContainerType::const_iterator it = pElements.begin(); it != pElements.end(); ++it )

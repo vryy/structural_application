@@ -59,7 +59,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #endif
 
 //External includes
-#include "boost/progress.hpp"
 
 //Project includes
 #include "includes/define.h"
@@ -68,6 +67,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/element.h"
 #include "geometries/geometry.h"
 #include "utilities/openmp_utils.h"
+#include "utilities/progress.h"
 #include "custom_utilities/variable_utility.h"
 
 namespace Kratos
@@ -277,7 +277,7 @@ private:
 #endif
         std::vector<unsigned int> element_partition;
         OpenMPUtils::CreatePartition(number_of_threads, pElements.size(), element_partition);
-//        boost::progress_display show_progress( pElements.size() );
+//        Kratos::progress_display show_progress( pElements.size() );
 
         // create the structure for M a priori
         this->ConstructMatrixStructure(rA, pElements, NodeRowId);

@@ -59,7 +59,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #endif
 
 //External includes
-#include "boost/progress.hpp"
 
 //Project includes
 #include "includes/define.h"
