@@ -93,7 +93,7 @@ namespace Kratos
  * Reference:
  * +    Ted Belytschko, Nonlinear Finite Elements for Continua and Structures, 2014, (E4.4.6)
  */
-class TotalLagrangianAxisymmetric : public TotalLagrangian
+class KRATOS_API(STRUCTURAL_APPLICATION) TotalLagrangianAxisymmetric : public TotalLagrangian
 {
 
 public:

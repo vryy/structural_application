@@ -103,7 +103,7 @@ namespace Kratos
  * This element is designed to always compute Jacobian in the reference configuration. It is not influenced
  * by the MoveMeshFlag.
  */
-class KinematicLinear : public Element, public PrescribedObject
+class KRATOS_API(STRUCTURAL_APPLICATION) KinematicLinear : public Element, public PrescribedObject
 {
 
 public:

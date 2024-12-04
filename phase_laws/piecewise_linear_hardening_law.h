@@ -25,7 +25,7 @@ namespace Kratos
 /**
  * Nonlinear hardening law characterized by piecewise curve
  */
-class PiecewiseLinearHardeningLaw : public HardeningLaw
+class KRATOS_API(STRUCTURAL_APPLICATION) PiecewiseLinearHardeningLaw : public HardeningLaw
 {
 public:
 

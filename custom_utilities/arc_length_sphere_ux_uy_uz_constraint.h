@@ -275,7 +275,12 @@ public:
                 else
                     return x[1];
             }
+            else
+                KRATOS_ERROR << "Invalid solve flag " << solve_flag;
         }
+
+        // can't come here, to satisfy the compiler
+        return 0.0;
     }
 
     ///@}

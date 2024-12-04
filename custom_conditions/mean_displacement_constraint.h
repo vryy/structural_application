@@ -35,7 +35,7 @@ namespace Kratos
  * - https://math.stackexchange.com/questions/2112280/zero-average-in-solution-to-laplace-problem-with-lagrange-multipliers
  */
 template<int IDimIndex>
-class MeanDisplacementConstraint : public Condition
+class KRATOS_API(STRUCTURAL_APPLICATION) MeanDisplacementConstraint : public Condition
 {
 
 public:
@@ -92,6 +92,7 @@ public:
     {
         std::stringstream ss;
         ss << "MeanDisplacementConstraint<" << IDimIndex << ">";
+        return ss.str();
     }
 
 private:

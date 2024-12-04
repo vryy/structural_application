@@ -25,7 +25,7 @@ namespace Kratos
  * A zero contribution element to support for assigning condition
  * It also supports for post processing at integration points using interpolation value from node
  */
-class DummyElement : public Element
+class KRATOS_API(STRUCTURAL_APPLICATION) DummyElement : public Element
 {
     public:
         // Counted pointer of DummyElement

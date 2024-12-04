@@ -32,10 +32,12 @@ HardeningLaw::Pointer ExponentialHardeningLaw::Clone() const
 
 bool ExponentialHardeningLaw::Has( const Variable<double>& rThisVariable )
 {
+    return false;
 }
 
 double& ExponentialHardeningLaw::GetValue( const Variable<double>& rThisVariable, double& rValue )
 {
+    return rValue;
 }
 
 void ExponentialHardeningLaw::SetValue( const Variable<double>& rThisVariable, const double rValue,

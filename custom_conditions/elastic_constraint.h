@@ -50,8 +50,7 @@ namespace Kratos
 /// Short class definition.
 /** Detail class definition.
 */
-class ElasticConstraint
-    : public Condition
+class KRATOS_API(STRUCTURAL_APPLICATION) ElasticConstraint : public Condition
 {
 public:
     ///@name Type Definitions

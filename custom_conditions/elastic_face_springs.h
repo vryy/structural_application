@@ -51,8 +51,7 @@ namespace Kratos
 /**
  * Surface springs normal to the surface
 */
-class ElasticFaceSprings
-    : public Condition
+class KRATOS_API(STRUCTURAL_APPLICATION) ElasticFaceSprings : public Condition
 {
 public:
     ///@name Type Definitions

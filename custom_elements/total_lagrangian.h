@@ -104,7 +104,7 @@ namespace Kratos
  * It is noted that, this element is only compatible with symmetric constitutive law (i.e C_ijkl=C_jikl=C_ijlk=C_klij)
  * Reference: D. Kuhl, Computational Dynamics lecture note
  */
-class TotalLagrangian : public Element, public PrescribedObject
+class KRATOS_API(STRUCTURAL_APPLICATION) TotalLagrangian : public Element, public PrescribedObject
 {
 public:
     ///@name Type Definitions

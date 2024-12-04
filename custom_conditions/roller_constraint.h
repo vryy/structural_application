@@ -79,7 +79,7 @@ namespace Kratos
  * The weak form:
  *  r = lambda * (u \cdot n)
  */
-class RollerConstraint : public Condition
+class KRATOS_API(STRUCTURAL_APPLICATION) RollerConstraint : public Condition
 {
 public:
     typedef Condition BaseType;

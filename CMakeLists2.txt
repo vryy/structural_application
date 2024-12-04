@@ -115,8 +115,12 @@ else()
     ###############################################################
     ## define library Kratos which defines the basic python interface
     add_library(KratosStructuralApplication SHARED ${KRATOS_STRUCTURAL_APPLICATION_SOURCES})
-    target_link_libraries(KratosStructuralApplication KratosCore )
-    target_link_libraries(KratosStructuralApplication ${MPI_LIBRARIES} )
+    if(MSVC)
+        target_compile_options(KratosStructuralApplication PRIVATE $<$<CONFIG:Debug>:/bigobj>)
+    endif()
+
+    target_link_libraries(KratosStructuralApplication KratosCore)
+    set_target_properties(KratosStructuralApplication PROPERTIES COMPILE_DEFINITIONS "STRUCTURAL_APPLICATION=EXPORT,API")
     set_target_properties(KratosStructuralApplication PROPERTIES PREFIX "")
 
     if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")

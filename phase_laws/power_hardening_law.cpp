@@ -32,10 +32,12 @@ HardeningLaw::Pointer PowerHardeningLaw::Clone() const
 
 bool PowerHardeningLaw::Has( const Variable<double>& rThisVariable )
 {
+    return false;
 }
 
 double& PowerHardeningLaw::GetValue( const Variable<double>& rThisVariable, double& rValue )
 {
+    return rValue;
 }
 
 void PowerHardeningLaw::SetValue( const Variable<double>& rThisVariable, const double rValue,

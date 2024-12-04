@@ -31,7 +31,7 @@ namespace Kratos
  * Implementation of the multi yield surface constitutive law
  * REF: gen_plas.pdf, hs_small_dev.pdf
  */
-class MultiSurfaceElastoplasticityLaw : public MultiSurfacePlasticityLaw
+class KRATOS_API(STRUCTURAL_APPLICATION) MultiSurfaceElastoplasticityLaw : public MultiSurfacePlasticityLaw
 {
 public:
 

@@ -31,7 +31,7 @@ namespace Kratos
 /**
  * Asbtract class for the hardening law.
  */
-class HardeningLaw : public Flags
+class KRATOS_API(STRUCTURAL_APPLICATION) HardeningLaw : public Flags
 {
 public:
 
@@ -65,15 +65,15 @@ public:
      * Operations
      */
 
-    virtual bool Has( const Variable<int>& rThisVariable ) {}
-    virtual bool Has( const Variable<double>& rThisVariable ) {}
-    virtual bool Has( const Variable<Vector>& rThisVariable ) {}
-    virtual bool Has( const Variable<Matrix>& rThisVariable ) {}
+    virtual bool Has(const Variable<int>& rThisVariable) { return false; }
+    virtual bool Has( const Variable<double>& rThisVariable ) { return false; }
+    virtual bool Has( const Variable<Vector>& rThisVariable ) { return false; }
+    virtual bool Has( const Variable<Matrix>& rThisVariable ) { return false; }
 
-    virtual int& GetValue( const Variable<int>& rThisVariable, int& rValue ) {}
-    virtual double& GetValue( const Variable<double>& rThisVariable, double& rValue ) {}
-    virtual Vector& GetValue( const Variable<Vector>& rThisVariable, Vector& rValue ) {}
-    virtual Matrix& GetValue( const Variable<Matrix>& rThisVariable, Matrix& rValue ) {}
+    virtual int& GetValue(const Variable<int>& rThisVariable, int& rValue) { return rValue; }
+    virtual double& GetValue( const Variable<double>& rThisVariable, double& rValue ) { return rValue; }
+    virtual Vector& GetValue( const Variable<Vector>& rThisVariable, Vector& rValue ) { return rValue; }
+    virtual Matrix& GetValue( const Variable<Matrix>& rThisVariable, Matrix& rValue ) { return rValue; }
 
     virtual void SetValue( const Variable<int>& rThisVariable, const int rValue,
                    const ProcessInfo& rCurrentProcessInfo ) {}
@@ -151,8 +151,11 @@ private:
 }; /* Class HardeningLaw */
 
 /// input stream function
-inline std::istream & operator >>(std::istream& rIStream,
-                                  HardeningLaw& rThis);
+inline std::istream& operator >>(std::istream& rIStream,
+                                 HardeningLaw& rThis)
+{
+    return rIStream;
+}
 
 /// output stream function
 

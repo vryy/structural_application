@@ -37,7 +37,7 @@ namespace Kratos
  * It is noted that q denotes the stress-like internal variables, not deviatoric pressure
  * REF: gen_plas.pdf
  */
-class GeneralPlasticityLaw
+class KRATOS_API(STRUCTURAL_APPLICATION) GeneralPlasticityLaw
 {
 public:
 

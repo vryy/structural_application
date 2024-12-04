@@ -200,7 +200,7 @@ public:
             KRATOS_WATCH(a)
             KRATOS_WATCH(b)
             KRATOS_WATCH(c)
-            KRATOS_THROW_ERROR(std::logic_error, "The arc-length non-consistent scheme encounters complex solution", "")
+            KRATOS_ERROR << "The arc-length non-consistent scheme encounters complex solution";
         }
         else
         {
@@ -225,7 +225,12 @@ public:
                 else
                     return x[1];
             }
+            else
+                KRATOS_ERROR << "Invalid solve flag " << solve_flag;
         }
+
+        // can't come here, to satisfy the compiler
+        return 0.0;
     }
 
     ///@}

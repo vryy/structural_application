@@ -25,7 +25,7 @@ namespace Kratos
 /**
  * Exponential hardening law of the form q = c_inf - (c_inf-c_0)*exp(-rho*alpha)
  */
-class ExponentialHardeningLaw : public HardeningLaw
+class KRATOS_API(STRUCTURAL_APPLICATION) ExponentialHardeningLaw : public HardeningLaw
 {
 public:
 

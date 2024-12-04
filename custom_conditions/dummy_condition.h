@@ -22,7 +22,7 @@ namespace Kratos
 {
 /**
  */
-class DummyCondition : public Condition
+class KRATOS_API(STRUCTURAL_APPLICATION) DummyCondition : public Condition
 {
     public:
         // Counted pointer of DummyCondition

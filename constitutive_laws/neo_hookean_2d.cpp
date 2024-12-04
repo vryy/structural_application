@@ -171,6 +171,7 @@ Vector& NeoHookean2D::GetValue( const Variable<Vector>& rThisVariable, Vector& r
 //**********************************************************************
 Matrix& NeoHookean2D::GetValue( const Variable<Matrix>& rThisVariable, Matrix& rValue )
 {
+    return rValue;
 }
 
 //**********************************************************************

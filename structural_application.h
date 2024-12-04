@@ -181,7 +181,7 @@ public:
     KratosStructuralApplication();
 
     /// Destructor.
-    virtual ~KratosStructuralApplication() {}
+    ~KratosStructuralApplication() override {}
 
     ///@}
     ///@name Operators

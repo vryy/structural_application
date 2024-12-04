@@ -25,7 +25,7 @@ namespace Kratos
 /**
  * Power hardening law of the form q = K*(alpha+e0)^n or y = a*(x+b)^n
  */
-class PowerHardeningLaw : public HardeningLaw
+class KRATOS_API(STRUCTURAL_APPLICATION) PowerHardeningLaw : public HardeningLaw
 {
 public:
 

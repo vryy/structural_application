@@ -97,7 +97,7 @@ namespace Kratos
  * In this element, the stress measure is Cauchy and the strain measure is Hencky.
  * Reference: De Souza Neto, Computational Plasticity, Box 14.3
  */
-class FiniteStrain : public Element, public PrescribedObject
+class KRATOS_API(STRUCTURAL_APPLICATION) FiniteStrain : public Element, public PrescribedObject
 {
 public:
     ///@name Type Definitions

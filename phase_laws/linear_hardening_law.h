@@ -25,7 +25,7 @@ namespace Kratos
 /**
  * Linear hardening law of the form q = oy + H*alpha
  */
-class LinearHardeningLaw : public HardeningLaw
+class KRATOS_API(STRUCTURAL_APPLICATION) LinearHardeningLaw : public HardeningLaw
 {
 public:
 

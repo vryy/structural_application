@@ -55,9 +55,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #ifdef SD_APP_FORWARD_COMPATIBILITY
     #include "custom_python3/legacy_structural_app_vars.h"
-    #include "custom_python3/structural_application_variables3.h"
-#else
-    #include "custom_python/structural_application_variables2.h"
 #endif
+
+#include "custom_python/structural_application_variables2.h"
 
 #endif // KRATOS_STRUCTURAL_APPLICATION_VARIABLES_H_INCLUDED  defined
