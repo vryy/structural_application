@@ -138,7 +138,7 @@ public:
                  */
     void InitializeModelPart( ModelPart& rTarget )
     {
-        ProcessInfo& CurrentProcessInfo = rTarget.GetProcessInfo();
+        const ProcessInfo& CurrentProcessInfo = rTarget.GetProcessInfo();
 
         for( ModelPart::ElementIterator it = rTarget.ElementsBegin();
                 it!= rTarget.ElementsEnd(); it++ )
@@ -382,9 +382,7 @@ public:
             auto it_elem = rTarget.Elements().find(it->Id());
             if (it_elem == rTarget.Elements().end())
             {
-                std::stringstream ss;
-                ss << "Element " << it->Id() << " does not exist in the target model_part " << rTarget.Name();
-                KRATOS_THROW_ERROR(std::logic_error, ss.str(), "")
+                KRATOS_ERROR << "Element " << it->Id() << " does not exist in the target model_part " << rTarget.Name();
             }
             it_elem->SetValuesOnIntegrationPoints(PRESTRESS, PreStresses, rTarget.GetProcessInfo());
         }
@@ -413,6 +411,29 @@ public:
             else
             {
                 std::cout << "WARNING!!! Target element " << it->Id() << " is not found in the target model_part " << rTarget.Name() << std::endl;
+            }
+        }
+        std::cout << __FUNCTION__ << " from " << rSource.Name() << " to " << rTarget.Name() << " completed" << std::endl;
+    }
+
+    /**
+     * Transfer of PRESTRESS.
+     * This transfers the in-situ stress from rSource to rTarget.
+     * If the element does not exist in target, nothing will be alerted. USE THIS WITH CARE.
+     * @param rSource the source model part
+     * @param rTarget the target model part
+     */
+    void TransferPrestressIdenticallyNoCheck( ModelPart& rSource, ModelPart& rTarget )
+    {
+        std::vector<Vector> PreStresses;
+        for( ModelPart::ElementIterator it = rSource.ElementsBegin();
+                it != rSource.ElementsEnd(); ++it )
+        {
+            auto it_elem = rTarget.Elements().find(it->Id());
+            if (it_elem != rTarget.Elements().end())
+            {
+                it->CalculateOnIntegrationPoints(PRESTRESS, PreStresses, rSource.GetProcessInfo());
+                it_elem->SetValuesOnIntegrationPoints(PRESTRESS, PreStresses, rTarget.GetProcessInfo());
             }
         }
         std::cout << __FUNCTION__ << " from " << rSource.Name() << " to " << rTarget.Name() << " completed" << std::endl;
@@ -462,7 +483,7 @@ public:
      * @param rSource the source model part
      * @param rTarget the target model part
                  */
-    void TransferSpecificVariable( ModelPart& rSource, ModelPart& rTarget, Variable<Vector>& rThisVariable )
+    void TransferSpecificVariable( ModelPart& rSource, ModelPart& rTarget, const Variable<Vector>& rThisVariable )
     {
         Kratos::timer timer1;
 
@@ -525,7 +546,7 @@ public:
      * @param rSource the source model part
      * @param rTarget the target model part
                  */
-    void TransferSpecificVariableWithComponents( ModelPart& rSource, ModelPart& rTarget, Variable<Vector>& rThisVariable, const std::size_t& ncomponents )
+    void TransferSpecificVariableWithComponents( ModelPart& rSource, ModelPart& rTarget, const Variable<Vector>& rThisVariable, const std::size_t ncomponents )
     {
         Kratos::timer timer1;
 
@@ -650,7 +671,7 @@ public:
     Variable<double>& rThisVariable)
                  */
     void TransferVariablesToGaussPoints(ModelPart& model_part,
-                                        Variable<Kratos::Matrix>& rThisVariable)
+                                        const Variable<Kratos::Matrix>& rThisVariable)
     {
 
         ElementsArrayType& ElementsArray= model_part.Elements();
@@ -698,7 +719,7 @@ public:
     Variable<double>& rThisVariable)
                  */
     void TransferVariablesToGaussPoints(ModelPart& model_part,
-                                        Variable<Vector>& rThisVariable)
+                                        const Variable<Vector>& rThisVariable)
     {
         ElementsArrayType& ElementsArray= model_part.Elements();
 
@@ -751,7 +772,7 @@ public:
     Variable<Vector>& rThisVariable)
                  */
     void TransferVariablesToGaussPoints(ModelPart& model_part,
-                                        Variable<double>& rThisVariable)
+                                        const Variable<double>& rThisVariable)
     {
         ElementsArrayType& ElementsArray= model_part.Elements();
 
@@ -797,7 +818,7 @@ public:
      *      ModelPart& source_model_part, Variable<double>& rThisVariable)
      */
     void TransferVariablesToGaussPoints(ModelPart& rSource, ModelPart& rTarget,
-                                        Variable<Kratos::Matrix>& rThisVariable)
+                                        const Variable<Kratos::Matrix>& rThisVariable)
     {
         ElementsArrayType& SourceMeshElementsArray= rSource.Elements();
         ElementsArrayType& TargetMeshElementsArray= rTarget.Elements();
@@ -846,7 +867,7 @@ public:
     source_model_part, Variable<double>& rThisVariable)
      */
     void TransferVariablesToGaussPoints(ModelPart& rSource, ModelPart& rTarget,
-                                        Variable<Vector>& rThisVariable, std::size_t ncomponents = 6)
+                                        const Variable<Vector>& rThisVariable, std::size_t ncomponents = 6)
     {
         std::cout << __LINE__ << " : At TransferVariablesToGaussPoints(" << rSource.Name() << "," << rTarget.Name() << ", Variable<Vector> " << rThisVariable.Name() << std::endl;
 
@@ -859,7 +880,7 @@ public:
     void TransferVariablesToGaussPoints(ElementsArrayType& SourceMeshElementsArray,
                                         ElementsArrayType& TargetMeshElementsArray,
                                         const ProcessInfo& CurrentProcessInfo,
-                                        Variable<Vector>& rThisVariable, std::size_t ncomponents = 6)
+                                        const Variable<Vector>& rThisVariable, std::size_t ncomponents = 6)
     {
         std::cout << __LINE__ << " : At TransferVariablesToGaussPoints, Variable<Vector> " << rThisVariable.Name() << std::endl;
 
@@ -941,7 +962,7 @@ public:
     source_model_part, Variable<double>& rThisVariable)
      */
     void TransferVariablesToGaussPoints(ModelPart& rSource, Element::Pointer pTargetElement,
-                                        Variable<Vector>& rThisVariable, std::size_t ncomponents = 6)
+                                        const Variable<Vector>& rThisVariable, std::size_t ncomponents = 6)
     {
         std::cout << __LINE__ << ": At " << __FUNCTION__ << " for element " << pTargetElement->Id() << std::endl;
         ElementsArrayType& SourceMeshElementsArray= rSource.Elements();
@@ -1018,7 +1039,7 @@ public:
     source_model_part, Variable<double>& rThisVariable)
      */
     void TransferVariablesToGaussPointsIdentically(ModelPart& rSource, Element::Pointer pTargetElement,
-                                        Variable<Vector>& rThisVariable, std::size_t ncomponents = 6)
+                                        const Variable<Vector>& rThisVariable, std::size_t ncomponents = 6)
     {
 /*        std::cout << "At " << __FUNCTION__ << " for element " << pTargetElement->Id() << std::endl;*/
         ElementsArrayType& SourceMeshElementsArray= rSource.Elements();
@@ -1062,7 +1083,7 @@ public:
     source_model_part, Variable<Vector>& rThisVariable)
      */
     void TransferVariablesToGaussPoints(ModelPart& rSource, ModelPart& rTarget,
-                                        Variable<double>& rThisVariable)
+                                        const Variable<double>& rThisVariable)
     {
         ElementsArrayType& SourceMeshElementsArray= rSource.Elements();
         ElementsArrayType& TargetMeshElementsArray= rTarget.Elements();
@@ -1136,7 +1157,7 @@ public:
     source_model_part, Variable<Vector>& rThisVariable)
      */
     void TransferVariablesToGaussPoints(ModelPart& rSource, ModelPart& rTarget,
-                                        Variable<array_1d<double, 3> >& rThisVariable)
+                                        const Variable<array_1d<double, 3> >& rThisVariable)
     {
         ElementsArrayType& SourceMeshElementsArray = rSource.Elements();
         ElementsArrayType& TargetMeshElementsArray = rTarget.Elements();
@@ -1156,7 +1177,7 @@ public:
     source_model_part, Variable<Vector>& rThisVariable)
      */
     void TransferVariablesToGaussPoints(ElementsArrayType& SourceMeshElementsArray, ElementsArrayType& TargetMeshElementsArray,
-                                        Variable<array_1d<double, 3> >& rThisVariable, const ProcessInfo& CurrentProcessInfo)
+                                        const Variable<array_1d<double, 3> >& rThisVariable, const ProcessInfo& CurrentProcessInfo)
     {
         int number_of_threads = 1;
         vector<unsigned int> element_partition;
@@ -1216,7 +1237,7 @@ public:
     }
 
     void ComputeExtrapolatedNodalValues(std::vector<double>& rValues, Element& rSource,
-            Variable<double>& rThisVariable, const ProcessInfo& CurrentProcessInfo)
+            const Variable<double>& rThisVariable, const ProcessInfo& CurrentProcessInfo)
     {
         // compute the nodal values of the source element
         const std::size_t num_of_nodes = rSource.GetGeometry().size();
@@ -1275,7 +1296,7 @@ public:
     }
 
     void TransferVariablesToGaussPoints(const std::vector<double>& rValues, Element& rTarget,
-                                        Variable<double>& rThisVariable,
+                                        const Variable<double>& rThisVariable,
                                         const ProcessInfo& CurrentProcessInfo)
     {
         const std::size_t num_of_nodes = rTarget.GetGeometry().size();
@@ -1306,7 +1327,7 @@ public:
      * @param rThisVariable double-Variable which should be transferred
      */
     void TransferVariablesToGaussPoints(Element& rSource, Element& rTarget,
-                                        Variable<double>& rThisVariable,
+                                        const Variable<double>& rThisVariable,
                                         const ProcessInfo& CurrentProcessInfo)
     {
         if (rTarget.GetGeometry().GetGeometryType() != rSource.GetGeometry().GetGeometryType())
@@ -1319,7 +1340,7 @@ public:
     }
 
     void ComputeExtrapolatedNodalValues(std::vector<array_1d<double, 3> >& rValues, Element& rSource,
-        Variable<array_1d<double, 3> >& rThisVariable, const ProcessInfo& CurrentProcessInfo)
+        const Variable<array_1d<double, 3> >& rThisVariable, const ProcessInfo& CurrentProcessInfo)
     {
         // compute the nodal values of the source element
         const std::size_t num_of_nodes = rSource.GetGeometry().size();
@@ -1389,7 +1410,7 @@ public:
     }
 
     void TransferVariablesToGaussPoints(const std::vector<array_1d<double, 3> >& rValues,
-        Element& rTarget, Variable<array_1d<double, 3> >& rThisVariable,
+        Element& rTarget, const Variable<array_1d<double, 3> >& rThisVariable,
         const ProcessInfo& CurrentProcessInfo)
     {
         const std::size_t num_of_nodes = rTarget.GetGeometry().size();
@@ -1424,7 +1445,7 @@ public:
      * @param rThisVariable double-Variable which should be transferred
      */
     void TransferVariablesToGaussPoints(Element& rSource, Element& rTarget,
-                                        Variable<array_1d<double, 3> >& rThisVariable,
+                                        const Variable<array_1d<double, 3> >& rThisVariable,
                                         const ProcessInfo& CurrentProcessInfo)
     {
         if (rTarget.GetGeometry().GetGeometryType() != rSource.GetGeometry().GetGeometryType())
@@ -1437,8 +1458,8 @@ public:
     }
 
     void ComputeExtrapolatedNodalValues(std::vector<Vector>& rValues, Element& rSource,
-        Variable<Vector>& rThisVariable, const ProcessInfo& CurrentProcessInfo,
-        const std::size_t& ncomponents)
+        const Variable<Vector>& rThisVariable, const ProcessInfo& CurrentProcessInfo,
+        const std::size_t ncomponents)
     {
         // compute the nodal values of the source element
         const std::size_t num_of_nodes = rSource.GetGeometry().size();
@@ -1511,9 +1532,9 @@ public:
     }
 
     void TransferVariablesToGaussPoints(const std::vector<Vector>& rValues, Element& rTarget,
-                                        Variable<Vector>& rThisVariable,
+                                        const Variable<Vector>& rThisVariable,
                                         const ProcessInfo& CurrentProcessInfo,
-                                        const std::size_t& ncomponents)
+                                        const std::size_t ncomponents)
     {
         const std::size_t num_of_nodes = rTarget.GetGeometry().size();
 
@@ -1548,9 +1569,9 @@ public:
      * @param rThisVariable double-Variable which should be transferred
      */
     void TransferVariablesToGaussPoints(Element& rSource, Element& rTarget,
-                                        Variable<Vector>& rThisVariable,
+                                        const Variable<Vector>& rThisVariable,
                                         const ProcessInfo& CurrentProcessInfo,
-                                        const std::size_t& ncomponents)
+                                        const std::size_t ncomponents)
     {
         if (rTarget.GetGeometry().GetGeometryType() != rSource.GetGeometry().GetGeometryType())
             KRATOS_THROW_ERROR(std::logic_error, "Source and target element do not have the same geometry type", "")
@@ -1576,7 +1597,7 @@ public:
      * will be created on nodal level while they are originally intended to be
      * stored on integration points!
                  */
-    void TransferVariablesToNodes(ModelPart& model_part, Variable<Kratos::Matrix>& rThisVariable)
+    void TransferVariablesToNodes(ModelPart& model_part, const Variable<Kratos::Matrix>& rThisVariable)
     {
         ElementsArrayType& ElementsArray= model_part.Elements();
 
@@ -1796,7 +1817,7 @@ public:
 //    }
 
         // omp version
-    void TransferVariablesToNodes(ModelPart& model_part, Variable<Vector>& rThisVariable)
+    void TransferVariablesToNodes(ModelPart& model_part, const Variable<Vector>& rThisVariable)
     {
         ElementsArrayType& ElementsArray= model_part.Elements();
 
@@ -1963,23 +1984,23 @@ public:
         std::cout << "TransferVariablesToNodes for " << rThisVariable.Name() << " completed" << std::endl;
     }
 
-    void TransferVariablesToNodes(ModelPart& model_part, Variable<Vector>& rThisVariable, const std::size_t& ncomponents)
+    void TransferVariablesToNodes(ModelPart& model_part, const Variable<Vector>& rThisVariable, const std::size_t ncomponents)
     {
         TransferVectorVariablesToNodes<ElementsArrayType>(model_part, model_part.Elements(), rThisVariable, ncomponents);
     }
 
-    void TransferVariablesToNodes(ModelPart& model_part, ElementsArrayType& rElements, Variable<Vector>& rThisVariable, const std::size_t& ncomponents)
+    void TransferVariablesToNodes(ModelPart& model_part, ElementsArrayType& rElements, const Variable<Vector>& rThisVariable, const std::size_t ncomponents)
     {
         TransferVectorVariablesToNodes<ElementsArrayType>(model_part, rElements, rThisVariable, ncomponents);
     }
 
-    void TransferVariablesToNodes(ModelPart& model_part, ConditionsArrayType& rConditions, Variable<Vector>& rThisVariable, const std::size_t& ncomponents)
+    void TransferVariablesToNodes(ModelPart& model_part, ConditionsArrayType& rConditions, const Variable<Vector>& rThisVariable, const std::size_t ncomponents)
     {
         TransferVectorVariablesToNodes<ConditionsArrayType>(model_part, rConditions, rThisVariable, ncomponents);
     }
 
     template<typename TElementsArrayType>
-    void TransferVectorVariablesToNodes(ModelPart& model_part, TElementsArrayType& ElementsArray, Variable<Vector>& rThisVariable, const std::size_t& ncomponents)
+    void TransferVectorVariablesToNodes(ModelPart& model_part, TElementsArrayType& ElementsArray, const Variable<Vector>& rThisVariable, const std::size_t ncomponents)
     {
         // count all the nodes at all the active elements
         std::set<std::size_t> active_nodes;
@@ -2412,17 +2433,17 @@ public:
 //#endif
 //        std::cout << "TransferVariablesToNodes for " << rThisVariable.Name() << " completed" << std::endl;
 //    }
-    void TransferVariablesToNodes(ModelPart& model_part, Variable<double>& rThisVariable)
+    void TransferVariablesToNodes(ModelPart& model_part, const Variable<double>& rThisVariable)
     {
         TransferDoubleVariablesToNodes(model_part, model_part.Elements(), rThisVariable);
     }
 
-    void TransferVariablesToNodes(ModelPart& model_part, ElementsArrayType& ElementsArray, Variable<double>& rThisVariable)
+    void TransferVariablesToNodes(ModelPart& model_part, ElementsArrayType& ElementsArray, const Variable<double>& rThisVariable)
     {
         TransferDoubleVariablesToNodes(model_part, ElementsArray, rThisVariable);
     }
 
-    void TransferDoubleVariablesToNodes(ModelPart& model_part, ElementsArrayType& ElementsArray, Variable<double>& rThisVariable)
+    void TransferDoubleVariablesToNodes(ModelPart& model_part, ElementsArrayType& ElementsArray, const Variable<double>& rThisVariable)
     {
         // count all the nodes at all the active elements
         std::set<std::size_t> active_nodes;
@@ -2618,23 +2639,23 @@ public:
         std::cout << "TransferVariablesToNodes for " << rThisVariable.Name() << " completed" << std::endl;
     }
 
-    void TransferVariablesToNodes(ModelPart& model_part, Variable<array_1d<double, 3> >& rThisVariable)
+    void TransferVariablesToNodes(ModelPart& model_part, const Variable<array_1d<double, 3> >& rThisVariable)
     {
         TransferArray1DVariablesToNodes(model_part, model_part.Elements(), rThisVariable);
     }
 
-    void TransferVariablesToNodes(ModelPart& model_part, ElementsArrayType& ElementsArray, Variable<array_1d<double, 3> >& rThisVariable)
+    void TransferVariablesToNodes(ModelPart& model_part, ElementsArrayType& ElementsArray, const Variable<array_1d<double, 3> >& rThisVariable)
     {
         TransferArray1DVariablesToNodes(model_part, ElementsArray, rThisVariable);
     }
 
-    void TransferVariablesToNodes(ModelPart& model_part, ConditionsArrayType& ConditionsArray, Variable<array_1d<double, 3> >& rThisVariable)
+    void TransferVariablesToNodes(ModelPart& model_part, ConditionsArrayType& ConditionsArray, const Variable<array_1d<double, 3> >& rThisVariable)
     {
         TransferArray1DVariablesToNodes(model_part, ConditionsArray, rThisVariable);
     }
 
     template<typename TElementsArrayType>
-    void TransferArray1DVariablesToNodes(ModelPart& model_part, TElementsArrayType& ElementsArray, Variable<array_1d<double, 3> >& rThisVariable)
+    void TransferArray1DVariablesToNodes(ModelPart& model_part, TElementsArrayType& ElementsArray, const Variable<array_1d<double, 3> >& rThisVariable)
     {
         // count all the nodes at all the active elements
         std::set<std::size_t> active_nodes;
@@ -2884,7 +2905,7 @@ public:
      * Journal for numer. meth. in eng. 61 (2004) 2402--2427
                  */
     void TransferVariablesBetweenMeshes(ModelPart& rSource, ModelPart& rTarget,
-                                        Variable<Kratos::Matrix>& rThisVariable)
+                                        const Variable<Kratos::Matrix>& rThisVariable)
     {
         ElementsArrayType& SourceMeshElementsArray= rSource.Elements();
 
@@ -3020,7 +3041,7 @@ public:
      * Journal for numer. meth. in eng. 61 (2004) 2402--2427
                  */
     void TransferVariablesBetweenMeshes(ModelPart& rSource, ModelPart& rTarget,
-                                        Variable<Vector>& rThisVariable)
+                                        const Variable<Vector>& rThisVariable)
     {
         ElementsArrayType& SourceMeshElementsArray= rSource.Elements();
 
@@ -3140,7 +3161,7 @@ public:
     /// Transfer the variable at node from source mesh to target mesh
     /// Using a simple scheme, where the node in target mesh is located in source mesh, and then the value is determined
     template<class TVariableType>
-    void TransferVariablesFromNodeToNode(ModelPart& rSource, ModelPart& rTarget, TVariableType& rThisVariable)
+    void TransferVariablesFromNodeToNode(ModelPart& rSource, ModelPart& rTarget, const TVariableType& rThisVariable)
     {
         ElementsArrayType& SourceMeshElementsArray = rSource.Elements();
 
@@ -3202,7 +3223,7 @@ public:
      * Journal for numer. meth. in eng. 61 (2004) 2402--2427
                  */
     void TransferVariablesBetweenMeshes(ModelPart& rSource, ModelPart& rTarget,
-                                        Variable<double>& rThisVariable)
+                                        const Variable<double>& rThisVariable)
     {
         ElementsArrayType& SourceMeshElementsArray= rSource.Elements();
 
@@ -3302,7 +3323,7 @@ public:
      * @see MappedValue( Element& sourceElement, PointType& targetPoint,
     const Variable<double>& rThisVariable)
                  */
-    Matrix ValueMatrixInOldMesh(Element& oldElement, PointType&  localPoint,
+    Matrix ValueMatrixInOldMesh(const Element& oldElement, PointType& localPoint,
                                 const Variable<Kratos::Matrix>& rThisVariable )
     {
         Matrix newValue(3,3);
@@ -3338,8 +3359,8 @@ public:
      * @see MappedValue( Element& sourceElement, PointType& targetPoint,
     const Variable<double>& rThisVariable)
                  */
-    Vector ValueVectorInOldMesh(Element& oldElement, PointType&  localPoint,
-                                const Variable<Vector>& rThisVariable, const std::size_t& ncomponents )
+    Vector ValueVectorInOldMesh(const Element& oldElement, PointType& localPoint,
+                                const Variable<Vector>& rThisVariable, const std::size_t ncomponents )
     {
         Vector newValue(ncomponents);
         noalias(newValue) = ZeroVector(ncomponents);
@@ -3371,7 +3392,7 @@ public:
      * @see ValueVectorInOldMesh(Element& oldElement, PointType&  localPoint,
     const Variable<Vector>& rThisVariable, unsigned int firstvalue)
      */
-    double ValueVectorInOldMesh(Element& oldElement, PointType&  localPoint,
+    double ValueVectorInOldMesh(const Element& oldElement, PointType& localPoint,
                                 const Variable<Vector>& rThisVariable, unsigned int firstvalue )
     {
         double newValue = 0.0;
@@ -3636,15 +3657,15 @@ protected:
     //******************************************************************************************
     void ConstructMatrixStructure (
         SparseSpaceType::MatrixType& A,
-        ElementsArrayType& rElements,
-        ProcessInfo& CurrentProcessInfo
+        const ElementsArrayType& rElements,
+        const ProcessInfo& CurrentProcessInfo
     )
     {
         std::size_t equation_size = A.size1();
         std::vector<std::vector<std::size_t> > indices(equation_size);
 
         Element::EquationIdVectorType ids;
-        for(ElementsArrayType::iterator i_element = rElements.begin() ; i_element != rElements.end() ; ++i_element)
+        for(ElementsArrayType::const_iterator i_element = rElements.begin() ; i_element != rElements.end() ; ++i_element)
         {
             if( ! (i_element)->GetValue( IS_INACTIVE ) || (i_element)->Is(ACTIVE) )
             {
@@ -3720,16 +3741,16 @@ protected:
     template<typename TElementsArrayType>
     static void ConstructMatrixStructure (
         SparseSpaceType::MatrixType& A,
-        TElementsArrayType& rElements,
+        const TElementsArrayType& rElements,
         std::map<std::size_t, std::size_t>& NodeRowId,
-        ProcessInfo& CurrentProcessInfo
+        const ProcessInfo& CurrentProcessInfo
     )
     {
         std::size_t equation_size = A.size1();
         std::vector<std::vector<std::size_t> > indices(equation_size);
 
         Element::EquationIdVectorType ids;
-        for(typename TElementsArrayType::iterator i_element = rElements.begin() ; i_element != rElements.end() ; ++i_element)
+        for(typename TElementsArrayType::const_iterator i_element = rElements.begin() ; i_element != rElements.end() ; ++i_element)
         {
             if( ! (i_element)->GetValue( IS_INACTIVE ) || (i_element)->Is(ACTIVE) )
             {
@@ -3804,7 +3825,7 @@ protected:
 
     //**********AUXILIARY FUNCTION**************************************************************
     //******************************************************************************************
-    static inline void AddUnique(std::vector<std::size_t>& v, const std::size_t& candidate)
+    static inline void AddUnique(std::vector<std::size_t>& v, const std::size_t candidate)
     {
         std::vector<std::size_t>::iterator i = v.begin();
         std::vector<std::size_t>::iterator endit = v.end();
@@ -3836,6 +3857,7 @@ private:
     int mEchoLevel;
 
 };//Class Scheme
+
 }//namespace Kratos.
 
 #endif /* KRATOS_VARIABLE_TRANSFER_UTILITY  defined */
