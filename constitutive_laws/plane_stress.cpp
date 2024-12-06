@@ -63,18 +63,16 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace Kratos
 {
-
-
-
 /**
- *	TO BE TESTED!!!
+ * TO BE TESTED!!!
  */
 PlaneStress::PlaneStress()
     : ConstitutiveLaw()
 {
 }
+
 /**
- *	TO BE TESTED!!!
+ * TO BE TESTED!!!
  */
 PlaneStress::~PlaneStress()
 {
@@ -101,49 +99,6 @@ bool PlaneStress::Has( const Variable<Vector>& rThisVariable )
 bool PlaneStress::Has( const Variable<Matrix>& rThisVariable )
 {
     return false;
-}
-
-void PlaneStress::SetValue( const Variable<int>& rThisVariable, const int& rValue,
-                            const ProcessInfo& rCurrentProcessInfo )
-{
-}
-
-void PlaneStress::SetValue( const Variable<double>& rThisVariable, const double& rValue,
-                            const ProcessInfo& rCurrentProcessInfo )
-{
-    //    if ( rThisVariable == PRESTRESS_FACTOR )
-//        mPrestressFactor = rValue;
-    if ( rThisVariable == YOUNG_MODULUS )
-        mE = rValue;
-    if ( rThisVariable == POISSON_RATIO )
-        mNU = rValue;
-}
-
-void PlaneStress::SetValue( const Variable<Vector>& rThisVariable, const Vector& rValue,
-                            const ProcessInfo& rCurrentProcessInfo )
-{
-    if ( rThisVariable == STRESSES || rThisVariable == INITIAL_STRESS )
-    {
-        if(mCurrentStress.size() != rValue.size())
-            mCurrentStress.resize(rValue.size(), false);
-        noalias(mCurrentStress) = rValue;
-    }
-    if ( rThisVariable == THREED_STRESSES )
-    {
-        mCurrentStress(0) = rValue(0);
-        mCurrentStress(1) = rValue(1);
-        mCurrentStress(2) = rValue(3);
-    }
-}
-
-void PlaneStress::SetValue( const Variable<Matrix>& rThisVariable, const Matrix& rValue,
-                            const ProcessInfo& rCurrentProcessInfo )
-{
-}
-
-void PlaneStress::Calculate(const Variable<Matrix >& rVariable, Matrix& rResult,
-                            const ProcessInfo& rCurrentProcessInfo)
-{
 }
 
 int& PlaneStress::GetValue( const Variable<int>& rThisVariable, int& rValue )
@@ -181,7 +136,6 @@ double& PlaneStress::GetValue( const Variable<double>& rThisVariable, double& rV
     }
 
     return rValue;
-
 }
 
 Vector& PlaneStress::GetValue( const Variable<Vector>& rThisVariable, Vector& rValue )
@@ -219,50 +173,46 @@ Vector& PlaneStress::GetValue( const Variable<Vector>& rThisVariable, Vector& rV
     return rValue;
 }
 
-/**
- *	TO BE TESTED!!!
- */
-void PlaneStress::InitializeMaterial( const Properties& props,
-                                      const GeometryType& geom,
-                                      const Vector& ShapeFunctionsValues )
-{
-    mCurrentStress = ZeroVector( 3 );
-    mE  = props[YOUNG_MODULUS];
-    mNU = props[POISSON_RATIO];
-}
-
-void PlaneStress::ResetMaterial( const Properties& props,
-                                 const GeometryType& geom,
-                                 const Vector& ShapeFunctionsValues )
-{
-    noalias(mCurrentStress) = ZeroVector(3);
-}
-
-void PlaneStress::InitializeSolutionStep( const Properties& props,
-        const GeometryType& geom, //this is just to give the array of nodes
-        const Vector& ShapeFunctionsValues ,
-        const ProcessInfo& CurrentProcessInfo )
+void PlaneStress::SetValue( const Variable<int>& rThisVariable, const int& rValue,
+                            const ProcessInfo& rCurrentProcessInfo )
 {
 }
 
-void PlaneStress::InitializeNonLinearIteration( const Properties& rMaterialProperties,
-                                                const GeometryType& rElementGeometry,
-                                                const Vector& rShapeFunctionsValues,
-                                                const ProcessInfo& rCurrentProcessInfo )
+void PlaneStress::SetValue( const Variable<double>& rThisVariable, const double& rValue,
+                            const ProcessInfo& rCurrentProcessInfo )
+{
+    if ( rThisVariable == PRESTRESS_FACTOR )
+        mPrestressFactor = rValue;
+    if ( rThisVariable == YOUNG_MODULUS )
+        mE = rValue;
+    if ( rThisVariable == POISSON_RATIO )
+        mNU = rValue;
+}
+
+void PlaneStress::SetValue( const Variable<Vector>& rThisVariable, const Vector& rValue,
+                            const ProcessInfo& rCurrentProcessInfo )
+{
+    if ( rThisVariable == STRESSES || rThisVariable == INITIAL_STRESS )
+    {
+        if(mCurrentStress.size() != rValue.size())
+            mCurrentStress.resize(rValue.size(), false);
+        noalias(mCurrentStress) = rValue;
+    }
+    if ( rThisVariable == THREED_STRESSES )
+    {
+        mCurrentStress(0) = rValue(0);
+        mCurrentStress(1) = rValue(1);
+        mCurrentStress(2) = rValue(3);
+    }
+}
+
+void PlaneStress::SetValue( const Variable<Matrix>& rThisVariable, const Matrix& rValue,
+                            const ProcessInfo& rCurrentProcessInfo )
 {
 }
 
-void PlaneStress::FinalizeNonLinearIteration( const Properties& rMaterialProperties,
-                                              const GeometryType& rElementGeometry,
-                                              const Vector& rShapeFunctionsValues,
-                                              const ProcessInfo& rCurrentProcessInfo )
-{
-}
-
-void PlaneStress::FinalizeSolutionStep( const Properties& props,
-        const GeometryType& geom, //this is just to give the array of nodes
-        const Vector& ShapeFunctionsValues ,
-        const ProcessInfo& CurrentProcessInfo )
+void PlaneStress::Calculate(const Variable<Matrix >& rVariable, Matrix& rResult,
+                            const ProcessInfo& rCurrentProcessInfo)
 {
 }
 
@@ -287,11 +237,6 @@ void PlaneStress::CalculateMaterialResponseCauchy (Parameters& rValues)
     }
 }
 
-void PlaneStress::CalculateMaterialResponsePK2 (Parameters& rValues)
-{
-    CalculateMaterialResponseCauchy(rValues);
-}
-
 void PlaneStress::CalculateMaterialResponse( const Vector& StrainVector,
         const Matrix& DeformationGradient,
         Vector& StressVector,
@@ -314,7 +259,42 @@ void PlaneStress::CalculateMaterialResponse( const Vector& StrainVector,
 }
 
 /**
- *	TO BE TESTED!!!
+ * TO BE TESTED!!!
+ */
+void PlaneStress::InitializeMaterial( const Properties& props,
+                                      const GeometryType& geom,
+                                      const Vector& ShapeFunctionsValues )
+{
+    mCurrentStress = ZeroVector( 3 );
+    mPreStress = ZeroVector( 3 );
+    mPrestressFactor = 1.0;
+    mE  = props[YOUNG_MODULUS];
+    mNU = props[POISSON_RATIO];
+}
+
+void PlaneStress::ResetMaterial( const Properties& props,
+                                 const GeometryType& geom,
+                                 const Vector& ShapeFunctionsValues )
+{
+    noalias(mCurrentStress) = ZeroVector(3);
+}
+
+void PlaneStress::InitializeNonLinearIteration( const Properties& rMaterialProperties,
+                                                const GeometryType& rElementGeometry,
+                                                const Vector& rShapeFunctionsValues,
+                                                const ProcessInfo& rCurrentProcessInfo )
+{
+}
+
+void PlaneStress::FinalizeNonLinearIteration( const Properties& rMaterialProperties,
+                                              const GeometryType& rElementGeometry,
+                                              const Vector& rShapeFunctionsValues,
+                                              const ProcessInfo& rCurrentProcessInfo )
+{
+}
+
+/**
+ * TO BE TESTED!!!
  */
 void PlaneStress::CalculateElasticMatrix(Matrix& C, const double E, const double NU)
 {
@@ -334,7 +314,7 @@ void PlaneStress::CalculateElasticMatrix(Matrix& C, const double E, const double
 }
 
 /**
- *	TO BE TESTED!!!
+ * TO BE TESTED!!!
  */
 void PlaneStress::CalculateStress(const Vector& StrainVector, Vector& StressVector)
 {
@@ -346,15 +326,23 @@ void PlaneStress::CalculateStress(const Vector& StrainVector, Vector& StressVect
     StressVector[1] = c1 * StrainVector[1] + c2 * StrainVector[0];
     StressVector[2] = c3 * StrainVector[2];
 
+    noalias(StressVector) -= mPrestressFactor*mPreStress;
+
     noalias( mCurrentStress ) = StressVector;
 }
 
 /**
- *	TO BE REVIEWED!!!
+ * TO BE REVIEWED!!!
  */
 void PlaneStress::CalculateConstitutiveMatrix(Matrix& rResult)
 {
     CalculateElasticMatrix( rResult, mE, mNU );
+}
+
+
+std::size_t PlaneStress::GetStrainSize() const
+{
+    return 3;
 }
 
 //**********************************************************************
@@ -362,7 +350,7 @@ void PlaneStress::CalculateCauchyStresses(
     Vector& rCauchy_StressVector,
     const Matrix& rF,
     const Vector& rPK2_StressVector,
-    const Vector& rGreenLagrangeStrainVector)
+    const Vector& rGreenLagrangeStrainVector )
 {
     Matrix S = MathUtils<double>::StressVectorToTensor( rPK2_StressVector );
 
@@ -407,7 +395,5 @@ int PlaneStress::Check(const Properties& props,
 
     KRATOS_CATCH("");
 }
-
-
 
 } // Namespace Kratos

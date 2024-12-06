@@ -126,6 +126,8 @@ public:
         rFeatures.SetStrainMeasure(this->GetStrainMeasure());
     }
 
+    std::size_t GetStrainSize() const final;
+
     bool Has(const Variable<int>& rThisVariable);
     bool Has(const Variable<double>& rThisVariable);
     bool Has(const Variable<Vector>& rThisVariable);
@@ -175,15 +177,6 @@ public:
      */
     void CalculateStress(const Vector& StrainVector, Vector& rResult);
 
-    /**
-     * As this constitutive law describes only linear elastic material properties
-     * this function is rather useless and in fact does nothing
-     */
-    void InitializeSolutionStep( const Properties& props,
-            const GeometryType& geom, //this is just to give the array of nodes
-            const Vector& ShapeFunctionsValues ,
-            const ProcessInfo& CurrentProcessInfo );
-
     void InitializeNonLinearIteration( const Properties& rMaterialProperties,
             const GeometryType& rElementGeometry,
             const Vector& rShapeFunctionsValues,
@@ -193,11 +186,6 @@ public:
             const GeometryType& rElementGeometry,
             const Vector& rShapeFunctionsValues,
             const ProcessInfo& rCurrentProcessInfo );
-
-    void FinalizeSolutionStep( const Properties& props,
-            const GeometryType& geom, //this is just to give the array of nodes
-            const Vector& ShapeFunctionsValues ,
-            const ProcessInfo& CurrentProcessInfo );
 
     /**
      * Calculates the cauchy stresses. For a given deformation and stress state
@@ -230,12 +218,6 @@ public:
      * @see Parameters
      */
     void CalculateMaterialResponseCauchy (Parameters& rValues) final;
-
-    /**
-     * Computes the material response in terms of 2nd Piola-Kirchhoff stresses and constitutive tensor
-     * @see Parameters
-     */
-    void CalculateMaterialResponsePK2 (Parameters& rValues) final;
 
     /// DEPRECATED interface
     void CalculateMaterialResponse(const Vector& StrainVector,
@@ -271,37 +253,9 @@ public:
         rOStream << Info();
     }
 
-    /**
-     * returns the size of the strain vector of the current constitutive law
-     * NOTE: this function HAS TO BE IMPLEMENTED by any derived class
-     */
-    SizeType GetStrainSize() const final
-    {
-        return 3;
-    }
-
     int Check(const Properties& props,
               const GeometryType& geom,
               const ProcessInfo& CurrentProcessInfo) const final;
-
-
-    /**
-     * Input and output
-     */
-    /**
-     * Turn back information as a string.
-     */
-    //virtual String Info() const;
-    /**
-     * Print information about this object.
-     */
-    //virtual void PrintInfo(std::ostream& rOStream) const;
-    /**
-     * Print object's data.
-     */
-    //virtual void PrintData(std::ostream& rOStream) const;
-
-protected:
 
 private:
 
@@ -342,6 +296,8 @@ private:
 
     Vector mCurrentStress;
 
+    double mPrestressFactor;
+    Vector mPreStress;
 
     /**
      * Un accessible methods
@@ -355,5 +311,6 @@ private:
      */
     //PlaneStress(const IsotropicPlaneStressWrinklingNew& rOther);
 }; // Class PlaneStress
+
 } // namespace Kratos.
-#endif // KRATOS_PLANE_STRESS_H_INCLUDED  defined 
+#endif // KRATOS_PLANE_STRESS_H_INCLUDED  defined
