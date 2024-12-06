@@ -78,7 +78,7 @@ int MultiSurfaceElastoplasticityLaw::PlasticIntegration(const std::vector<int>& 
     bool converged = false;
     int it = 0;
     ddlambda.clear();
-    double norm_r, f_sum;
+    double norm_r, f_sum, f_sum_ref = 1.0;
     do
     {
         // compute f
@@ -87,6 +87,11 @@ int MultiSurfaceElastoplasticityLaw::PlasticIntegration(const std::vector<int>& 
         {
             f[ia] = mpPlasticityLaws[ia]->F(stress, q[ia], CurrentProcessInfo, props);
             f_sum += std::abs(f[ia]);
+        }
+
+        if (it == 0)
+        {
+            if (f_sum > 1.0) f_sum_ref = f_sum;
         }
 
         // compute r
@@ -106,10 +111,11 @@ int MultiSurfaceElastoplasticityLaw::PlasticIntegration(const std::vector<int>& 
             std::cout << "At step " << it << ":" << std::endl;
             std::cout << " "; KRATOS_WATCH(norm_r)
             std::cout << " "; KRATOS_WATCH(f_sum)
+            std::cout << " "; KRATOS_WATCH(f_sum_ref)
         }
 
         // check convergence
-        if (f_sum + norm_r < FTOL)
+        if (f_sum/f_sum_ref + norm_r < FTOL)
         {
             converged = true;
             break;
