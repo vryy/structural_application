@@ -18,7 +18,6 @@ LICENSE: see soil_mechanics_application/LICENSE.txt
 // Project includes
 #include "plasticity_laws/general_elastoplasticity_law.h"
 
-// #define DEBUG_GENERAL_PLASTICITY_LAW
 #define CHECK_DERIVATIVES
 #define OSTR std::cout
 

@@ -142,7 +142,7 @@ namespace Kratos
                     mThisIntegrationMethod = IntegrationMethod::GI_GAUSS_5;
                 }
                 else
-                    KRATOS_THROW_ERROR(std::logic_error, "KinematicLinear element does not support for integration rule", this->GetValue(INTEGRATION_ORDER))
+                    KRATOS_ERROR << "KinematicLinear element does not support for integration order " << this->GetValue(INTEGRATION_ORDER);
             }
             else if(GetProperties().Has( INTEGRATION_ORDER ))
             {
@@ -167,7 +167,7 @@ namespace Kratos
                     mThisIntegrationMethod = IntegrationMethod::GI_GAUSS_5;
                 }
                 else
-                    KRATOS_THROW_ERROR(std::logic_error, "KinematicLinear element does not support for integration points", GetProperties()[INTEGRATION_ORDER])
+                    KRATOS_ERROR << "KinematicLinear element does not support for integration order " << GetProperties()[INTEGRATION_ORDER];
             }
             else
                 mThisIntegrationMethod = GetGeometry().GetDefaultIntegrationMethod(); // default method
@@ -209,7 +209,6 @@ namespace Kratos
                 //calculating the total domain size
                 TotalDomainInitialSize += MathUtils<double>::Det(J0[PointNumber]) * IntegrationWeight;
             }
-    //        KRATOS_WATCH(TotalDomainInitialSize)
             // std::stringstream ss;
             // ss << "Element " << Id() << " domain size: " << TotalDomainInitialSize;
             // std::cout << ss.str() << std::endl;
@@ -217,11 +216,9 @@ namespace Kratos
             {
                 if ( TotalDomainInitialSize < -1.0e-10 )
                 {
-                    std::stringstream ss;
-                    ss << "Error on element -> " << this->Id() << std::endl;
-                    ss << "Properties " << GetProperties().Id() << ": " << GetProperties() << std::endl;
-                    ss << "Domain size can not be less than 0, TotalDomainInitialSize = " << TotalDomainInitialSize;
-                    KRATOS_THROW_ERROR( std::logic_error, ss.str(), "" );
+                    KRATOS_ERROR << "Error on element -> " << this->Id() << std::endl
+                                 << "Properties " << GetProperties().Id() << ": " << GetProperties() << std::endl
+                                 << "Domain size can not be less than 0, TotalDomainInitialSize = " << TotalDomainInitialSize;
                 }
                 else
                 {
@@ -1001,7 +998,7 @@ namespace Kratos
 
     void KinematicLinear::MassMatrix( MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo )
     {
-        KRATOS_THROW_ERROR(std::logic_error, "Deprecated method", __FUNCTION__)
+        KRATOS_ERROR << "Deprecated method";
     }
 
     void KinematicLinear::CalculateMassMatrix( MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo )
@@ -1088,7 +1085,7 @@ namespace Kratos
 
     void KinematicLinear::DampMatrix( MatrixType& rDampMatrix, const ProcessInfo& rCurrentProcessInfo )
     {
-        KRATOS_THROW_ERROR(std::logic_error, "Deprecated method", __FUNCTION__)
+        KRATOS_ERROR << "Deprecated method";
     }
 
     void KinematicLinear::CalculateDampingMatrix( MatrixType& rDampMatrix, const ProcessInfo& rCurrentProcessInfo )
@@ -1201,10 +1198,8 @@ namespace Kratos
         }
         else
         {
-            std::stringstream ss;
-            ss << "KinematicLinear::" << __FUNCTION__ << " is not yet implemented for time integration scheme "
-               << rCurrentProcessInfo[TIME_INTEGRATION_SCHEME];
-            KRATOS_THROW_ERROR(std::logic_error, ss.str(), "")
+            KRATOS_ERROR << "KinematicLinear::" << __FUNCTION__ << " is not yet implemented for time integration scheme "
+                         << rCurrentProcessInfo[TIME_INTEGRATION_SCHEME];
         }
     }
 
@@ -1239,10 +1234,8 @@ namespace Kratos
         }
         else
         {
-            std::stringstream ss;
-            ss << "KinematicLinear::" << __FUNCTION__ << " is not yet implemented for time integration scheme "
-               << rCurrentProcessInfo[TIME_INTEGRATION_SCHEME];
-            KRATOS_THROW_ERROR(std::logic_error, ss.str(), "")
+            KRATOS_ERROR << "KinematicLinear::" << __FUNCTION__ << " is not yet implemented for time integration scheme "
+                         << rCurrentProcessInfo[TIME_INTEGRATION_SCHEME];
         }
     }
 
@@ -1412,6 +1405,7 @@ namespace Kratos
             double detJ) const
     {
         KRATOS_TRY
+
         unsigned int number_of_nodes = GetGeometry().size();
         unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
@@ -1803,11 +1797,11 @@ namespace Kratos
                     StressUtils.CalculateImprovedStressOnIntegrationPoints( *this, rValues, rCurrentProcessInfo );
                 }
                 else
-                    KRATOS_THROW_ERROR(std::logic_error, "The stress recovery type is not supported on element", Id());
+                    KRATOS_ERROR << "The stress recovery type " << Type << " is not supported";
 
             }
             else
-                KRATOS_THROW_ERROR(std::logic_error, "The stress recovery method is not defined for element", Id());
+                KRATOS_ERROR << "The stress recovery method is not defined for element " << Id();
 
         }
         else if ( rVariable == STRAIN || rVariable == CURRENT_STRAIN_VECTOR )
@@ -2165,11 +2159,9 @@ namespace Kratos
     {
         if ( rValues.size() != mConstitutiveLawVector.size() )
         {
-            std::stringstream ss;
-            ss << "Error at KinematicLinear element " << Id() << ", The size of rValues and mConstitutiveLawVector is incompatible" << std::endl;
-            ss << "rValues.size(): " << rValues.size() << std::endl;
-            ss << "mConstitutiveLawVector.size(): " << mConstitutiveLawVector.size() << std::endl;
-            KRATOS_THROW_ERROR(std::logic_error, ss.str(), "")
+            KRATOS_ERROR << "Error at KinematicLinear element " << Id() << ", The size of rValues and mConstitutiveLawVector is incompatible" << std::endl
+                         << "rValues.size(): " << rValues.size() << std::endl
+                         << "mConstitutiveLawVector.size(): " << mConstitutiveLawVector.size() << std::endl;
         }
 
         for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); ++i )
@@ -2188,11 +2180,9 @@ namespace Kratos
     {
         if ( rValues.size() != mConstitutiveLawVector.size() )
         {
-            std::stringstream ss;
-            ss << "Error at KinematicLinear element " << Id() << ", The size of rValues and mConstitutiveLawVector is incompatible" << std::endl;
-            ss << "rValues.size(): " << rValues.size() << std::endl;
-            ss << "mConstitutiveLawVector.size(): " << mConstitutiveLawVector.size() << std::endl;
-            KRATOS_THROW_ERROR(std::logic_error, ss.str(), "")
+            KRATOS_ERROR << "Error at KinematicLinear element " << Id() << ", The size of rValues and mConstitutiveLawVector is incompatible" << std::endl
+                         << "rValues.size(): " << rValues.size() << std::endl
+                         << "mConstitutiveLawVector.size(): " << mConstitutiveLawVector.size() << std::endl;
         }
 
         for ( unsigned int PointNumber = 0; PointNumber < mConstitutiveLawVector.size(); ++PointNumber )
@@ -2218,11 +2208,9 @@ namespace Kratos
         {
             if ( rValues.size() != mConstitutiveLawVector.size() )
             {
-                std::stringstream ss;
-                ss << "Error at KinematicLinear element " << Id() << ", The size of rValues and mConstitutiveLawVector is incompatible" << std::endl;
-                ss << "rValues.size(): " << rValues.size() << std::endl;
-                ss << "mConstitutiveLawVector.size(): " << mConstitutiveLawVector.size() << std::endl;
-                KRATOS_THROW_ERROR(std::logic_error, ss.str(), "")
+                KRATOS_ERROR << "Error at KinematicLinear element " << Id() << ", The size of rValues and mConstitutiveLawVector is incompatible" << std::endl
+                             << "rValues.size(): " << rValues.size() << std::endl
+                             << "mConstitutiveLawVector.size(): " << mConstitutiveLawVector.size() << std::endl;
             }
 
             for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); ++i )
@@ -2242,11 +2230,9 @@ namespace Kratos
     {
         if ( rValues.size() != mConstitutiveLawVector.size() )
         {
-            std::stringstream ss;
-            ss << "Error at KinematicLinear element " << Id() << ", The size of rValues and mConstitutiveLawVector is incompatible" << std::endl;
-            ss << "rValues.size(): " << rValues.size() << std::endl;
-            ss << "mConstitutiveLawVector.size(): " << mConstitutiveLawVector.size() << std::endl;
-            KRATOS_THROW_ERROR(std::logic_error, ss.str(), "")
+            KRATOS_ERROR << "Error at KinematicLinear element " << Id() << ", The size of rValues and mConstitutiveLawVector is incompatible" << std::endl
+                         << "rValues.size(): " << rValues.size() << std::endl
+                         << "mConstitutiveLawVector.size(): " << mConstitutiveLawVector.size() << std::endl;
         }
 
         for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); ++i )
@@ -2305,17 +2291,15 @@ namespace Kratos
     {
         KRATOS_TRY
 
-//	    unsigned int dimension = this->GetGeometry().WorkingSpaceDimension();
-
         if ( this->Id() < 1 )
         {
-            KRATOS_THROW_ERROR( std::logic_error, "Element found with Id 0 or negative, Id() =", Id() );
+            KRATOS_ERROR << "Element found with Id 0 or negative";
         }
 
         //verify that the constitutive law exists
         if ( this->GetProperties().Has( CONSTITUTIVE_LAW ) == false )
         {
-            KRATOS_THROW_ERROR( std::logic_error, "constitutive law not provided for property", this->GetProperties().Id() );
+            KRATOS_ERROR << "constitutive law not provided for property " << this->GetProperties().Id();
         }
 
         // verify the strain measure
@@ -2333,15 +2317,13 @@ namespace Kratos
           // && std::find(features.GetStrainMeasures().begin(), features.GetStrainMeasures().end(), ConstitutiveLaw::StrainMeasure_GreenLagrange) == features.GetStrainMeasures().end()
            )
         {
-            std::stringstream ss;
-            ss << "The constitutive law strain measures are not supported by this element";
-            KRATOS_THROW_ERROR( std::logic_error, ss.str(), "" )
+            KRATOS_ERROR << "The constitutive law strain measures are not supported by this element";
         }
 
         //Verify that the body force is defined
         if ( this->GetProperties().Has( BODY_FORCE ) == false )
         {
-            KRATOS_THROW_ERROR( std::logic_error, "BODY_FORCE not provided for property", this->GetProperties().Id() )
+            KRATOS_ERROR << "BODY_FORCE not provided for property " << this->GetProperties().Id();
         }
 
         return 0;
@@ -2351,6 +2333,6 @@ namespace Kratos
 
 } // Namespace Kratos
 
-#ifdef ENABLE_DEBUG_CONSTITUTIVE_LAW
 #undef ENABLE_DEBUG_CONSTITUTIVE_LAW
-#endif
+#undef COMPUTE_NUMERICAL_DERIVATIVE
+#undef DEBUG_ELEMENT_ID

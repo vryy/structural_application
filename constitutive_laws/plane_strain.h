@@ -73,12 +73,7 @@ namespace Kratos
  * For finite strain/total Lagrangian. This constitutive law behaves like
  * St-Venant Kirhhoff material.
  */
-#ifdef SD_APP_FORWARD_COMPATIBILITY
-class KRATOS_API(STRUCTURAL_APPLICATION) PlaneStrain
-#else
-class PlaneStrain
-#endif
-: public ConstitutiveLaw
+class KRATOS_API(STRUCTURAL_APPLICATION) PlaneStrain : public ConstitutiveLaw
 {
 public:
     /**
@@ -132,6 +127,8 @@ public:
         rFeatures.SetStrainMeasure(this->GetStrainMeasure());
     }
 
+    std::size_t GetStrainSize() const final;
+
     bool Has( const Variable<int>& rThisVariable );
     bool Has( const Variable<double>& rThisVariable );
     bool Has( const Variable<Vector>& rThisVariable );
@@ -141,7 +138,6 @@ public:
     double& GetValue( const Variable<double>& rThisVariable, double& rValue );
     Vector& GetValue( const Variable<Vector>& rThisVariable, Vector& rValue );
     Matrix& GetValue( const Variable<Matrix>& rThisVariable, Matrix& rValue );
-    std::size_t GetStrainSize() const final;
 
     void SetValue( const Variable<int>& rVariable,
                    const int& Value,
@@ -334,7 +330,6 @@ private:
     double mE, mNU, mDE;
     double mPrestressFactor;
     Vector mPreStress;
-
 
     /**
      * Un accessible methods

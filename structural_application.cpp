@@ -419,7 +419,7 @@ void KratosStructuralApplication::Register()
     #ifndef SD_APP_FORWARD_COMPATIBILITY
     KratosApplication::Register();
     #endif
-    std::cout << "Initializing KratosStructuralApplication... " << std::endl;
+    std::cout << "Initializing KratosStructuralApplication..." << std::endl;
 
     KRATOS_REGISTER_VARIABLE( DAMAGE_E0 )
     KRATOS_REGISTER_VARIABLE( DAMAGE_EF )
