@@ -446,7 +446,7 @@ namespace Kratos
 
         //Current displacements
         for ( unsigned int node = 0; node < GetGeometry().size(); ++node )
-            noalias( row( CurrentDisp, node ) ) = GetGeometry()[node].GetSolutionStepValue( DISPLACEMENT );
+            noalias( row( CurrentDisp, node ) ) = subrange(GetGeometry()[node].GetSolutionStepValue( DISPLACEMENT ), 0, dim);
 
         //auxiliary terms
         const VectorType& BodyForce = GetProperties()[BODY_FORCE];
