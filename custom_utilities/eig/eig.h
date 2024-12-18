@@ -8,8 +8,6 @@
 #include <cmath>
 #include <vector>
 
-#include "includes/define.h"
-
 namespace Kratos
 {
 
