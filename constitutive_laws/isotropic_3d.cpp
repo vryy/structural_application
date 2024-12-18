@@ -111,6 +111,8 @@ bool Isotropic3D::Has( const Variable<Matrix>& rThisVariable )
 {
     if ( rThisVariable == CAUCHY_STRESS_TENSOR )
         return true;
+    if(rThisVariable == ALGORITHMIC_TANGENT || rThisVariable == ELASTIC_TANGENT || rThisVariable == THREED_ALGORITHMIC_TANGENT)
+        return true;
     return false;
 }
 
