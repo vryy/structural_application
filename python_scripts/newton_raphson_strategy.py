@@ -1,3 +1,5 @@
+from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
+
 #importing the Kratos Library
 from KratosMultiphysics import *
 from KratosMultiphysics.StructuralApplication import *
@@ -368,38 +370,19 @@ class SolvingStrategyPython:
 #            self.space_utils.WriteMatrixMarketMatrix("matrix" + str(self.solveCounter) + "." + str(self.iterationCounter) + ".mm",self.A,False)
             #petsc_utils.DumpUblasCompressedMatrixVector("tempAb", self.A, self.b, False)
 
+        # print the matrix information if needed
+        if echo_level > 1:
+            print('System matrix info: ', end='')
+            self.space_utils.PrintMatrixInfo(self.A, 3)
+            print('System vector info (Dx): ', end='')
+            self.space_utils.PrintVectorInfo(self.Dx, 3)
+            print('System vector info (b): ', end='')
+            self.space_utils.PrintVectorInfo(self.b, 3)
+
         if(echo_level >= 3):
             print("SystemMatrix = " + str(self.A))
-        #printA = []
-        #printdx = []
-        #printb = []
-        #for i in range(0,len(self.Dx)):
-        #    if( abs(self.Dx[i]) < 1.0e-10 ):
-         #       printdx.append(0.0)
-         #   else:
-         #       printdx.append(self.Dx[i])
-         #   if( abs(self.b[i]) < 1.0e-6 ):
-         #       printb.append(0.0)
-         #   else:
-         #       printb.append(self.b[i])
-         #   row = []
-         #   for j in range(0,len(self.Dx)):
-         #       if( abs(self.A[(i,j)]) < 1.0 ):
-         #           row.append( 0.0 )
-         #       else:
-         #           row.append(self.A[(i,j)])
-         #   printA.append(row)
             print("solution obtained = " + str(self.Dx))
-            #formatted_printdx = [ '%.6f' % elem for elem in printdx ]
-            #print formatted_printdx
-            #formatted_printb = [ '%.4f' % elem for elem in printb ]
             print("RHS = " + str(self.b))
-        #print formatted_printb
-        #print "Matrix: "
-        #for i in range(0,len(self.Dx)):
-        #    formatted_printA = [ '%.1f' % elem for elem in printA[i] ]
-        #    print(formatted_printA)
-        self.AnalyseSystemMatrix(self.A)
 
         #calculate the norm of the "correction" Dx
         if(CalculateNormDxFlag == True):
@@ -548,5 +531,3 @@ class SolvingStrategyPython:
         if str is not None:
             print(str)
         raw_input(prompt)
-
-
