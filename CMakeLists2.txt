@@ -4,6 +4,8 @@ if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Android")
     include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 endif()
 
+add_subdirectory(custom_utilities/eig)
+
 ## generate variables with the sources
 set( KRATOS_STRUCTURAL_APPLICATION_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/dummy_element.cpp
@@ -77,8 +79,6 @@ set( KRATOS_STRUCTURAL_APPLICATION_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/foundation_condition.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/mean_displacement_constraint.cpp
 
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/eig/eig3.cpp
-
     ${CMAKE_CURRENT_SOURCE_DIR}/phase_laws/linear_hardening_law.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/phase_laws/exponential_hardening_law.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/phase_laws/piecewise_linear_hardening_law.cpp
@@ -120,7 +120,8 @@ else()
     endif()
 
     target_link_libraries(KratosStructuralApplication KratosCore)
-    set_target_properties(KratosStructuralApplication PROPERTIES COMPILE_DEFINITIONS "KRATOS_CORE=IMPORT;STRUCTURAL_APPLICATION=EXPORT")
+    target_link_libraries(KratosStructuralApplication eig)
+    set_target_properties(KratosStructuralApplication PROPERTIES COMPILE_DEFINITIONS "KRATOS_CORE=IMPORT;STRUCTURAL_APPLICATION=EXPORT;")
     set_target_properties(KratosStructuralApplication PROPERTIES PREFIX "")
 
     if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
