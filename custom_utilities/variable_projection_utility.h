@@ -76,7 +76,7 @@ namespace Kratos
 /**
  * Utility to project the variables from Gauss points to nodes using L2-projection.
  */
-// The transfer of Gaussian aariables to nodal Variablias is via L_2-Minimization
+// The transfer of Gaussian variables to nodal Variables is via L_2-Minimization
 // see Jiao + Heath "Common-refinement-based data tranfer ..."
 // International Journal for numerical methods in engineering 61 (2004) 2402--2427
 // for general description of L_2-Minimization
@@ -109,7 +109,7 @@ public:
     /**
      * Destructor.
      */
-    virtual ~VariableProjectionUtility()
+    ~VariableProjectionUtility() override
     {}
 
     /**

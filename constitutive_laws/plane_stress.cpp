@@ -384,12 +384,12 @@ int PlaneStress::Check(const Properties& props,
     KRATOS_TRY
 
     if(YOUNG_MODULUS.Key() == 0 || props[YOUNG_MODULUS]<= 0.00)
-        KRATOS_THROW_ERROR(std::invalid_argument,"YOUNG_MODULUS has Key zero or invalid value ","");
+        KRATOS_ERROR << "YOUNG_MODULUS has Key zero or invalid value";
 
-    const double& nu = props[POISSON_RATIO];
+    const double nu = props[POISSON_RATIO];
     const bool check = bool( (nu >0.999 && nu<1.01 ) || (nu < -0.999 && nu > -1.01 ) );
     if(POISSON_RATIO.Key() == 0 || check==true) // props[POISSON_RATIO] == 1.00 || props[POISSON_RATIO] == -1.00)
-        KRATOS_THROW_ERROR(std::invalid_argument,"POISSON_RATIO has Key zero invalid value ","");
+        KRATOS_ERROR << "POISSON_RATIO has Key zero invalid value";
 
     return 0;
 

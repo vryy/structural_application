@@ -497,14 +497,14 @@ int Isotropic3D::Check( const Properties& props, const GeometryType& geom, const
 
     if ( !props.Has( YOUNG_MODULUS ) || !props.Has(POISSON_RATIO) )
     {
-        KRATOS_THROW_ERROR( std::logic_error, "this constitutive law requires YOUNG_MODULUS and POISSON_RATIO given as KRATOS variables", "" );
+        KRATOS_ERROR << "this constitutive law requires YOUNG_MODULUS and POISSON_RATIO given as KRATOS variables";
     }
 
     double nu = props[POISSON_RATIO];
 
     if ( nu > 0.499 && nu < 0.501 )
     {
-        KRATOS_THROW_ERROR( std::logic_error, "invalid poisson ratio in input, close to incompressibility", "" );
+        KRATOS_ERROR << "invalid poisson ratio in input, close to incompressibility";
         return -1;
     }
 

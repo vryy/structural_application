@@ -3516,9 +3516,9 @@ public:
      * function by restriction of OldMeshElementsArray
      */
     template<int TFrame>
-    bool FindPartnerElement( CoordinatesArrayType& newNode,
-                             ElementsArrayType& OldMeshElementsArray,
-                             Element::Pointer& oldElement, PointType&  rResult)
+    bool FindPartnerElement( const CoordinatesArrayType& newNode,
+                             const ElementsArrayType& OldMeshElementsArray,
+                             Element::Pointer& oldElement, PointType& rResult)
     {
         bool partner_found= false;
         //noalias(rResult)= ZeroVector(3);
@@ -3533,7 +3533,7 @@ public:
             newMinDistFound= false;
             OldElementsSet->clear();
             //loop over all master surfaces (global search) // this is brute force search and should be optimized
-            for( ElementsArrayType::ptr_iterator it = OldMeshElementsArray.ptr_begin();
+            for( ElementsArrayType::ptr_const_iterator it = OldMeshElementsArray.ptr_begin();
                     it != OldMeshElementsArray.ptr_end(); ++it )
             {
                 if( (*it)->GetValue(IS_INACTIVE) == true && !(*it)->Is(ACTIVE) )
@@ -3579,11 +3579,11 @@ public:
 //                KRATOS_WATCH(rResult)
                 bool is_inside = false;
 
-                if (TFrame == 1)
+                if constexpr (TFrame == 1)
                 {
                     is_inside = (*it)->GetGeometry().IsInside( newNode, rResult );
                 }
-                else if (TFrame == 0)
+                else if constexpr (TFrame == 0)
                 {
                     #ifdef SD_APP_FORWARD_COMPATIBILITY
                     is_inside = (*it)->GetGeometry().IsInside( newNode, rResult ); // TODO: remove when the geometry add IsInside with DeltaPosition
