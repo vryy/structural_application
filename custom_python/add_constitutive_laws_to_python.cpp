@@ -221,6 +221,7 @@ void  AddConstitutiveLawsToPython()
     ( "StVenantKirchhoff_3D",
       init<>() )
     ;
+    scope().attr("StVenantKirchhoff_Isotropic3D") = scope().attr("StVenantKirchhoff_3D");
 
     class_< IsotropicDamageIMPLEX, bases< ConstitutiveLawBaseType >, boost::noncopyable >
     ( "IsotropicDamageIMPLEX",
