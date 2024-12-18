@@ -120,7 +120,7 @@ else()
     endif()
 
     target_link_libraries(KratosStructuralApplication KratosCore)
-    set_target_properties(KratosStructuralApplication PROPERTIES COMPILE_DEFINITIONS "STRUCTURAL_APPLICATION=EXPORT,API")
+    set_target_properties(KratosStructuralApplication PROPERTIES COMPILE_DEFINITIONS "KRATOS_CORE=IMPORT;STRUCTURAL_APPLICATION=EXPORT")
     set_target_properties(KratosStructuralApplication PROPERTIES PREFIX "")
 
     if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
