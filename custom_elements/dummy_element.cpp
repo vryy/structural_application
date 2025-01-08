@@ -246,7 +246,7 @@ void DummyElement::CalculateOnIntegrationPoints(const Variable<array_1d<double, 
             noalias(rValues[point]) = ZeroVector(3);
             for(std::size_t i = 0; i < GetGeometry().size(); ++i)
             {
-                if (GetGeometry()[i].Has(rVariable))
+                if (GetGeometry()[i].SolutionStepsDataHas(rVariable))
                 {
                     const array_1d<double, 3>& value = GetGeometry()[i].GetSolutionStepValue(rVariable);
                     noalias(rValues[point]) += Ncontainer(point, i) * value;
@@ -313,7 +313,7 @@ void DummyElement::CalculateOnIntegrationPoints( const Variable<double>& rVariab
             rValues[point] = 0.0;
             for(std::size_t i = 0; i < GetGeometry().size(); ++i)
             {
-                if (GetGeometry()[i].Has(rVariable))
+                if (GetGeometry()[i].SolutionStepsDataHas(rVariable))
                 {
                     const double value = GetGeometry()[i].GetSolutionStepValue(rVariable);
                     rValues[point] += Ncontainer(point, i) * value;
@@ -336,4 +336,3 @@ int DummyElement::Check( const ProcessInfo& CurrentProcessInfo) const
 }
 
 } // Namespace Kratos
-
