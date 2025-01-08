@@ -88,7 +88,7 @@ void DummyElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
             mThisIntegrationMethod = IntegrationMethod::GI_GAUSS_5;
         }
         else
-            KRATOS_THROW_ERROR(std::logic_error, "DummyElement does not support for integration rule", this->GetValue(INTEGRATION_ORDER))
+            KRATOS_ERROR << "DummyElement does not support for integration order " << this->GetValue(INTEGRATION_ORDER);
     }
     else if(GetProperties().Has( INTEGRATION_ORDER ))
     {
@@ -113,7 +113,7 @@ void DummyElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
             mThisIntegrationMethod = IntegrationMethod::GI_GAUSS_5;
         }
         else
-            KRATOS_THROW_ERROR(std::logic_error, "DummyElement does not support for integration points", GetProperties()[INTEGRATION_ORDER])
+            KRATOS_ERROR << "DummyElement does not support for integration order " << GetProperties()[INTEGRATION_ORDER];
     }
     else
         mThisIntegrationMethod = GetGeometry().GetDefaultIntegrationMethod(); // default method
@@ -184,12 +184,16 @@ void DummyElement::GetDofList( DofsVectorType& ElementalDofList,
 //************************************************************************************
 //************************************************************************************
 void DummyElement::CalculateOnIntegrationPoints( const Variable<MatrixType>& rVariable, std::vector<MatrixType>& rValues, const ProcessInfo& rCurrentProcessInfo )
-{}
+{
+    // TODO
+}
 
 //************************************************************************************
 //************************************************************************************
 void DummyElement::CalculateOnIntegrationPoints( const Variable<VectorType>& rVariable, std::vector<VectorType>& rValues, const ProcessInfo& rCurrentProcessInfo )
-{}
+{
+    // TODO
+}
 
 //************************************************************************************
 //************************************************************************************

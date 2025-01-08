@@ -217,6 +217,7 @@ public:
     ) override
     {
         KRATOS_TRY
+
         //initialize solution step for all of the elements
         ElementsArrayType& pElements = r_model_part.Elements();
         const ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
@@ -229,7 +230,7 @@ public:
                 element_is_active = it->Is(ACTIVE);
 
             if (element_is_active)
-                (it)->InitializeSolutionStep(CurrentProcessInfo);
+                it->InitializeSolutionStep(CurrentProcessInfo);
         }
 
         bool condition_is_active;
@@ -241,8 +242,9 @@ public:
                 condition_is_active = it->Is(ACTIVE);
 
             if (condition_is_active)
-                (it)->InitializeSolutionStep(CurrentProcessInfo);
+                it->InitializeSolutionStep(CurrentProcessInfo);
         }
+
         KRATOS_CATCH("")
     }
 
