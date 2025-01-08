@@ -142,6 +142,10 @@ public:
         Element::DofsVectorType ElementalDofList;
         std::size_t i;
 
+        // copy the process info and assign new flag
+        ProcessInfo NewProcessInfo = CurrentProcessInfo;
+        NewProcessInfo[SET_CALCULATE_REACTION] = true;
+
         for(ElementsContainerType::const_iterator i_element = mr_model_part.Elements().begin();
                 i_element != mr_model_part.Elements().end(); ++i_element)
         {
@@ -151,7 +155,7 @@ public:
                 i_element->GetDofList(ElementalDofList, CurrentProcessInfo);
 
                 // get the elemental rhs
-                i_element->CalculateRightHandSide(RHS_Contribution, CurrentProcessInfo);
+                i_element->CalculateRightHandSide(RHS_Contribution, NewProcessInfo);
 
                 i = 0;
                 for(typename Element::DofsVectorType::iterator i_dof = ElementalDofList.begin();
@@ -179,7 +183,7 @@ public:
                 i_condition->GetDofList(ElementalDofList, CurrentProcessInfo);
 
                 // get the elemental rhs
-                i_condition->CalculateRightHandSide(RHS_Contribution, CurrentProcessInfo);
+                i_condition->CalculateRightHandSide(RHS_Contribution, NewProcessInfo);
 
                 i = 0;
                 for(typename Element::DofsVectorType::iterator i_dof = ElementalDofList.begin();
