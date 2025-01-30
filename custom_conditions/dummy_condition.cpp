@@ -156,4 +156,3 @@ int DummyCondition::Check( const ProcessInfo& CurrentProcessInfo) const
 }
 
 } // Namespace Kratos
-

@@ -431,6 +431,17 @@ private:
     const DummyElement mDummyVolumeElement3D20N;
     const DummyElement mDummyVolumeElement3D27N;
 
+    const DummyElement mDummyElement2D3N;
+    const DummyElement mDummyElement2D6N;
+    const DummyElement mDummyElement2D4N;
+    const DummyElement mDummyElement2D8N;
+    const DummyElement mDummyElement2D9N;
+    const DummyElement mDummyElement3D4N;
+    const DummyElement mDummyElement3D10N;
+    const DummyElement mDummyElement3D8N;
+    const DummyElement mDummyElement3D20N;
+    const DummyElement mDummyElement3D27N;
+
     const Face2D  mFace2D;
     const Face3D  mFace3D3N;
     const Face3D  mFace3D6N;
