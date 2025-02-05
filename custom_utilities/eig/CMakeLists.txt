@@ -10,5 +10,5 @@ test
 foreach(str ${file_list})
     add_executable(${str} ${str}.cpp)
     target_link_libraries(${str} eig)
-    set_target_properties(${str} PROPERTIES COMPILE_DEFINITIONS "KRATOS_CORE=IMPORT;STRUCTURAL_APPLICATION=IMPORT;")
+    set_target_properties(${str} PROPERTIES COMPILE_DEFINITIONS "KRATOS_CORE=IMPORT;STRUCTURAL_APPLICATION=NONE;")
 endforeach()
