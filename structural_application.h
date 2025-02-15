@@ -515,6 +515,8 @@ private:
     STRUCTURAL_APPLICATION_DEFINE_CONDITION_ALL_GEOMETRIES(MeanDisplacementConstraintY)
     STRUCTURAL_APPLICATION_DEFINE_CONDITION_ALL_GEOMETRIES(MeanDisplacementConstraintZ)
 
+    const DummyCondition mDummyLineCondition2D2N;
+    const DummyCondition mDummyLineCondition2D3N;
     const DummyCondition mDummySurfaceCondition2D3N;
     const DummyCondition mDummySurfaceCondition2D6N;
     const DummyCondition mDummySurfaceCondition2D4N;
