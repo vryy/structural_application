@@ -128,38 +128,38 @@ public:
 
     std::size_t GetStrainSize() const final;
 
-    bool Has(const Variable<int>& rThisVariable);
-    bool Has(const Variable<double>& rThisVariable);
-    bool Has(const Variable<Vector>& rThisVariable);
-    bool Has(const Variable<Matrix>& rThisVariable);
+    bool Has(const Variable<int>& rThisVariable) override;
+    bool Has(const Variable<double>& rThisVariable) override;
+    bool Has(const Variable<Vector>& rThisVariable) override;
+    bool Has(const Variable<Matrix>& rThisVariable) override;
 
     void SetValue(const Variable<int>& rVariable,
                   const int& Value,
-                  const ProcessInfo& rCurrentProcessInfo);
+                  const ProcessInfo& rCurrentProcessInfo) override;
     void SetValue(const Variable<double>& rVariable,
                   const double& Value,
-                  const ProcessInfo& rCurrentProcessInfo);
+                  const ProcessInfo& rCurrentProcessInfo) override;
     void SetValue(const Variable<Vector>& rThisVariable,
                   const Vector& rValue,
-                  const ProcessInfo& rCurrentProcessInfo);
+                  const ProcessInfo& rCurrentProcessInfo) override;
     void SetValue(const Variable<Matrix>& rThisVariable,
                   const Matrix& rValue,
-                  const ProcessInfo& rCurrentProcessInfo);
+                  const ProcessInfo& rCurrentProcessInfo) override;
 
-    int& GetValue(const Variable<int>& rThisVariable, int& rValue);
-    double& GetValue(const Variable<double>& rThisVariable, double& rValue);
-    Vector& GetValue(const Variable<Vector>& rThisVariable, Vector& rValue);
+    int& GetValue(const Variable<int>& rThisVariable, int& rValue) override;
+    double& GetValue(const Variable<double>& rThisVariable, double& rValue) override;
+    Vector& GetValue(const Variable<Vector>& rThisVariable, Vector& rValue) override;
 
     /**
      * Material parameters are inizialized
      */
     void InitializeMaterial(const Properties& props,
                             const GeometryType& geom,
-                            const Vector& ShapeFunctionsValues);
+                            const Vector& ShapeFunctionsValues) override;
 
     void ResetMaterial( const Properties& props,
                         const GeometryType& geom,
-                        const Vector& ShapeFunctionsValues );
+                        const Vector& ShapeFunctionsValues ) override;
 
     /**
      * Calculates the constitutive matrix for a given strain vector
@@ -180,12 +180,12 @@ public:
     void InitializeNonLinearIteration( const Properties& rMaterialProperties,
             const GeometryType& rElementGeometry,
             const Vector& rShapeFunctionsValues,
-            const ProcessInfo& rCurrentProcessInfo );
+            const ProcessInfo& rCurrentProcessInfo ) override;
 
     void FinalizeNonLinearIteration( const Properties& rMaterialProperties,
             const GeometryType& rElementGeometry,
             const Vector& rShapeFunctionsValues,
-            const ProcessInfo& rCurrentProcessInfo );
+            const ProcessInfo& rCurrentProcessInfo ) override;
 
     /**
      * Calculates the cauchy stresses. For a given deformation and stress state
@@ -198,8 +198,7 @@ public:
     void CalculateCauchyStresses(Vector& Cauchy_StressVector,
                                  const Matrix& F,
                                  const Vector& PK2_StressVector,
-                                 const Vector& GreenLagrangeStrainVector);
-
+                                 const Vector& GreenLagrangeStrainVector) const;
 
     /**
      * converts a strain vector styled variable into its form, which the
@@ -207,11 +206,11 @@ public:
      */
     void Calculate(const Variable<Matrix >& rVariable,
                     Matrix& rResult,
-                    const ProcessInfo& rCurrentProcessInfo);
+                    const ProcessInfo& rCurrentProcessInfo) const;
 
     void Calculate(const Variable<double>& rVariable,
                     double& Output,
-                    const ProcessInfo& rCurrentProcessInfo);
+                    const ProcessInfo& rCurrentProcessInfo) const;
 
     /**
      * Computes the material response in terms of Cauchy stresses and constitutive tensor
@@ -231,7 +230,7 @@ public:
                                    bool CalculateStresses = true,
                                    int CalculateTangent = true,
                                    bool SaveInternalVariables = true
-                                  );
+                                  ) override;
 
     /**
      * Input and output
@@ -259,12 +258,11 @@ public:
 
 private:
 
-    ///@}
     ///@name Serialization
     ///@{
     friend class Serializer;
 
-    virtual void save( Serializer& rSerializer ) const
+    void save( Serializer& rSerializer ) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, BaseType );
         rSerializer.save( "E", mE );
@@ -272,16 +270,15 @@ private:
         rSerializer.save( "CurrentStress", mCurrentStress );
     }
 
-    virtual void load( Serializer& rSerializer )
+    void load( Serializer& rSerializer ) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, BaseType );
         rSerializer.load( "E", mE );
         rSerializer.load( "NU", mNU );
         rSerializer.load( "CurrentStress", mCurrentStress );
     }
-    /**
-     * Static Member Variables
-     */
+
+    ///@}
 
     /**
      * calculates the linear elastic constitutive matrix in terms of Young's modulus and
@@ -313,4 +310,5 @@ private:
 }; // Class PlaneStress
 
 } // namespace Kratos.
+
 #endif // KRATOS_PLANE_STRESS_H_INCLUDED  defined

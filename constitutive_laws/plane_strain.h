@@ -129,28 +129,28 @@ public:
 
     std::size_t GetStrainSize() const final;
 
-    bool Has( const Variable<int>& rThisVariable );
-    bool Has( const Variable<double>& rThisVariable );
-    bool Has( const Variable<Vector>& rThisVariable );
-    bool Has( const Variable<Matrix>& rThisVariable );
+    bool Has( const Variable<int>& rThisVariable ) override;
+    bool Has( const Variable<double>& rThisVariable ) override;
+    bool Has( const Variable<Vector>& rThisVariable ) override;
+    bool Has( const Variable<Matrix>& rThisVariable ) override;
 
-    int& GetValue( const Variable<int>& rThisVariable, int& rValue );
-    double& GetValue( const Variable<double>& rThisVariable, double& rValue );
-    Vector& GetValue( const Variable<Vector>& rThisVariable, Vector& rValue );
-    Matrix& GetValue( const Variable<Matrix>& rThisVariable, Matrix& rValue );
+    int& GetValue( const Variable<int>& rThisVariable, int& rValue ) override;
+    double& GetValue( const Variable<double>& rThisVariable, double& rValue ) override;
+    Vector& GetValue( const Variable<Vector>& rThisVariable, Vector& rValue ) override;
+    Matrix& GetValue( const Variable<Matrix>& rThisVariable, Matrix& rValue ) override;
 
     void SetValue( const Variable<int>& rVariable,
                    const int& Value,
-                   const ProcessInfo& rCurrentProcessInfo );
+                   const ProcessInfo& rCurrentProcessInfo ) override;
     void SetValue( const Variable<double>& rVariable,
                    const double& Value,
-                   const ProcessInfo& rCurrentProcessInfo );
+                   const ProcessInfo& rCurrentProcessInfo ) override;
     void SetValue( const Variable<Vector>& rThisVariable,
                    const Vector& rValue,
-                   const ProcessInfo& rCurrentProcessInfo );
+                   const ProcessInfo& rCurrentProcessInfo ) override;
     void SetValue( const Variable<Matrix>& rThisVariable,
                    const Matrix& rValue,
-                   const ProcessInfo& rCurrentProcessInfo );
+                   const ProcessInfo& rCurrentProcessInfo ) override;
     /**
      * Material parameters are inizialized
      */
@@ -226,14 +226,14 @@ public:
     void CalculateCauchyStresses( Vector& Cauchy_StressVector,
                                   const Matrix& F,
                                   const Vector& PK2_StressVector,
-                                  const Vector& GreenLagrangeStrainVector);
+                                  const Vector& GreenLagrangeStrainVector ) const;
 
     /**
      * converts a strain vector styled variable into its form, which the
      * deviatoric parts are no longer multiplied by 2
      */
     void Calculate(const Variable<Matrix >& rVariable, Matrix& rResult,
-                   const ProcessInfo& rCurrentProcessInfo);
+                   const ProcessInfo& rCurrentProcessInfo) const;
 
     /**
      * Computes the material response in terms of Cauchy stresses and constitutive tensor
@@ -252,7 +252,7 @@ public:
                                      const Vector& ShapeFunctionsValues,
                                      bool CalculateStresses = true,
                                      int CalculateTangent = 1,
-                                     bool SaveInternalVariables = true );
+                                     bool SaveInternalVariables = true ) override;
 
     int Check(const Properties& props,
               const GeometryType& geom,
@@ -291,12 +291,12 @@ protected:
     Vector mCurrentStress;
 
 private:
-    ///@}
+
     ///@name Serialization
     ///@{
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const
+    void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, ConstitutiveLaw);
         rSerializer.save( "mE", mE );
@@ -305,7 +305,7 @@ private:
         rSerializer.save( "mCurrentStress", mCurrentStress );
     }
 
-    virtual void load(Serializer& rSerializer)
+    void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, ConstitutiveLaw);
         rSerializer.load( "mE", mE );
@@ -313,6 +313,8 @@ private:
         rSerializer.load( "mDE", mDE );
         rSerializer.load( "mCurrentStress", mCurrentStress );
     }
+
+    ///@}
 
     /**
      * Static Member Variables
@@ -343,5 +345,7 @@ private:
      */
     //PlaneStrain(const IsotropicPlaneStressWrinklingNew& rOther);
 }; // Class PlaneStrain
+
 }  // namespace Kratos.
+
 #endif // KRATOS_ISOTROPIC_2D_H_INCLUDED  defined

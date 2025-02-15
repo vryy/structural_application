@@ -289,11 +289,6 @@ void PlaneStrain::SetValue( const Variable<Matrix>& rThisVariable, const Matrix&
 {
 }
 
-void PlaneStrain::Calculate( const Variable<Matrix>& rVariable, Matrix& rResult,
-                             const ProcessInfo& rCurrentProcessInfo )
-{
-}
-
 void PlaneStrain::CalculateMaterialResponseCauchy (Parameters& rValues)
 {
     if (rValues.IsSetStressVector())
@@ -440,13 +435,12 @@ std::size_t PlaneStrain::GetStrainSize() const
 }
 
 //**********************************************************************
-//**********************************************************************
 
 void PlaneStrain::CalculateCauchyStresses(
     Vector& rCauchy_StressVector,
     const Matrix& rF,
     const Vector& rPK2_StressVector,
-    const Vector& rGreenLagrangeStrainVector )
+    const Vector& rGreenLagrangeStrainVector ) const
 {
     Matrix S = MathUtils<double>::StressVectorToTensor( rPK2_StressVector );
 
@@ -471,6 +465,13 @@ void PlaneStrain::CalculateCauchyStresses(
 
 //**********************************************************************
 
+void PlaneStrain::Calculate( const Variable<Matrix>& rVariable, Matrix& rResult,
+                             const ProcessInfo& rCurrentProcessInfo ) const
+{
+}
+
+//**********************************************************************
+
 int PlaneStrain::Check(const Properties& props, const GeometryType& geom, const ProcessInfo& CurrentProcessInfo) const
 {
     if(YOUNG_MODULUS.Key() == 0 || props[YOUNG_MODULUS]<= 0.00)
@@ -485,7 +486,6 @@ int PlaneStrain::Check(const Properties& props, const GeometryType& geom, const 
         KRATOS_ERROR << "DENSITY has Key zero or invalid value";
 
     return 0;
-
 }
 
 } // Namespace Kratos

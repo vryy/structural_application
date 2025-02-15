@@ -56,14 +56,13 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
 // Project includes
-#include "utilities/math_utils.h"
 #include "geometries/line_2d_3.h"
-#include "custom_utilities/sd_math_utils.h"
 #include "structural_application_variables.h"
 #include "custom_conditions/collinear_constraint_2d.h"
 
 namespace Kratos
 {
+
 //************************************************************************************
 //************************************************************************************
 CollinearConstraint2D::CollinearConstraint2D( IndexType NewId,
@@ -162,7 +161,7 @@ void CollinearConstraint2D::CalculateAll( MatrixType& rLeftHandSideMatrix,
     unsigned int MatSize = 7;
 
     //resize as needed the LHS
-    if ( CalculateResidualVectorFlag == true || CalculateStiffnessMatrixFlag == true ) //calculation of the matrix is required
+    if ( CalculateResidualVectorFlag || CalculateStiffnessMatrixFlag ) //calculation of the matrix is required
     {
         if ( rLeftHandSideMatrix.size1() != MatSize )
             rLeftHandSideMatrix.resize( MatSize, MatSize, false );
@@ -171,7 +170,7 @@ void CollinearConstraint2D::CalculateAll( MatrixType& rLeftHandSideMatrix,
     }
 
     //resizing as needed the RHS
-    if ( CalculateResidualVectorFlag == true ) //calculation of the matrix is required
+    if ( CalculateResidualVectorFlag ) //calculation of the matrix is required
     {
         //resize the RHS=force vector if its size is not correct
         if ( rRightHandSideVector.size() != MatSize )

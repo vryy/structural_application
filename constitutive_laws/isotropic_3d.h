@@ -127,33 +127,33 @@ class Isotropic3D : public ConstitutiveLaw
             rFeatures.SetStrainMeasure(this->GetStrainMeasure());
         }
 
-        bool Has( const Variable<int>& rThisVariable );
-        bool Has( const Variable<double>& rThisVariable );
-        bool Has( const Variable<Vector>& rThisVariable );
-        bool Has( const Variable<Matrix>& rThisVariable );
+        bool Has( const Variable<int>& rThisVariable ) override;
+        bool Has( const Variable<double>& rThisVariable ) override;
+        bool Has( const Variable<Vector>& rThisVariable ) override;
+        bool Has( const Variable<Matrix>& rThisVariable ) override;
 
-        int& GetValue( const Variable<int>& rThisVariable, int& rValue );
-        double& GetValue( const Variable<double>& rThisVariable, double& rValue );
-        Vector& GetValue( const Variable<Vector>& rThisVariable, Vector& rValue );
-        Matrix& GetValue( const Variable<Matrix>& rThisVariable, Matrix& rValue );
+        int& GetValue( const Variable<int>& rThisVariable, int& rValue ) override;
+        double& GetValue( const Variable<double>& rThisVariable, double& rValue ) override;
+        Vector& GetValue( const Variable<Vector>& rThisVariable, Vector& rValue ) override;
+        Matrix& GetValue( const Variable<Matrix>& rThisVariable, Matrix& rValue ) override;
 
         void SetValue( const Variable<int>& rThisVariable, const int& rValue,
-                       const ProcessInfo& rCurrentProcessInfo );
+                       const ProcessInfo& rCurrentProcessInfo ) override;
         void SetValue( const Variable<double>& rThisVariable, const double& rValue,
-                       const ProcessInfo& rCurrentProcessInfo );
+                       const ProcessInfo& rCurrentProcessInfo ) override;
         void SetValue( const Variable<array_1d<double, 3 > >& rThisVariable,
-                       const array_1d<double, 3 > & rValue, const ProcessInfo& rCurrentProcessInfo );
+                       const array_1d<double, 3 > & rValue, const ProcessInfo& rCurrentProcessInfo ) override;
         void SetValue( const Variable<Vector>& rThisVariable, const Vector& rValue,
-                       const ProcessInfo& rCurrentProcessInfo );
+                       const ProcessInfo& rCurrentProcessInfo ) override;
         void SetValue( const Variable<Matrix>& rThisVariable, const Matrix& rValue,
-                       const ProcessInfo& rCurrentProcessInfo );
+                       const ProcessInfo& rCurrentProcessInfo ) override;
 
         /**
          * Material parameters are inizialized
          */
         void InitializeMaterial( const Properties& props,
                                  const GeometryType& geom,
-                                 const Vector& ShapeFunctionsValues );
+                                 const Vector& ShapeFunctionsValues ) override;
 
         /**
          * As this constitutive law describes only linear elastic material properties
@@ -162,26 +162,26 @@ class Isotropic3D : public ConstitutiveLaw
         void InitializeSolutionStep( const Properties& props,
                                      const GeometryType& geom, //this is just to give the array of nodes
                                      const Vector& ShapeFunctionsValues,
-                                     const ProcessInfo& CurrentProcessInfo );
+                                     const ProcessInfo& CurrentProcessInfo ) override;
 
         void InitializeNonLinearIteration( const Properties& props,
                                            const GeometryType& geom, //this is just to give the array of nodes
                                            const Vector& ShapeFunctionsValues,
-                                           const ProcessInfo& CurrentProcessInfo );
+                                           const ProcessInfo& CurrentProcessInfo ) override;
 
         void ResetMaterial( const Properties& props,
                             const GeometryType& geom,
-                            const Vector& ShapeFunctionsValues );
+                            const Vector& ShapeFunctionsValues ) override;
 
         void FinalizeNonLinearIteration( const Properties& props,
                                          const GeometryType& geom, //this is just to give the array of nodes
                                          const Vector& ShapeFunctionsValues,
-                                         const ProcessInfo& CurrentProcessInfo );
+                                         const ProcessInfo& CurrentProcessInfo ) override;
 
         void FinalizeSolutionStep( const Properties& props,
                                    const GeometryType& geom, //this is just to give the array of nodes
                                    const Vector& ShapeFunctionsValues,
-                                   const ProcessInfo& CurrentProcessInfo );
+                                   const ProcessInfo& CurrentProcessInfo ) override;
 
         /**
          * Calculates the cauchy stresses. For a given deformation and stress state
@@ -194,7 +194,7 @@ class Isotropic3D : public ConstitutiveLaw
         void CalculateCauchyStresses( Vector& Cauchy_StressVector,
                                       const Matrix& F,
                                       const Vector& PK2_StressVector,
-                                      const Vector& GreenLagrangeStrainVector );
+                                      const Vector& GreenLagrangeStrainVector ) override;
 
         /**
          * This function is designed to be called once to perform all the checks needed
@@ -227,7 +227,7 @@ class Isotropic3D : public ConstitutiveLaw
                                         bool CalculateStresses = true,
                                         int CalculateTangent = true,
                                         bool SaveInternalVariables = true
-                                      );
+                                      ) override;
 
         /**
          * returns the size of the strain vector of the current constitutive law
@@ -295,13 +295,12 @@ class Isotropic3D : public ConstitutiveLaw
 
     private:
 
-        ///@}
         ///@name Serialization
         ///@{
 
         friend class Serializer;
 
-        virtual void save( Serializer& rSerializer ) const
+        void save( Serializer& rSerializer ) const override
         {
             KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, ConstitutiveLaw );
             rSerializer.save( "Prestress", mPrestress );
@@ -312,7 +311,7 @@ class Isotropic3D : public ConstitutiveLaw
             rSerializer.save( "mDE", mDE );
         }
 
-        virtual void load( Serializer& rSerializer )
+        void load( Serializer& rSerializer ) override
         {
             KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ConstitutiveLaw );
             rSerializer.load( "Prestress", mPrestress );
@@ -322,6 +321,8 @@ class Isotropic3D : public ConstitutiveLaw
             rSerializer.load( "mNU", mNU );
             rSerializer.load( "mDE", mDE );
         }
+
+        ///@}
 
         /**
          * Static Member Variables
@@ -352,4 +353,5 @@ class Isotropic3D : public ConstitutiveLaw
 }; // Class Isotropic3D
 
 } // namespace Kratos.
+
 #endif // KRATOS_ISOTROPIC_3D_H_INCLUDED  defined

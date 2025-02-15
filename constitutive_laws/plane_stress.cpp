@@ -211,11 +211,6 @@ void PlaneStress::SetValue( const Variable<Matrix>& rThisVariable, const Matrix&
 {
 }
 
-void PlaneStress::Calculate(const Variable<Matrix >& rVariable, Matrix& rResult,
-                            const ProcessInfo& rCurrentProcessInfo)
-{
-}
-
 void PlaneStress::CalculateMaterialResponseCauchy (Parameters& rValues)
 {
     if (rValues.IsSetStressVector())
@@ -350,7 +345,7 @@ void PlaneStress::CalculateCauchyStresses(
     Vector& rCauchy_StressVector,
     const Matrix& rF,
     const Vector& rPK2_StressVector,
-    const Vector& rGreenLagrangeStrainVector )
+    const Vector& rGreenLagrangeStrainVector ) const
 {
     Matrix S = MathUtils<double>::StressVectorToTensor( rPK2_StressVector );
 
@@ -370,13 +365,18 @@ void PlaneStress::CalculateCauchyStresses(
 }
 
 //**********************************************************************
-//**********************************************************************
-void PlaneStress::Calculate(const Variable<double>& rVariable,
-                            double& Output,
-                            const ProcessInfo& rCurrentProcessInfo)
+void PlaneStress::Calculate(const Variable<Matrix >& rVariable, Matrix& rResult,
+                            const ProcessInfo& rCurrentProcessInfo) const
 {
 }
 
+void PlaneStress::Calculate(const Variable<double>& rVariable,
+                            double& Output,
+                            const ProcessInfo& rCurrentProcessInfo) const
+{
+}
+
+//**********************************************************************
 int PlaneStress::Check(const Properties& props,
                        const GeometryType& geom,
                        const ProcessInfo& CurrentProcessInfo) const
