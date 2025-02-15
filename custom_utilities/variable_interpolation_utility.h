@@ -91,7 +91,7 @@ public:
     /**
      * Constructor.
      */
-    VariableInterpolationUtility(ElementsContainerType& pElements)
+    VariableInterpolationUtility(const ElementsContainerType& pElements)
     : BaseType(pElements)
     {
         std::cout << "VariableInterpolationUtility created" << std::endl;

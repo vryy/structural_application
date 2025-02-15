@@ -159,24 +159,25 @@ public:
 #endif
         for (int k = 0; k < number_of_threads; ++k)
         {
-            ElementsContainerType::ptr_iterator it_begin = BaseType::mpElements.ptr_begin() + element_partition[k];
-            ElementsContainerType::ptr_iterator it_end = BaseType::mpElements.ptr_begin() + element_partition[k+1];
+            ElementsContainerType::const_iterator it_begin = BaseType::mpElements.begin() + element_partition[k];
+            ElementsContainerType::const_iterator it_end = BaseType::mpElements.begin() + element_partition[k+1];
+            std::map<std::size_t, std::size_t>::const_iterator it_id;
 
-            for ( ElementsContainerType::ptr_iterator it = it_begin; it != it_end; ++it )
+            for( ElementsContainerType::const_iterator it = it_begin; it != it_end; ++it )
             {
-                if ( ! ( ( (*it)->GetValue(IS_INACTIVE) == false ) || (*it)->Is(ACTIVE) ) )
+                if ( ! ( ( it->GetValue(IS_INACTIVE) == false ) || it->Is(ACTIVE) ) )
                     continue;
 
                 const IntegrationPointsArrayType& integration_points
-                    = (*it)->GetGeometry().IntegrationPoints( (*it)->GetIntegrationMethod());
+                    = it->GetGeometry().IntegrationPoints( it->GetIntegrationMethod());
 
                 JacobiansType J(integration_points.size());
-                J = (*it)->GetGeometry().Jacobian(J, (*it)->GetIntegrationMethod());
+                J = it->GetGeometry().Jacobian(J, it->GetIntegrationMethod());
 
                 std::vector<double> ValuesOnIntPoint(integration_points.size());
-                (*it)->CalculateOnIntegrationPoints(rThisVariable, ValuesOnIntPoint, rProcessInfo);
+                it->CalculateOnIntegrationPoints(rThisVariable, ValuesOnIntPoint, rProcessInfo);
 
-                const Matrix& Ncontainer = (*it)->GetGeometry().ShapeFunctionsValues((*it)->GetIntegrationMethod());
+                const Matrix& Ncontainer = it->GetGeometry().ShapeFunctionsValues(it->GetIntegrationMethod());
 
                 double DetJ;
                 for (unsigned int point = 0; point < integration_points.size(); ++point)
@@ -185,9 +186,9 @@ public:
 
                     double dV = DetJ*integration_points[point].Weight();
 
-                    for (unsigned int prim = 0; prim<(*it)->GetGeometry().size(); ++prim)
+                    for (unsigned int prim = 0; prim < it->GetGeometry().size(); ++prim)
                     {
-                        unsigned int row = NodeRowId[(*it)->GetGeometry()[prim].Id()];
+                        unsigned int row = NodeRowId[it->GetGeometry()[prim].Id()];
 #ifdef _OPENMP
                         omp_set_lock(&lock_array[row]);
 #endif
@@ -199,9 +200,9 @@ public:
                 }
             }
         }
-/*KRATOS_WATCH(b)*/
+
         mpLinearSolver->Solve(mProjectionMatrix, g, b);
-/*KRATOS_WATCH(g)*/
+
         for(NodesContainerType::iterator it = pActiveNodes.begin() ; it != pActiveNodes.end() ; it++)
         {
             it->GetSolutionStepValue(rThisVariable) = g(NodeRowId[it->Id()]);
@@ -364,7 +365,7 @@ private:
                 {
                     it = NodeRowId.find((i_element)->GetGeometry()[i].Id());
                     if (it == NodeRowId.end())
-                        KRATOS_THROW_ERROR(std::logic_error, "Error: not existing entry in NodeRowId", "")
+                        KRATOS_ERROR << "Error: not existing entry " << (i_element)->GetGeometry()[i].Id() << " in NodeRowId";
                     ids[i] = it->second;
                 }
 
@@ -448,8 +449,8 @@ private:
         }
     }
 
-};//Class VariableProjectionUtility
+}; // Class VariableProjectionUtility
 
-}//namespace Kratos.
+} // namespace Kratos.
 
 #endif /* KRATOS_VARIABLE_PROJECTION_UTILITY_INCLUDED  defined */
