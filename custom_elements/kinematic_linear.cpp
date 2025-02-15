@@ -2149,12 +2149,6 @@ namespace Kratos
         }
     }
 
-    /**
-     * Set a MatrixType Variable from outside
-     * @param rVariable Global name of the variable to be calculated
-     * @param rValues VectorType of the values on the quadrature points
-     * @param rCurrentProcessInfo
-     */
     void KinematicLinear::SetValuesOnIntegrationPoints( const Variable<MatrixType>& rVariable, const std::vector<MatrixType>& rValues, const ProcessInfo& rCurrentProcessInfo )
     {
         if ( rValues.size() != mConstitutiveLawVector.size() )
@@ -2170,12 +2164,6 @@ namespace Kratos
         }
     }
 
-    /**
-     * Set a VectorType Variable from outside
-     * @param rVariable Global name of the variable to be calculated
-     * @param rValues VectorType of the values on the quadrature points
-     * @param rCurrentProcessInfo
-     */
     void KinematicLinear::SetValuesOnIntegrationPoints( const Variable<VectorType>& rVariable, const std::vector<VectorType>& rValues, const ProcessInfo& rCurrentProcessInfo )
     {
         if ( rValues.size() != mConstitutiveLawVector.size() )
@@ -2191,12 +2179,6 @@ namespace Kratos
         }
     }
 
-    /**
-     * Set a Double Variable from outside
-     * @param rVariable Global name of the variable to be calculated
-     * @param rValue value on the quadrature points
-     * @param rCurrentProcessInfo
-     */
     void KinematicLinear::SetValuesOnIntegrationPoints( const Variable<double>& rVariable,
             const std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo )
     {
@@ -2219,12 +2201,7 @@ namespace Kratos
             }
         }
     }
-    /**
-     * Set an Int Variable from outside
-     * @param rVariable Global name of the variable to be calculated
-     * @param rValue value on the quadrature points
-     * @param rCurrentProcessInfo
-     */
+
     void KinematicLinear::SetValuesOnIntegrationPoints( const Variable<int>& rVariable,
             const std::vector<int>& rValues, const ProcessInfo& rCurrentProcessInfo )
     {
