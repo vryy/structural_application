@@ -113,7 +113,8 @@ protected:
     /// Initialize the elements binning
     void Initialize( const ElementsContainerType& pElements ) final
     {
-        std::cout << "Initialize the Bounding Volume Hierarchy" << std::endl;
+        if (GetEchoLevel() > 0)
+            std::cout << "Initialize the Bounding Volume Hierarchy" << std::endl;
 
 #ifdef _OPENMP
         double start_init = omp_get_wtime();
@@ -124,7 +125,8 @@ protected:
 
 #ifdef _OPENMP
         double stop_init = omp_get_wtime();
-        std::cout << "Initialize BVH completed, time = " << (stop_init-start_init) << "s" << std::endl;
+        if (GetEchoLevel() > 0)
+            std::cout << "Initialize BVH completed, time = " << (stop_init-start_init) << "s" << std::endl;
 #endif
     }
 

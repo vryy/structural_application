@@ -106,6 +106,14 @@ public:
         std::cout << "VariableProjectionUtility created" << std::endl;
     }
 
+    VariableProjectionUtility(ElementsContainerType& pElements, LinearSolverType::Pointer pLinearSolver, const int EchoLevel)
+    : BaseType(pElements, EchoLevel), mpLinearSolver(pLinearSolver)
+    {
+        this->Initialize(pElements);
+        if (GetEchoLevel() > 0)
+            std::cout << "VariableProjectionUtility created" << std::endl;
+    }
+
     /**
      * Destructor.
      */

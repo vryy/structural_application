@@ -98,6 +98,15 @@ public:
         std::cout << "VariableBinningInterpolationUtility created" << std::endl;
     }
 
+    VariableBinningInterpolationUtility(const ElementsContainerType& pElements,
+            const double Dx, const double Dy, const double Dz, const int EchoLevel)
+    : BaseType(pElements, EchoLevel), mDx(Dx), mDy(Dy), mDz(Dz)
+    {
+        this->Initialize(pElements);
+        if (GetEchoLevel() > 0)
+            std::cout << "VariableBinningInterpolationUtility created" << std::endl;
+    }
+
     /**
      * Destructor.
      */
@@ -114,13 +123,18 @@ protected:
     /// Initialize the elements binning
     void Initialize( const ElementsContainerType& pElements ) final
     {
-        std::cout << "Initialize the spatial binning" << std::endl;
+        if (GetEchoLevel() > 0)
+            std::cout << "Initialize the spatial binning" << std::endl;
 
 #ifdef _OPENMP
         double start_init = omp_get_wtime();
 #endif
 
-        Kratos::progress_display show_progress( pElements.size() );
+        Kratos::progress_display* show_progress = nullptr;
+
+        if (GetEchoLevel() > 0)
+            show_progress = new Kratos::progress_display( pElements.size() );
+
         std::vector<double> vmin(3);
         std::vector<double> vmax(3);
         for ( ElementsContainerType::const_iterator it = pElements.begin(); it != pElements.end(); ++it )
@@ -160,14 +174,20 @@ protected:
                 }
             }
 
-            ++show_progress;
+            if (show_progress != nullptr)
+                ++(*show_progress);
         }
 
-        KRATOS_WATCH(mBinElements.size())
+        if (GetEchoLevel() > 1)
+            KRATOS_WATCH(mBinElements.size())
+
+        if (show_progress != nullptr)
+            delete show_progress;
 
 #ifdef _OPENMP
         double stop_init = omp_get_wtime();
-        std::cout << "Initialize binning completed, time = " << (stop_init-start_init) << "s" << std::endl;
+        if (GetEchoLevel() > 0)
+            std::cout << "Initialize binning completed, time = " << (stop_init-start_init) << "s" << std::endl;
 #endif
     }
 

@@ -97,6 +97,13 @@ public:
         std::cout << "VariableInterpolationUtility created" << std::endl;
     }
 
+    VariableInterpolationUtility(const ElementsContainerType& pElements, const int EchoLevel)
+    : BaseType(pElements, EchoLevel)
+    {
+        if (GetEchoLevel() > 0)
+            std::cout << "VariableInterpolationUtility created" << std::endl;
+    }
+
     /**
      * Destructor.
      */
@@ -130,7 +137,8 @@ public:
     /// Transfer the double variable to node of the target model_part
     void TransferVariablesToNodes(ModelPart& rTarget, const Variable<double>& rThisVariable)
     {
-        std::cout << __LINE__ << " : At TransferVariablesToNodes(" << rTarget.Name() << ", Variable<double> " << rThisVariable.Name() << std::endl;
+        if (GetEchoLevel() > 0)
+            std::cout << __LINE__ << " : At TransferVariablesToNodes(" << rTarget.Name() << ", Variable<double> " << rThisVariable.Name() << std::endl;
 
         TransferVariablesToNodes(rTarget.Nodes(), rThisVariable);
     }
@@ -138,7 +146,8 @@ public:
     /// Transfer the double variable to node of the target node mesh
     void TransferVariablesToNodes(NodesContainerType& rTargetNodes, const Variable<double>& rThisVariable)
     {
-        std::cout << __LINE__ << " : At TransferVariablesToNodes(" << " Variable<double> " << rThisVariable.Name() << std::endl;
+        if (GetEchoLevel() > 0)
+            std::cout << __LINE__ << " : At TransferVariablesToNodes(" << " Variable<double> " << rThisVariable.Name() << std::endl;
 
         TransferVariablesToNodesImpl<DoubleVariableInitializer>(rTargetNodes, rThisVariable);
     }
@@ -146,7 +155,8 @@ public:
     /// Transfer the double variable to node of the target model_part
     void TransferVariablesToNodes(ModelPart& rTarget, const Variable<array_1d<double, 3> >& rThisVariable)
     {
-        std::cout << __LINE__ << " : At TransferVariablesToNodes(" << rTarget.Name() << ", Variable<array_1d<double, 3> > " << rThisVariable.Name() << std::endl;
+        if (GetEchoLevel() > 0)
+            std::cout << __LINE__ << " : At TransferVariablesToNodes(" << rTarget.Name() << ", Variable<array_1d<double, 3> > " << rThisVariable.Name() << std::endl;
 
         TransferVariablesToNodes(rTarget.Nodes(), rThisVariable);
     }
@@ -154,7 +164,8 @@ public:
     /// Transfer the double variable to node of the target node mesh
     void TransferVariablesToNodes(NodesContainerType& rTargetNodes, const Variable<array_1d<double, 3> >& rThisVariable)
     {
-        std::cout << __LINE__ << " : At TransferVariablesToNodes(" << " Variable<array_1d<double, 3> > " << rThisVariable.Name() << std::endl;
+        if (GetEchoLevel() > 0)
+            std::cout << __LINE__ << " : At TransferVariablesToNodes(" << " Variable<array_1d<double, 3> > " << rThisVariable.Name() << std::endl;
 
         TransferVariablesToNodesImpl<Array1DVariableInitializer>(rTargetNodes, rThisVariable);
     }
@@ -162,7 +173,8 @@ public:
     /// Transfer the double variable to node of the target model_part
     void TransferVariablesToNodes(ModelPart& rTarget, const Variable<Vector>& rThisVariable, const std::size_t& ncomponents)
     {
-        std::cout << __LINE__ << " : At TransferVariablesToNodes(" << rTarget.Name() << ", Variable<Vector> " << rThisVariable.Name() << std::endl;
+        if (GetEchoLevel() > 0)
+            std::cout << __LINE__ << " : At TransferVariablesToNodes(" << rTarget.Name() << ", Variable<Vector> " << rThisVariable.Name() << std::endl;
 
         TransferVariablesToNodes(rTarget.Nodes(), rThisVariable, ncomponents);
     }
@@ -170,7 +182,8 @@ public:
     /// Transfer the double variable to node of the target node mesh
     void TransferVariablesToNodes(NodesContainerType& rTargetNodes, const Variable<Vector>& rThisVariable, const std::size_t& ncomponents)
     {
-        std::cout << __LINE__ << " : At TransferVariablesToNodes(" << " Variable<Vector> " << rThisVariable.Name() << std::endl;
+        if (GetEchoLevel() > 0)
+            std::cout << __LINE__ << " : At TransferVariablesToNodes(" << " Variable<Vector> " << rThisVariable.Name() << std::endl;
 
         if (ncomponents == 3)
             TransferVariablesToNodesImpl<VectorVariableInitializer<3> >(rTargetNodes, rThisVariable);
@@ -181,7 +194,8 @@ public:
     /// Transfer the double variable to Gauss points of the target model_part
     void TransferVariablesToGaussPoints(ModelPart& rTarget, const Variable<double>& rThisVariable)
     {
-        std::cout << __LINE__ << " : At TransferVariablesToGaussPoints(" << rTarget.Name() << ", Variable<double> " << rThisVariable.Name() << std::endl;
+        if (GetEchoLevel() > 0)
+            std::cout << __LINE__ << " : At TransferVariablesToGaussPoints(" << rTarget.Name() << ", Variable<double> " << rThisVariable.Name() << std::endl;
 
         TransferVariablesToGaussPoints(rTarget.Elements(), rThisVariable, rTarget.GetProcessInfo());
     }
@@ -189,7 +203,8 @@ public:
     /// Transfer the double variable to Gauss points of the target model_part
     void TransferVariablesToGaussPoints(ElementsContainerType& TargetMeshElementsArray, const Variable<double>& rThisVariable, const ProcessInfo& CurrentProcessInfo)
     {
-        std::cout << __LINE__ << " : At TransferVariablesToGaussPoints(" << " Variable<double> " << rThisVariable.Name() << std::endl;
+        if (GetEchoLevel() > 0)
+            std::cout << __LINE__ << " : At TransferVariablesToGaussPoints(" << " Variable<double> " << rThisVariable.Name() << std::endl;
 
         TransferVariablesToGaussPointsImpl<DoubleVariableInitializer>(TargetMeshElementsArray, CurrentProcessInfo, rThisVariable);
     }
@@ -197,7 +212,8 @@ public:
     /// Transfer the array_1d variable to Gauss points of the target model_part
     void TransferVariablesToGaussPoints(ModelPart& rTarget, const Variable<array_1d<double, 3> >& rThisVariable)
     {
-        std::cout << __LINE__ << " : At TransferVariablesToGaussPoints(" << rTarget.Name() << ", Variable<array_1d<double, 3> > " << rThisVariable.Name() << std::endl;
+        if (GetEchoLevel() > 0)
+            std::cout << __LINE__ << " : At TransferVariablesToGaussPoints(" << rTarget.Name() << ", Variable<array_1d<double, 3> > " << rThisVariable.Name() << std::endl;
 
         TransferVariablesToGaussPoints(rTarget.Elements(), rThisVariable, rTarget.GetProcessInfo());
     }
@@ -205,7 +221,8 @@ public:
     /// Transfer the double variable to Gauss points of the target model_part
     void TransferVariablesToGaussPoints(ElementsContainerType& TargetMeshElementsArray, const Variable<array_1d<double, 3> >& rThisVariable, const ProcessInfo& CurrentProcessInfo)
     {
-        std::cout << __LINE__ << " : At TransferVariablesToGaussPoints(" << " Variable<array_1d<double, 3> > " << rThisVariable.Name() << std::endl;
+        if (GetEchoLevel() > 0)
+            std::cout << __LINE__ << " : At TransferVariablesToGaussPoints(" << " Variable<array_1d<double, 3> > " << rThisVariable.Name() << std::endl;
 
         TransferVariablesToGaussPointsImpl<Array1DVariableInitializer>(TargetMeshElementsArray, CurrentProcessInfo, rThisVariable);
     }
@@ -213,7 +230,8 @@ public:
     /// Transfer the vector variable to Gauss points of the target model_part
     void TransferVariablesToGaussPoints(ModelPart& rTarget, const Variable<Vector>& rThisVariable, std::size_t ncomponents = 6)
     {
-        std::cout << __LINE__ << " : At TransferVariablesToGaussPoints(" << rTarget.Name() << ", Variable<Vector> " << rThisVariable.Name() << std::endl;
+        if (GetEchoLevel() > 0)
+            std::cout << __LINE__ << " : At TransferVariablesToGaussPoints(" << rTarget.Name() << ", Variable<Vector> " << rThisVariable.Name() << std::endl;
 
         TransferVariablesToGaussPoints(rTarget.Elements(), rThisVariable, rTarget.GetProcessInfo(), ncomponents);
     }
@@ -221,7 +239,8 @@ public:
     /// Transfer the vector variable to Gauss points of the target model_part
     void TransferVariablesToGaussPoints(ElementsContainerType& TargetMeshElementsArray, const Variable<Vector>& rThisVariable, const ProcessInfo& CurrentProcessInfo, std::size_t ncomponents = 6)
     {
-        std::cout << __LINE__ << " : At TransferVariablesToGaussPoints(" << " Variable<Vector> " << rThisVariable.Name() << std::endl;
+        if (GetEchoLevel() > 0)
+            std::cout << __LINE__ << " : At TransferVariablesToGaussPoints(" << " Variable<Vector> " << rThisVariable.Name() << std::endl;
 
         if (ncomponents == 3)
             TransferVariablesToGaussPointsImpl<VectorVariableInitializer<3> >(TargetMeshElementsArray, CurrentProcessInfo, rThisVariable);
@@ -320,7 +339,8 @@ protected:
                                              const ProcessInfo& CurrentProcessInfo,
                                              const typename TVariableInitializer::VariableType& rThisVariable)
     {
-        std::cout << __LINE__ << " : At TransferVariablesToGaussPoints, Variable " << rThisVariable.Name() << std::endl;
+        if (GetEchoLevel() > 0)
+            std::cout << __LINE__ << " : At TransferVariablesToGaussPoints, Variable " << rThisVariable.Name() << std::endl;
 
         int number_of_threads = 1;
         std::vector<unsigned int> element_partition;
@@ -403,7 +423,8 @@ protected:
     template<class TVariableInitializer>
     void TransferVariablesToNodesImpl(NodesContainerType& rTargetNodes, const typename TVariableInitializer::VariableType& rThisVariable)
     {
-        std::cout << __LINE__ << " : At TransferVariablesToNodes, Variable " << rThisVariable.Name() << std::endl;
+        if (GetEchoLevel() > 0)
+            std::cout << __LINE__ << " : At TransferVariablesToNodes, Variable " << rThisVariable.Name() << std::endl;
 
         int number_of_threads = 1;
         std::vector<unsigned int> node_partition;
