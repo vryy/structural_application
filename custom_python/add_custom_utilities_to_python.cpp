@@ -685,12 +685,13 @@ void  AddCustomUtilitiesToPython()
     .def("TransferVariablesToGaussPoints", pointer_to_TransferVariablesToGaussPointsVector2)
     ;
 
-    class_<VariableBinningInterpolationUtility, bases<VariableInterpolationUtility>, boost::noncopyable >
-    ( "VariableBinningInterpolationUtility", init<ModelPart::ElementsContainerType&, const double&, const double&, const double&>() )
+    class_<VariableBinningInterpolationUtility<0>, bases<VariableInterpolationUtility>, boost::noncopyable >
+    ( "VariableBinningInterpolationUtility", init<ModelPart::ElementsContainerType&, const double, const double, const double>() )
+    .def(init<ModelPart::ElementsContainerType&, const double, const double, const double, const int>())
     ;
 
     class_<VariableBVHInterpolationUtility, bases<VariableInterpolationUtility>, boost::noncopyable >
-    ( "VariableBVHInterpolationUtility", init<ModelPart::ElementsContainerType&, const int&>() )
+    ( "VariableBVHInterpolationUtility", init<ModelPart::ElementsContainerType&, const int>() )
     ;
 
 #ifdef _OPENMP
