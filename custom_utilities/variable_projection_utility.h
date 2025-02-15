@@ -176,6 +176,10 @@ public:
                 if ( ! ( ( it->GetValue(IS_INACTIVE) == false ) || it->Is(ACTIVE) ) )
                     continue;
 
+                #ifdef ENABLE_BEZIER_GEOMETRY
+                it->GetGeometry().Initialize(it->GetIntegrationMethod());
+                #endif
+
                 const IntegrationPointsArrayType& integration_points
                     = it->GetGeometry().IntegrationPoints( it->GetIntegrationMethod());
 
@@ -206,6 +210,10 @@ public:
 #endif
                     }
                 }
+
+                #ifdef ENABLE_BEZIER_GEOMETRY
+                it->GetGeometry().Clean();
+                #endif
             }
         }
 
@@ -313,6 +321,10 @@ private:
                 if( it->GetValue(IS_INACTIVE) == true && !it->Is(ACTIVE) )
                     continue;
 
+                #ifdef ENABLE_BEZIER_GEOMETRY
+                it->GetGeometry().Initialize(it->GetIntegrationMethod());
+                #endif
+
                 unsigned int dim = it->GetGeometry().WorkingSpaceDimension();
 
                 const IntegrationPointsArrayType& integration_points
@@ -348,6 +360,10 @@ private:
 #endif
                     }
                 }
+
+                #ifdef ENABLE_BEZIER_GEOMETRY
+                it->GetGeometry().Clean();
+                #endif
 //                ++show_progress;
             }
         }
