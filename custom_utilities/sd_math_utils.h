@@ -1924,6 +1924,21 @@ public:
     }
 
     /**
+     * Computes outer product of a matrix and a vector, resulting in a third order tensor
+     * @param alpha
+     * @param A the third order tensor
+     * @param B the second order tensor (matrix)
+     */
+    template<typename Third_Order_Tensor_Type>
+    static void OuterProductThirdOrderTensor(TDataType alpha, const MatrixType& A, const VectorType& B, TDataType beta, Third_Order_Tensor_Type& Result)
+    {
+        for(unsigned int i = 0; i < Result.size(); ++i)
+            for(unsigned int j = 0; j < Result[i].size(); ++j)
+                for(unsigned int k = 0; k < Result[i][j].size(); ++k)
+                    Result[i][j][k] = alpha * A(i, j) * B(k) + beta * Result[i][j][k];
+    }
+
+    /**
      * Computes fourth order deviatoric tensor (also resizing)
      * @param C the fourth order tensor
      */
@@ -2114,13 +2129,31 @@ public:
      * @param AA the fourth order tensor
      * @param B the second order tensor
      */
-    static void ContractFourthOrderTensor(TDataType alpha, const Fourth_Order_Tensor& A, const MatrixType& B, MatrixType& Result)
+    static void ContractFourthOrderTensor(TDataType alpha, const Fourth_Order_Tensor& AA, const MatrixType& B, MatrixType& Result)
     {
         for(unsigned int i = 0; i < 3; ++i)
             for(unsigned int j = 0; j < 3; ++j)
                 for(unsigned int k = 0; k < 3; ++k)
                     for(unsigned int l = 0; l < 3; ++l)
-                        Result(i, j) += alpha * A[i][j][k][l] * B(k, l);
+                        Result(i, j) += alpha * AA[i][j][k][l] * B(k, l);
+    }
+
+    /**
+     * Computes contraction of a fourth order tensor and matrix and add to a second order tensor (Result = alpha * (AA : B) + beta * Result)
+     * @param alpha
+     * @param AA the fourth order tensor
+     * @param B the second order tensor
+     */
+    static void ContractFourthOrderTensor(TDataType alpha, const Fourth_Order_Tensor& AA, const MatrixType& B, TDataType beta, MatrixType& Result)
+    {
+        for(unsigned int i = 0; i < 3; ++i)
+            for(unsigned int j = 0; j < 3; ++j)
+            {
+                Result(i, j) *= beta;
+                for(unsigned int k = 0; k < 3; ++k)
+                    for(unsigned int l = 0; l < 3; ++l)
+                        Result(i, j) += alpha * AA[i][j][k][l] * B(k, l);
+            }
     }
 
     /**
@@ -2129,17 +2162,35 @@ public:
      * @param AA the fourth order tensor
      * @param B the second order tensor
      */
-    static void ContractFourthOrderTensor(TDataType alpha, const Fourth_Order_Tensor& A, const SymmetricMatrixType& B, SymmetricMatrixType& Result)
+    static void ContractFourthOrderTensor(TDataType alpha, const Fourth_Order_Tensor& AA, const SymmetricMatrixType& B, SymmetricMatrixType& Result)
     {
         for(unsigned int i = 0; i < 3; ++i)
             for(unsigned int j = i; j < 3; ++j)
                 for(unsigned int k = 0; k < 3; ++k)
                     for(unsigned int l = 0; l < 3; ++l)
-                        Result(i, j) += alpha * A[i][j][k][l] * B(k, l);
+                        Result(i, j) += alpha * AA[i][j][k][l] * B(k, l);
     }
 
     /**
-     * Computes contraction of a fourth order tensor and matrix and add to a second order tensor (Result += alpha * (A : B))
+     * Computes contraction of a fourth order tensor and matrix and add to a second order tensor (Result = alpha * (AA : B) + beta * Result)
+     * @param alpha
+     * @param AA the fourth order tensor
+     * @param B the second order tensor
+     */
+    static void ContractFourthOrderTensor(TDataType alpha, const Fourth_Order_Tensor& AA, const SymmetricMatrixType& B, TDataType beta, SymmetricMatrixType& Result)
+    {
+        for(unsigned int i = 0; i < 3; ++i)
+            for(unsigned int j = i; j < 3; ++j)
+            {
+                Result(i, j) *= beta;
+                for(unsigned int k = 0; k < 3; ++k)
+                    for(unsigned int l = 0; l < 3; ++l)
+                        Result(i, j) += alpha * AA[i][j][k][l] * B(k, l);
+            }
+    }
+
+    /**
+     * Computes contraction of a fourth order tensor and matrix and add to a second order tensor (Result += alpha * (A : BB))
      * @param alpha
      * @param A the second order tensor
      * @param BB the fourth order tensor
@@ -2154,13 +2205,49 @@ public:
     }
 
     /**
-     * Computes contraction of a fourth order tensor and symmetric matrix and add to a second order tensor (Result += alpha * (A : B))
+     * Computes contraction of a fourth order tensor and matrix and add to a second order tensor (Result = alpha * (A : BB) + beta * Result)
+     * @param alpha
+     * @param A the second order tensor
+     * @param BB the fourth order tensor
+     */
+    static void ContractFourthOrderTensor(TDataType alpha, const MatrixType& A, const Fourth_Order_Tensor& BB, TDataType beta, MatrixType& Result)
+    {
+        for(unsigned int i = 0; i < 3; ++i)
+            for(unsigned int j = 0; j < 3; ++j)
+                Result(i, j) *= beta;
+        for(unsigned int i = 0; i < 3; ++i)
+            for(unsigned int j = 0; j < 3; ++j)
+                for(unsigned int k = 0; k < 3; ++k)
+                    for(unsigned int l = 0; l < 3; ++l)
+                        Result(k, l) += alpha * A(i, j) * BB[i][j][k][l];
+    }
+
+    /**
+     * Computes contraction of a fourth order tensor and symmetric matrix and add to a second order tensor (Result += alpha * (A : BB))
      * @param alpha
      * @param A the second order tensor
      * @param BB the fourth order tensor
      */
     static void ContractFourthOrderTensor(TDataType alpha, const SymmetricMatrixType& A, const Fourth_Order_Tensor& BB, SymmetricMatrixType& Result)
     {
+        for(unsigned int i = 0; i < 3; ++i)
+            for(unsigned int j = 0; j < 3; ++j)
+                for(unsigned int k = 0; k < 3; ++k)
+                    for(unsigned int l = k; l < 3; ++l)
+                        Result(k, l) += alpha * A(i, j) * BB[i][j][k][l];
+    }
+
+    /**
+     * Computes contraction of a fourth order tensor and symmetric matrix and add to a second order tensor (Result = alpha * (A : BB) + beta * Result)
+     * @param alpha
+     * @param A the second order tensor
+     * @param BB the fourth order tensor
+     */
+    static void ContractFourthOrderTensor(TDataType alpha, const SymmetricMatrixType& A, const Fourth_Order_Tensor& BB, TDataType beta, SymmetricMatrixType& Result)
+    {
+        for(unsigned int i = 0; i < 3; ++i)
+            for(unsigned int j = 0; j < 3; ++j)
+                Result(i, j) *= beta;
         for(unsigned int i = 0; i < 3; ++i)
             for(unsigned int j = 0; j < 3; ++j)
                 for(unsigned int k = 0; k < 3; ++k)
@@ -2182,6 +2269,22 @@ public:
                 for(unsigned int k = 0; k < 3; ++k)
                     for(unsigned int l = 0; l < 3; ++l)
                         Result[i][j][k][l] += alpha * A(i, j) * B(k, l);
+    }
+
+    /**
+     * Computes outer product of two 2nd order tensors (matrix) and add to a given 4th order tensor (Result = alpha * (A \odot B) + beta * Result)
+     * In the indices notation: Result(i,j,k,l) += alpha * A(i, j) * B(k, l)
+     * @param C the given tensor
+     * @param alpha
+     */
+    template<typename TMatrixType1, typename TMatrixType2>
+    static void OuterProductFourthOrderTensor(TDataType alpha, const TMatrixType1& A, const TMatrixType2& B, TDataType beta, Fourth_Order_Tensor& Result)
+    {
+        for(unsigned int i = 0; i < 3; ++i)
+            for(unsigned int j = 0; j < 3; ++j)
+                for(unsigned int k = 0; k < 3; ++k)
+                    for(unsigned int l = 0; l < 3; ++l)
+                        Result[i][j][k][l] = alpha * A(i, j) * B(k, l) + beta * Result[i][j][k][l];
     }
 
     /**
@@ -2225,6 +2328,16 @@ public:
                     noalias(Result[i][j][k]) += alpha * A[i][j][k];
     }
 
+    // C = alpha A + beta C
+    static inline void AddFourthOrderTensor(TDataType alpha, const Fourth_Order_Tensor& A, TDataType beta, Fourth_Order_Tensor& Result)
+    {
+        for(unsigned int i = 0; i < 3; ++i)
+            for(unsigned int j = 0; j < 3; ++j)
+                for(unsigned int k = 0; k < 3; ++k)
+                    for(unsigned int l = 0; l < 3; ++l)
+                        Result[i][j][k][l] = alpha * A[i][j][k][l] + beta * Result[i][j][k][l];
+    }
+
     // C += alpha A
     static inline void AddFourthOrderTensor(TDataType alpha, const General_Fourth_Order_Tensor& A, General_Fourth_Order_Tensor& Result)
     {
@@ -2232,6 +2345,16 @@ public:
             for(unsigned int j = 0; j < A[i].size(); ++j)
                 for(unsigned int k = 0; k < A[i][j].size(); ++k)
                     noalias(Result[i][j][k]) += alpha * A[i][j][k];
+    }
+
+    // C = alpha A + beta C
+    static inline void AddFourthOrderTensor(TDataType alpha, const General_Fourth_Order_Tensor& A, TDataType beta, General_Fourth_Order_Tensor& Result)
+    {
+        for(unsigned int i = 0; i < A.size(); ++i)
+            for(unsigned int j = 0; j < A[i].size(); ++j)
+                for(unsigned int k = 0; k < A[i][j].size(); ++k)
+                    for(unsigned int l = 0; l < A[i][j][k].size(); ++l)
+                        Result[i][j][k][l] = alpha * A[i][j][k][l] + beta * Result[i][j][k][l];
     }
 
     // C_ijkl += alpha A_ijmn * B_mnkl
@@ -2244,6 +2367,21 @@ public:
                         for(unsigned int m = 0; m < 3; ++m)
                             for(unsigned int n = 0; n < 3; ++n)
                                 Result[i][j][k][l] += alpha * A[i][j][m][n] * B[m][n][k][l];
+    }
+
+    // C_ijkl = alpha A_ijmn * B_mnkl + beta C_ijkl
+    static inline void ProductFourthOrderTensor(TDataType alpha, const Fourth_Order_Tensor& A, const Fourth_Order_Tensor& B, TDataType beta, Fourth_Order_Tensor& Result)
+    {
+        for(unsigned int i = 0; i < 3; ++i)
+            for(unsigned int j = 0; j < 3; ++j)
+                for(unsigned int k = 0; k < 3; ++k)
+                    for(unsigned int l = 0; l < 3; ++l)
+                    {
+                        Result[i][j][k][l] *= beta;
+                        for(unsigned int m = 0; m < 3; ++m)
+                            for(unsigned int n = 0; n < 3; ++n)
+                                Result[i][j][k][l] += alpha * A[i][j][m][n] * B[m][n][k][l];
+                    }
     }
 
     // A_ijkl = alpha A_ijmn * B_mnkl
