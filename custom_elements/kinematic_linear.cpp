@@ -1699,7 +1699,7 @@ namespace Kratos
 
         //Current displacements
         for ( unsigned int node = 0; node < GetGeometry().size(); ++node )
-            noalias( row( CurrentDisp, node ) ) = GetGeometry()[node].GetSolutionStepValue( DISPLACEMENT );
+            noalias( row( CurrentDisp, node ) ) = subrange(GetGeometry()[node].GetSolutionStepValue( DISPLACEMENT ), 0, dim);
 
         //Declaration of the integration weight
         //    double Weight;
@@ -1830,7 +1830,7 @@ namespace Kratos
             // extract current displacements
             for (unsigned int node = 0; node < GetGeometry().size(); ++node)
                 noalias(row(CurrentDisp, node)) =
-                    GetGeometry()[node].GetSolutionStepValue(DISPLACEMENT);
+                    subrange(GetGeometry()[node].GetSolutionStepValue( DISPLACEMENT ), 0, dim);
 
             for (unsigned int i = 0; i < mConstitutiveLawVector.size(); ++i)
             {
