@@ -78,7 +78,7 @@ namespace Kratos
  *  (yC-yA)/(xC-xA) = (yB-yA)/(xB-xA)  <=>  (xA*yB + xB*yC + xC*yA) - (xB*yA + xC*yB + xA*yC) = 0
  * The weak form:
  *  r = lambda*[(xA*yB + xB*yC + xC*yA) - (xB*yA + xC*yB + xA*yC)]
- * node B will carry the additional Lagrange multiplier dof
+ * node C will carry the additional Lagrange multiplier dof
  */
 class CollinearConstraint2D : public Condition
 {
@@ -104,7 +104,7 @@ public:
     /**
      * Custom constructor.
      */
-    CollinearConstraint2D( IndexType NewId, Node<3>::Pointer const& nodeA, Node<3>::Pointer const& nodeB, Node<3>::Pointer const& nodeC, PropertiesType::Pointer pProperties );
+    CollinearConstraint2D( IndexType NewId, Node<3>::Pointer const& nodeA, Node<3>::Pointer const& nodeC, Node<3>::Pointer const& nodeB, PropertiesType::Pointer pProperties );
 
     CollinearConstraint2D( IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties );
 

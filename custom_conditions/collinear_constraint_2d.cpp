@@ -77,9 +77,9 @@ CollinearConstraint2D::CollinearConstraint2D( IndexType NewId, GeometryType::Poi
 {
 }
 
-CollinearConstraint2D::CollinearConstraint2D( IndexType NewId, Node<3>::Pointer const& node1, Node<3>::Pointer const& node2, Node<3>::Pointer const& node3,
+CollinearConstraint2D::CollinearConstraint2D( IndexType NewId, Node<3>::Pointer const& nodeA, Node<3>::Pointer const& nodeC, Node<3>::Pointer const& nodeB,
         PropertiesType::Pointer pProperties )
-    : Condition( NewId, GeometryType::Pointer( new Line2D3<Node<3> >( node1, node2, node3 ) ), pProperties )
+    : Condition( NewId, GeometryType::Pointer( new Line2D3<Node<3> >( nodeA, nodeB, nodeC ) ), pProperties )
 {
 }
 
@@ -115,7 +115,6 @@ Condition::Pointer CollinearConstraint2D::Create( IndexType NewId,
 CollinearConstraint2D::~CollinearConstraint2D()
 {
 }
-
 
 //************************************************************************************
 //************************************************************************************
@@ -189,7 +188,7 @@ void CollinearConstraint2D::CalculateAll( MatrixType& rLeftHandSideMatrix,
     double xC = GetGeometry()[2].X0() + GetGeometry()[2].GetSolutionStepValue(DISPLACEMENT_X);
     double yC = GetGeometry()[2].Y0() + GetGeometry()[2].GetSolutionStepValue(DISPLACEMENT_Y);
 
-    double lambda = GetGeometry()[1].GetSolutionStepValue(LAGRANGE_MULTIPLIER_CONSTRAINT);
+    double lambda = GetGeometry()[2].GetSolutionStepValue(LAGRANGE_MULTIPLIER_CONSTRAINT);
 
     rRightHandSideVector(0) = lambda * (yB - yC);
     rRightHandSideVector(1) = lambda * (xC - xB);
@@ -248,7 +247,7 @@ void CollinearConstraint2D::EquationIdVector( EquationIdVectorType& rResult,
         rResult[2*i] = GetGeometry()[i].GetDof(DISPLACEMENT_X).EquationId();
         rResult[2*i+1] = GetGeometry()[i].GetDof(DISPLACEMENT_Y).EquationId();
     }
-    rResult[GetGeometry().size()*2] = GetGeometry()[1].GetDof(LAGRANGE_MULTIPLIER_CONSTRAINT).EquationId();
+    rResult[GetGeometry().size()*2] = GetGeometry()[2].GetDof(LAGRANGE_MULTIPLIER_CONSTRAINT).EquationId();
 }
 
 //************************************************************************************
@@ -264,7 +263,7 @@ void CollinearConstraint2D::GetDofList( DofsVectorType& ConditionalDofList,
         ConditionalDofList[2*i] = GetGeometry()[i].pGetDof(DISPLACEMENT_X);
         ConditionalDofList[2*i+1] = GetGeometry()[i].pGetDof(DISPLACEMENT_Y);
     }
-    ConditionalDofList[GetGeometry().size()*2] = GetGeometry()[1].pGetDof(LAGRANGE_MULTIPLIER_CONSTRAINT);
+    ConditionalDofList[GetGeometry().size()*2] = GetGeometry()[2].pGetDof(LAGRANGE_MULTIPLIER_CONSTRAINT);
 }
 
 } // Namespace Kratos
