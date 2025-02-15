@@ -74,6 +74,7 @@ namespace Kratos
  * Utility to transfer the variables by interpolation.
  * It uses spatial binning to quickly search for corresponding element
  */
+template<int TFrame = 0>
 class VariableBinningInterpolationUtility : public VariableInterpolationUtility
 {
 public:
@@ -147,9 +148,9 @@ protected:
                 std::cout << "vmax: " << vmax[0] << " " << vmax[1] << " " << vmax[2] << std::endl;
             }
 
-            int i_min = (int) floor(vmin[0] / mDx), i_max = (int) floor(vmax[0] / mDx);
-            int j_min = (int) floor(vmin[1] / mDy), j_max = (int) floor(vmax[1] / mDy);
-            int k_min = (int) floor(vmin[2] / mDz), k_max = (int) floor(vmax[2] / mDz);
+            int i_min = (int) std::floor(vmin[0] / mDx), i_max = (int) std::floor(vmax[0] / mDx);
+            int j_min = (int) std::floor(vmin[1] / mDy), j_max = (int) std::floor(vmax[1] / mDy);
+            int k_min = (int) std::floor(vmin[2] / mDz), k_max = (int) std::floor(vmax[2] / mDz);
 
             if (GetEchoLevel() > 4)
             {
@@ -197,15 +198,15 @@ protected:
     void FindPotentialPartners( const PointType& rSourcePoint, ElementsContainerType& pMasterElements ) const final
     {
         // get the containing elements from the bin
-        int ix = (int) floor(rSourcePoint.X() / mDx);
-        int iy = (int) floor(rSourcePoint.Y() / mDy);
-        int iz = (int) floor(rSourcePoint.Z() / mDz);
+        int ix = (int) std::floor(rSourcePoint.X() / mDx);
+        int iy = (int) std::floor(rSourcePoint.Y() / mDy);
+        int iz = (int) std::floor(rSourcePoint.Z() / mDz);
 
         if (GetEchoLevel() > 4)
             std::cout << "point " << rSourcePoint << " has key (" << ix << "," << iy << "," << iz << ")" << std::endl;
 
         SpatialKey key(ix, iy, iz);
-        std::map<SpatialKey, std::set<std::size_t> >::const_iterator it_bin_elements = mBinElements.find(key);
+        auto it_bin_elements = mBinElements.find(key);
 
         if(it_bin_elements != mBinElements.end())
         {
@@ -250,16 +251,33 @@ private:
 
     void FindBoundingBox(std::vector<double>& vmin, std::vector<double>& vmax, GeometryType& rGeometry) const
     {
-        vmin[0] = rGeometry[0].X(); vmin[1] = rGeometry[0].Y(); vmin[2] = rGeometry[0].Z();
-        vmax[0] = rGeometry[0].X(); vmax[1] = rGeometry[0].Y(); vmax[2] = rGeometry[0].Z();
-        for (std::size_t i = 1; i < rGeometry.size(); ++i)
+        if constexpr (TFrame == 0)
         {
-            if (rGeometry[i].X() < vmin[0]) vmin[0] = rGeometry[i].X();
-            if (rGeometry[i].X() > vmax[0]) vmax[0] = rGeometry[i].X();
-            if (rGeometry[i].Y() < vmin[1]) vmin[1] = rGeometry[i].Y();
-            if (rGeometry[i].Y() > vmax[1]) vmax[1] = rGeometry[i].Y();
-            if (rGeometry[i].Z() < vmin[2]) vmin[2] = rGeometry[i].Z();
-            if (rGeometry[i].Z() > vmax[2]) vmax[2] = rGeometry[i].Z();
+            vmin[0] = rGeometry[0].X0(); vmin[1] = rGeometry[0].Y0(); vmin[2] = rGeometry[0].Z0();
+            vmax[0] = rGeometry[0].X0(); vmax[1] = rGeometry[0].Y0(); vmax[2] = rGeometry[0].Z0();
+            for (std::size_t i = 1; i < rGeometry.size(); ++i)
+            {
+                if (rGeometry[i].X0() < vmin[0]) vmin[0] = rGeometry[i].X0();
+                if (rGeometry[i].X0() > vmax[0]) vmax[0] = rGeometry[i].X0();
+                if (rGeometry[i].Y0() < vmin[1]) vmin[1] = rGeometry[i].Y0();
+                if (rGeometry[i].Y0() > vmax[1]) vmax[1] = rGeometry[i].Y0();
+                if (rGeometry[i].Z0() < vmin[2]) vmin[2] = rGeometry[i].Z0();
+                if (rGeometry[i].Z0() > vmax[2]) vmax[2] = rGeometry[i].Z0();
+            }
+        }
+        else if constexpr (TFrame == 1)
+        {
+            vmin[0] = rGeometry[0].X(); vmin[1] = rGeometry[0].Y(); vmin[2] = rGeometry[0].Z();
+            vmax[0] = rGeometry[0].X(); vmax[1] = rGeometry[0].Y(); vmax[2] = rGeometry[0].Z();
+            for (std::size_t i = 1; i < rGeometry.size(); ++i)
+            {
+                if (rGeometry[i].X() < vmin[0]) vmin[0] = rGeometry[i].X();
+                if (rGeometry[i].X() > vmax[0]) vmax[0] = rGeometry[i].X();
+                if (rGeometry[i].Y() < vmin[1]) vmin[1] = rGeometry[i].Y();
+                if (rGeometry[i].Y() > vmax[1]) vmax[1] = rGeometry[i].Y();
+                if (rGeometry[i].Z() < vmin[2]) vmin[2] = rGeometry[i].Z();
+                if (rGeometry[i].Z() > vmax[2]) vmax[2] = rGeometry[i].Z();
+            }
         }
     }
 
