@@ -93,46 +93,63 @@ public:
      */
     TutorialDamageModel();
 
-    virtual  ConstitutiveLaw::Pointer Clone() const
-    {
-         ConstitutiveLaw::Pointer p_clone( new TutorialDamageModel() );
-        return p_clone;
-    }
-
     /**
      * Destructor.
      */
-    virtual ~TutorialDamageModel();
+    ~TutorialDamageModel() override;
 
     /**
      * Operators
      */
+
     /**
      * Operations
      */
-    bool Has( const Variable<double>& rThisVariable );
-    bool Has( const Variable<Vector>& rThisVariable );
-    bool Has( const Variable<Matrix>& rThisVariable );
 
-    double& GetValue( const Variable<double>& rThisVariable, double& rValue );
-    Vector& GetValue( const Variable<Vector>& rThisVariable, Vector& rValue );
-    Matrix& GetValue( const Variable<Matrix>& rThisVariable, Matrix& rValue );
+    ConstitutiveLaw::Pointer Clone() const override
+    {
+        ConstitutiveLaw::Pointer p_clone( new TutorialDamageModel() );
+        return p_clone;
+    }
+
+    ConstitutiveLaw::StrainMeasure GetStrainMeasure() override
+    {
+        return StrainMeasure_Infinitesimal;
+    }
+
+    ConstitutiveLaw::StressMeasure GetStressMeasure() override
+    {
+        return StressMeasure_Cauchy;
+    }
+
+    void GetLawFeatures(Features& rFeatures) final
+    {
+        rFeatures.SetStrainMeasure(this->GetStrainMeasure());
+    }
+
+    bool Has( const Variable<double>& rThisVariable ) override;
+    bool Has( const Variable<Vector>& rThisVariable ) override;
+    bool Has( const Variable<Matrix>& rThisVariable ) override;
+
+    double& GetValue( const Variable<double>& rThisVariable, double& rValue ) override;
+    Vector& GetValue( const Variable<Vector>& rThisVariable, Vector& rValue ) override;
+    Matrix& GetValue( const Variable<Matrix>& rThisVariable, Matrix& rValue ) override;
 
     void SetValue( const Variable<double>& rThisVariable, const double& rValue,
-                   const ProcessInfo& rCurrentProcessInfo );
+                   const ProcessInfo& rCurrentProcessInfo ) override;
     void SetValue( const Variable<array_1d<double, 3 > >& rThisVariable,
-                   const array_1d<double, 3 > & rValue, const ProcessInfo& rCurrentProcessInfo );
+                   const array_1d<double, 3 > & rValue, const ProcessInfo& rCurrentProcessInfo ) override;
     void SetValue( const Variable<Vector>& rThisVariable, const Vector& rValue,
-                   const ProcessInfo& rCurrentProcessInfo );
+                   const ProcessInfo& rCurrentProcessInfo ) override;
     void SetValue( const Variable<Matrix>& rThisVariable, const Matrix& rValue,
-                   const ProcessInfo& rCurrentProcessInfo );
+                   const ProcessInfo& rCurrentProcessInfo ) override;
 
     /**
      * Material parameters are inizialized
      */
     void InitializeMaterial( const Properties& props,
                              const GeometryType& geom,
-                             const Vector& ShapeFunctionsValues );
+                             const Vector& ShapeFunctionsValues ) override;
 
     /**
      * As this constitutive law describes only linear elastic material properties
@@ -141,16 +158,26 @@ public:
     void InitializeSolutionStep( const Properties& props,
                                  const GeometryType& geom, //this is just to give the array of nodes
                                  const Vector& ShapeFunctionsValues,
-                                 const ProcessInfo& CurrentProcessInfo );
+                                 const ProcessInfo& CurrentProcessInfo ) override;
+
+    void InitializeNonLinearIteration( const Properties& props,
+                                       const GeometryType& geom, //this is just to give the array of nodes
+                                       const Vector& ShapeFunctionsValues,
+                                       const ProcessInfo& CurrentProcessInfo ) override;
 
     void ResetMaterial( const Properties& props,
                         const GeometryType& geom,
-                        const Vector& ShapeFunctionsValues );
+                        const Vector& ShapeFunctionsValues ) override;
+
+    void FinalizeNonLinearIteration( const Properties& props,
+                                     const GeometryType& geom, //this is just to give the array of nodes
+                                     const Vector& ShapeFunctionsValues,
+                                     const ProcessInfo& CurrentProcessInfo ) override;
 
     void FinalizeSolutionStep( const Properties& props,
                                const GeometryType& geom, //this is just to give the array of nodes
                                const Vector& ShapeFunctionsValues,
-                               const ProcessInfo& CurrentProcessInfo );
+                               const ProcessInfo& CurrentProcessInfo ) override;
 
 
     /**
@@ -166,6 +193,12 @@ public:
                const GeometryType& geom,
                const ProcessInfo& CurrentProcessInfo ) const final;
 
+    /**
+     * Computes the material response in terms of Cauchy stresses and constitutive tensor
+     * @see Parameters
+     */
+    void CalculateMaterialResponseCauchy (Parameters& rValues) final;
+
     void CalculateMaterialResponse( const Vector& StrainVector,
                                     const Matrix& DeformationGradient,
                                     Vector& StressVector,
@@ -177,7 +210,7 @@ public:
                                     bool CalculateStresses = true,
                                     int CalculateTangent = true,
                                     bool SaveInternalVariables = true
-                                  );
+                                  ) override;
 
     /**
      * returns the size of the strain vector of the current constitutive law
@@ -197,46 +230,62 @@ public:
     /**
      * Input and output
      */
+
     /**
      * Turn back information as a string.
      */
-    //virtual String Info() const;
+    std::string Info() const override
+    {
+        return "TutorialDamageModel";
+    }
+
     /**
      * Print information about this object.
      */
-    //virtual void PrintInfo(std::ostream& rOStream) const;
+    void PrintInfo(std::ostream& rOStream) const override
+    {
+        rOStream << Info();
+    }
+
     /**
      * Print object's data.
      */
-    //virtual void PrintData(std::ostream& rOStream) const;
+    void PrintData(std::ostream& rOStream) const override
+    {}
 
 protected:
     /**
      * there are no protected class members
      */
+
 private:
 
     double mE, mNU, mE_0, mE_f;
     Vector mCurrentStress;
     double mKappa_old;
     double mKappa;
-    ///@}
+
+    /// Compute kappa, providing damage
+    double ComputeKappa(const double d, const double TOL = 1e-10, const int max_iters = 30) const;
+
     ///@name Serialization
     ///@{
 
     friend class Serializer;
 
-    virtual void save( Serializer& rSerializer ) const
+    void save( Serializer& rSerializer ) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, ConstitutiveLaw );
     }
 
-    virtual void load( Serializer& rSerializer )
+    void load( Serializer& rSerializer ) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ConstitutiveLaw );
     }
+
+    ///@}
 }; // Class TutorialDamageModel
 
-
 } // namespace Kratos.
-#endif // KRATOS_TUTORIAL_DAMAGE_MODEL_H_INCLUDED  defined 
+
+#endif // KRATOS_TUTORIAL_DAMAGE_MODEL_H_INCLUDED  defined
