@@ -89,7 +89,7 @@ public:
     /**
      * Constructor.
      */
-    VariableBVHInterpolationUtility(ElementsContainerType& pElements, const int& bv_type)
+    VariableBVHInterpolationUtility(const ElementsContainerType& pElements, const int bv_type)
     : BaseType(pElements)
     {
         mpBVTree = typename BoundingVolumeTreeType::Pointer(new BoundingVolumeTreeType(bv_type));
@@ -100,7 +100,7 @@ public:
     /**
      * Destructor.
      */
-    virtual ~VariableBVHInterpolationUtility()
+    ~VariableBVHInterpolationUtility() override
     {
     }
 
@@ -149,8 +149,8 @@ private:
 
     typename BoundingVolumeTreeType::Pointer mpBVTree;
 
-};//Class VariableBVHInterpolationUtility
+}; // Class VariableBVHInterpolationUtility
 
-}//namespace Kratos.
+} // namespace Kratos.
 
 #endif /* KRATOS_VARIABLE_BVH_INTERPOLATION_UTILITY_INCLUDED  defined */

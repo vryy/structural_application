@@ -238,7 +238,7 @@ protected:
     /// REMARK: we should disable the move mesh flag if we want to search in the reference configuration
     virtual void FindPotentialPartners( const PointType& rSourcePoint, ElementsContainerType& pMasterElements ) const
     {
-        KRATOS_THROW_ERROR(std::logic_error, "Error calling base class function", __FUNCTION__)
+        KRATOS_ERROR << "Error calling base class function";
     }
 
     /// Find an element in pMasterElements contains rSourcePoint and assign it to pTargetElement.
@@ -458,9 +458,8 @@ Kratos::progress_display show_progress( rTargetNodes.size() );
             }
         }
     }
+}; // Class VariableInterpolationUtility
 
-};//Class VariableInterpolationUtility
-
-}//namespace Kratos.
+} // namespace Kratos.
 
 #endif /* KRATOS_VARIABLE_INTERPOLATION_UTILITY_INCLUDED  defined */

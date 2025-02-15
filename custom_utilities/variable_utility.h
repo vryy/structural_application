@@ -99,7 +99,7 @@ public:
             rValue = 0.0;
         }
 
-        static void inline Initialize(double& rA, const double& rB)
+        static void inline Initialize(double& rA, const double rB)
         {
             rA = rB;
         }
@@ -163,15 +163,21 @@ public:
         std::cout << "VariableUtility created" << std::endl;
     }
 
-    VariableUtility(ElementsContainerType& pElements)
+    VariableUtility(const ElementsContainerType& pElements)
     : mEchoLevel(0), mpElements(pElements)
+    {
+        std::cout << "VariableUtility created, number of elements = " << mpElements.size() << std::endl;
+    }
+
+    VariableUtility(const ElementsContainerType& pElements, const int EchoLevel)
+    : mEchoLevel(EchoLevel), mpElements(pElements)
     {
         std::cout << "VariableUtility created, number of elements = " << mpElements.size() << std::endl;
     }
 
     /// Extract the solution vector from list of dofs
     void GetSolutionVector(SparseSpaceType::VectorType& X, const DofsArrayType& rDofSet,
-        const IndexType& EquationSystemSize, const IndexType& SolutionStepIndex = 0) const
+        const IndexType EquationSystemSize, const IndexType SolutionStepIndex = 0) const
     {
         if (SparseSpaceType::Size(X) != EquationSystemSize)
             SparseSpaceType::Resize(X, EquationSystemSize);
@@ -189,7 +195,7 @@ public:
     /// Extract the solution vector from double variable
     /// The output vector is contiguous. The node id is arranged in the ascending order.
     void GetSolutionVector(SparseSpaceType::VectorType& X, const Variable<double>& rVariable,
-        const ModelPart& r_model_part, const IndexType& SolutionStepIndex = 0) const
+        const ModelPart& r_model_part, const IndexType SolutionStepIndex = 0) const
     {
         // collect the number of nodes and assign unique row number
         const NodesContainerType& nodes = r_model_part.Nodes();
@@ -214,7 +220,7 @@ public:
     /// Extract the solution vector from double variable
     /// The output vector is contiguous. The node id is arranged in the ascending order.
     void GetSolutionVector(SparseSpaceType::VectorType& X, const Variable<array_1d<double, 3> >& rVariable,
-        const ModelPart& r_model_part, const IndexType& SolutionStepIndex = 0) const
+        const ModelPart& r_model_part, const IndexType SolutionStepIndex = 0) const
     {
         // collect the number of nodes and assign unique row number
         const NodesContainerType& nodes = r_model_part.Nodes();
@@ -248,7 +254,7 @@ public:
      * Access
      */
 
-    void SetEchoLevel(const int& Level)
+    void SetEchoLevel(const int Level)
     {
         mEchoLevel = Level;
     }
@@ -265,15 +271,15 @@ protected:
     /// Initialize the utilitey
     virtual void Initialize( const ElementsContainerType& pElements )
     {
-        KRATOS_THROW_ERROR(std::logic_error, "Error calling base class function", __FUNCTION__)
+        KRATOS_ERROR << "Error calling base class function";
     }
 
 private:
 
     int mEchoLevel;
 
-};//Class VariableUtility
+}; // Class VariableUtility
 
-}//namespace Kratos.
+} // namespace Kratos.
 
 #endif /* KRATOS_VARIABLE_UTILITY_INCLUDED  defined */

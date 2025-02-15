@@ -90,8 +90,8 @@ public:
     /**
      * Constructor.
      */
-    VariableBinningInterpolationUtility(ElementsContainerType& pElements,
-            const double& Dx, const double& Dy, const double& Dz)
+    VariableBinningInterpolationUtility(const ElementsContainerType& pElements,
+            const double Dx, const double Dy, const double Dz)
     : BaseType(pElements), mDx(Dx), mDy(Dy), mDz(Dz)
     {
         this->Initialize(pElements);
@@ -101,7 +101,7 @@ public:
     /**
      * Destructor.
      */
-    virtual ~VariableBinningInterpolationUtility()
+    ~VariableBinningInterpolationUtility() override
     {
     }
 
@@ -243,8 +243,8 @@ private:
         }
     }
 
-};//Class VariableBinningInterpolationUtility
+}; // Class VariableBinningInterpolationUtility
 
-}//namespace Kratos.
+} // namespace Kratos.
 
 #endif /* KRATOS_VARIABLE_BINNING_INTERPOLATION_UTILITY_INCLUDED  defined */
