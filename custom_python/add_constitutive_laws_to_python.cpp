@@ -73,6 +73,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "constitutive_laws/plane_strain.h"
 #include "constitutive_laws/plane_stress.h"
 #include "constitutive_laws/cam_clay_3d.h"
+#include "constitutive_laws/isotropic_damage_model.h"
 #include "constitutive_laws/isotropic_damage_implex.h"
 #include "constitutive_laws/st_venant_kirchhoff.h"
 #include "constitutive_laws/multiplicative_finite_strain_bridging_constitutive_law.h"
@@ -222,6 +223,12 @@ void  AddConstitutiveLawsToPython()
       init<>() )
     ;
     scope().attr("StVenantKirchhoff_Isotropic3D") = scope().attr("StVenantKirchhoff_3D");
+
+    class_< IsotropicDamageModel, bases< ConstitutiveLawBaseType >, boost::noncopyable >
+    ( "IsotropicDamageModel",
+      init<>() )
+    .def( init<>() )
+    ;
 
     class_< IsotropicDamageIMPLEX, bases< ConstitutiveLawBaseType >, boost::noncopyable >
     ( "IsotropicDamageIMPLEX",

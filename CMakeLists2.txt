@@ -29,6 +29,7 @@ set( KRATOS_STRUCTURAL_APPLICATION_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/eas_element_q4e4.cpp
 
     ${CMAKE_CURRENT_SOURCE_DIR}/constitutive_laws/dummy_constitutive_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/constitutive_laws/isotropic_damage_model.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/constitutive_laws/isotropic_damage_implex.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/constitutive_laws/isotropic_3d.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/constitutive_laws/isotropic_3d_dc.cpp
