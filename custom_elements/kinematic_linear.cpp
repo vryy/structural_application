@@ -2241,6 +2241,22 @@ namespace Kratos
         }
     }
 
+    void KinematicLinear::SetValuesOnIntegrationPoints( const Variable<bool>& rVariable,
+            const std::vector<bool>& rValues, const ProcessInfo& rCurrentProcessInfo )
+    {
+        if ( rValues.size() != mConstitutiveLawVector.size() )
+        {
+            KRATOS_ERROR << "Error at KinematicLinear element " << Id() << ", The size of rValues and mConstitutiveLawVector is incompatible" << std::endl
+                         << "rValues.size(): " << rValues.size() << std::endl
+                         << "mConstitutiveLawVector.size(): " << mConstitutiveLawVector.size() << std::endl;
+        }
+
+        for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); ++i )
+        {
+            mConstitutiveLawVector[i]->SetValue( rVariable, rValues[i], rCurrentProcessInfo );
+        }
+    }
+
     void KinematicLinear::SetValuesOnIntegrationPoints( const Kratos::Variable<ConstitutiveLaw::Pointer>& rVariable,
             const std::vector< ConstitutiveLaw::Pointer >& rValues, const ProcessInfo& rCurrentProcessInfo )
     {

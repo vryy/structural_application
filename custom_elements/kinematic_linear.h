@@ -210,6 +210,8 @@ public:
 
     void SetValuesOnIntegrationPoints( const Variable<int>& rVariable, const std::vector<int>& rValues, const ProcessInfo& rCurrentProcessInfo ) override;
 
+    void SetValuesOnIntegrationPoints( const Variable<bool>& rVariable, const std::vector<bool>& rValues, const ProcessInfo& rCurrentProcessInfo ) override;
+
     void SetValuesOnIntegrationPoints( const Variable<MatrixType>& rVariable, const std::vector<MatrixType>& rValues, const ProcessInfo& rCurrentProcessInfo ) override;
 
     void SetValuesOnIntegrationPoints( const Variable<VectorType>& rVariable, const std::vector<VectorType>& rValues, const ProcessInfo& rCurrentProcessInfo ) override;
