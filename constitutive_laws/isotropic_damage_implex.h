@@ -49,9 +49,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
  * ***********************************************************/
 
-// Remark: with reference to J. Oliver et al. (2008) and the 
-// Java version of IMPL-EX algorithm by hbui
-
 #if !defined(KRATOS_ISOTROPIC_DAMAGE_IMPLEX_H_INCLUDED )
 #define  KRATOS_ISOTROPIC_DAMAGE_IMPLEX_H_INCLUDED
 
@@ -70,10 +67,11 @@ namespace Kratos
 
 /**
  * Defines an IMPL-EX isotropic damage constitutive law in 3D space.
- * This material law is defined by the parameters E (Young's modulus), 
+ * This material law is defined by the parameters E (Young's modulus),
  * NU (Poisson's ratio), Ft (Tensile Strength) and GF (Fracture Energy).
+ * Remark: with reference to J. Oliver et al. (2008) and the
+ * Java version of IMPL-EX algorithm by hbui
  */
-
 class IsotropicDamageIMPLEX : public ConstitutiveLaw
 {
 public:
@@ -108,34 +106,52 @@ public:
     /**
      * Operators
      */
+
     /**
      * Operations
      */
-    bool Has( const Variable<double>& rThisVariable );
-    bool Has( const Variable<Vector>& rThisVariable );
-    bool Has( const Variable<Matrix>& rThisVariable );
 
-    double& GetValue( const Variable<double>& rThisVariable, double& rValue );
-    Vector& GetValue( const Variable<Vector>& rThisVariable, Vector& rValue );
-    Matrix& GetValue( const Variable<Matrix>& rThisVariable, Matrix& rValue );
+    ConstitutiveLaw::StrainMeasure GetStrainMeasure() override
+    {
+        return StrainMeasure_Infinitesimal;
+    }
+
+    ConstitutiveLaw::StressMeasure GetStressMeasure() override
+    {
+        return StressMeasure_Cauchy;
+    }
+
+    void GetLawFeatures(Features& rFeatures) final
+    {
+        rFeatures.SetStrainMeasure(this->GetStrainMeasure());
+    }
+
+    bool Has( const Variable<int>& rThisVariable );
+    bool Has( const Variable<double>& rThisVariable ) override;
+    bool Has( const Variable<Vector>& rThisVariable ) override;
+    bool Has( const Variable<Matrix>& rThisVariable ) override;
+
+    double& GetValue( const Variable<double>& rThisVariable, double& rValue ) override;
+    Vector& GetValue( const Variable<Vector>& rThisVariable, Vector& rValue ) override;
+    Matrix& GetValue( const Variable<Matrix>& rThisVariable, Matrix& rValue ) override;
 
     void SetValue( const Variable<int>& rThisVariable, const int& rValue,
-                   const ProcessInfo& rCurrentProcessInfo );
+                   const ProcessInfo& rCurrentProcessInfo ) override;
     void SetValue( const Variable<double>& rThisVariable, const double& rValue,
-                   const ProcessInfo& rCurrentProcessInfo );
+                   const ProcessInfo& rCurrentProcessInfo ) override;
     void SetValue( const Variable<array_1d<double, 3 > >& rThisVariable,
                    const array_1d<double, 3 > & rValue, const ProcessInfo& rCurrentProcessInfo );
     void SetValue( const Variable<Vector>& rThisVariable, const Vector& rValue,
-                   const ProcessInfo& rCurrentProcessInfo );
+                   const ProcessInfo& rCurrentProcessInfo ) override;
     void SetValue( const Variable<Matrix>& rThisVariable, const Matrix& rValue,
-                   const ProcessInfo& rCurrentProcessInfo );
+                   const ProcessInfo& rCurrentProcessInfo ) override;
 
     /**
      * Material parameters are inizialized
      */
     void InitializeMaterial( const Properties& props,
                              const GeometryType& geom,
-                             const Vector& ShapeFunctionsValues );
+                             const Vector& ShapeFunctionsValues ) override;
 
     /**
      * As this constitutive law describes only linear elastic material properties
@@ -144,21 +160,26 @@ public:
     void InitializeSolutionStep( const Properties& props,
                                  const GeometryType& geom,
                                  const Vector& ShapeFunctionsValues,
-                                 const ProcessInfo& CurrentProcessInfo );
+                                 const ProcessInfo& CurrentProcessInfo ) override;
+
+    void InitializeNonLinearIteration( const Properties& props,
+                                       const GeometryType& geom, //this is just to give the array of nodes
+                                       const Vector& ShapeFunctionsValues,
+                                       const ProcessInfo& CurrentProcessInfo ) override;
 
     void ResetMaterial( const Properties& props,
                         const GeometryType& geom,
-                        const Vector& ShapeFunctionsValues );
+                        const Vector& ShapeFunctionsValues ) override;
+
+    void FinalizeNonLinearIteration( const Properties& props,
+                                     const GeometryType& geom, //this is just to give the array of nodes
+                                     const Vector& ShapeFunctionsValues,
+                                     const ProcessInfo& CurrentProcessInfo ) override;
 
     void FinalizeSolutionStep( const Properties& props,
                                const GeometryType& geom,
                                const Vector& ShapeFunctionsValues,
-                               const ProcessInfo& CurrentProcessInfo );
-
-    void FinalizeNonLinearIteration( const Properties& props,
-                               const GeometryType& geom,
-                               const Vector& ShapeFunctionsValues,
-                               const ProcessInfo& CurrentProcessInfo );
+                               const ProcessInfo& CurrentProcessInfo ) override;
 
     /**
      * This function is designed to be called once to perform all the checks needed
@@ -169,9 +190,15 @@ public:
      * @param CurrentProcessInfo
      * @return
      */
-    virtual int Check( const Properties& props,
-                       const GeometryType& geom,
-                       const ProcessInfo& CurrentProcessInfo );
+    int Check( const Properties& props,
+               const GeometryType& geom,
+               const ProcessInfo& CurrentProcessInfo ) const override;
+
+    /**
+     * Computes the material response in terms of Cauchy stresses and constitutive tensor
+     * @see Parameters
+     */
+    void CalculateMaterialResponseCauchy (Parameters& parameters) final;
 
     void CalculateMaterialResponse( const Vector& StrainVector,
                                     const Matrix& DeformationGradient,
@@ -184,13 +211,13 @@ public:
                                     bool CalculateStresses = true,
                                     int CalculateTangent = true,
                                     bool SaveInternalVariables = true
-                                  );
+                                  ) override;
 
     /**
      * returns the size of the strain vector of the current constitutive law
      * NOTE: this function HAS TO BE IMPLEMENTED by any derived class
      */
-    virtual SizeType GetStrainSize()
+    SizeType GetStrainSize() const override
     {
         return 6;
     }
@@ -199,13 +226,13 @@ public:
      * Calculates the elastic constitutive tensor
      * @param rResult elastic tangent operator
      */
-    void CalculateElasticMatrix( Matrix& C );
-    
+    void CalculateElasticMatrix( Matrix& C, const double E, const double NU ) const;
+
     /**
      * Calculates the softening law based on an internal variable alpha
      * @param rResult softening function H
      */
-    double SofteningLaw( const double& alpha );
+    double SofteningLaw( const double alpha ) const;
 
     /**
      * Input and output
@@ -213,15 +240,24 @@ public:
     /**
      * Turn back information as a string.
      */
-    //virtual String Info() const;
+    std::string Info() const override
+    {
+        return "IsotropicDamageIMPLEX";
+    }
+
     /**
      * Print information about this object.
      */
-    //virtual void PrintInfo(std::ostream& rOStream) const;
+    void PrintInfo(std::ostream& rOStream) const override
+    {
+        rOStream << Info();
+    }
+
     /**
      * Print object's data.
      */
-    //virtual void PrintData(std::ostream& rOStream) const;
+    void PrintData(std::ostream& rOStream) const override
+    {}
 
 protected:
     /**
@@ -229,29 +265,31 @@ protected:
      */
 private:
 
-    double mFt, mGF, mE, mNU, mE_0, ml, mE_f, mD;
+    double mFt, mGf, mE, mNU, mE_0, mL, mE_f, mD;
     Vector mCurrentStress;
     double mAlpha, mAlpha_old, mAlpha_old_old, mdAlpha, mAlpha_alg;
     double mq, mq_old, mq_alg;
     double mDamage_alg;
     Matrix mC_alg;
-    ///@}
+
     ///@name Serialization
     ///@{
 
     friend class Serializer;
 
-    virtual void save( Serializer& rSerializer ) const
+    void save( Serializer& rSerializer ) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, ConstitutiveLaw );
     }
 
-    virtual void load( Serializer& rSerializer )
+    void load( Serializer& rSerializer ) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ConstitutiveLaw );
     }
+
+    ///@}
 }; // Class IsotropicDamageIMPLEX
 
-
 } // namespace Kratos.
-#endif // KRATOS_ISOTROPIC_DAMAGE_IMPLEX_H_INCLUDED  defined 
+
+#endif // KRATOS_ISOTROPIC_DAMAGE_IMPLEX_H_INCLUDED  defined
