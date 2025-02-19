@@ -1932,10 +1932,20 @@ public:
     template<typename Third_Order_Tensor_Type>
     static void OuterProductThirdOrderTensor(TDataType alpha, const MatrixType& A, const VectorType& B, TDataType beta, Third_Order_Tensor_Type& Result)
     {
-        for(unsigned int i = 0; i < Result.size(); ++i)
-            for(unsigned int j = 0; j < Result[i].size(); ++j)
-                for(unsigned int k = 0; k < Result[i][j].size(); ++k)
-                    Result[i][j][k] = alpha * A(i, j) * B(k) + beta * Result[i][j][k];
+        if (beta == 0.0)
+        {
+            for(unsigned int i = 0; i < Result.size(); ++i)
+                for(unsigned int j = 0; j < Result[i].size(); ++j)
+                    for(unsigned int k = 0; k < Result[i][j].size(); ++k)
+                        Result[i][j][k] = alpha * A(i, j) * B(k);
+        }
+        else
+        {
+            for(unsigned int i = 0; i < Result.size(); ++i)
+                for(unsigned int j = 0; j < Result[i].size(); ++j)
+                    for(unsigned int k = 0; k < Result[i][j].size(); ++k)
+                        Result[i][j][k] = alpha * A(i, j) * B(k) + beta * Result[i][j][k];
+        }
     }
 
     /**
@@ -2146,14 +2156,23 @@ public:
      */
     static void ContractFourthOrderTensor(TDataType alpha, const Fourth_Order_Tensor& AA, const MatrixType& B, TDataType beta, MatrixType& Result)
     {
+        if (beta == 0.0)
+        {
+            for(unsigned int i = 0; i < 3; ++i)
+                for(unsigned int j = 0; j < 3; ++j)
+                    Result(i, j) = 0.0;
+        }
+        else
+        {
+            for(unsigned int i = 0; i < 3; ++i)
+                for(unsigned int j = 0; j < 3; ++j)
+                    Result(i, j) *= beta;
+        }
         for(unsigned int i = 0; i < 3; ++i)
             for(unsigned int j = 0; j < 3; ++j)
-            {
-                Result(i, j) *= beta;
                 for(unsigned int k = 0; k < 3; ++k)
                     for(unsigned int l = 0; l < 3; ++l)
                         Result(i, j) += alpha * AA[i][j][k][l] * B(k, l);
-            }
     }
 
     /**
@@ -2179,14 +2198,23 @@ public:
      */
     static void ContractFourthOrderTensor(TDataType alpha, const Fourth_Order_Tensor& AA, const SymmetricMatrixType& B, TDataType beta, SymmetricMatrixType& Result)
     {
+        if (beta == 0.0)
+        {
+            for(unsigned int i = 0; i < 3; ++i)
+                for(unsigned int j = i; j < 3; ++j)
+                    Result(i, j) = 0.0;
+        }
+        else
+        {
+            for(unsigned int i = 0; i < 3; ++i)
+                for(unsigned int j = i; j < 3; ++j)
+                    Result(i, j) *= beta;
+        }
         for(unsigned int i = 0; i < 3; ++i)
             for(unsigned int j = i; j < 3; ++j)
-            {
-                Result(i, j) *= beta;
                 for(unsigned int k = 0; k < 3; ++k)
                     for(unsigned int l = 0; l < 3; ++l)
                         Result(i, j) += alpha * AA[i][j][k][l] * B(k, l);
-            }
     }
 
     /**
@@ -2212,9 +2240,18 @@ public:
      */
     static void ContractFourthOrderTensor(TDataType alpha, const MatrixType& A, const Fourth_Order_Tensor& BB, TDataType beta, MatrixType& Result)
     {
-        for(unsigned int i = 0; i < 3; ++i)
-            for(unsigned int j = 0; j < 3; ++j)
-                Result(i, j) *= beta;
+        if (beta == 0.0)
+        {
+            for(unsigned int i = 0; i < 3; ++i)
+                for(unsigned int j = 0; j < 3; ++j)
+                    Result(i, j) = 0.0;
+        }
+        else
+        {
+            for(unsigned int i = 0; i < 3; ++i)
+                for(unsigned int j = 0; j < 3; ++j)
+                    Result(i, j) *= beta;
+        }
         for(unsigned int i = 0; i < 3; ++i)
             for(unsigned int j = 0; j < 3; ++j)
                 for(unsigned int k = 0; k < 3; ++k)
@@ -2245,9 +2282,18 @@ public:
      */
     static void ContractFourthOrderTensor(TDataType alpha, const SymmetricMatrixType& A, const Fourth_Order_Tensor& BB, TDataType beta, SymmetricMatrixType& Result)
     {
-        for(unsigned int i = 0; i < 3; ++i)
-            for(unsigned int j = 0; j < 3; ++j)
-                Result(i, j) *= beta;
+        if (beta == 0.0)
+        {
+            for(unsigned int i = 0; i < 3; ++i)
+                for(unsigned int j = 0; j < 3; ++j)
+                    Result(i, j) = 0.0;
+        }
+        else
+        {
+            for(unsigned int i = 0; i < 3; ++i)
+                for(unsigned int j = 0; j < 3; ++j)
+                    Result(i, j) *= beta;
+        }
         for(unsigned int i = 0; i < 3; ++i)
             for(unsigned int j = 0; j < 3; ++j)
                 for(unsigned int k = 0; k < 3; ++k)
@@ -2280,11 +2326,22 @@ public:
     template<typename TMatrixType1, typename TMatrixType2>
     static void OuterProductFourthOrderTensor(TDataType alpha, const TMatrixType1& A, const TMatrixType2& B, TDataType beta, Fourth_Order_Tensor& Result)
     {
-        for(unsigned int i = 0; i < 3; ++i)
-            for(unsigned int j = 0; j < 3; ++j)
-                for(unsigned int k = 0; k < 3; ++k)
-                    for(unsigned int l = 0; l < 3; ++l)
-                        Result[i][j][k][l] = alpha * A(i, j) * B(k, l) + beta * Result[i][j][k][l];
+        if (beta == 0.0)
+        {
+            for(unsigned int i = 0; i < 3; ++i)
+                for(unsigned int j = 0; j < 3; ++j)
+                    for(unsigned int k = 0; k < 3; ++k)
+                        for(unsigned int l = 0; l < 3; ++l)
+                            Result[i][j][k][l] = alpha * A(i, j) * B(k, l);
+        }
+        else
+        {
+            for(unsigned int i = 0; i < 3; ++i)
+                for(unsigned int j = 0; j < 3; ++j)
+                    for(unsigned int k = 0; k < 3; ++k)
+                        for(unsigned int l = 0; l < 3; ++l)
+                            Result[i][j][k][l] = alpha * A(i, j) * B(k, l) + beta * Result[i][j][k][l];
+        }
     }
 
     /**
@@ -2331,11 +2388,22 @@ public:
     // C = alpha A + beta C
     static inline void AddFourthOrderTensor(TDataType alpha, const Fourth_Order_Tensor& A, TDataType beta, Fourth_Order_Tensor& Result)
     {
-        for(unsigned int i = 0; i < 3; ++i)
-            for(unsigned int j = 0; j < 3; ++j)
-                for(unsigned int k = 0; k < 3; ++k)
-                    for(unsigned int l = 0; l < 3; ++l)
-                        Result[i][j][k][l] = alpha * A[i][j][k][l] + beta * Result[i][j][k][l];
+        if (beta == 0.0)
+        {
+            for(unsigned int i = 0; i < 3; ++i)
+                for(unsigned int j = 0; j < 3; ++j)
+                    for(unsigned int k = 0; k < 3; ++k)
+                        for(unsigned int l = 0; l < 3; ++l)
+                            Result[i][j][k][l] = alpha * A[i][j][k][l];
+        }
+        else
+        {
+            for(unsigned int i = 0; i < 3; ++i)
+                for(unsigned int j = 0; j < 3; ++j)
+                    for(unsigned int k = 0; k < 3; ++k)
+                        for(unsigned int l = 0; l < 3; ++l)
+                            Result[i][j][k][l] = alpha * A[i][j][k][l] + beta * Result[i][j][k][l];
+        }
     }
 
     // C += alpha A
@@ -2350,11 +2418,22 @@ public:
     // C = alpha A + beta C
     static inline void AddFourthOrderTensor(TDataType alpha, const General_Fourth_Order_Tensor& A, TDataType beta, General_Fourth_Order_Tensor& Result)
     {
-        for(unsigned int i = 0; i < A.size(); ++i)
-            for(unsigned int j = 0; j < A[i].size(); ++j)
-                for(unsigned int k = 0; k < A[i][j].size(); ++k)
-                    for(unsigned int l = 0; l < A[i][j][k].size(); ++l)
-                        Result[i][j][k][l] = alpha * A[i][j][k][l] + beta * Result[i][j][k][l];
+        if (beta == 0.0)
+        {
+            for(unsigned int i = 0; i < A.size(); ++i)
+                for(unsigned int j = 0; j < A[i].size(); ++j)
+                    for(unsigned int k = 0; k < A[i][j].size(); ++k)
+                        for(unsigned int l = 0; l < A[i][j][k].size(); ++l)
+                            Result[i][j][k][l] = alpha * A[i][j][k][l];
+        }
+        else
+        {
+            for(unsigned int i = 0; i < A.size(); ++i)
+                for(unsigned int j = 0; j < A[i].size(); ++j)
+                    for(unsigned int k = 0; k < A[i][j].size(); ++k)
+                        for(unsigned int l = 0; l < A[i][j][k].size(); ++l)
+                            Result[i][j][k][l] = alpha * A[i][j][k][l] + beta * Result[i][j][k][l];
+        }
     }
 
     // C_ijkl += alpha A_ijmn * B_mnkl
@@ -2372,16 +2451,30 @@ public:
     // C_ijkl = alpha A_ijmn * B_mnkl + beta C_ijkl
     static inline void ProductFourthOrderTensor(TDataType alpha, const Fourth_Order_Tensor& A, const Fourth_Order_Tensor& B, TDataType beta, Fourth_Order_Tensor& Result)
     {
+        if (beta == 0.0)
+        {
+            for(unsigned int i = 0; i < 3; ++i)
+                for(unsigned int j = 0; j < 3; ++j)
+                    for(unsigned int k = 0; k < 3; ++k)
+                        for(unsigned int l = 0; l < 3; ++l)
+                            Result[i][j][k][l] = 0.0;
+        }
+        else
+        {
+            for(unsigned int i = 0; i < 3; ++i)
+                for(unsigned int j = 0; j < 3; ++j)
+                    for(unsigned int k = 0; k < 3; ++k)
+                        for(unsigned int l = 0; l < 3; ++l)
+                            Result[i][j][k][l] *= beta;
+        }
+
         for(unsigned int i = 0; i < 3; ++i)
             for(unsigned int j = 0; j < 3; ++j)
                 for(unsigned int k = 0; k < 3; ++k)
                     for(unsigned int l = 0; l < 3; ++l)
-                    {
-                        Result[i][j][k][l] *= beta;
                         for(unsigned int m = 0; m < 3; ++m)
                             for(unsigned int n = 0; n < 3; ++n)
                                 Result[i][j][k][l] += alpha * A[i][j][m][n] * B[m][n][k][l];
-                    }
     }
 
     // A_ijkl = alpha A_ijmn * B_mnkl
