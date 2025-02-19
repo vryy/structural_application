@@ -135,6 +135,8 @@ public:
     Vector& GetValue( const Variable<Vector>& rThisVariable, Vector& rValue ) override;
     Matrix& GetValue( const Variable<Matrix>& rThisVariable, Matrix& rValue ) override;
 
+    void SetValue( const Variable<bool>& rThisVariable, const bool& rValue,
+                   const ProcessInfo& rCurrentProcessInfo ) override;
     void SetValue( const Variable<int>& rThisVariable, const int& rValue,
                    const ProcessInfo& rCurrentProcessInfo ) override;
     void SetValue( const Variable<double>& rThisVariable, const double& rValue,
@@ -260,17 +262,30 @@ public:
     {}
 
 protected:
-    /**
-     * there are no protected class members
-     */
+
+    virtual double DamageFunction(const double kappa) const;
+
+    virtual double DamageFunctionDerivative(const double kappa) const;
+
 private:
 
     double mFt, mGf, mE, mNU, mE_0, mL, mE_f, mD;
+    Vector mCurrentStrain;
     Vector mCurrentStress;
     double mAlpha, mAlpha_old, mAlpha_old_old, mdAlpha, mAlpha_alg;
     double mq, mq_old, mq_alg;
     double mDamage_alg;
     Matrix mC_alg;
+    double mDeltaTime, mDeltaTime_old;
+
+    double mInitialDamage;
+    double mInitialEps;
+    int mDamageFlag;
+
+    int mElemId, mGaussId;
+
+    /// Compute kappa, providing damage
+    double ComputeKappa(const double d, const double TOL = 1e-10, const int max_iters = 30) const;
 
     ///@name Serialization
     ///@{
