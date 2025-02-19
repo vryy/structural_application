@@ -86,11 +86,7 @@ class CollinearConstraint2D : public Condition
 public:
     typedef Condition BaseType;
     typedef BaseType::EquationIdVectorType EquationIdVectorType;
-    typedef BaseType::MatrixType LHS_ContributionType;
 
-    typedef Condition::GeometryType::Pointer PointerGeometryType;
-
-    // Counted pointer of PointPointContactLink
     KRATOS_CLASS_POINTER_DEFINITION(CollinearConstraint2D);
 
     /**
@@ -118,27 +114,27 @@ public:
      */
     Condition::Pointer Create( IndexType NewId,
                                NodesArrayType const& ThisNodes,
-                               PropertiesType::Pointer pProperties) const final;
+                               PropertiesType::Pointer pProperties ) const final;
 
     Condition::Pointer Create( IndexType NewId,
                                GeometryType::Pointer pGeom,
-                               PropertiesType::Pointer pProperties) const final;
+                               PropertiesType::Pointer pProperties ) const final;
 
     /**
      * Calculates the local system contributions for this contact element
      */
     void CalculateLocalSystem( MatrixType& rLeftHandSideMatrix,
                                VectorType& rRightHandSideVector,
-                               const ProcessInfo& rCurrentProcessInfo) final;
+                               const ProcessInfo& rCurrentProcessInfo ) final;
 
     void CalculateRightHandSide( VectorType& rRightHandSideVector,
-                                 const ProcessInfo& rCurrentProcessInfo) final;
+                                 const ProcessInfo& rCurrentProcessInfo ) final;
 
     void EquationIdVector( EquationIdVectorType& rResult,
-                           const ProcessInfo& rCurrentProcessInfo) const final;
+                           const ProcessInfo& rCurrentProcessInfo ) const final;
 
     void GetDofList( DofsVectorType& ConditionalDofList,
-                     const ProcessInfo& CurrentProcessInfo) const final;
+                     const ProcessInfo& CurrentProcessInfo ) const final;
 
     std::string Info() const final
     {
@@ -151,7 +147,7 @@ private:
                        VectorType& rRightHandSideVector,
                        const ProcessInfo& rCurrentProcessInfo,
                        bool CalculateStiffnessMatrixFlag,
-                       bool CalculateResidualVectorFlag);
+                       bool CalculateResidualVectorFlag );
 
     friend class Serializer;
 
@@ -169,7 +165,7 @@ private:
     }
 
 }; // Class CollinearConstraint2D
+
 }  // namespace Kratos.
 
 #endif // KRATOS_COLLINEAR_CONSTRAINT_CONDITION_H_INCLUDED  defined
-

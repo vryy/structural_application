@@ -86,9 +86,9 @@ namespace Kratos
     {
     }
 
-    void UpdatedKinematicLinear::CalculateJacobian( GeometryType::JacobiansType& J ) const
+    void UpdatedKinematicLinear::CalculateJacobian( GeometryType::JacobiansType& J, const IntegrationMethod ThisIntegrationMethod ) const
     {
-        J = GetGeometry().Jacobian( J, mThisIntegrationMethod );
+        J = GetGeometry().Jacobian( J, ThisIntegrationMethod );
     }
 
 } // Namespace Kratos

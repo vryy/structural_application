@@ -73,7 +73,7 @@ public:
     ElasticFaceSprings( IndexType NewId, Node<3>::Pointer const& pNode, PropertiesType::Pointer pProperties );
 
     /// Destructor.
-    virtual ~ElasticFaceSprings();
+    ~ElasticFaceSprings() override;
 
 
     ///@}
@@ -85,24 +85,19 @@ public:
     ///@name Operations
     ///@{
 
-    Condition::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,
-                                PropertiesType::Pointer pProperties) const;
+    IntegrationMethod GetIntegrationMethod() const override;
 
-    Condition::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom,
-                                PropertiesType::Pointer pProperties) const;
+    Condition::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override;
 
-    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType&
-                              rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo);
+    Condition::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override;
 
-    void CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo&
-                                rCurrentProcessInfo);
-    //virtual void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo);
+    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
 
-    void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo&
-                          rCurrentProcessInfo) const;
+    void CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
 
-    void GetDofList(DofsVectorType& ConditionalDofList, const ProcessInfo&
-                    CurrentProcessInfo) const;
+    void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const override;
+
+    void GetDofList(DofsVectorType& rConditionalDofList, const ProcessInfo& rCurrentProcessInfo) const override;
 
     ///@}
     ///@name Access
@@ -119,14 +114,20 @@ public:
     ///@{
 
     /// Turn back information as a string.
-//      virtual String Info() const;
+    std::string Info() const override
+    {
+        return "ElasticFaceSprings";
+    }
 
     /// Print information about this object.
-//      virtual void PrintInfo(std::ostream& rOStream) const;
+    void PrintInfo(std::ostream& rOStream) const override
+    {
+        BaseType::PrintInfo(rOStream);
+    }
 
     /// Print object's data.
-//      virtual void PrintData(std::ostream& rOStream) const;
-
+    void PrintData(std::ostream& rOStream) const override
+    {}
 
     ///@}
     ///@name Friends
@@ -159,12 +160,12 @@ protected:
     // A private default constructor necessary for serialization
     ElasticFaceSprings() {};
 
-    virtual void save(Serializer& rSerializer) const
+    void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Condition );
     }
 
-    virtual void load(Serializer& rSerializer)
+    void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Condition );
     }
@@ -196,18 +197,18 @@ private:
     ///@{
 
 
-
     ///@}
     ///@name Private Operators
     ///@{
 
+
     ///@}
     ///@name Private Operations
     ///@{
+
     void CalculateAll( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector,
                        const ProcessInfo& rCurrentProcessInfo, bool CalculateStiffnessMatrixFlag,
                        bool CalculateResidualVectorFlag );
-
 
     ///@}
     ///@name Private  Access
@@ -245,25 +246,8 @@ private:
 ///@{
 
 
-/// input stream function
-/*  inline std::istream& operator >> (std::istream& rIStream,
-				    ElasticFaceSprings& rThis);
-*/
-/// output stream function
-/*  inline std::ostream& operator << (std::ostream& rOStream,
-				    const ElasticFaceSprings& rThis)
-    {
-      rThis.PrintInfo(rOStream);
-      rOStream << std::endl;
-      rThis.PrintData(rOStream);
-
-      return rOStream;
-    }*/
 ///@}
 
 }  // namespace Kratos.
 
 #endif // KRATOS_ELASTIC_FACE_SPRINGS_CONDITION_H_INCLUDED  defined
-
-
-

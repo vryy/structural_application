@@ -177,7 +177,7 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    void CalculateJacobian( GeometryType::JacobiansType& J0 ) const override;
+    void CalculateJacobian( GeometryType::JacobiansType& J0, const IntegrationMethod ThisIntegrationMethod ) const override;
 
     ///@}
     ///@name Serialization

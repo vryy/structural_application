@@ -256,8 +256,9 @@ public:
     void PrintData(std::ostream& rOStream) const override
     {
         Element::PrintData(rOStream);
+        const IntegrationMethod ThisIntegrationMethod = this->GetIntegrationMethod();
         rOStream << "mConstitutiveLawVector::size = " << mConstitutiveLawVector.size() << std::endl;
-        rOStream << "IntegrationMethod: " << static_cast<std::underlying_type<IntegrationMethod>::type>(mThisIntegrationMethod);
+        rOStream << "IntegrationMethod: " << static_cast<std::underlying_type<IntegrationMethod>::type>(ThisIntegrationMethod);
     }
 
     ///@}
@@ -277,7 +278,6 @@ protected:
     ///@{
 
     MatrixType mInitialDisp;
-    IntegrationMethod mThisIntegrationMethod;
     std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector;
 
     ///@}
@@ -304,7 +304,7 @@ protected:
         return Weight;
     }
 
-    virtual void CalculateJacobian( GeometryType::JacobiansType& J ) const;
+    virtual void CalculateJacobian( GeometryType::JacobiansType& J, const IntegrationMethod ThisIntegrationMethod ) const;
 
     ///@}
     ///@name Serialization
@@ -319,7 +319,6 @@ protected:
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer,  Element );
         rSerializer.save( "mInitialDisp", mInitialDisp );
-        rSerializer.save( "mThisIntegrationMethod", static_cast<int>(mThisIntegrationMethod) );
         rSerializer.save( "mConstitutiveLawVector", mConstitutiveLawVector );
     }
 
@@ -328,8 +327,6 @@ protected:
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer,  Element );
         rSerializer.load( "mInitialDisp", mInitialDisp );
         int tmp;
-        rSerializer.load( "mThisIntegrationMethod", tmp );
-        mThisIntegrationMethod = static_cast<IntegrationMethod>(tmp);
         rSerializer.load( "mConstitutiveLawVector", mConstitutiveLawVector );
     }
 

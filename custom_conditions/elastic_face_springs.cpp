@@ -67,8 +67,7 @@ namespace Kratos
 {
 //************************************************************************************
 //************************************************************************************
-ElasticFaceSprings::ElasticFaceSprings(IndexType NewId, GeometryType::Pointer
-                           pGeometry)
+ElasticFaceSprings::ElasticFaceSprings(IndexType NewId, GeometryType::Pointer pGeometry)
     : Condition(NewId, pGeometry)
 {
     //DO NOT ADD DOFS HERE!!!
@@ -79,8 +78,8 @@ ElasticFaceSprings::ElasticFaceSprings(IndexType NewId, GeometryType::Pointer pG
 {
 }
 
-ElasticFaceSprings::ElasticFaceSprings( IndexType NewId, Node<3>::Pointer const& pNode, PropertiesType::Pointer pProperties )
-    : Condition( NewId, GeometryType::Pointer( new Point3D<Node<3> >( pNode ) ), pProperties )
+ElasticFaceSprings::ElasticFaceSprings(IndexType NewId, Node<3>::Pointer const& pNode, PropertiesType::Pointer pProperties)
+    : Condition(NewId, GeometryType::Pointer( new Point3D<Node<3> >( pNode ) ), pProperties)
 {
 }
 
@@ -90,16 +89,72 @@ ElasticFaceSprings::~ElasticFaceSprings()
 
 //************************************************************************************
 //************************************************************************************
-Condition::Pointer ElasticFaceSprings::Create(IndexType NewId, NodesArrayType const& ThisNodes,
-        PropertiesType::Pointer pProperties) const
+Condition::Pointer ElasticFaceSprings::Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
 {
     return Condition::Pointer(new ElasticFaceSprings(NewId, GetGeometry().Create(ThisNodes), pProperties));
 }
 
-Condition::Pointer ElasticFaceSprings::Create(IndexType NewId, GeometryType::Pointer pGeom,
-        PropertiesType::Pointer pProperties) const
+Condition::Pointer ElasticFaceSprings::Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const
 {
     return Condition::Pointer(new ElasticFaceSprings(NewId, pGeom, pProperties));
+}
+
+//************************************************************************************
+//************************************************************************************
+GeometryData::IntegrationMethod ElasticFaceSprings::GetIntegrationMethod() const
+{
+    if(this->Has( INTEGRATION_ORDER ))
+    {
+        if(this->GetValue(INTEGRATION_ORDER) == 1)
+        {
+            return GeometryData::IntegrationMethod::GI_GAUSS_1;
+        }
+        else if(this->GetValue(INTEGRATION_ORDER) == 2)
+        {
+            return GeometryData::IntegrationMethod::GI_GAUSS_2;
+        }
+        else if(this->GetValue(INTEGRATION_ORDER) == 3)
+        {
+            return GeometryData::IntegrationMethod::GI_GAUSS_3;
+        }
+        else if(this->GetValue(INTEGRATION_ORDER) == 4)
+        {
+            return GeometryData::IntegrationMethod::GI_GAUSS_4;
+        }
+        else if(this->GetValue(INTEGRATION_ORDER) == 5)
+        {
+            return GeometryData::IntegrationMethod::GI_GAUSS_5;
+        }
+        else
+            KRATOS_ERROR << Info() << " does not support for integration order " << this->GetValue(INTEGRATION_ORDER);
+    }
+    else if(GetProperties().Has( INTEGRATION_ORDER ))
+    {
+        if(GetProperties()[INTEGRATION_ORDER] == 1)
+        {
+            return GeometryData::IntegrationMethod::GI_GAUSS_1;
+        }
+        else if(GetProperties()[INTEGRATION_ORDER] == 2)
+        {
+            return GeometryData::IntegrationMethod::GI_GAUSS_2;
+        }
+        else if(GetProperties()[INTEGRATION_ORDER] == 3)
+        {
+            return GeometryData::IntegrationMethod::GI_GAUSS_3;
+        }
+        else if(GetProperties()[INTEGRATION_ORDER] == 4)
+        {
+            return GeometryData::IntegrationMethod::GI_GAUSS_4;
+        }
+        else if(GetProperties()[INTEGRATION_ORDER] == 5)
+        {
+            return GeometryData::IntegrationMethod::GI_GAUSS_5;
+        }
+        else
+            KRATOS_ERROR << Info() << " does not support for integration order " << GetProperties()[INTEGRATION_ORDER];
+    }
+    else
+        return GetGeometry().GetDefaultIntegrationMethod(); // default method
 }
 
 //************************************************************************************
@@ -137,11 +192,9 @@ void ElasticFaceSprings::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, V
 
 //************************************************************************************
 //************************************************************************************
-
-
 void ElasticFaceSprings::CalculateAll( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector,
-                                      const ProcessInfo& rCurrentProcessInfo, bool CalculateStiffnessMatrixFlag,
-                                      bool CalculateResidualVectorFlag )
+                                       const ProcessInfo& rCurrentProcessInfo, bool CalculateStiffnessMatrixFlag,
+                                       bool CalculateResidualVectorFlag )
 {
     KRATOS_TRY
 
@@ -169,61 +222,7 @@ void ElasticFaceSprings::CalculateAll( MatrixType& rLeftHandSideMatrix, VectorTy
     }
     else
     {
-        GeometryData::IntegrationMethod ThisIntegrationMethod;
-
-        // integration rule
-        if(this->Has( INTEGRATION_ORDER ))
-        {
-            if(this->GetValue(INTEGRATION_ORDER) == 1)
-            {
-                ThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_1;
-            }
-            else if(this->GetValue(INTEGRATION_ORDER) == 2)
-            {
-                ThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_2;
-            }
-            else if(this->GetValue(INTEGRATION_ORDER) == 3)
-            {
-                ThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_3;
-            }
-            else if(this->GetValue(INTEGRATION_ORDER) == 4)
-            {
-                ThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_4;
-            }
-            else if(this->GetValue(INTEGRATION_ORDER) == 5)
-            {
-                ThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_5;
-            }
-            else
-                KRATOS_THROW_ERROR(std::logic_error, "ElasticFaceSprings element does not support for integration rule", this->GetValue(INTEGRATION_ORDER))
-        }
-        else if(GetProperties().Has( INTEGRATION_ORDER ))
-        {
-            if(GetProperties()[INTEGRATION_ORDER] == 1)
-            {
-                ThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_1;
-            }
-            else if(GetProperties()[INTEGRATION_ORDER] == 2)
-            {
-                ThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_2;
-            }
-            else if(GetProperties()[INTEGRATION_ORDER] == 3)
-            {
-                ThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_3;
-            }
-            else if(GetProperties()[INTEGRATION_ORDER] == 4)
-            {
-                ThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_4;
-            }
-            else if(GetProperties()[INTEGRATION_ORDER] == 5)
-            {
-                ThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_5;
-            }
-            else
-                KRATOS_THROW_ERROR(std::logic_error, "KinematicLinear element does not support for integration points", GetProperties()[INTEGRATION_ORDER])
-        }
-        else
-            ThisIntegrationMethod = GetGeometry().GetDefaultIntegrationMethod(); // default method
+        const GeometryData::IntegrationMethod ThisIntegrationMethod = this->GetIntegrationMethod();
 
         #ifdef ENABLE_BEZIER_GEOMETRY
         //initialize the geometry
@@ -329,7 +328,6 @@ void ElasticFaceSprings::CalculateAll( MatrixType& rLeftHandSideMatrix, VectorTy
     }
 
     KRATOS_CATCH("")
-
 }
 
 
@@ -355,26 +353,22 @@ void ElasticFaceSprings::EquationIdVector(EquationIdVectorType& rResult, const P
 
 //************************************************************************************
 //************************************************************************************
-void ElasticFaceSprings::GetDofList(DofsVectorType& ConditionalDofList, const ProcessInfo& CurrentProcessInfo) const
+void ElasticFaceSprings::GetDofList(DofsVectorType& rConditionalDofList, const ProcessInfo& rCurrentProcessInfo) const
 {
     unsigned int number_of_nodes = GetGeometry().size();
     unsigned int index;
     unsigned int dim = 3;
 
-    if(ConditionalDofList.size() != number_of_nodes*dim)
-        ConditionalDofList.resize(number_of_nodes*dim);
+    if(rConditionalDofList.size() != number_of_nodes*dim)
+        rConditionalDofList.resize(number_of_nodes*dim);
 
     for (unsigned int i = 0; i < number_of_nodes; i++)
     {
         index = i*dim;
-        ConditionalDofList[index] = (GetGeometry()[i].pGetDof(DISPLACEMENT_X));
-        ConditionalDofList[index+1] = (GetGeometry()[i].pGetDof(DISPLACEMENT_Y));
-        ConditionalDofList[index+2] = (GetGeometry()[i].pGetDof(DISPLACEMENT_Z));
+        rConditionalDofList[index] = (GetGeometry()[i].pGetDof(DISPLACEMENT_X));
+        rConditionalDofList[index+1] = (GetGeometry()[i].pGetDof(DISPLACEMENT_Y));
+        rConditionalDofList[index+2] = (GetGeometry()[i].pGetDof(DISPLACEMENT_Z));
     }
 }
 
-
 } // Namespace Kratos
-
-
-
