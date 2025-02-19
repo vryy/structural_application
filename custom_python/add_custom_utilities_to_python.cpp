@@ -402,6 +402,19 @@ void VectorTransferVariablesBetweenMeshes(VariableTransferUtility& dummy,
     dummy.TransferVariablesBetweenMeshes(rSource, rTarget, rThisVariable);
 }
 
+void VariableProjectionUtility_TransferVariablesToNodes1(VariableProjectionUtility& rDummy,
+        const Variable<double>& rThisVariable, const ProcessInfo& rCurrentProcessInfo)
+{
+    rDummy.TransferVariablesToNodes(rThisVariable, rCurrentProcessInfo);
+}
+
+void VariableProjectionUtility_TransferVariablesToNodes2(VariableProjectionUtility& rDummy,
+        const Variable<double>& rIntegrationPointVariable, const Variable<double>& rNodalVariable,
+        const ProcessInfo& rCurrentProcessInfo)
+{
+    rDummy.TransferVariablesToNodes(rIntegrationPointVariable, rNodalVariable, rCurrentProcessInfo);
+}
+
 void ListDofs(DofUtility& dummy, ModelPart::DofsArrayType& rDofSet, std::size_t EquationSystemSize)
 {
     dummy.ListDofs(rDofSet, EquationSystemSize);
@@ -649,7 +662,8 @@ void  AddCustomUtilitiesToPython()
 
     class_<VariableProjectionUtility, bases<VariableUtility>, boost::noncopyable >
     ( "VariableProjectionUtility", init<ModelPart::ElementsContainerType&, VariableProjectionUtility::LinearSolverType::Pointer>() )
-    .def("TransferVariablesToNodes", &VariableProjectionUtility::TransferVariablesToNodes)
+    .def("TransferVariablesToNodes", &VariableProjectionUtility_TransferVariablesToNodes1)
+    .def("TransferVariablesToNodes", &VariableProjectionUtility_TransferVariablesToNodes2)
     ;
 
     void(VariableInterpolationUtility::*pointer_to_TransferVariablesToNodesDouble1)(ModelPart&, const Variable<double>&) = &VariableInterpolationUtility::TransferVariablesToNodes;

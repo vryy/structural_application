@@ -130,6 +130,15 @@ public:
      */
     void TransferVariablesToNodes( const Variable<double>& rThisVariable, const ProcessInfo& rProcessInfo )
     {
+        this->TransferVariablesToNodes( rThisVariable, rThisVariable, rProcessInfo );
+    }
+
+    /**
+     * Transfer the double variable from Gauss point to nodes
+     * Here a different element set is allowed to compute the right hand side. This element set shall have the same connectivities as the element set used in Initialize.
+     */
+    void TransferVariablesToNodes( const Variable<double>& rIntegrationPointVariable, const Variable<double>& rNodalVariable, const ProcessInfo& rProcessInfo )
+    {
         NodesContainerType pActiveNodes;
         std::map<std::size_t, std::size_t> NodeRowId;
         this->ExtractActiveNodes(BaseType::mpElements, pActiveNodes, NodeRowId);
@@ -187,7 +196,7 @@ public:
                 J = it->GetGeometry().Jacobian(J, it->GetIntegrationMethod());
 
                 std::vector<double> ValuesOnIntPoint(integration_points.size());
-                it->CalculateOnIntegrationPoints(rThisVariable, ValuesOnIntPoint, rProcessInfo);
+                it->CalculateOnIntegrationPoints(rIntegrationPointVariable, ValuesOnIntPoint, rProcessInfo);
 
                 const Matrix& Ncontainer = it->GetGeometry().ShapeFunctionsValues(it->GetIntegrationMethod());
 
@@ -221,14 +230,16 @@ public:
 
         for(NodesContainerType::iterator it = pActiveNodes.begin() ; it != pActiveNodes.end() ; it++)
         {
-            it->GetSolutionStepValue(rThisVariable) = g(NodeRowId[it->Id()]);
+            it->GetSolutionStepValue(rNodalVariable) = g(NodeRowId[it->Id()]);
         }
 
 #ifdef _OPENMP
         for(unsigned int i = 0; i < M_size; ++i)
             omp_destroy_lock(&lock_array[i]);
 #endif
-        std::cout << "TransferVariablesToNodes for " << rThisVariable.Name() << " completed" << std::endl;
+        std::cout << "TransferVariablesToNodes from " << rIntegrationPointVariable.Name()
+                  << " to " << rNodalVariable.Name()
+                  << " completed" << std::endl;
     }
 
 protected:
