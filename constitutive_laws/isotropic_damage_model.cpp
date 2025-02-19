@@ -56,6 +56,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // External includes
 
 // Project includes
+#ifndef SD_APP_FORWARD_COMPATIBILITY
+#include "includes/c2c_variables.h" // contain KAPPA
+#endif
 #include "utilities/math_utils.h"
 #include "custom_utilities/sd_math_utils.h"
 #include "constitutive_laws/isotropic_damage_model.h"
@@ -110,6 +113,20 @@ double& IsotropicDamageModel::GetValue( const Variable<double>& rThisVariable, d
         rValue = mCurrentDamage;
     if( rThisVariable == INITIAL_DAMAGE )
         rValue = mInitialDamage;
+    if( rThisVariable == KAPPA )
+        rValue = mKappa;
+    if( rThisVariable == EQUIVALENT_STRAIN )
+    {
+        SD_MathUtils<double>::Fourth_Order_Tensor De;
+        SD_MathUtils<double>::CalculateFourthOrderZeroTensor(De);
+        SD_MathUtils<double>::CalculateElasticTensor(De, mE, mNU);
+
+        Matrix stress_no_damage(3, 3);
+        stress_no_damage.clear();
+        SD_MathUtils<double>::ContractFourthOrderTensor(1.0, De, m_strain_n1, stress_no_damage);
+
+        rValue = std::sqrt(SD_MathUtils<double>::mat_inner_prod(stress_no_damage, m_strain_n1) / mE) - mInitialEps;
+    }
 
     return rValue;
 }
@@ -134,7 +151,18 @@ void IsotropicDamageModel::SetValue( const Variable<bool>& rThisVariable, const 
     {
         if (rValue)
             mDamageFlag = -1;
+        else
+            mDamageFlag = 0;
     }
+}
+
+void IsotropicDamageModel::SetValue( const Variable<int>& rThisVariable, const int& rValue,
+                                     const ProcessInfo& rCurrentProcessInfo )
+{
+    if( rThisVariable == PARENT_ELEMENT_ID )
+        mElemId = rValue;
+    if( rThisVariable == INTEGRATION_POINT_INDEX )
+        mGaussId = rValue;
 }
 
 void IsotropicDamageModel::SetValue( const Variable<double>& rThisVariable, const double& rValue,
@@ -158,6 +186,7 @@ void IsotropicDamageModel::SetValue( const Variable<double>& rThisVariable, cons
     {
         mCurrentDamage = rValue;
         mKappa = this->ComputeKappa(mCurrentDamage);
+        mKappa_old = mKappa;
         // KRATOS_WATCH(rValue)
         // KRATOS_WATCH(mKappa)
         // if (mKappa == 0.0)
@@ -167,6 +196,10 @@ void IsotropicDamageModel::SetValue( const Variable<double>& rThisVariable, cons
             KRATOS_ERROR << "The damage " << mCurrentDamage << " does not fall in range [0 1]";
         }
         // std::cout << "Damage is set to " << mCurrentDamage << std::endl;
+    }
+    if( rThisVariable == EQUIVALENT_STRAIN )
+    {
+        mInitialEps = rValue;
     }
 }
 
@@ -194,6 +227,7 @@ void IsotropicDamageModel::InitializeMaterial( const Properties& props,
 {
     m_stress_n  = ZeroMatrix( 3, 3 );
     m_stress_n1 = ZeroMatrix( 3, 3 );
+    m_strain_n1 = ZeroMatrix( 3, 3 );
     mE   = props[YOUNG_MODULUS];
     mNU  = props[POISSON_RATIO];
     mE_0 = props[DAMAGE_E0];
@@ -202,12 +236,18 @@ void IsotropicDamageModel::InitializeMaterial( const Properties& props,
     mKappa_old = mKappa;
     mCurrentDamage = 0.0;
     mInitialDamage = 0.0;
+    mInitialEps    = 0.0;
     mDamageFlag    = 0;
 }
 
 void IsotropicDamageModel::ResetMaterial( const Properties& props,
         const GeometryType& geom,
         const Vector& ShapeFunctionsValues )
+{
+    this->ResetState();
+}
+
+void IsotropicDamageModel::ResetState()
 {
     mKappa = mE_0;
     mKappa_old = mKappa;
@@ -228,6 +268,8 @@ void IsotropicDamageModel::InitializeNonLinearIteration( const Properties& props
         const Vector& ShapeFunctionsValues ,
         const ProcessInfo& CurrentProcessInfo )
 {
+    // restore mKappa
+    mKappa = mKappa_old;
 }
 
 void IsotropicDamageModel::FinalizeNonLinearIteration( const Properties& props,
@@ -289,73 +331,90 @@ void  IsotropicDamageModel::CalculateMaterialResponse( const Vector& StrainVecto
 
     if (CalculateStresses)
     {
-        // equivalent strain
-        Matrix strain_tensor(3, 3);
-        SD_MathUtils<double>::StrainVectorToTensor(StrainVector, strain_tensor);
-        double eps = std::sqrt(SD_MathUtils<double>::mat_inner_prod(strain_tensor, strain_tensor));
+        this->StressIntegration(StrainVector, TOL, CurrentProcessInfo, props);
 
-        // loading check
-        if (mDamageFlag != -1) // -1 is the special value. It will stop the damage update
+        SD_MathUtils<double>::StressTensorToVector(m_stress_n1, StressVector);
+
         {
-            if( eps > mKappa + TOL )
-            {
-                mKappa = eps;
-                mDamageFlag = 1;
-            }
-            else
-            {
-                mDamageFlag = 0;
-            }
-
-            // damage parameter
-            mCurrentDamage = mInitialDamage + this->DamageFunction(mKappa);
         }
+    }
 
-        SD_MathUtils<double>::Fourth_Order_Tensor De;
-        SD_MathUtils<double>::CalculateFourthOrderZeroTensor(De);
-        SD_MathUtils<double>::CalculateElasticTensor(De, mE, mNU);
+    if (CalculateTangent)
+    {
+        this->ComputeTangent(AlgorithmicTangent, CurrentProcessInfo, props);
+    }
 
-        // stress update
-        Matrix stress_no_damage(3, 3);
-        SD_MathUtils<double>::ContractFourthOrderTensor(1.0, De, strain_tensor, 0.0, stress_no_damage);
-        noalias(m_stress_n1) = (1.0 - mCurrentDamage) * stress_no_damage;
 
         // KRATOS_WATCH(mE_0)
         // KRATOS_WATCH(mE_f)
         // KRATOS_WATCH(mKappa)
         // KRATOS_WATCH(d)
         // KRATOS_WATCH(this->DamageFunctionDerivative(mKappa))
+}
 
-        // copy back the data
-        if (CalculateStresses)
-            SD_MathUtils<double>::StressTensorToVector(m_stress_n1, StressVector);
-    }
+void IsotropicDamageModel::StressIntegration(const Vector& StrainVector, const double TOL,
+            const ProcessInfo& CurrentProcessInfo, const Properties& rProperties)
+{
+    // equivalent strain
+    SD_MathUtils<double>::StrainVectorToTensor(StrainVector, m_strain_n1);
 
-    if (CalculateTangent)
+    SD_MathUtils<double>::Fourth_Order_Tensor De;
+    SD_MathUtils<double>::CalculateFourthOrderZeroTensor(De);
+    SD_MathUtils<double>::CalculateElasticTensor(De, mE, mNU);
+
+    Matrix stress_no_damage(3, 3);
+    stress_no_damage.clear();
+    SD_MathUtils<double>::ContractFourthOrderTensor(1.0, De, m_strain_n1, stress_no_damage);
+
+    double eps = std::sqrt(SD_MathUtils<double>::mat_inner_prod(stress_no_damage, m_strain_n1) / mE) - mInitialEps;
+
+    // loading check
+    if (mDamageFlag != -1) // -1 is the special value. It will stop the damage update
     {
-        Matrix strain_tensor(3, 3);
-        SD_MathUtils<double>::StrainVectorToTensor(StrainVector, strain_tensor);
-
-        SD_MathUtils<double>::Fourth_Order_Tensor D;
-        SD_MathUtils<double>::CalculateFourthOrderZeroTensor(D);
-        SD_MathUtils<double>::CalculateElasticTensor(D, mE, mNU);
-
-        Matrix stress_no_damage(3, 3);
-        SD_MathUtils<double>::ContractFourthOrderTensor(1.0, D, strain_tensor, 0.0, stress_no_damage);
-
-        SD_MathUtils<double>::ScaleFourthOrderTensor(D, 1.0 - mCurrentDamage);
-        if (mDamageFlag)
+        if( eps > mKappa + TOL )
         {
-            Matrix dd_de(3, 3);
-            noalias(dd_de) = this->DamageFunctionDerivative(mKappa) * strain_tensor;
-            SD_MathUtils<double>::OuterProductFourthOrderTensor(-1.0, stress_no_damage, dd_de, D);
+            mKappa = eps;
+            mDamageFlag = 1;
+        }
+        else
+        {
+            mDamageFlag = 0;
         }
 
-        SD_MathUtils<double>::TensorToMatrix(D, AlgorithmicTangent);
+        // damage parameter
+        // here we do not allow the damage to exceed 1 by multiplying it with the rest of the initial damage
+        mCurrentDamage = mInitialDamage + (1.0 - mInitialDamage) * this->DamageFunction(mKappa);
     }
 
     // KRATOS_WATCH(StressVector)
     // KRATOS_WATCH(AlgorithmicTangent)
+    // stress update
+    noalias(m_stress_n1) = (1.0 - mCurrentDamage) * stress_no_damage;
+
+}
+
+void IsotropicDamageModel::ComputeTangent(Matrix& AlgorithmicTangent,
+        const ProcessInfo& CurrentProcessInfo, const Properties& rProperties) const
+{
+    SD_MathUtils<double>::Fourth_Order_Tensor D;
+    SD_MathUtils<double>::CalculateFourthOrderZeroTensor(D);
+    SD_MathUtils<double>::CalculateElasticTensor(D, mE, mNU);
+
+    Matrix stress_no_damage(3, 3);
+    stress_no_damage.clear();
+    SD_MathUtils<double>::ContractFourthOrderTensor(1.0, D, m_strain_n1, stress_no_damage);
+
+    SD_MathUtils<double>::ScaleFourthOrderTensor(D, 1.0 - mCurrentDamage);
+    if (mDamageFlag > 0)
+    {
+        double eps = std::sqrt(SD_MathUtils<double>::mat_inner_prod(stress_no_damage, m_strain_n1) / mE);
+
+        Matrix dd_de(3, 3); // derivatives of mCurrentDamage w.r.t strain tensor
+        noalias(dd_de) = (1.0 - mInitialDamage) * this->DamageFunctionDerivative(mKappa) * stress_no_damage / (mE*eps);
+        SD_MathUtils<double>::OuterProductFourthOrderTensor(-1.0, stress_no_damage, dd_de, D);
+    }
+
+    SD_MathUtils<double>::TensorToMatrix(D, AlgorithmicTangent);
 }
 
 double IsotropicDamageModel::DamageFunction(const double kappa) const

@@ -84,6 +84,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "constitutive_laws/hypoelastic_finite_strain_bridging_constitutive_law.h"
 #include "constitutive_laws/hypoelastic_finite_strain_bridging_constitutive_law_dc.h"
 #include "constitutive_laws/values_container_constitutive_law.h"
+#include "constitutive_laws/constitutive_law_dc_wrapper.h"
 
 namespace Kratos
 {
@@ -226,6 +227,12 @@ void  AddConstitutiveLawsToPython()
 
     class_< IsotropicDamageModel, bases< ConstitutiveLawBaseType >, boost::noncopyable >
     ( "IsotropicDamageModel",
+      init<>() )
+    .def( init<>() )
+    ;
+
+    class_< ConstitutiveLawDcWrapper<IsotropicDamageModel>, bases< ConstitutiveLawBaseType >, boost::noncopyable >
+    ( "IsotropicDamageModelDC",
       init<>() )
     .def( init<>() )
     ;

@@ -137,6 +137,8 @@ public:
 
     void SetValue( const Variable<bool>& rThisVariable, const bool& rValue,
                    const ProcessInfo& rCurrentProcessInfo ) override;
+    void SetValue( const Variable<int>& rThisVariable, const int& rValue,
+                   const ProcessInfo& rCurrentProcessInfo ) override;
     void SetValue( const Variable<double>& rThisVariable, const double& rValue,
                    const ProcessInfo& rCurrentProcessInfo ) override;
     void SetValue( const Variable<array_1d<double, 3 > >& rThisVariable,
@@ -261,15 +263,31 @@ protected:
 
     virtual double DamageFunctionDerivative(const double kappa) const;
 
+    /// Integrate new stress for DC wrapper
+    void StressIntegration(const Vector& StrainVector, const double TOL,
+            const ProcessInfo& CurrentProcessInfo, const Properties& rProperties);
+
+    /// Compute tangent
+    void ComputeTangent(Matrix& AlgorithmicTangent,
+            const ProcessInfo& CurrentProcessInfo, const Properties& rProperties) const;
+
+    /// Reset the state of the constitutive law
+    virtual void ResetState();
+
 private:
 
     double mE, mNU, mE_0, mE_f;
     Matrix m_stress_n1, m_stress_n;
+    Matrix m_strain_n1;
     double mKappa_old;
     double mKappa;
     double mCurrentDamage;
     double mInitialDamage;
+    double mInitialEps;
     int mDamageFlag;
+
+    int mElemId;
+    int mGaussId;
 
     /// Compute kappa, providing damage
     double ComputeKappa(const double d, const double TOL = 1e-10, const int max_iters = 30) const;
