@@ -58,7 +58,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 // Project includes
 #include "custom_conditions/line_traction.h"
-#include "custom_utilities/sd_math_utils.h"
 #include "structural_application_variables.h"
 
 namespace Kratos
@@ -82,7 +81,7 @@ LineTraction::LineTraction( IndexType NewId, GeometryType::Pointer pGeometry )
 
 // Constructor
 LineTraction::LineTraction( IndexType NewId, GeometryType::Pointer pGeometry,
-                          PropertiesType::Pointer pProperties )
+                            PropertiesType::Pointer pProperties )
     : Condition( NewId, pGeometry, pProperties )
 {
 }
@@ -90,8 +89,8 @@ LineTraction::LineTraction( IndexType NewId, GeometryType::Pointer pGeometry,
 //***********************************************************************************
 //***********************************************************************************
 Condition::Pointer LineTraction::Create( IndexType NewId,
-                                        NodesArrayType const& ThisNodes,
-                                        PropertiesType::Pointer pProperties ) const
+                                         NodesArrayType const& ThisNodes,
+                                         PropertiesType::Pointer pProperties ) const
 {
     return Condition::Pointer( new LineTraction( NewId, GetGeometry().Create( ThisNodes ), pProperties ) );
 }
@@ -99,8 +98,8 @@ Condition::Pointer LineTraction::Create( IndexType NewId,
 //***********************************************************************************
 //***********************************************************************************
 Condition::Pointer LineTraction::Create( IndexType NewId,
-                                        GeometryType::Pointer pGeom,
-                                        PropertiesType::Pointer pProperties ) const
+                                         GeometryType::Pointer pGeom,
+                                         PropertiesType::Pointer pProperties ) const
 {
     return Condition::Pointer( new LineTraction( NewId, pGeom, pProperties ) );
 }
@@ -115,7 +114,7 @@ LineTraction::~LineTraction()
 //***********************************************************************************
 //***********************************************************************************
 void LineTraction::EquationIdVector( EquationIdVectorType& rResult,
-                                    const ProcessInfo& rCurrentProcessInfo ) const
+                                     const ProcessInfo& rCurrentProcessInfo ) const
 {
     KRATOS_TRY
 
@@ -136,7 +135,7 @@ void LineTraction::EquationIdVector( EquationIdVectorType& rResult,
 //***********************************************************************************
 //***********************************************************************************
 void LineTraction::GetDofList( DofsVectorType& ElementalDofList,
-                              const ProcessInfo& rCurrentProcessInfo ) const
+                               const ProcessInfo& rCurrentProcessInfo ) const
 {
     const unsigned int dim = GetGeometry().WorkingSpaceDimension();
 
@@ -152,7 +151,7 @@ void LineTraction::GetDofList( DofsVectorType& ElementalDofList,
 //***********************************************************************************
 //***********************************************************************************
 void LineTraction::CalculateRightHandSide( VectorType& rRightHandSideVector,
-        const ProcessInfo& rCurrentProcessInfo )
+                                           const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 
@@ -212,8 +211,8 @@ void LineTraction::CalculateRightHandSide( VectorType& rRightHandSideVector,
 //***********************************************************************************
 //***********************************************************************************
 void LineTraction::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix,
-                                        VectorType& rRightHandSideVector,
-                                        const ProcessInfo& rCurrentProcessInfo )
+                                         VectorType& rRightHandSideVector,
+                                         const ProcessInfo& rCurrentProcessInfo )
 {
     const unsigned int number_of_nodes = GetGeometry().size();
     const unsigned int dim = GetGeometry().WorkingSpaceDimension();
@@ -224,7 +223,7 @@ void LineTraction::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix,
 //***********************************************************************************
 //***********************************************************************************
 void LineTraction::CalculateMassMatrix( MatrixType& rMassMatrix,
-                              const ProcessInfo& rCurrentProcessInfo )
+                                        const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
     rMassMatrix.resize( 0, 0, false );
@@ -234,13 +233,15 @@ void LineTraction::CalculateMassMatrix( MatrixType& rMassMatrix,
 //***********************************************************************************
 //***********************************************************************************
 void LineTraction::CalculateDampingMatrix( MatrixType& rDampingMatrix,
-                              const ProcessInfo& rCurrentProcessInfo )
+                                           const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
     rDampingMatrix.resize( 0, 0, false );
     KRATOS_CATCH( "" )
 }
 
+//***********************************************************************************
+//***********************************************************************************
 /**
  * This function provides the place to perform checks on the completeness of the input.
  * It is designed to be called only once (or anyway, not often) typically at the beginning
@@ -253,6 +254,4 @@ int LineTraction::Check( const ProcessInfo& rCurrentProcessInfo ) const
     return 0;
 }
 
-//***********************************************************************************
-//***********************************************************************************
 } // Namespace Kratos.

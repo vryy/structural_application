@@ -72,9 +72,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 namespace Kratos
 {
 
-/// Define a distributed load condition on line in 2D. The load is given by conditional variable FORCE.
-class LineTraction
-    : public Condition
+/// Define a distributed load condition on line in 2D. The load is given by conditional variable FORCE (vector).
+class LineTraction : public Condition
 {
 public:
 
@@ -158,61 +157,8 @@ public:
         return "LineTraction";
     }
 
-protected:
-
-
 private:
-    ///@name Static Member Variables
 
-    /// privat variables
-
-
-    // privat name Operations
-
-//    void CalculateAll(
-//        MatrixType& rLeftHandSideMatrix,
-//        VectorType& rRightHandSideVector,
-//        const ProcessInfo& rCurrentProcessInfo,
-//        bool CalculateStiffnessMatrixFlag,
-//        bool CalculateResidualVectorFlag );
-
-//    void CalculateAndSubKp(
-//        Matrix& K,
-//        array_1d<double, 3>& ge,
-//        array_1d<double, 3>& gn,
-//        const Matrix& DN_De,
-//        const Vector& N,
-//        double pressure,
-//        double weight );
-
-//    void MakeCrossMatrix(
-//        boost::numeric::ublas::bounded_matrix<double, 3, 3>& M,
-//        array_1d<double, 3>& U );
-
-//    void CrossProduct(
-//        array_1d<double, 3>& cross,
-//        array_1d<double, 3>& a,
-//        array_1d<double, 3>& b );
-
-//    void SubtractMatrix(
-//        MatrixType& Destination,
-//        boost::numeric::ublas::bounded_matrix<double, 3, 3>& InputMatrix,
-//        int InitialRow,
-//        int InitialCol );
-
-//    void ExpandReducedMatrix(
-//        Matrix& Destination,
-//        Matrix& ReducedMatrix );
-
-//    void CalculateAndAdd_PressureForce(
-//        VectorType& residualvector,
-//        const Vector& N,
-//        const array_1d<double, 3>& v3,
-//        double pressure,
-//        double weight,
-//        const ProcessInfo& rCurrentProcessInfo );
-
-    ///@}
     ///@name Serialization
     ///@{
 
@@ -220,15 +166,17 @@ private:
 
     // A private default constructor necessary for serialization
 
-    virtual void save( Serializer& rSerializer ) const
+    void save( Serializer& rSerializer ) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, Condition );
     }
 
-    virtual void load( Serializer& rSerializer )
+    void load( Serializer& rSerializer ) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Condition );
     }
+
+    ///@}
 
 }; // class LineTraction.
 

@@ -107,7 +107,7 @@ public:
     /**
      * Destructor.
      */
-    virtual ~VariableInterpolationUtility()
+    ~VariableInterpolationUtility() override
     {
     }
 
@@ -291,11 +291,10 @@ protected:
         Vector shape_functions_values;
         shape_functions_values = oldElement.GetGeometry().ShapeFunctionsValues(shape_functions_values, localPoint);
 
-        double temp;
         newValue = 0.0;
         for(unsigned int i = 0; i < oldElement.GetGeometry().size(); ++i)
         {
-            temp = oldElement.GetGeometry()[i].GetSolutionStepValue(rThisVariable);
+            const double temp = oldElement.GetGeometry()[i].GetSolutionStepValue(rThisVariable);
             newValue += shape_functions_values[i] * temp;
         }
     }
@@ -415,7 +414,7 @@ protected:
 
 #ifdef _OPENMP
         double stop_transfer = omp_get_wtime();
-        std::cout << "time: " << stop_transfer - start_transfer << std::endl;
+        std::cout << "TransferVariablesToGaussPoints time: " << stop_transfer - start_transfer << std::endl;
 #endif
     }
 

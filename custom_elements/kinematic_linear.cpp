@@ -2193,8 +2193,7 @@ namespace Kratos
         }
     }
 
-    void KinematicLinear::SetValuesOnIntegrationPoints( const Variable<double>& rVariable,
-            const std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo )
+    void KinematicLinear::SetValuesOnIntegrationPoints( const Variable<double>& rVariable, const std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo )
     {
         if ( rVariable == K0 )
         {
@@ -2216,8 +2215,7 @@ namespace Kratos
         }
     }
 
-    void KinematicLinear::SetValuesOnIntegrationPoints( const Variable<int>& rVariable,
-            const std::vector<int>& rValues, const ProcessInfo& rCurrentProcessInfo )
+    void KinematicLinear::SetValuesOnIntegrationPoints( const Variable<int>& rVariable, const std::vector<int>& rValues, const ProcessInfo& rCurrentProcessInfo )
     {
         if ( rValues.size() != mConstitutiveLawVector.size() )
         {
@@ -2232,8 +2230,7 @@ namespace Kratos
         }
     }
 
-    void KinematicLinear::SetValuesOnIntegrationPoints( const Variable<bool>& rVariable,
-            const std::vector<bool>& rValues, const ProcessInfo& rCurrentProcessInfo )
+    void KinematicLinear::SetValuesOnIntegrationPoints( const Variable<bool>& rVariable, const std::vector<bool>& rValues, const ProcessInfo& rCurrentProcessInfo )
     {
         if ( rValues.size() != mConstitutiveLawVector.size() )
         {
@@ -2248,8 +2245,7 @@ namespace Kratos
         }
     }
 
-    void KinematicLinear::SetValuesOnIntegrationPoints( const Kratos::Variable<ConstitutiveLaw::Pointer>& rVariable,
-            const std::vector< ConstitutiveLaw::Pointer >& rValues, const ProcessInfo& rCurrentProcessInfo )
+    void KinematicLinear::SetValuesOnIntegrationPoints( const Variable<ConstitutiveLaw::Pointer>& rVariable, const std::vector< ConstitutiveLaw::Pointer >& rValues, const ProcessInfo& rCurrentProcessInfo )
     {
         const IntegrationMethod ThisIntegrationMethod = this->GetIntegrationMethod();
 

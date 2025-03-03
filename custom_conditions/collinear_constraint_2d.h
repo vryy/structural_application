@@ -68,9 +68,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace Kratos
 {
+
 /**
  * Collinear constraint to align 3 points in 2D.
- * This constraint ensures 3 collinear points will remains collinear.
+ * This constraint ensures 3 collinear points will remain collinear.
  * Because the constraint is nonlinear, the Lagrange multiplier method is used. The Lagrange multiplier is stored at middle node.
  * The line description:
  *  (A)-----(C)-----(B)

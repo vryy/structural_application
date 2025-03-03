@@ -58,7 +58,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 // Project includes
 #include "custom_conditions/line_force.h"
-#include "custom_utilities/sd_math_utils.h"
 #include "structural_application_variables.h"
 
 namespace Kratos
@@ -82,7 +81,7 @@ LineForce::LineForce( IndexType NewId, GeometryType::Pointer pGeometry )
 
 // Constructor
 LineForce::LineForce( IndexType NewId, GeometryType::Pointer pGeometry,
-                          PropertiesType::Pointer pProperties )
+                      PropertiesType::Pointer pProperties )
     : Condition( NewId, pGeometry, pProperties )
 {
 }
@@ -90,15 +89,15 @@ LineForce::LineForce( IndexType NewId, GeometryType::Pointer pGeometry,
 //***********************************************************************************
 //***********************************************************************************
 Condition::Pointer LineForce::Create( IndexType NewId,
-                                        NodesArrayType const& ThisNodes,
-                                        PropertiesType::Pointer pProperties ) const
+                                      NodesArrayType const& ThisNodes,
+                                      PropertiesType::Pointer pProperties ) const
 {
     return Condition::Pointer( new LineForce( NewId, GetGeometry().Create( ThisNodes ), pProperties ) );
 }
 
 Condition::Pointer LineForce::Create( IndexType NewId,
-                                        GeometryType::Pointer pGeom,
-                                        PropertiesType::Pointer pProperties ) const
+                                      GeometryType::Pointer pGeom,
+                                      PropertiesType::Pointer pProperties ) const
 {
     return Condition::Pointer( new LineForce( NewId, pGeom, pProperties ) );
 }
@@ -113,7 +112,7 @@ LineForce::~LineForce()
 //***********************************************************************************
 //***********************************************************************************
 void LineForce::EquationIdVector( EquationIdVectorType& rResult,
-                                    const ProcessInfo& rCurrentProcessInfo ) const
+                                  const ProcessInfo& rCurrentProcessInfo ) const
 {
     KRATOS_TRY
 
@@ -134,7 +133,7 @@ void LineForce::EquationIdVector( EquationIdVectorType& rResult,
 //***********************************************************************************
 //***********************************************************************************
 void LineForce::GetDofList( DofsVectorType& ElementalDofList,
-                              const ProcessInfo& rCurrentProcessInfo ) const
+                            const ProcessInfo& rCurrentProcessInfo ) const
 {
     const unsigned int dim = GetGeometry().WorkingSpaceDimension();
 
@@ -152,7 +151,7 @@ void LineForce::GetDofList( DofsVectorType& ElementalDofList,
 //***********************************************************************************
 //***********************************************************************************
 void LineForce::CalculateRightHandSide( VectorType& rRightHandSideVector,
-        const ProcessInfo& rCurrentProcessInfo )
+                                        const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 
@@ -195,7 +194,7 @@ void LineForce::CalculateRightHandSide( VectorType& rRightHandSideVector,
             noalias( Load ) += Ncontainer( PointNumber, n ) * LoadOnNode;
             // noalias( LoadEins ) += Ncontainer( PointNumber, n ) * ( GetGeometry()[n] ).GetSolutionStepValue( FACE_LOAD_EINS );
         }
-//        KRATOS_WATCH(Load)
+        // KRATOS_WATCH(Load)
         double IntegrationWeight = integration_points[PointNumber].Weight();
 
         if(dim == 2) IntegrationWeight *= GetProperties()[THICKNESS];
@@ -231,8 +230,8 @@ void LineForce::CalculateRightHandSide( VectorType& rRightHandSideVector,
 //***********************************************************************************
 //***********************************************************************************
 void LineForce::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix,
-                                        VectorType& rRightHandSideVector,
-                                        const ProcessInfo& rCurrentProcessInfo )
+                                      VectorType& rRightHandSideVector,
+                                      const ProcessInfo& rCurrentProcessInfo )
 {
     const unsigned int number_of_nodes = GetGeometry().size();
     const unsigned int dim = GetGeometry().WorkingSpaceDimension();
@@ -243,7 +242,7 @@ void LineForce::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix,
 //***********************************************************************************
 //***********************************************************************************
 void LineForce::CalculateMassMatrix( MatrixType& rMassMatrix,
-                              const ProcessInfo& rCurrentProcessInfo )
+                                     const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
     rMassMatrix.resize( 0, 0, false );
@@ -253,13 +252,15 @@ void LineForce::CalculateMassMatrix( MatrixType& rMassMatrix,
 //***********************************************************************************
 //***********************************************************************************
 void LineForce::CalculateDampingMatrix( MatrixType& rDampingMatrix,
-                              const ProcessInfo& rCurrentProcessInfo )
+                                        const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
     rDampingMatrix.resize( 0, 0, false );
     KRATOS_CATCH( "" )
 }
 
+//***********************************************************************************
+//***********************************************************************************
 /**
  * This function provides the place to perform checks on the completeness of the input.
  * It is designed to be called only once (or anyway, not often) typically at the beginning
@@ -272,6 +273,4 @@ int LineForce::Check( const ProcessInfo& rCurrentProcessInfo ) const
     return 0;
 }
 
-//***********************************************************************************
-//***********************************************************************************
 } // Namespace Kratos.

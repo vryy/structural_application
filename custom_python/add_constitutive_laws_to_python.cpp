@@ -228,19 +228,16 @@ void  AddConstitutiveLawsToPython()
     class_< IsotropicDamageModel, bases< ConstitutiveLawBaseType >, boost::noncopyable >
     ( "IsotropicDamageModel",
       init<>() )
-    .def( init<>() )
     ;
 
     class_< ConstitutiveLawDcWrapper<IsotropicDamageModel>, bases< ConstitutiveLawBaseType >, boost::noncopyable >
     ( "IsotropicDamageModelDC",
       init<>() )
-    .def( init<>() )
     ;
 
     class_< IsotropicDamageIMPLEX, bases< ConstitutiveLawBaseType >, boost::noncopyable >
     ( "IsotropicDamageIMPLEX",
       init<>() )
-    .def( init<>() )
     ;
 
     class_< CamClay3D, bases< ConstitutiveLawBaseType >, boost::noncopyable >

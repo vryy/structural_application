@@ -72,9 +72,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 namespace Kratos
 {
 
-/// Define a distributed load condition on line in 2D. The load is computed by pressure multiplying with the normal vector.
-class LinePressure
-    : public Condition
+/// Define a distributed load condition on line in 2D. The load is computed by pressure (conditional variable PRESSURE) multiplying with the normal vector.
+class LinePressure : public Condition
 {
 public:
 
@@ -94,8 +93,6 @@ public:
     // Destructor
     virtual ~LinePressure();
 
-
-    // Name Operations
 
     Condition::Pointer Create(
         IndexType NewId,
@@ -158,61 +155,8 @@ public:
         return "LinePressure";
     }
 
-protected:
-
-
 private:
-    ///@name Static Member Variables
 
-    /// privat variables
-
-
-    // privat name Operations
-
-//    void CalculateAll(
-//        MatrixType& rLeftHandSideMatrix,
-//        VectorType& rRightHandSideVector,
-//        const ProcessInfo& rCurrentProcessInfo,
-//        bool CalculateStiffnessMatrixFlag,
-//        bool CalculateResidualVectorFlag );
-
-//    void CalculateAndSubKp(
-//        Matrix& K,
-//        array_1d<double, 3>& ge,
-//        array_1d<double, 3>& gn,
-//        const Matrix& DN_De,
-//        const Vector& N,
-//        double pressure,
-//        double weight );
-
-//    void MakeCrossMatrix(
-//        boost::numeric::ublas::bounded_matrix<double, 3, 3>& M,
-//        array_1d<double, 3>& U );
-
-//    void CrossProduct(
-//        array_1d<double, 3>& cross,
-//        array_1d<double, 3>& a,
-//        array_1d<double, 3>& b );
-
-//    void SubtractMatrix(
-//        MatrixType& Destination,
-//        boost::numeric::ublas::bounded_matrix<double, 3, 3>& InputMatrix,
-//        int InitialRow,
-//        int InitialCol );
-
-//    void ExpandReducedMatrix(
-//        Matrix& Destination,
-//        Matrix& ReducedMatrix );
-
-//    void CalculateAndAdd_PressureForce(
-//        VectorType& residualvector,
-//        const Vector& N,
-//        const array_1d<double, 3>& v3,
-//        double pressure,
-//        double weight,
-//        const ProcessInfo& rCurrentProcessInfo );
-
-    ///@}
     ///@name Serialization
     ///@{
 
@@ -229,6 +173,8 @@ private:
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Condition );
     }
+
+    ///@}
 
 }; // class LinePressure.
 

@@ -432,24 +432,8 @@ private:
 ///@{
 
 
-/// input stream function
-/*  inline std::istream& operator >> (std::istream& rIStream,
-                   KinematicLinear& rThis);
-*/
-/// output stream function
-/*  inline std::ostream& operator << (std::ostream& rOStream,
-                   const KinematicLinear& rThis)
-           {
-                   rThis.PrintInfo(rOStream);
-                   rOStream << std::endl;
-                   rThis.PrintData(rOStream);
-
-                   return rOStream;
-}*/
 ///@}
 
 }  // namespace Kratos.
 
 #endif // KRATOS_KINEMATIC_LINEAR_INCLUDED defined
-
-

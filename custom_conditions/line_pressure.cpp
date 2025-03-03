@@ -58,7 +58,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 // Project includes
 #include "custom_conditions/line_pressure.h"
-#include "custom_utilities/sd_math_utils.h"
 #include "structural_application_variables.h"
 
 namespace Kratos
@@ -82,7 +81,7 @@ LinePressure::LinePressure( IndexType NewId, GeometryType::Pointer pGeometry )
 
 // Constructor
 LinePressure::LinePressure( IndexType NewId, GeometryType::Pointer pGeometry,
-                          PropertiesType::Pointer pProperties )
+                            PropertiesType::Pointer pProperties )
     : Condition( NewId, pGeometry, pProperties )
 {
 }
@@ -90,8 +89,8 @@ LinePressure::LinePressure( IndexType NewId, GeometryType::Pointer pGeometry,
 //***********************************************************************************
 //***********************************************************************************
 Condition::Pointer LinePressure::Create( IndexType NewId,
-                                        NodesArrayType const& ThisNodes,
-                                        PropertiesType::Pointer pProperties ) const
+                                         NodesArrayType const& ThisNodes,
+                                         PropertiesType::Pointer pProperties ) const
 {
     return Condition::Pointer( new LinePressure( NewId, GetGeometry().Create( ThisNodes ), pProperties ) );
 }
@@ -99,8 +98,8 @@ Condition::Pointer LinePressure::Create( IndexType NewId,
 //***********************************************************************************
 //***********************************************************************************
 Condition::Pointer LinePressure::Create( IndexType NewId,
-                                        GeometryType::Pointer pGeom,
-                                        PropertiesType::Pointer pProperties ) const
+                                         GeometryType::Pointer pGeom,
+                                         PropertiesType::Pointer pProperties ) const
 {
     return Condition::Pointer( new LinePressure( NewId, pGeom, pProperties ) );
 }
@@ -115,7 +114,7 @@ LinePressure::~LinePressure()
 //***********************************************************************************
 //***********************************************************************************
 void LinePressure::EquationIdVector( EquationIdVectorType& rResult,
-                                    const ProcessInfo& rCurrentProcessInfo ) const
+                                     const ProcessInfo& rCurrentProcessInfo ) const
 {
     KRATOS_TRY
 
@@ -136,7 +135,7 @@ void LinePressure::EquationIdVector( EquationIdVectorType& rResult,
 //***********************************************************************************
 //***********************************************************************************
 void LinePressure::GetDofList( DofsVectorType& ElementalDofList,
-                              const ProcessInfo& rCurrentProcessInfo ) const
+                               const ProcessInfo& rCurrentProcessInfo ) const
 {
     const unsigned int dim = GetGeometry().WorkingSpaceDimension();
 
@@ -152,7 +151,7 @@ void LinePressure::GetDofList( DofsVectorType& ElementalDofList,
 //***********************************************************************************
 //***********************************************************************************
 void LinePressure::CalculateRightHandSide( VectorType& rRightHandSideVector,
-        const ProcessInfo& rCurrentProcessInfo )
+                                           const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 
@@ -176,7 +175,7 @@ void LinePressure::CalculateRightHandSide( VectorType& rRightHandSideVector,
     // Ncontainer is the array of shape function values at each integration points
     const Matrix& Ncontainer = GetGeometry().ShapeFunctionsValues();
 
-    const double& P = this->GetValue(PRESSURE);
+    const double P = this->GetValue(PRESSURE);
 
     // loop over integration points
     Vector Load( dim );
@@ -188,7 +187,7 @@ void LinePressure::CalculateRightHandSide( VectorType& rRightHandSideVector,
 
         IntegrationWeight *= GetProperties()[THICKNESS];
 
-        // compute length
+        // compute tangetial vector (include length)
         noalias( t ) = ZeroVector( dim );//tangential vector
         for ( unsigned int n = 0; n < GetGeometry().size(); ++n )
         {
@@ -215,8 +214,8 @@ void LinePressure::CalculateRightHandSide( VectorType& rRightHandSideVector,
 //***********************************************************************************
 //***********************************************************************************
 void LinePressure::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix,
-                                        VectorType& rRightHandSideVector,
-                                        const ProcessInfo& rCurrentProcessInfo )
+                                         VectorType& rRightHandSideVector,
+                                         const ProcessInfo& rCurrentProcessInfo )
 {
     const unsigned int number_of_nodes = GetGeometry().size();
     const unsigned int dim = GetGeometry().WorkingSpaceDimension();
@@ -227,7 +226,7 @@ void LinePressure::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix,
 //***********************************************************************************
 //***********************************************************************************
 void LinePressure::CalculateMassMatrix( MatrixType& rMassMatrix,
-                              const ProcessInfo& rCurrentProcessInfo )
+                                        const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
     rMassMatrix.resize( 0, 0, false );
@@ -237,7 +236,7 @@ void LinePressure::CalculateMassMatrix( MatrixType& rMassMatrix,
 //***********************************************************************************
 //***********************************************************************************
 void LinePressure::CalculateDampingMatrix( MatrixType& rDampingMatrix,
-                              const ProcessInfo& rCurrentProcessInfo )
+                                           const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
     rDampingMatrix.resize( 0, 0, false );

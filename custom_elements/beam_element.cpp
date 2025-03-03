@@ -134,8 +134,8 @@ void BeamElement::FinalizeSolutionStep(const ProcessInfo& CurrentProcessInfo)
 
 
 void BeamElement::CalculateAll(MatrixType& rLeftHandSideMatrix,
-                               VectorType& rRightHandSideVector,const ProcessInfo& rCurrentProcessInfo,
-                               bool CalculateStiffnessMatrixFlag,bool CalculateResidualVectorFlag)
+                               VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo,
+                               bool CalculateStiffnessMatrixFlag, bool CalculateResidualVectorFlag)
 {
     KRATOS_TRY
 
@@ -147,12 +147,12 @@ void BeamElement::CalculateAll(MatrixType& rLeftHandSideMatrix,
         return;
     }
 
-    if (CalculateStiffnessMatrixFlag == true)
+    if (CalculateStiffnessMatrixFlag)
     {
         CalculateLHS(rLeftHandSideMatrix);
     }
 
-    if (CalculateResidualVectorFlag == true)
+    if (CalculateResidualVectorFlag)
     {
         CalculateRHS(rRightHandSideVector);
     }
@@ -294,9 +294,9 @@ void BeamElement::CalculateRHS(Vector& rRightHandSideVector)
     Matrix GlobalMatrix;
     Vector LocalBody;
 
-    array_1d<double, 12 > CurrentDisplacement;
+    array_1d<double, 12> CurrentDisplacement;
 
-    Rotation.resize(12,12, false);
+    Rotation.resize(12, 12, false);
     LocalBody = ZeroVector(12);
 
     if (rRightHandSideVector.size() != 12)
@@ -384,7 +384,7 @@ void BeamElement::CalculateSectionProperties()
         inertia = &(GetValue(INERTIA));
     }
     else
-        KRATOS_THROW_ERROR(std::logic_error, "The Inertia is not fully defined for the element", "")
+        KRATOS_ERROR << "The Inertia is not fully defined for the element";
     mInertia_x = (*inertia)(0,0);
     mInertia_y = (*inertia)(1,1);
     mInertia_Polar = (*inertia)(0,1);
@@ -409,7 +409,7 @@ void BeamElement::CalculateSectionProperties()
     mlength = std::sqrt( inner_prod( length, length ) );
 
     if (mlength == 0.00)
-        KRATOS_THROW_ERROR(std::invalid_argument, "Zero length found in elemnet #", this->Id());
+        KRATOS_ERROR << "Zero length found in elemnet #" << this->Id();
 
     KRATOS_CATCH( "" )
 }
@@ -510,16 +510,16 @@ void BeamElement::CalculateTransformationMatrix(Matrix& Rotation)
     noalias(Normal_zero) =  zero_vector<double>(9);
     noalias(x_zero)      =  zero_vector<double>(6);
     noalias(Vector_zero) =  zero_vector<double>(3);
-    noalias(Rotation)    =  zero_matrix<double> (12,12);
+    noalias(Rotation)    =  zero_matrix<double>(12, 12);
 
     double nx, ny, nz,teta/*, phi*/;
 
-    x_zero(0)= GetGeometry()[0].X0();
-    x_zero(1)= GetGeometry()[0].Y0();
-    x_zero(2)= GetGeometry()[0].Z0();
-    x_zero(3)= GetGeometry()[1].X0();
-    x_zero(4)= GetGeometry()[1].Y0();
-    x_zero(5)= GetGeometry()[1].Z0();
+    x_zero(0) = GetGeometry()[0].X0();
+    x_zero(1) = GetGeometry()[0].Y0();
+    x_zero(2) = GetGeometry()[0].Z0();
+    x_zero(3) = GetGeometry()[1].X0();
+    x_zero(4) = GetGeometry()[1].Y0();
+    x_zero(5) = GetGeometry()[1].Z0();
 
     for (unsigned int i=0; i<3; i++)
     {
@@ -1303,31 +1303,31 @@ int  BeamElement::Check(const ProcessInfo& rCurrentProcessInfo) const
 
     //verify that the variables are correctly initialized
     if(VELOCITY.Key() == 0)
-        KRATOS_THROW_ERROR(std::invalid_argument,"VELOCITY has Key zero! (check if the application is correctly registered","");
+        KRATOS_ERROR << "VELOCITY has Key zero! (check if the application is correctly registered";
     if(DISPLACEMENT.Key() == 0)
-        KRATOS_THROW_ERROR(std::invalid_argument,"DISPLACEMENT has Key zero! (check if the application is correctly registered","");
+        KRATOS_ERROR << "DISPLACEMENT has Key zero! (check if the application is correctly registered";
     if(ACCELERATION.Key() == 0)
-        KRATOS_THROW_ERROR(std::invalid_argument,"ACCELERATION has Key zero! (check if the application is correctly registered","");
+        KRATOS_ERROR << "ACCELERATION has Key zero! (check if the application is correctly registered";
     if(DENSITY.Key() == 0)
-        KRATOS_THROW_ERROR(std::invalid_argument,"DENSITY has Key zero! (check if the application is correctly registered","");
+        KRATOS_ERROR << "DENSITY has Key zero! (check if the application is correctly registered";
     if(GRAVITY.Key() == 0)
-        KRATOS_THROW_ERROR(std::invalid_argument,"GRAVITY has Key zero! (check if the application is correctly registered","");
+        KRATOS_ERROR << "GRAVITY has Key zero! (check if the application is correctly registered";
     if(BODY_FORCE.Key() == 0)
-        KRATOS_THROW_ERROR(std::invalid_argument,"BODY_FORCE has Key zero! (check if the application is correctly registered","");
+        KRATOS_ERROR << "BODY_FORCE has Key zero! (check if the application is correctly registered";
     if(CROSS_AREA.Key() == 0)
-        KRATOS_THROW_ERROR(std::invalid_argument,"CROSS_AREA has Key zero! (check if the application is correctly registered","");
+        KRATOS_ERROR << "CROSS_AREA has Key zero! (check if the application is correctly registered";
     if(LOCAL_INERTIA.Key() == 0)
-        KRATOS_THROW_ERROR(std::invalid_argument,"LOCAL_INERTIA has Key zero! (check if the application is correctly registered","");
+        KRATOS_ERROR << "LOCAL_INERTIA has Key zero! (check if the application is correctly registered";
     if(ROTATION.Key() == 0)
-        KRATOS_THROW_ERROR(std::invalid_argument,"ROTATION has Key zero! (check if the application is correctly registered","");
+        KRATOS_ERROR << "ROTATION has Key zero! (check if the application is correctly registered";
 
     //verify that the dofs exist
     for(unsigned int i=0; i<this->GetGeometry().size(); i++)
     {
         if(this->GetGeometry()[i].SolutionStepsDataHas(DISPLACEMENT) == false)
-            KRATOS_THROW_ERROR(std::invalid_argument,"missing variable DISPLACEMENT on node ",this->GetGeometry()[i].Id());
+            KRATOS_ERROR << "missing variable DISPLACEMENT on node " << this->GetGeometry()[i].Id();
         if(this->GetGeometry()[i].HasDofFor(DISPLACEMENT_X) == false || this->GetGeometry()[i].HasDofFor(DISPLACEMENT_Y) == false || this->GetGeometry()[i].HasDofFor(DISPLACEMENT_Z) == false)
-            KRATOS_THROW_ERROR(std::invalid_argument,"missing one of the dofs for the variable DISPLACEMENT on node ",GetGeometry()[i].Id());
+            KRATOS_ERROR << "missing one of the dofs for the variable DISPLACEMENT on node " << GetGeometry()[i].Id();
     }
 
     //verify that the area and inertia is given by properties
@@ -1376,5 +1376,3 @@ int  BeamElement::Check(const ProcessInfo& rCurrentProcessInfo) const
 }
 
 } // Namespace Kratos
-
-
