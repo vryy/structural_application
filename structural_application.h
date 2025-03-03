@@ -118,6 +118,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
     #include "custom_conditions/faceforce3D.h"
     #include "custom_conditions/line_force.h"
     #include "custom_conditions/line_pressure.h"
+    #include "custom_conditions/line_pressure_distributed.h"
     #include "custom_conditions/line_traction.h"
     #include "custom_conditions/pointforce3D.h"
     #include "custom_conditions/pointforce2D.h"
@@ -469,6 +470,8 @@ private:
     const LineForce mLineForce3D3N;
     const LinePressure mLinePressure2D2N;
     const LinePressure mLinePressure2D3N;
+    const LinePressureDistributed mLinePressureDistributed2D2N;
+    const LinePressureDistributed mLinePressureDistributed2D3N;
     const LineTraction mLineTraction2D2N;
     const LineTraction mLineTraction2D3N;
     const FaceForce3D mFaceForce3D3N;
