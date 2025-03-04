@@ -58,7 +58,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
 // Project includes
-#include "structural_application_variables2.h"
+#include "structural_application_variables.h"
 
 namespace Kratos
 {
