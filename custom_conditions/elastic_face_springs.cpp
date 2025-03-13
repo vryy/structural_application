@@ -202,18 +202,24 @@ void ElasticFaceSprings::CalculateAll( MatrixType& rLeftHandSideMatrix, VectorTy
     unsigned int dim = 3;
 
     //resizing LHS and RHS where needed
-    if(rLeftHandSideMatrix.size1() != number_of_nodes*dim)
-        rLeftHandSideMatrix.resize(number_of_nodes*dim,number_of_nodes*dim,false);
-    noalias(rLeftHandSideMatrix) = ZeroMatrix(number_of_nodes*dim,number_of_nodes*dim);
+    if (CalculateStiffnessMatrixFlag)
+    {
+        if(rLeftHandSideMatrix.size1() != number_of_nodes*dim)
+            rLeftHandSideMatrix.resize(number_of_nodes*dim, number_of_nodes*dim,false);
+        noalias(rLeftHandSideMatrix) = ZeroMatrix(number_of_nodes*dim, number_of_nodes*dim);
+    }
 
-    if(rRightHandSideVector.size() != number_of_nodes*dim)
-        rRightHandSideVector.resize(number_of_nodes*dim,false);
-    noalias(rRightHandSideVector) = ZeroVector(number_of_nodes*dim);
+    if (CalculateResidualVectorFlag)
+    {
+        if(rRightHandSideVector.size() != number_of_nodes*dim)
+            rRightHandSideVector.resize(number_of_nodes*dim, false);
+        noalias(rRightHandSideVector) = ZeroVector(number_of_nodes*dim);
+    }
 
     if( number_of_nodes == 1 )
     {
-        array_1d<double,3>& bedding = GetGeometry()[0].GetSolutionStepValue(ELASTIC_BEDDING_STIFFNESS);
-        array_1d<double,3>& displacement = GetGeometry()[0].GetSolutionStepValue(DISPLACEMENT);
+        const array_1d<double,3>& bedding = GetGeometry()[0].GetSolutionStepValue(ELASTIC_BEDDING_STIFFNESS);
+        const array_1d<double,3>& displacement = GetGeometry()[0].GetSolutionStepValue(DISPLACEMENT);
         for( unsigned int i=0; i<3; i++ )
         {
             rLeftHandSideMatrix(i, i) = bedding[i];

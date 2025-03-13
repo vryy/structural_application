@@ -107,13 +107,18 @@ PointForce3D::~PointForce3D()
 void PointForce3D::CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
-    if(rRightHandSideVector.size() != 3)
-        rRightHandSideVector.resize(3,false);
 
-    array_1d<double,3>& force = GetGeometry()[0].GetSolutionStepValue(FORCE);
+    if(rRightHandSideVector.size() != 3)
+        rRightHandSideVector.resize(3, false);
+
+    if (!GetGeometry()[0].SolutionStepsDataHas(FORCE))
+        KRATOS_ERROR << "FORCE is not assigned to node " << GetGeometry()[0].Id();
+
+    const array_1d<double, 3>& force = GetGeometry()[0].GetSolutionStepValue(FORCE);
     rRightHandSideVector[0] = force[0];
     rRightHandSideVector[1] = force[1];
     rRightHandSideVector[2] = force[2];
+
     KRATOS_CATCH("")
 }
 
@@ -122,17 +127,22 @@ void PointForce3D::CalculateRightHandSide(VectorType& rRightHandSideVector, cons
 void PointForce3D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
+
     if(rLeftHandSideMatrix.size1() != 3)
-        rLeftHandSideMatrix.resize(3,3,false);
-    noalias(rLeftHandSideMatrix) = ZeroMatrix(3,3);
+        rLeftHandSideMatrix.resize(3, 3, false);
+    noalias(rLeftHandSideMatrix) = ZeroMatrix(3, 3);
 
     if(rRightHandSideVector.size() != 3)
-        rRightHandSideVector.resize(3,false);
+        rRightHandSideVector.resize(3, false);
 
-    array_1d<double,3>& force = GetGeometry()[0].GetSolutionStepValue(FORCE);
+    if (!GetGeometry()[0].SolutionStepsDataHas(FORCE))
+        KRATOS_ERROR << "FORCE is not assigned to node " << GetGeometry()[0].Id();
+
+    const array_1d<double,3>& force = GetGeometry()[0].GetSolutionStepValue(FORCE);
     rRightHandSideVector[0] = force[0];
     rRightHandSideVector[1] = force[1];
     rRightHandSideVector[2] = force[2];
+
     KRATOS_CATCH("")
 }
 
@@ -156,11 +166,11 @@ void PointForce3D::CalculateMassMatrix( MatrixType& rMassMatrix, const ProcessIn
 //************************************************************************************
 void PointForce3D::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& CurrentProcessInfo) const
 {
-    int number_of_nodes = GetGeometry().PointsNumber();
+    unsigned int number_of_nodes = GetGeometry().PointsNumber();
     unsigned int index;
     unsigned int dim = 3;
     rResult.resize(number_of_nodes*dim);
-    for (int i=0; i<number_of_nodes; i++)
+    for (unsigned int i = 0; i < number_of_nodes; i++)
     {
         index = i*dim;
         rResult[index] = (GetGeometry()[i].GetDof(DISPLACEMENT_X).EquationId());
@@ -173,10 +183,11 @@ void PointForce3D::EquationIdVector(EquationIdVectorType& rResult, const Process
 //************************************************************************************
 void PointForce3D::GetDofList(DofsVectorType& ConditionalDofList, const ProcessInfo& CurrentProcessInfo) const
 {
+    unsigned int number_of_nodes = GetGeometry().size();
+    unsigned int index;
     unsigned int dim = 3;
     ConditionalDofList.resize(GetGeometry().size()*dim);
-    unsigned int index;
-    for (unsigned int i=0; i<GetGeometry().size(); i++)
+    for (unsigned int i = 0; i < number_of_nodes; i++)
     {
         index = i*dim;
         ConditionalDofList[index] = (GetGeometry()[i].pGetDof(DISPLACEMENT_X));
@@ -184,7 +195,5 @@ void PointForce3D::GetDofList(DofsVectorType& ConditionalDofList, const ProcessI
         ConditionalDofList[index+2] = (GetGeometry()[i].pGetDof(DISPLACEMENT_Z));
     }
 }
+
 } // Namespace Kratos
-
-
-

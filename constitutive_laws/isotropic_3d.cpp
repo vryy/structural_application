@@ -423,7 +423,7 @@ void Isotropic3D::CalculateStress( const Vector& StrainVector, Matrix& Algorithm
 {
     if ( StressVector.size() != 6 )
     {
-        StressVector.resize( 6 );
+        StressVector.resize( 6, false );
     }
 
     noalias( StressVector ) = prod( AlgorithmicTangent, StrainVector ) - mPrestressFactor * mPrestress;
@@ -435,7 +435,7 @@ void Isotropic3D::CalculateStress( const double& E, const double& NU, const Vect
 {
     if ( StressVector.size() != 6 )
     {
-        StressVector.resize( 6 );
+        StressVector.resize( 6, false );
     }
 
     Matrix Ce( 6, 6 );
