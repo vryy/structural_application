@@ -125,6 +125,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
     #include "custom_conditions/point_point_joint_condition.h"
     #include "custom_conditions/point_point_lagrange_condition.h"
     #include "custom_conditions/elastic_constraint.h"
+    #include "custom_conditions/elastic_line_springs.h"
     #include "custom_conditions/elastic_face_springs.h"
     #include "custom_conditions/nitsche_isotropic_constraint.h"
     #include "custom_conditions/roller_constraint.h"
@@ -489,6 +490,8 @@ private:
     const ElasticConstraint mElasticFaceConstraint4N;
     const ElasticConstraint mElasticFaceConstraint8N;
     const ElasticConstraint mElasticFaceConstraint9N;
+    const ElasticLineSprings mElasticLineSprings2N;
+    const ElasticLineSprings mElasticLineSprings3N;
     const ElasticFaceSprings mElasticFaceSprings3N;
     const ElasticFaceSprings mElasticFaceSprings6N;
     const ElasticFaceSprings mElasticFaceSprings4N;
