@@ -2,7 +2,7 @@
 *
 *   Last Modified by:    $Author: hbui $
 *   Date:                $Date: 23/07/2023 $
-*   Revision:            $Revision: 1.8 $
+*   Revision:            $Revision: 1.9 $
 *
 * ***********************************************************/
 
@@ -89,22 +89,22 @@ struct ResidualBasedNewmarkHelper<0>
             if ((norm_frobenius(DampingMatrix) == 0.0) && (norm_frobenius(MassMatrix) > 0.0))
             {
                 AddInertiaToRHS(rCurrentElement, RHS_Contribution, MassMatrix, CurrentProcessInfo);
-
                 AssembleTimeSpaceLHS_Dynamics_NoDamping(LHS_Contribution, MassMatrix, CurrentProcessInfo, alpha_f, alpha_m, beta);
             }
             else if ((norm_frobenius(DampingMatrix) > 0.0) && (norm_frobenius(MassMatrix) == 0.0))
             {
                 AddDampingToRHS(rCurrentElement, RHS_Contribution, DampingMatrix, CurrentProcessInfo);
-
                 AssembleTimeSpaceLHS_QuasiStatic(LHS_Contribution, DampingMatrix, CurrentProcessInfo, alpha_f, beta, gamma);
             }
             else if ((norm_frobenius(DampingMatrix) > 0.0) && (norm_frobenius(MassMatrix) > 0.0))
             {
                 AddInertiaToRHS(rCurrentElement, RHS_Contribution, MassMatrix, CurrentProcessInfo);
-
                 AddDampingToRHS(rCurrentElement, RHS_Contribution, DampingMatrix, CurrentProcessInfo);
-
                 AssembleTimeSpaceLHS_Dynamics(LHS_Contribution, DampingMatrix, MassMatrix, CurrentProcessInfo, alpha_f, alpha_m, beta, gamma);
+            }
+            else
+            {
+                AssembleTimeSpaceLHS_Dynamics_NoMass_NoDamping(LHS_Contribution, CurrentProcessInfo, alpha_f);
             }
         }
     }
@@ -152,8 +152,11 @@ struct ResidualBasedNewmarkHelper<0>
             else if ((norm_frobenius(DampingMatrix) > 0.0) && (norm_frobenius(MassMatrix) > 0.0))
             {
                 AddInertiaToRHS(rCurrentElement, RHS_Contribution, MassMatrix, CurrentProcessInfo);
-
                 AddDampingToRHS(rCurrentElement, RHS_Contribution, DampingMatrix, CurrentProcessInfo);
+            }
+            else
+            {
+                // DO NOTHING
             }
         }
     }
@@ -209,6 +212,10 @@ struct ResidualBasedNewmarkHelper<0>
             else if ((norm_frobenius(DampingMatrix) > 0.0) && (norm_frobenius(MassMatrix) > 0.0))
             {
                 AssembleTimeSpaceLHS_Dynamics(LHS_Contribution, DampingMatrix, MassMatrix, CurrentProcessInfo, alpha_f, alpha_m, beta, gamma);
+            }
+            else
+            {
+                AssembleTimeSpaceLHS_Dynamics_NoMass_NoDamping(LHS_Contribution, CurrentProcessInfo, alpha_f);
             }
         }
     }
@@ -313,6 +320,16 @@ struct ResidualBasedNewmarkHelper<0>
         // adding mass contribution to the dynamic stiffness
         aux = (1 - alpha_m) / (beta*pow(Dt, 2));
         noalias(LHS_Contribution) += aux * MassMatrix;
+    }
+
+    template<typename LocalSystemMatrixType>
+    static void AssembleTimeSpaceLHS_Dynamics_NoMass_NoDamping(
+        LocalSystemMatrixType& LHS_Contribution,
+        const ProcessInfo& CurrentProcessInfo,
+        const double alpha_f)
+    {
+        // adding stiffness contribution to the dynamic stiffness
+        LHS_Contribution *= (1 - alpha_f);
     }
 
 }; /* struct ResidualBasedNewmarkHelper<0> */
