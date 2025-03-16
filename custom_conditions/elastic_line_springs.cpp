@@ -174,6 +174,26 @@ void ElasticLineSprings::CalculateRightHandSide(VectorType& rRightHandSideVector
     KRATOS_CATCH("")
 }
 
+void ElasticLineSprings::CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo )
+{
+    unsigned int number_of_nodes = GetGeometry().size();
+    unsigned int dim = 2;
+
+    if(rMassMatrix.size1() != number_of_nodes*dim || rMassMatrix.size2() != number_of_nodes*dim)
+        rMassMatrix.resize(number_of_nodes*dim, number_of_nodes*dim, false);
+    noalias(rMassMatrix) = ZeroMatrix(number_of_nodes*dim, number_of_nodes*dim);
+}
+
+void ElasticLineSprings::CalculateDampingMatrix(MatrixType& rDampingMatrix, const ProcessInfo& rCurrentProcessInfo )
+{
+    unsigned int number_of_nodes = GetGeometry().size();
+    unsigned int dim = 2;
+
+    if(rDampingMatrix.size1() != number_of_nodes*dim || rDampingMatrix.size2() != number_of_nodes*dim)
+        rDampingMatrix.resize(number_of_nodes*dim, number_of_nodes*dim, false);
+    noalias(rDampingMatrix) = ZeroMatrix(number_of_nodes*dim, number_of_nodes*dim);
+}
+
 //************************************************************************************
 //************************************************************************************
 void ElasticLineSprings::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
@@ -204,7 +224,7 @@ void ElasticLineSprings::CalculateAll( MatrixType& rLeftHandSideMatrix, VectorTy
     //resizing LHS and RHS where needed
     if (CalculateStiffnessMatrixFlag)
     {
-        if(rLeftHandSideMatrix.size1() != number_of_nodes*dim)
+        if(rLeftHandSideMatrix.size1() != number_of_nodes*dim || rLeftHandSideMatrix.size2() != number_of_nodes*dim)
             rLeftHandSideMatrix.resize(number_of_nodes*dim, number_of_nodes*dim, false);
         noalias(rLeftHandSideMatrix) = ZeroMatrix(number_of_nodes*dim, number_of_nodes*dim);
     }
@@ -220,7 +240,7 @@ void ElasticLineSprings::CalculateAll( MatrixType& rLeftHandSideMatrix, VectorTy
     {
         const array_1d<double, 3>& bedding = GetGeometry()[0].GetSolutionStepValue(ELASTIC_BEDDING_STIFFNESS);
         const array_1d<double, 3>& displacement = GetGeometry()[0].GetSolutionStepValue(DISPLACEMENT);
-        for( unsigned int i=0; i<3; i++ )
+        for( unsigned int i = 0; i < 3; i++ )
         {
             rLeftHandSideMatrix(i, i) = bedding[i];
             rRightHandSideVector[i] = -displacement[i]*bedding[i];
@@ -290,7 +310,10 @@ void ElasticLineSprings::CalculateAll( MatrixType& rLeftHandSideMatrix, VectorTy
 
             normal_vector[0] = -tangent[1];
             normal_vector[1] = tangent[0];
+
             double IntegrationWeight = integration_points[PointNumber].Weight();
+            //modify integration weight in case of 2D
+            IntegrationWeight *= GetProperties()[THICKNESS];
 
             // normalize
             norm_t = norm_2(tangent);

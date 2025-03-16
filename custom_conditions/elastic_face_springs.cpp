@@ -192,6 +192,30 @@ void ElasticFaceSprings::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, V
 
 //************************************************************************************
 //************************************************************************************
+void ElasticFaceSprings::CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo )
+{
+    unsigned int number_of_nodes = GetGeometry().size();
+    unsigned int dim = 3;
+
+    if(rMassMatrix.size1() != number_of_nodes*dim || rMassMatrix.size2() != number_of_nodes*dim)
+        rMassMatrix.resize(number_of_nodes*dim, number_of_nodes*dim, false);
+    noalias(rMassMatrix) = ZeroMatrix(number_of_nodes*dim, number_of_nodes*dim);
+}
+
+//************************************************************************************
+//************************************************************************************
+void ElasticFaceSprings::CalculateDampingMatrix(MatrixType& rDampingMatrix, const ProcessInfo& rCurrentProcessInfo )
+{
+    unsigned int number_of_nodes = GetGeometry().size();
+    unsigned int dim = 3;
+
+    if(rDampingMatrix.size1() != number_of_nodes*dim || rDampingMatrix.size2() != number_of_nodes*dim)
+        rDampingMatrix.resize(number_of_nodes*dim, number_of_nodes*dim, false);
+    noalias(rDampingMatrix) = ZeroMatrix(number_of_nodes*dim, number_of_nodes*dim);
+}
+
+//************************************************************************************
+//************************************************************************************
 void ElasticFaceSprings::CalculateAll( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector,
                                        const ProcessInfo& rCurrentProcessInfo, bool CalculateStiffnessMatrixFlag,
                                        bool CalculateResidualVectorFlag )
@@ -204,7 +228,7 @@ void ElasticFaceSprings::CalculateAll( MatrixType& rLeftHandSideMatrix, VectorTy
     //resizing LHS and RHS where needed
     if (CalculateStiffnessMatrixFlag)
     {
-        if(rLeftHandSideMatrix.size1() != number_of_nodes*dim)
+        if(rLeftHandSideMatrix.size1() != number_of_nodes*dim || rLeftHandSideMatrix.size2() != number_of_nodes*dim)
             rLeftHandSideMatrix.resize(number_of_nodes*dim, number_of_nodes*dim,false);
         noalias(rLeftHandSideMatrix) = ZeroMatrix(number_of_nodes*dim, number_of_nodes*dim);
     }
@@ -335,7 +359,6 @@ void ElasticFaceSprings::CalculateAll( MatrixType& rLeftHandSideMatrix, VectorTy
 
     KRATOS_CATCH("")
 }
-
 
 //************************************************************************************
 //************************************************************************************
