@@ -244,7 +244,7 @@ struct ResidualBasedNewmarkHelper<0>
         LocalSystemMatrixType& LHS_Contribution,
         const LocalSystemMatrixType& DampingMatrix,
         const ProcessInfo& CurrentProcessInfo,
-        const double& alpha_f, const double& beta, const double& gamma)
+        const double alpha_f, const double beta, const double gamma)
     {
         const double Dt = CurrentProcessInfo[DELTA_TIME];
         double aux;
@@ -262,7 +262,7 @@ struct ResidualBasedNewmarkHelper<0>
     static void AssembleTimeSpaceLHS_QuasiStatic_NoDamping(
         LocalSystemMatrixType& LHS_Contribution,
         const ProcessInfo& CurrentProcessInfo,
-        const double& alpha_f)
+        const double alpha_f)
     {
         const double Dt = CurrentProcessInfo[DELTA_TIME];
         double aux;
@@ -278,7 +278,7 @@ struct ResidualBasedNewmarkHelper<0>
         const LocalSystemMatrixType& DampingMatrix,
         const LocalSystemMatrixType& MassMatrix,
         const ProcessInfo& CurrentProcessInfo,
-        const double& alpha_f, const double& alpha_m, const double& beta, const double& gamma)
+        const double alpha_f, const double alpha_m, const double beta, const double gamma)
     {
         const double Dt = CurrentProcessInfo[DELTA_TIME];
         double aux;
@@ -301,7 +301,7 @@ struct ResidualBasedNewmarkHelper<0>
         LocalSystemMatrixType& LHS_Contribution,
         const LocalSystemMatrixType& MassMatrix,
         const ProcessInfo& CurrentProcessInfo,
-        const double& alpha_f, const double& alpha_m, const double& beta)
+        const double alpha_f, const double alpha_m, const double beta)
     {
         const double Dt = CurrentProcessInfo[DELTA_TIME];
         double aux;
