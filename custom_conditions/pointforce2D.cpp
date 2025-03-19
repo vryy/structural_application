@@ -138,6 +138,23 @@ void PointForce2D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorT
     KRATOS_CATCH("")
 }
 
+//************************************************************************************
+//************************************************************************************
+void PointForce2D::CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo )
+{
+    if(rMassMatrix.size1() != 2 || rMassMatrix.size2() != 2)
+        rMassMatrix.resize(2, 2, false);
+    noalias(rMassMatrix) = ZeroMatrix(2, 2);
+}
+
+//************************************************************************************
+//************************************************************************************
+void PointForce2D::CalculateDampingMatrix(MatrixType& rDampingMatrix, const ProcessInfo& rCurrentProcessInfo )
+{
+    if(rDampingMatrix.size1() != 2 || rDampingMatrix.size2() != 2)
+        rDampingMatrix.resize(2, 2, false);
+    noalias(rDampingMatrix) = ZeroMatrix(2, 2);
+}
 
 //************************************************************************************
 //************************************************************************************
