@@ -80,6 +80,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_strategies/schemes/residualbased_mixed_forward_euler_scheme.h"
 #include "custom_strategies/schemes/arc_length_displacement_control_support_scheme.h"
 #include "custom_strategies/schemes/arc_length_displacement_control_energy_release_support_scheme.h"
+#include "custom_strategies/schemes/steady_state_dynamics_scheme.h"
 
 //builder_and_solvers
 #include "solving_strategies/builder_and_solvers/builder_and_solver.h"
@@ -136,6 +137,7 @@ void  AddCustomStrategiesToPython()
     typedef ResidualBasedAccBasedForwardEulerScheme< SparseSpaceType, LocalSpaceType > ResidualBasedAccBasedForwardEulerSchemeType;
     typedef ResidualBasedAccBasedCentralDifferenceScheme< SparseSpaceType, LocalSpaceType > ResidualBasedAccBasedCentralDifferenceSchemeType;
     typedef ResidualBasedMixedForwardEulerScheme< SparseSpaceType, LocalSpaceType > ResidualBasedMixedForwardEulerSchemeType;
+    typedef SteadyStateDynamicsScheme< SparseSpaceType, LocalSpaceType > SteadyStateDynamicsSchemeType;
 
     typedef ConvergenceCriteria< SparseSpaceType, LocalSpaceType > ConvergenceCriteriaBaseType;
 
@@ -236,6 +238,13 @@ void  AddCustomStrategiesToPython()
             ;
 
     AddArcLengthDisplacementControlSupportScheme<ResidualBasedIncrementalUpdateStaticDeactivationSchemeType>("ResidualBasedIncrementalUpdateStaticDeactivationScheme");
+
+    class_< SteadyStateDynamicsSchemeType,
+            bases< BaseSchemeType >, boost::noncopyable >
+            (
+                "SteadyStateDynamicsScheme", init<const double>()
+            )
+            ;
 
     class_< MultiPhaseFlowCriteriaType,
             bases< ConvergenceCriteriaBaseType >, boost::noncopyable >
