@@ -1002,6 +1002,11 @@ namespace Kratos
 
         const IntegrationMethod ThisIntegrationMethod = this->GetIntegrationMethod();
 
+        #ifdef ENABLE_BEZIER_GEOMETRY
+        //initialize the geometry
+        GetGeometry().Initialize(ThisIntegrationMethod);
+        #endif
+
         //reading integration points and local gradients
         const GeometryType::IntegrationPointsArrayType& integration_points =
             GetGeometry().IntegrationPoints( ThisIntegrationMethod );
@@ -1037,6 +1042,10 @@ namespace Kratos
             }
         }
 
+        #ifdef ENABLE_BEZIER_GEOMETRY
+        //clean the internal data of the geometry
+        GetGeometry().Clean();
+        #endif
 
         KRATOS_CATCH( "" )
     }
@@ -1049,6 +1058,7 @@ namespace Kratos
     void KinematicLinear::CalculateDampingMatrix( MatrixType& rDampMatrix, const ProcessInfo& rCurrentProcessInfo )
     {
         KRATOS_TRY
+
         unsigned int number_of_nodes = GetGeometry().size();
         unsigned int dim = GetGeometry().WorkingSpaceDimension();
 
@@ -1217,7 +1227,6 @@ namespace Kratos
                 values[index + 2] = GetGeometry()[i].GetSolutionStepValue( DISPLACEMENT_Z, Step );
         }
     }
-
 
     //************************************************************************************
     //************************************************************************************

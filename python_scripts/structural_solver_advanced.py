@@ -236,7 +236,7 @@ class SolverAdvanced(structural_solver_static.StaticStructuralSolver):
                 elif(self.dissipation_radius >= 4.0 and self.dissipation_radius <= 5.0): # Hilber-alpha
                     self.time_scheme = ResidualBasedNewmarkSchemeType(3, self.dissipation_radius-4.0)
                 else:
-                    self.time_scheme = ResidualBasedNewmarkSchemeType() # pure Newmarkscheme
+                    self.time_scheme = ResidualBasedNewmarkSchemeType() # pure Newmark scheme
                 #self.time_scheme.Check(self.model_part)
             elif( self.analysis_parameters['analysis_type'] == 3 ):
                 self.model_part.ProcessInfo.SetValue( QUASI_STATIC_ANALYSIS, True )
@@ -391,4 +391,3 @@ class SolverAdvanced(structural_solver_static.StaticStructuralSolver):
     #######################################################################
     def SolveOneStep(self):
         (self.solver).SolveOneStep()
-

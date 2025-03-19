@@ -59,7 +59,7 @@ struct ResidualBasedNewmarkHelper<0>
 
         rCurrentElement.CalculateLocalSystem(LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
 
-        rCurrentElement.EquationIdVector(EquationId,CurrentProcessInfo);
+        rCurrentElement.EquationIdVector(EquationId, CurrentProcessInfo);
 
         if (CurrentProcessInfo[QUASI_STATIC_ANALYSIS])
         {
@@ -118,7 +118,7 @@ struct ResidualBasedNewmarkHelper<0>
     {
         rCurrentElement.CalculateRightHandSide(RHS_Contribution, CurrentProcessInfo);
 
-        rCurrentElement.EquationIdVector(EquationId,CurrentProcessInfo);
+        rCurrentElement.EquationIdVector(EquationId, CurrentProcessInfo);
 
         if (CurrentProcessInfo[QUASI_STATIC_ANALYSIS])
         {
