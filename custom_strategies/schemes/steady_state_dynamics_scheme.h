@@ -147,6 +147,16 @@ public:
     /**@name Operations */
     /*@{ */
 
+    double GetOmega() const
+    {
+        return mOmega;
+    }
+
+    void SetOmega(double omega)
+    {
+        mOmega = omega;
+    }
+
     /// Initialize the scheme
     void Initialize(ModelPart& r_model_part) override
     {
@@ -169,11 +179,40 @@ public:
     {
         KRATOS_TRY
 
-        for(typename DofsArrayType::iterator i_dof = rDofSet.begin() ; i_dof != rDofSet.end() ; ++i_dof)
+
+        for (typename DofsArrayType::iterator dof_iterator = rDofSet.begin(); dof_iterator != rDofSet.end(); ++dof_iterator)
         {
-            if(i_dof->IsFree())
+            ModelPart::NodeType& rNode = r_model_part.GetNode(dof_iterator->Id());
+
+            if (dof_iterator->GetVariable() == DISPLACEMENT_X)
             {
-                i_dof->GetSolutionStepValue() += Dx[i_dof->EquationId()];
+                if (dof_iterator->IsFree())
+                {
+                    rNode.GetSolutionStepValue(DISPLACEMENT_X)
+                    += Dx[dof_iterator->EquationId()];
+                    rNode.GetSolutionStepValue(ACCELERATION_X)
+                    -= mOmega*mOmega*Dx[dof_iterator->EquationId()];
+                }
+            }
+            else if (dof_iterator->GetVariable() == DISPLACEMENT_Y)
+            {
+                if (dof_iterator->IsFree())
+                {
+                    rNode.GetSolutionStepValue(DISPLACEMENT_Y)
+                    += Dx[dof_iterator->EquationId()];
+                    rNode.GetSolutionStepValue(ACCELERATION_Y)
+                    -= mOmega*mOmega*Dx[dof_iterator->EquationId()];
+                }
+            }
+            else if (dof_iterator->GetVariable() == DISPLACEMENT_Z)
+            {
+                if (dof_iterator->IsFree())
+                {
+                    rNode.GetSolutionStepValue(DISPLACEMENT_Z)
+                    += Dx[dof_iterator->EquationId()];
+                    rNode.GetSolutionStepValue(ACCELERATION_Z)
+                    -= mOmega*mOmega*Dx[dof_iterator->EquationId()];
+                }
             }
         }
 
@@ -195,11 +234,19 @@ public:
         rCurrentElement.CalculateLocalSystem(LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
         rCurrentElement.EquationIdVector(EquationId, CurrentProcessInfo);
 
-        Matrix MassMatrix;
+        Vector acceleration;
+        rCurrentElement.GetSecondDerivativesVector(acceleration, 0);
 
-        rCurrentElement.CalculateMassMatrix(MassMatrix, CurrentProcessInfo);
+        if (acceleration.size() > 0)
+        {
+            Matrix MassMatrix;
 
-        noalias(LHS_Contribution) -= mOmega*mOmega*MassMatrix;
+            rCurrentElement.CalculateMassMatrix(MassMatrix, CurrentProcessInfo);
+
+            noalias(RHS_Contribution) -= prod(MassMatrix, acceleration);
+
+            noalias(LHS_Contribution) -= mOmega*mOmega*MassMatrix;
+        }
 
         KRATOS_CATCH("")
     }
@@ -216,11 +263,19 @@ public:
         rCurrentCondition.CalculateLocalSystem(LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
         rCurrentCondition.EquationIdVector(EquationId, CurrentProcessInfo);
 
-        Matrix MassMatrix;
+        Vector acceleration;
+        rCurrentCondition.GetSecondDerivativesVector(acceleration, 0);
 
-        rCurrentCondition.CalculateMassMatrix(MassMatrix, CurrentProcessInfo);
+        if (acceleration.size() > 0)
+        {
+            Matrix MassMatrix;
 
-        noalias(LHS_Contribution) -= mOmega*mOmega*MassMatrix;
+            rCurrentCondition.CalculateMassMatrix(MassMatrix, CurrentProcessInfo);
+
+            noalias(RHS_Contribution) -= prod(MassMatrix, acceleration);
+
+            noalias(LHS_Contribution) -= mOmega*mOmega*MassMatrix;
+        }
 
         KRATOS_CATCH("")
     }

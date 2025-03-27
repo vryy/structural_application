@@ -183,7 +183,14 @@ void FaceForce3D::CalculateMassMatrix( MatrixType& rMassMatrix,
                               const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
-    rMassMatrix.resize( 0, 0, false );
+
+    unsigned int number_of_nodes = GetGeometry().size();
+    unsigned int MatSize = number_of_nodes * 3;
+
+    if (rMassMatrix.size1() != MatSize || rMassMatrix.size2() != MatSize)
+        rMassMatrix.resize(MatSize, MatSize, false);
+    noalias(rMassMatrix) = ZeroMatrix(MatSize, MatSize);
+
     KRATOS_CATCH( "" )
 }
 
@@ -193,7 +200,14 @@ void FaceForce3D::CalculateDampingMatrix( MatrixType& rDampingMatrix,
                               const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
-    rDampingMatrix.resize( 0, 0, false );
+
+    unsigned int number_of_nodes = GetGeometry().size();
+    unsigned int MatSize = number_of_nodes * 3;
+
+    if (rDampingMatrix.size1() != MatSize || rDampingMatrix.size2() != MatSize)
+        rDampingMatrix.resize(MatSize, MatSize, false);
+    noalias(rDampingMatrix) = ZeroMatrix(MatSize, MatSize);
+
     KRATOS_CATCH( "" )
 }
 

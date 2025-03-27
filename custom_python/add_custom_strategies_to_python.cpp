@@ -244,6 +244,7 @@ void  AddCustomStrategiesToPython()
             (
                 "SteadyStateDynamicsScheme", init<const double>()
             )
+            .def("SetOmega", &SteadyStateDynamicsSchemeType::SetOmega)
             ;
 
     class_< MultiPhaseFlowCriteriaType,
