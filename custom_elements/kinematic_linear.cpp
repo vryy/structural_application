@@ -1937,7 +1937,7 @@ namespace Kratos
             GetGeometry().Clean();
             #endif
         }
-        else if ( rVariable == STRESSES || rVariable == ELASTIC_STRAIN_VECTOR || rVariable == PLASTIC_STRAIN_VECTOR )
+        else if ( rVariable == STRESSES || rVariable == PRESTRESS || rVariable == ELASTIC_STRAIN_VECTOR || rVariable == PLASTIC_STRAIN_VECTOR )
         {
             for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); ++i )
             {
