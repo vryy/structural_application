@@ -193,6 +193,7 @@ void IsotropicDamageModel::SetValue( const Variable<double>& rThisVariable, cons
         if (mCurrentDamage > 1.0 || mCurrentDamage < 0.0)
             KRATOS_ERROR << "The damage " << mCurrentDamage << " does not fall in range [0 1]";
         mKappa = std::max(mInitialEps, this->ComputeKappa(mCurrentDamage));
+        // if (mKappa < me0) mKappa = me0; // this is not necessary, since the kappa will be > e0 when damage is in range [0, 1]
         mKappa_old = mKappa;
         mq = (1.0 - mCurrentDamage) * mKappa;
         mq_old = mq;
@@ -425,6 +426,7 @@ void IsotropicDamageModel::StressIntegration(const Vector& StrainVector, const d
 
             const double H = this->SofteningLaw(mKappa_old);
             mq = mq_old + H*(mKappa - mKappa_old);
+            // KRATOS_WATCH(mKappa - mKappa_old)
 
             mDamageFlag = 1;
         }

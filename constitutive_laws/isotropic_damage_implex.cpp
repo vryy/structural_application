@@ -180,11 +180,17 @@ void IsotropicDamageIMPLEX::SetValue( const Variable<double>& rThisVariable, con
     {
         mCurrentDamage = rValue;
         mKappa = this->ComputeKappa(mCurrentDamage);
+        // if (mKappa < me0) mKappa = me0; // this is not necessary, since the kappa will be > e0 when damage is in range [0, 1]
         mKappa_old = mKappa;
+        // KRATOS_WATCH(rValue)
+        // KRATOS_WATCH(mKappa)
+        // if (mKappa == 0.0)
+        //     KRATOS_ERROR << "Kappa should not be zero";
         if (mCurrentDamage > 1.0 || mCurrentDamage < 0.0)
         {
             KRATOS_ERROR << "The damage " << mCurrentDamage << " does not fall in range [0 1]";
         }
+        // std::cout << "Damage is set to " << mCurrentDamage << std::endl;
     }
     if( rThisVariable == EQUIVALENT_STRAIN )
     {
