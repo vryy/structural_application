@@ -74,7 +74,7 @@ namespace Kratos
 
 /// Define a distributed load condition on line in 2D. The load is computed by pressure (conditional variable PRESSURE) multiplying with the normal vector.
 /// The PRESSURE is defined at the integration points
-class LinePressureDistributed : public Condition
+class KRATOS_API(STRUCTURAL_APPLICATION) LinePressureDistributed : public Condition
 {
 public:
 

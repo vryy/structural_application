@@ -25,7 +25,7 @@ void KRATOS_API(STRUCTURAL_APPLICATION) eigen_decomposition(double A[3][3], doub
  * Remarks: sigma_1, sigma_2, sigma_3 is sorted
  */
 template<typename TVectorType> // = array_1d<double, 3>
-void KRATOS_API(STRUCTURAL_APPLICATION) spectral_decomposition(
+void spectral_decomposition(
                            double sigma_xx,
                            double sigma_yy,
                            double sigma_zz,
