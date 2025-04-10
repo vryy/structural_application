@@ -1,14 +1,18 @@
 CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
 
+include_directories(${CMAKE_SOURCE_DIR}/kratos)
+
 add_library(eig STATIC eig3.cpp)
-set_target_properties(eig PROPERTIES COMPILE_DEFINITIONS "KRATOS_CORE=IMPORT;STRUCTURAL_APPLICATION=EXPORT;")
+target_compile_definitions(eig PRIVATE KRATOS_CORE=IMPORT)
+target_compile_definitions(eig PRIVATE STRUCTURAL_APPLICATION=EXPORT)
 
 set(file_list
-test
+    test
 )
 
 foreach(str ${file_list})
     add_executable(${str} ${str}.cpp)
-    target_link_libraries(${str} eig)
-    set_target_properties(${str} PROPERTIES COMPILE_DEFINITIONS "KRATOS_CORE=IMPORT;STRUCTURAL_APPLICATION=NONE;")
+    target_link_libraries(${str} PRIVATE eig)
+    target_compile_definitions(${str} PRIVATE KRATOS_CORE=IMPORT)
+    target_compile_definitions(${str} PRIVATE STRUCTURAL_APPLICATION=NONE)
 endforeach()
