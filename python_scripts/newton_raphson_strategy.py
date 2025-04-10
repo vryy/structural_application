@@ -372,17 +372,17 @@ class SolvingStrategyPython:
 
         # print the matrix information if needed
         if echo_level > 1:
-            print('System matrix info: ', end='')
+            print('System matrix info: ', end='', flush=True)
             self.space_utils.PrintMatrixInfo(self.A, 3)
-            print('System vector info (Dx): ', end='')
+            print('System vector info (Dx): ', end='', flush=True)
             self.space_utils.PrintVectorInfo(self.Dx, 3)
-            print('System vector info (b): ', end='')
+            print('System vector info (b): ', end='', flush=True)
             self.space_utils.PrintVectorInfo(self.b, 3)
 
         if(echo_level >= 3):
-            print("SystemMatrix = " + str(self.A))
-            print("solution obtained = " + str(self.Dx))
-            print("RHS = " + str(self.b))
+            print("SystemMatrix = " + str(self.A), flush=True)
+            print("solution obtained = " + str(self.Dx), flush=True)
+            print("RHS = " + str(self.b), flush=True)
 
         #calculate the norm of the "correction" Dx
         if(CalculateNormDxFlag == True):
