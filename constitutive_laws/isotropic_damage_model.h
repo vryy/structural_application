@@ -66,13 +66,10 @@ namespace Kratos
 {
 
 /**
- * Defines a linear elastic isotropic constitutive law in 3D space.
- * This material law is defined by the parameters E (Young's modulus)
- * and NU (Poisson ratio)
- * As there are no further parameters the functionality is limited
- * to linear elasticity.
+ * Isotropic continuum damage model
+ * Ref:
+ * + Oliver et al, An implicit/explicit integration scheme to increase computability of non-linear material and contact/friction problems
  */
-
 class IsotropicDamageModel : public ConstitutiveLaw
 {
 public:
@@ -263,6 +260,8 @@ protected:
 
     virtual double DamageFunctionDerivative(const double kappa) const;
 
+    virtual double SofteningLaw(const double kappa) const;
+
     /// Integrate new stress for DC wrapper
     void StressIntegration(const Vector& StrainVector, const double TOL,
             const ProcessInfo& CurrentProcessInfo, const Properties& rProperties);
@@ -276,15 +275,19 @@ protected:
 
 private:
 
-    double mE, mNU, mE_0, mE_f;
-    Matrix m_stress_n1, m_stress_n;
-    Matrix m_strain_n1;
+    double mE, mNU, me0, mef;
+    Matrix m_stress_n1, m_stress_n;     // stress corresponding to offseted strain, without offseting by sigma_0
+    Matrix m_strain_n1;                 // strain offseted by strain_0
     double mKappa_old;
     double mKappa;
+    double mq, mq_old;
     double mCurrentDamage;
-    double mInitialDamage;
     double mInitialEps;
     int mDamageFlag;
+
+    Vector mPrestress;
+    double mPrestressFactor;
+    Vector mPrestrain;
 
     int mElemId;
     int mGaussId;

@@ -43,9 +43,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 /* *********************************************************
  *
- *   Last Modified by:    $Author: seyedali $
- *   Date:                $Date: 2014-05-15 00:00:00 $
- *   Revision:            $Revision: 0.54 $
+ *   Last Modified by:    $Author: hbui $
+ *   Date:                $Date: 11 Feb 2025 $
+ *   Revision:            $Revision: 1.0 $
  *
  * ***********************************************************/
 
@@ -66,11 +66,9 @@ namespace Kratos
 {
 
 /**
- * Defines an IMPL-EX isotropic damage constitutive law in 3D space.
- * This material law is defined by the parameters E (Young's modulus),
- * NU (Poisson's ratio), Ft (Tensile Strength) and GF (Fracture Energy).
- * Remark: with reference to J. Oliver et al. (2008) and the
- * Java version of IMPL-EX algorithm by hbui
+ * Isotropic continuum damage model
+ * Ref:
+ * + Oliver et al, An implicit/explicit integration scheme to increase computability of non-linear material and contact/friction problems
  */
 class IsotropicDamageIMPLEX : public ConstitutiveLaw
 {
@@ -80,9 +78,9 @@ public:
      */
     typedef ConstitutiveLaw BaseType;
     /**
-     * Counted pointer of Isotropic_Damage_Implex
+     * Counted pointer of IsotropicDamageIMPLEX
      */
-    typedef boost::shared_ptr<IsotropicDamageIMPLEX> Pointer;
+    KRATOS_CLASS_POINTER_DEFINITION(IsotropicDamageIMPLEX);
 
     /**
      * Life Cycle
@@ -92,16 +90,10 @@ public:
      */
     IsotropicDamageIMPLEX();
 
-    virtual boost::shared_ptr<ConstitutiveLaw> Clone() const
-    {
-        boost::shared_ptr<ConstitutiveLaw> p_clone( new IsotropicDamageIMPLEX() );
-        return p_clone;
-    }
-
     /**
      * Destructor.
      */
-    virtual ~IsotropicDamageIMPLEX();
+    ~IsotropicDamageIMPLEX() override;
 
     /**
      * Operators
@@ -110,6 +102,12 @@ public:
     /**
      * Operations
      */
+
+    ConstitutiveLaw::Pointer Clone() const override
+    {
+        ConstitutiveLaw::Pointer p_clone( new IsotropicDamageIMPLEX() );
+        return p_clone;
+    }
 
     ConstitutiveLaw::StrainMeasure GetStrainMeasure() override
     {
@@ -126,7 +124,6 @@ public:
         rFeatures.SetStrainMeasure(this->GetStrainMeasure());
     }
 
-    bool Has( const Variable<int>& rThisVariable );
     bool Has( const Variable<double>& rThisVariable ) override;
     bool Has( const Variable<Vector>& rThisVariable ) override;
     bool Has( const Variable<Matrix>& rThisVariable ) override;
@@ -142,7 +139,7 @@ public:
     void SetValue( const Variable<double>& rThisVariable, const double& rValue,
                    const ProcessInfo& rCurrentProcessInfo ) override;
     void SetValue( const Variable<array_1d<double, 3 > >& rThisVariable,
-                   const array_1d<double, 3 > & rValue, const ProcessInfo& rCurrentProcessInfo );
+                   const array_1d<double, 3 > & rValue, const ProcessInfo& rCurrentProcessInfo ) override;
     void SetValue( const Variable<Vector>& rThisVariable, const Vector& rValue,
                    const ProcessInfo& rCurrentProcessInfo ) override;
     void SetValue( const Variable<Matrix>& rThisVariable, const Matrix& rValue,
@@ -160,7 +157,7 @@ public:
      * this function is rather useless and in fact does nothing
      */
     void InitializeSolutionStep( const Properties& props,
-                                 const GeometryType& geom,
+                                 const GeometryType& geom, //this is just to give the array of nodes
                                  const Vector& ShapeFunctionsValues,
                                  const ProcessInfo& CurrentProcessInfo ) override;
 
@@ -179,9 +176,10 @@ public:
                                      const ProcessInfo& CurrentProcessInfo ) override;
 
     void FinalizeSolutionStep( const Properties& props,
-                               const GeometryType& geom,
+                               const GeometryType& geom, //this is just to give the array of nodes
                                const Vector& ShapeFunctionsValues,
                                const ProcessInfo& CurrentProcessInfo ) override;
+
 
     /**
      * This function is designed to be called once to perform all the checks needed
@@ -194,7 +192,7 @@ public:
      */
     int Check( const Properties& props,
                const GeometryType& geom,
-               const ProcessInfo& CurrentProcessInfo ) const override;
+               const ProcessInfo& CurrentProcessInfo ) const final;
 
     /**
      * Computes the material response in terms of Cauchy stresses and constitutive tensor
@@ -219,26 +217,21 @@ public:
      * returns the size of the strain vector of the current constitutive law
      * NOTE: this function HAS TO BE IMPLEMENTED by any derived class
      */
-    SizeType GetStrainSize() const override
+    SizeType GetStrainSize() const final
     {
         return 6;
     }
 
     /**
-     * Calculates the elastic constitutive tensor
-     * @param rResult elastic tangent operator
+     * converts a strain vector styled variable into its form, which the
+     * deviatoric parts are no longer multiplied by 2
      */
-    void CalculateElasticMatrix( Matrix& C, const double E, const double NU ) const;
-
-    /**
-     * Calculates the softening law based on an internal variable alpha
-     * @param rResult softening function H
-     */
-    double SofteningLaw( const double alpha ) const;
+    //             void Calculate(const Variable<Matrix >& rVariable, Matrix& rResult, const ProcessInfo& rCurrentProcessInfo);
 
     /**
      * Input and output
      */
+
     /**
      * Turn back information as a string.
      */
@@ -267,22 +260,35 @@ protected:
 
     virtual double DamageFunctionDerivative(const double kappa) const;
 
+    virtual double SofteningLaw(const double kappa) const;
+
+    /// Integrate new stress for DC wrapper
+    void StressIntegration(const Vector& StrainVector, const double TOL,
+            const ProcessInfo& CurrentProcessInfo, const Properties& rProperties);
+
+    /// Compute tangent
+    void ComputeTangent(Matrix& AlgorithmicTangent,
+            const ProcessInfo& CurrentProcessInfo, const Properties& rProperties) const;
+
+    /// Reset the state of the constitutive law
+    virtual void ResetState();
+
 private:
 
-    double mFt, mGf, mE, mNU, mE_0, mL, mE_f, mD;
-    Vector mCurrentStrain;
-    Vector mCurrentStress;
-    double mAlpha, mAlpha_old, mAlpha_old_old, mdAlpha, mAlpha_alg;
-    double mq, mq_old, mq_alg;
-    double mDamage_alg;
-    Matrix mC_alg;
-    double mDeltaTime, mDeltaTime_old;
-
-    double mInitialDamage;
+    double mE, mNU, me0, mef;
+    Matrix m_stress_n1, m_stress_n, m_stress_alg;
+    Matrix m_strain_n1;
+    double mKappa_old_old;
+    double mKappa_old;
+    double mKappa;
+    double mq, mq_old;
+    double mCurrentDamage;
+    double mCurrentDamageAlg;
     double mInitialEps;
     int mDamageFlag;
 
-    int mElemId, mGaussId;
+    int mElemId;
+    int mGaussId;
 
     /// Compute kappa, providing damage
     double ComputeKappa(const double d, const double TOL = 1e-10, const int max_iters = 30) const;

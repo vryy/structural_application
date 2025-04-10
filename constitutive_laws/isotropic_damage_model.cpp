@@ -64,6 +64,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "constitutive_laws/isotropic_damage_model.h"
 #include "structural_application_variables.h"
 
+// #define DEBUG_DAMAGE
+#define DEBUG_ELEMENT_ID 1
+#define DEBUG_POINT_ID 0
+
 namespace Kratos
 {
 
@@ -106,13 +110,11 @@ double& IsotropicDamageModel::GetValue( const Variable<double>& rThisVariable, d
     if( rThisVariable == POISSON_RATIO )
         rValue = mNU;
     if( rThisVariable == DAMAGE_E0 )
-        rValue = mE_0;
+        rValue = me0;
     if( rThisVariable == DAMAGE_EF )
-        rValue = mE_f;
+        rValue = mef;
     if( rThisVariable == DAMAGE )
         rValue = mCurrentDamage;
-    if( rThisVariable == INITIAL_DAMAGE )
-        rValue = mInitialDamage;
     if( rThisVariable == KAPPA )
         rValue = mKappa;
     if( rThisVariable == EQUIVALENT_STRAIN )
@@ -121,11 +123,11 @@ double& IsotropicDamageModel::GetValue( const Variable<double>& rThisVariable, d
         SD_MathUtils<double>::CalculateFourthOrderZeroTensor(De);
         SD_MathUtils<double>::CalculateElasticTensor(De, mE, mNU);
 
-        Matrix stress_no_damage(3, 3);
-        stress_no_damage.clear();
-        SD_MathUtils<double>::ContractFourthOrderTensor(1.0, De, m_strain_n1, stress_no_damage);
+        Matrix effective_stress(3, 3);
+        effective_stress.clear();
+        SD_MathUtils<double>::ContractFourthOrderTensor(1.0, De, m_strain_n1, effective_stress);
 
-        rValue = std::sqrt(SD_MathUtils<double>::mat_inner_prod(stress_no_damage, m_strain_n1) / mE) - mInitialEps;
+        rValue = std::sqrt(SD_MathUtils<double>::mat_inner_prod(effective_stress, m_strain_n1) / mE) + mInitialEps;
     }
 
     return rValue;
@@ -134,7 +136,16 @@ double& IsotropicDamageModel::GetValue( const Variable<double>& rThisVariable, d
 Vector& IsotropicDamageModel::GetValue( const Variable<Vector>& rThisVariable, Vector& rValue )
 {
     if( rThisVariable == STRESSES )
+    {
         SD_MathUtils<double>::StressTensorToVector(m_stress_n1, rValue);
+        noalias(rValue) += mPrestressFactor*mPrestress;
+    }
+    if( rThisVariable == PRESTRESS )
+    {
+        noalias(rValue) = mPrestressFactor*mPrestress;
+    }
+    if( rThisVariable == STRAIN )
+        SD_MathUtils<double>::StrainTensorToVector(m_strain_n1, rValue);
 
     return rValue;
 }
@@ -173,28 +184,22 @@ void IsotropicDamageModel::SetValue( const Variable<double>& rThisVariable, cons
     if( rThisVariable == POISSON_RATIO )
         mNU = rValue;
     if( rThisVariable == DAMAGE_E0 )
-        mE_0 = rValue;
+        me0 = rValue;
     if( rThisVariable == DAMAGE_EF )
-        mE_f = rValue;
-    if( rThisVariable == INITIAL_DAMAGE )
-    {
-        mInitialDamage = rValue;
-        mCurrentDamage = mInitialDamage;
-        // std::cout << "Initial damage is set to " << mInitialDamage << std::endl;
-    }
+        mef = rValue;
     if( rThisVariable == DAMAGE )
     {
         mCurrentDamage = rValue;
-        mKappa = this->ComputeKappa(mCurrentDamage);
+        if (mCurrentDamage > 1.0 || mCurrentDamage < 0.0)
+            KRATOS_ERROR << "The damage " << mCurrentDamage << " does not fall in range [0 1]";
+        mKappa = std::max(mInitialEps, this->ComputeKappa(mCurrentDamage));
         mKappa_old = mKappa;
+        mq = (1.0 - mCurrentDamage) * mKappa;
+        mq_old = mq;
         // KRATOS_WATCH(rValue)
         // KRATOS_WATCH(mKappa)
         // if (mKappa == 0.0)
         //     KRATOS_ERROR << "Kappa should not be zero";
-        if (mCurrentDamage > 1.0 || mCurrentDamage < 0.0)
-        {
-            KRATOS_ERROR << "The damage " << mCurrentDamage << " does not fall in range [0 1]";
-        }
         // std::cout << "Damage is set to " << mCurrentDamage << std::endl;
     }
     if( rThisVariable == EQUIVALENT_STRAIN )
@@ -214,6 +219,10 @@ void IsotropicDamageModel::SetValue( const Variable<Vector>& rThisVariable, cons
 {
     if( rThisVariable == STRESSES )
         SD_MathUtils<double>::StressVectorToTensor(rValue, m_stress_n1);
+    if( rThisVariable == PRESTRESS )
+        noalias(mPrestress) = rValue;
+    if( rThisVariable == PRESTRAIN )
+        noalias(mPrestrain) = rValue;
 }
 
 void IsotropicDamageModel::SetValue( const Variable<Matrix>& rThisVariable, const Matrix& rValue,
@@ -225,17 +234,23 @@ void IsotropicDamageModel::InitializeMaterial( const Properties& props,
         const GeometryType& geom,
         const Vector& ShapeFunctionsValues )
 {
+    const unsigned int dim = geom.WorkingSpaceDimension();
+    const unsigned int strain_size = dim * (dim + 1) / 2;
     m_stress_n  = ZeroMatrix( 3, 3 );
     m_stress_n1 = ZeroMatrix( 3, 3 );
     m_strain_n1 = ZeroMatrix( 3, 3 );
+    mPrestress = ZeroVector(strain_size);
+    mPrestrain = ZeroVector(strain_size);
+    mPrestressFactor = 1.0;
     mE   = props[YOUNG_MODULUS];
     mNU  = props[POISSON_RATIO];
-    mE_0 = props[DAMAGE_E0];
-    mE_f = props[DAMAGE_EF];
-    mKappa     = mE_0;
+    me0 = props[DAMAGE_E0];
+    mef = props[DAMAGE_EF];
+    mKappa     = me0;
     mKappa_old = mKappa;
+    mq         = mKappa;
+    mq_old     = mKappa;
     mCurrentDamage = 0.0;
-    mInitialDamage = 0.0;
     mInitialEps    = 0.0;
     mDamageFlag    = 0;
 }
@@ -249,10 +264,11 @@ void IsotropicDamageModel::ResetMaterial( const Properties& props,
 
 void IsotropicDamageModel::ResetState()
 {
-    mKappa = mE_0;
+    mKappa = me0;
     mKappa_old = mKappa;
+    mq_old = mq;
     m_stress_n1.clear();
-    mCurrentDamage = mInitialDamage;
+    mCurrentDamage = 0.0;
     mDamageFlag = 0;
 }
 
@@ -268,8 +284,6 @@ void IsotropicDamageModel::InitializeNonLinearIteration( const Properties& props
         const Vector& ShapeFunctionsValues ,
         const ProcessInfo& CurrentProcessInfo )
 {
-    // restore mKappa
-    mKappa = mKappa_old;
 }
 
 void IsotropicDamageModel::FinalizeNonLinearIteration( const Properties& props,
@@ -285,6 +299,7 @@ void IsotropicDamageModel::FinalizeSolutionStep( const Properties& props,
         const ProcessInfo& CurrentProcessInfo )
 {
     mKappa_old = mKappa;
+    mq_old = mq;
     noalias(m_stress_n) = m_stress_n1;
 }
 
@@ -320,6 +335,7 @@ void  IsotropicDamageModel::CalculateMaterialResponse( const Vector& StrainVecto
     {
         if (CalculateStresses)
         {
+            // use only effective stress to evaluate the reaction forces
             SD_MathUtils<double>::StressTensorToVector(m_stress_n1, StressVector);
             return;
         }
@@ -334,63 +350,164 @@ void  IsotropicDamageModel::CalculateMaterialResponse( const Vector& StrainVecto
         this->StressIntegration(StrainVector, TOL, CurrentProcessInfo, props);
 
         SD_MathUtils<double>::StressTensorToVector(m_stress_n1, StressVector);
+        noalias(StressVector) += mPrestressFactor*mPrestress;
 
+        #ifdef DEBUG_DAMAGE
+        if (mElemId == DEBUG_ELEMENT_ID && mGaussId == DEBUG_POINT_ID)
         {
+            KRATOS_WATCH(StressVector)
+            KRATOS_WATCH(mPrestressFactor*mPrestress)
         }
+        #endif
     }
 
     if (CalculateTangent)
     {
         this->ComputeTangent(AlgorithmicTangent, CurrentProcessInfo, props);
+
+        #ifdef DEBUG_DAMAGE
+        if (mElemId == DEBUG_ELEMENT_ID && mGaussId == DEBUG_POINT_ID)
+        {
+            KRATOS_WATCH(AlgorithmicTangent)
+        }
+        #endif
     }
 
+    #ifdef DEBUG_DAMAGE
+    if (mElemId == DEBUG_ELEMENT_ID && mGaussId == DEBUG_POINT_ID)
+    {
+        KRATOS_WATCH("------------")
+    }
+    #endif
 
-        // KRATOS_WATCH(mE_0)
-        // KRATOS_WATCH(mE_f)
-        // KRATOS_WATCH(mKappa)
-        // KRATOS_WATCH(d)
-        // KRATOS_WATCH(this->DamageFunctionDerivative(mKappa))
+    // KRATOS_WATCH(StressVector)
+    // KRATOS_WATCH(AlgorithmicTangent)
 }
 
 void IsotropicDamageModel::StressIntegration(const Vector& StrainVector, const double TOL,
             const ProcessInfo& CurrentProcessInfo, const Properties& rProperties)
 {
     // equivalent strain
-    SD_MathUtils<double>::StrainVectorToTensor(StrainVector, m_strain_n1);
+    SD_MathUtils<double>::StrainVectorToTensor(StrainVector - mPrestrain, m_strain_n1);
 
     SD_MathUtils<double>::Fourth_Order_Tensor De;
     SD_MathUtils<double>::CalculateFourthOrderZeroTensor(De);
     SD_MathUtils<double>::CalculateElasticTensor(De, mE, mNU);
 
-    Matrix stress_no_damage(3, 3);
-    stress_no_damage.clear();
-    SD_MathUtils<double>::ContractFourthOrderTensor(1.0, De, m_strain_n1, stress_no_damage);
+    Matrix effective_stress(3, 3);
+    effective_stress.clear();
+    SD_MathUtils<double>::ContractFourthOrderTensor(1.0, De, m_strain_n1, effective_stress);
 
-    double eps = std::sqrt(SD_MathUtils<double>::mat_inner_prod(stress_no_damage, m_strain_n1) / mE) - mInitialEps;
+    double eps = std::sqrt(SD_MathUtils<double>::mat_inner_prod(effective_stress, m_strain_n1) / mE) + mInitialEps;
+
+    #ifdef DEBUG_DAMAGE
+    if (mElemId == DEBUG_ELEMENT_ID && mGaussId == DEBUG_POINT_ID)
+    {
+        KRATOS_WATCH(StrainVector)
+        KRATOS_WATCH(mPrestrain)
+        KRATOS_WATCH(m_strain_n1)
+        KRATOS_WATCH(eps)
+        KRATOS_WATCH(eps - mKappa_old)
+        KRATOS_WATCH(mKappa)
+        KRATOS_WATCH(mKappa_old)
+        // KRATOS_WATCH(mCurrentDamage)
+        KRATOS_WATCH(mInitialEps)
+        KRATOS_WATCH(this->DamageFunction(mKappa))
+    }
+    #endif
 
     // loading check
     if (mDamageFlag != -1) // -1 is the special value. It will stop the damage update
     {
-        if( eps > mKappa + TOL )
+        if( eps > mKappa_old + TOL )
         {
             mKappa = eps;
+
+            const double H = this->SofteningLaw(mKappa_old);
+            mq = mq_old + H*(mKappa - mKappa_old);
+
             mDamageFlag = 1;
         }
         else
         {
+            mKappa = mKappa_old;
+            mq = mq_old;
+
             mDamageFlag = 0;
         }
 
         // damage parameter
-        // here we do not allow the damage to exceed 1 by multiplying it with the rest of the initial damage
-        mCurrentDamage = mInitialDamage + (1.0 - mInitialDamage) * this->DamageFunction(mKappa);
+        mCurrentDamage = (1.0 - mq/mKappa);
+
+        #ifdef DEBUG_DAMAGE
+        if (mElemId == DEBUG_ELEMENT_ID && mGaussId == DEBUG_POINT_ID)
+        {
+            KRATOS_WATCH(mDamageFlag)
+            KRATOS_WATCH(mCurrentDamage)
+            KRATOS_WATCH(mq)
+            KRATOS_WATCH(mKappa)
+            KRATOS_WATCH(mq_old)
+            KRATOS_WATCH(mKappa - mKappa_old)
+        }
+        #endif
+
+        #ifdef DEBUG_DAMAGE
+        if (mElemId == DEBUG_ELEMENT_ID && mGaussId == DEBUG_POINT_ID)
+        {
+            if (mDamageFlag)
+                std::cout << "Damage is updated at element " << mElemId << ", point " << mGaussId << " to " << mCurrentDamage
+                          << ", mKappa = " << mKappa
+                          << ", eps = " << eps
+                          << ", mInitialEps = " << mInitialEps
+                          << std::endl;
+        // else
+        //     std::cout << "Damage is remained at element " << mElemId << ", point " << mGaussId << " at " << mCurrentDamage
+        //               << ", mKappa = " << mKappa
+        //               << ", eps = " << eps
+        //               << ", mInitialEps = " << mInitialEps
+        //               << std::endl;
+        }
+        #endif
     }
 
-    // KRATOS_WATCH(StressVector)
-    // KRATOS_WATCH(AlgorithmicTangent)
-    // stress update
-    noalias(m_stress_n1) = (1.0 - mCurrentDamage) * stress_no_damage;
+    #ifdef DEBUG_DAMAGE
+    if (mElemId == DEBUG_ELEMENT_ID && mGaussId == DEBUG_POINT_ID)
+    {
+        // KRATOS_WATCH(mElemId)
+        // KRATOS_WATCH(mGaussId)
+        KRATOS_WATCH(mE)
+        KRATOS_WATCH(mNU)
+        KRATOS_WATCH(StrainVector)
+        KRATOS_WATCH(mDamageFlag)
+        KRATOS_WATCH(mKappa)
+        KRATOS_WATCH(mCurrentDamage)
+        KRATOS_WATCH(mInitialEps)
+        KRATOS_WATCH(eps)
+    }
+    #endif
 
+    // if (mDamageFlag > 0)
+    //     KRATOS_ERROR << "stop here";
+
+    // stress update
+    noalias(m_stress_n1) = (1.0 - mCurrentDamage) * effective_stress;
+
+    #ifdef DEBUG_DAMAGE
+    if (mElemId == DEBUG_ELEMENT_ID && mGaussId == DEBUG_POINT_ID)
+    {
+        KRATOS_WATCH(mElemId)
+        KRATOS_WATCH(mGaussId)
+        KRATOS_WATCH(m_stress_n)
+        KRATOS_WATCH(m_stress_n1)
+        KRATOS_WATCH(norm_frobenius(m_stress_n1 - m_stress_n))
+    }
+    #endif
+
+    // KRATOS_WATCH(me0)
+    // KRATOS_WATCH(mef)
+    // KRATOS_WATCH(mKappa)
+    // KRATOS_WATCH(d)
+    // KRATOS_WATCH(this->DamageFunctionDerivative(mKappa))
 }
 
 void IsotropicDamageModel::ComputeTangent(Matrix& AlgorithmicTangent,
@@ -400,18 +517,37 @@ void IsotropicDamageModel::ComputeTangent(Matrix& AlgorithmicTangent,
     SD_MathUtils<double>::CalculateFourthOrderZeroTensor(D);
     SD_MathUtils<double>::CalculateElasticTensor(D, mE, mNU);
 
-    Matrix stress_no_damage(3, 3);
-    stress_no_damage.clear();
-    SD_MathUtils<double>::ContractFourthOrderTensor(1.0, D, m_strain_n1, stress_no_damage);
-
     SD_MathUtils<double>::ScaleFourthOrderTensor(D, 1.0 - mCurrentDamage);
     if (mDamageFlag > 0)
     {
-        double eps = std::sqrt(SD_MathUtils<double>::mat_inner_prod(stress_no_damage, m_strain_n1) / mE);
+        const double H = this->SofteningLaw(mKappa_old);
+        const double aux = (mq - H*mKappa)/(mE*mq*mq*mKappa);
+        #ifdef DEBUG_DAMAGE
+        if (mElemId == DEBUG_ELEMENT_ID && mGaussId == DEBUG_POINT_ID)
+        {
+            KRATOS_WATCH(H)
+            KRATOS_WATCH(aux)
+            Matrix Ce = AlgorithmicTangent;
+            SD_MathUtils<double>::TensorToMatrix(D, Ce);
+            KRATOS_WATCH(Ce)
+        }
+        #endif
+        SD_MathUtils<double>::OuterProductFourthOrderTensor(-aux, m_stress_n1, m_stress_n1, D);
+        #ifdef DEBUG_DAMAGE
+        if (mElemId == DEBUG_ELEMENT_ID && mGaussId == DEBUG_POINT_ID)
+        {
+            SD_MathUtils<double>::Fourth_Order_Tensor Dd;
+            SD_MathUtils<double>::CalculateFourthOrderZeroTensor(Dd);
+            SD_MathUtils<double>::OuterProductFourthOrderTensor(-aux, m_stress_n1, m_stress_n1, Dd);
+            Matrix Cd = AlgorithmicTangent;
+            SD_MathUtils<double>::TensorToMatrix(Dd, Cd);
+            KRATOS_WATCH(Cd)
 
-        Matrix dd_de(3, 3); // derivatives of mCurrentDamage w.r.t strain tensor
-        noalias(dd_de) = (1.0 - mInitialDamage) * this->DamageFunctionDerivative(mKappa) * stress_no_damage / (mE*eps);
-        SD_MathUtils<double>::OuterProductFourthOrderTensor(-1.0, stress_no_damage, dd_de, D);
+            Matrix Ct = AlgorithmicTangent;
+            SD_MathUtils<double>::TensorToMatrix(D, Ct);
+            KRATOS_WATCH(Ct)
+        }
+        #endif
     }
 
     SD_MathUtils<double>::TensorToMatrix(D, AlgorithmicTangent);
@@ -419,12 +555,17 @@ void IsotropicDamageModel::ComputeTangent(Matrix& AlgorithmicTangent,
 
 double IsotropicDamageModel::DamageFunction(const double kappa) const
 {
-    return 1.0 - mE_0/kappa * std::exp(-(kappa-mE_0)/mE_f);
+    return 1.0 - me0/kappa * std::exp(-(kappa-me0)/mef);
 }
 
 double IsotropicDamageModel::DamageFunctionDerivative(const double kappa) const
 {
-    return mE_0/kappa * (1.0/kappa + 1.0/mE_f) * std::exp(-(kappa-mE_0)/mE_f);
+    return me0/kappa * (1.0/kappa + 1.0/mef) * std::exp(-(kappa-me0)/mef);
+}
+
+double IsotropicDamageModel::SofteningLaw( const double kappa) const
+{
+    return -(me0/mef) * std::exp(-(kappa-me0)/mef);
 }
 
 double IsotropicDamageModel::ComputeKappa(const double d, const double TOL, const int max_iters) const
@@ -460,3 +601,5 @@ int IsotropicDamageModel::Check( const Properties& props, const GeometryType& ge
 }
 
 } // Namespace Kratos
+
+#undef DEBUG_DAMAGE

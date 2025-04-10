@@ -43,53 +43,48 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 /* *********************************************************
 *
-*   Last Modified by:    $Author: seyedali $
-*   Date:                $Date: 2014-05-15 00:00:00 $
-*   Revision:            $Revision: 0.54 $
+*   Last Modified by:    $Author: hbui $
+*   Date:                $Date: 11 Feb 2025 $
+*   Revision:            $Revision: 1.13 $
 *
 * ***********************************************************/
 
-// Remark: with reference to J. Oliver et al. (2008) and the
-// Java version of IMPL-EX algorithm by hbui
-
 // System includes
-#include<cmath>
 #include <iostream>
+#include <cmath>
 
 // External includes
 
 // Project includes
-
+#ifndef SD_APP_FORWARD_COMPATIBILITY
+#include "includes/c2c_variables.h" // contain KAPPA
+#endif
 #include "utilities/math_utils.h"
+#include "custom_utilities/sd_math_utils.h"
 #include "constitutive_laws/isotropic_damage_implex.h"
 #include "structural_application_variables.h"
+
+// #define DEBUG_DAMAGE
 
 namespace Kratos
 {
 
-/**
- * TO BE TESTED!!!
- */
 IsotropicDamageIMPLEX::IsotropicDamageIMPLEX()
     : ConstitutiveLaw()
 {
 }
 
-/**
- * TO BE TESTED!!!
- */
 IsotropicDamageIMPLEX::~IsotropicDamageIMPLEX()
 {
 }
 
-bool IsotropicDamageIMPLEX::Has( const Variable<int>& rThisVariable )
-{
-    return false;
-}
-
 bool IsotropicDamageIMPLEX::Has( const Variable<double>& rThisVariable )
 {
-    if( rThisVariable == YOUNG_MODULUS || rThisVariable == POISSON_RATIO || rThisVariable == DAMAGE || rThisVariable == ALPHA)
+    if( rThisVariable == YOUNG_MODULUS
+     || rThisVariable == POISSON_RATIO
+     || rThisVariable == DAMAGE_E0
+     || rThisVariable == DAMAGE_EF
+     || rThisVariable == DAMAGE )
         return true;
     return false;
 }
@@ -112,22 +107,25 @@ double& IsotropicDamageIMPLEX::GetValue( const Variable<double>& rThisVariable, 
         rValue = mE;
     if( rThisVariable == POISSON_RATIO )
         rValue = mNU;
+    if( rThisVariable == DAMAGE_E0 )
+        rValue = me0;
+    if( rThisVariable == DAMAGE_EF )
+        rValue = mef;
     if( rThisVariable == DAMAGE )
-        rValue = mD;
-    if( rThisVariable == ALPHA )
-        rValue = mAlpha;
+        rValue = mCurrentDamage;
+    if( rThisVariable == KAPPA )
+        rValue = mKappa;
     if( rThisVariable == EQUIVALENT_STRAIN )
     {
-        // Compute elastic constitutive tensor
-        const unsigned int strain_size = mCurrentStrain.size();
-        Matrix C = ZeroMatrix(strain_size, strain_size);
-        CalculateElasticMatrix(C, mE, mNU);
+        SD_MathUtils<double>::Fourth_Order_Tensor De;
+        SD_MathUtils<double>::CalculateFourthOrderZeroTensor(De);
+        SD_MathUtils<double>::CalculateElasticTensor(De, mE, mNU);
 
-        // Compute effective stresses
-        Vector EffectiveStressVector = prod(C, mCurrentStrain);
+        Matrix effective_stress(3, 3);
+        effective_stress.clear();
+        SD_MathUtils<double>::ContractFourthOrderTensor(1.0, De, m_strain_n1, effective_stress);
 
-        // Equivalent strain based on the energy norm
-        rValue = sqrt((1.0/mE)*inner_prod(trans(mCurrentStrain), EffectiveStressVector));
+        rValue = std::sqrt(SD_MathUtils<double>::mat_inner_prod(effective_stress, m_strain_n1) / mE) - mInitialEps;
     }
 
     return rValue;
@@ -136,7 +134,7 @@ double& IsotropicDamageIMPLEX::GetValue( const Variable<double>& rThisVariable, 
 Vector& IsotropicDamageIMPLEX::GetValue( const Variable<Vector>& rThisVariable, Vector& rValue )
 {
     if( rThisVariable == STRESSES )
-        noalias(rValue) = mCurrentStress;
+        SD_MathUtils<double>::StressTensorToVector(m_stress_n1, rValue);
 
     return rValue;
 }
@@ -159,7 +157,7 @@ void IsotropicDamageIMPLEX::SetValue( const Variable<bool>& rThisVariable, const
 }
 
 void IsotropicDamageIMPLEX::SetValue( const Variable<int>& rThisVariable, const int& rValue,
-                                      const ProcessInfo& rCurrentProcessInfo )
+                                     const ProcessInfo& rCurrentProcessInfo )
 {
     if( rThisVariable == PARENT_ELEMENT_ID )
         mElemId = rValue;
@@ -168,27 +166,25 @@ void IsotropicDamageIMPLEX::SetValue( const Variable<int>& rThisVariable, const 
 }
 
 void IsotropicDamageIMPLEX::SetValue( const Variable<double>& rThisVariable, const double& rValue,
-                                      const ProcessInfo& rCurrentProcessInfo )
+                                     const ProcessInfo& rCurrentProcessInfo )
 {
     if( rThisVariable == YOUNG_MODULUS )
         mE = rValue;
     if( rThisVariable == POISSON_RATIO )
         mNU = rValue;
+    if( rThisVariable == DAMAGE_E0 )
+        me0 = rValue;
+    if( rThisVariable == DAMAGE_EF )
+        mef = rValue;
     if( rThisVariable == DAMAGE )
     {
-        mD = rValue;
-        mAlpha = this->ComputeKappa(mD);
-        mAlpha_old = mAlpha;
-        mAlpha_old_old = mAlpha;
-        mq = mAlpha;
-    }
-    if( rThisVariable == INITIAL_DAMAGE )
-    {
-        mInitialDamage = rValue;
-        mD = mInitialDamage;
-        mAlpha = this->ComputeKappa(mD);
-        mAlpha_old = mAlpha;
-        mAlpha_old_old = mAlpha;
+        mCurrentDamage = rValue;
+        mKappa = this->ComputeKappa(mCurrentDamage);
+        mKappa_old = mKappa;
+        if (mCurrentDamage > 1.0 || mCurrentDamage < 0.0)
+        {
+            KRATOS_ERROR << "The damage " << mCurrentDamage << " does not fall in range [0 1]";
+        }
     }
     if( rThisVariable == EQUIVALENT_STRAIN )
     {
@@ -197,20 +193,20 @@ void IsotropicDamageIMPLEX::SetValue( const Variable<double>& rThisVariable, con
 }
 
 void IsotropicDamageIMPLEX::SetValue( const Variable<array_1d<double, 3> >& rThisVariable,
-                                      const array_1d<double, 3>& rValue,
-                                      const ProcessInfo& rCurrentProcessInfo )
+                                     const array_1d<double, 3>& rValue,
+                                     const ProcessInfo& rCurrentProcessInfo )
 {
 }
 
 void IsotropicDamageIMPLEX::SetValue( const Variable<Vector>& rThisVariable, const Vector& rValue,
-                                      const ProcessInfo& rCurrentProcessInfo )
+                                     const ProcessInfo& rCurrentProcessInfo )
 {
     if( rThisVariable == STRESSES )
-        noalias(mCurrentStress) = rValue;
+        SD_MathUtils<double>::StressVectorToTensor(rValue, m_stress_n1);
 }
 
 void IsotropicDamageIMPLEX::SetValue( const Variable<Matrix>& rThisVariable, const Matrix& rValue,
-                                      const ProcessInfo& rCurrentProcessInfo )
+                                     const ProcessInfo& rCurrentProcessInfo )
 {
 }
 
@@ -218,89 +214,49 @@ void IsotropicDamageIMPLEX::InitializeMaterial( const Properties& props,
         const GeometryType& geom,
         const Vector& ShapeFunctionsValues )
 {
-    const unsigned int dim = geom.WorkingSpaceDimension();
-    const unsigned int strain_size = dim * (dim+1) / 2;
-
-    mCurrentStress = ZeroVector(strain_size);
-    mCurrentStrain = ZeroVector(strain_size);
-    mE  = props[YOUNG_MODULUS];
-    mNU = props[POISSON_RATIO];
-    mE_0 = props[DAMAGE_E0];
-    mE_f = props[DAMAGE_EF];
-    mD   = 0.0;
-    mAlpha = mE_0;
-    mq     = mAlpha;
-    mAlpha_old_old = mAlpha_old;
-    mAlpha_old     = mAlpha;
-
-    mInitialDamage = 0.0;
-    mInitialEps = 0.0;
-    mDamageFlag = 0;
-
-    mDeltaTime_old = 1.0;
-    mDeltaTime = 1.0;
+    m_stress_n  = ZeroMatrix( 3, 3 );
+    m_stress_n1 = ZeroMatrix( 3, 3 );
+    m_stress_alg = ZeroMatrix( 3, 3 );
+    m_strain_n1 = ZeroMatrix( 3, 3 );
+    mE   = props[YOUNG_MODULUS];
+    mNU  = props[POISSON_RATIO];
+    me0 = props[DAMAGE_E0];
+    mef = props[DAMAGE_EF];
+    mKappa     = me0;
+    mKappa_old = mKappa;
+    mKappa_old_old = mKappa;
+    mq         = mKappa;
+    mq_old     = mKappa;
+    mCurrentDamage = 0.0;
+    mCurrentDamageAlg = 0.0;
+    mInitialEps    = 0.0;
+    mDamageFlag    = 0;
 }
 
 void IsotropicDamageIMPLEX::ResetMaterial( const Properties& props,
         const GeometryType& geom,
         const Vector& ShapeFunctionsValues )
 {
-    mD = mInitialDamage;
-    mAlpha = mE_0;
-    mq     = mAlpha;
-    mAlpha_old_old = mAlpha_old;
-    mAlpha_old     = mAlpha;
+    this->ResetState();
+}
+
+void IsotropicDamageIMPLEX::ResetState()
+{
+    mKappa = me0;
+    mKappa_old = mKappa;
+    mq_old = mq;
+    m_stress_n1.clear();
+    m_stress_alg.clear();
+    mCurrentDamage = 0.0;
+    mCurrentDamageAlg = 0.0;
+    mDamageFlag = 0;
 }
 
 void IsotropicDamageIMPLEX::InitializeSolutionStep( const Properties& props,
-        const GeometryType& geom,
-        const Vector& ShapeFunctionsValues,
+        const GeometryType& geom, //this is just to give the array of nodes
+        const Vector& ShapeFunctionsValues ,
         const ProcessInfo& CurrentProcessInfo )
 {
-    // Initialize algorithmic IMPL-EX variables
-    mAlpha_old_old = mAlpha_old;
-    mAlpha_old = mAlpha;
-    mq_old = mq;
-
-//     KRATOS_WATCH(mAlpha_old_old);
-//     KRATOS_WATCH(mAlpha_old);
-//     KRATOS_WATCH(mAlpha);
-
-    const unsigned int dim = geom.WorkingSpaceDimension();
-    const unsigned int strain_size = dim * (dim+1) / 2;
-
-    //==========================================================================================
-    //-----------------------------------{ EXPLICIT ALGORITHM }---------------------------------
-    //==========================================================================================
-
-    // Compute elastic constitutive tensor
-    Matrix C = ZeroMatrix(strain_size, strain_size);
-    CalculateElasticMatrix(C, mE, mNU);
-
-    // Explicit extrapolation of the internal variable alpha
-    mdAlpha = mAlpha_old - mAlpha_old_old;
-    mAlpha_alg = mAlpha_old + mdAlpha;
-
-    // Calculate softening function
-    double H = SofteningLaw(mAlpha_old);
-
-    // Compute stress-like internal variable
-    mq_alg = mq_old + H*mdAlpha;
-
-    // Compute extrapolated damage variable
-    mDamage_alg = mInitialDamage + (1.0 - mInitialDamage) * ( 1.0 - ( mq_alg / mAlpha_alg ) );
-
-    // Compute algorithmic tangent operator
-    mC_alg = (1.0 - mDamage_alg)*C;
-}
-
-void IsotropicDamageIMPLEX::FinalizeSolutionStep( const Properties& props,
-        const GeometryType& geom,
-        const Vector& ShapeFunctionsValues,
-        const ProcessInfo& CurrentProcessInfo )
-{
-    mDeltaTime_old = CurrentProcessInfo[DELTA_TIME];
-    if (std::abs(mDeltaTime_old) < 1e-13) mDeltaTime_old = 1.0;
 }
 
 void IsotropicDamageIMPLEX::InitializeNonLinearIteration( const Properties& props,
@@ -311,11 +267,21 @@ void IsotropicDamageIMPLEX::InitializeNonLinearIteration( const Properties& prop
 }
 
 void IsotropicDamageIMPLEX::FinalizeNonLinearIteration( const Properties& props,
-        const GeometryType& geom,
-        const Vector& ShapeFunctionsValues,
+        const GeometryType& geom, //this is just to give the array of nodes
+        const Vector& ShapeFunctionsValues ,
         const ProcessInfo& CurrentProcessInfo )
 {
-    // KRATOS_WATCH("NONLINEAR ITERATION ACTIVATED------------------------------------------------------------------------");
+}
+
+void IsotropicDamageIMPLEX::FinalizeSolutionStep( const Properties& props,
+        const GeometryType& geom, //this is just to give the array of nodes
+        const Vector& ShapeFunctionsValues ,
+        const ProcessInfo& CurrentProcessInfo )
+{
+    mKappa_old_old = mKappa_old;
+    mKappa_old = mKappa;
+    mq_old = mq;
+    noalias(m_stress_n) = m_stress_n1;
 }
 
 void IsotropicDamageIMPLEX::CalculateMaterialResponseCauchy (Parameters& parameters)
@@ -334,7 +300,7 @@ void IsotropicDamageIMPLEX::CalculateMaterialResponseCauchy (Parameters& paramet
     );
 }
 
-void IsotropicDamageIMPLEX::CalculateMaterialResponse( const Vector& StrainVector,
+void  IsotropicDamageIMPLEX::CalculateMaterialResponse( const Vector& StrainVector,
         const Matrix& DeformationGradient,
         Vector& StressVector,
         Matrix& AlgorithmicTangent,
@@ -350,184 +316,142 @@ void IsotropicDamageIMPLEX::CalculateMaterialResponse( const Vector& StrainVecto
     {
         if (CalculateStresses)
         {
-            noalias(StressVector) = mCurrentStress;
+            SD_MathUtils<double>::StressTensorToVector(m_stress_n1, StressVector);
             return;
         }
     }
-
-    const unsigned int strain_size = StrainVector.size();
 
     double TOL = 1.0e-8;
     if (props.Has(LOCAL_ERROR_TOLERANCE))
         TOL = props[LOCAL_ERROR_TOLERANCE];
 
-    //==========================================================================================
-    //----------------------------------{ IMPLICIT ALGORITHM }----------------------------------
-    //==========================================================================================
-
-    // store the current strain
-    noalias(mCurrentStrain) = StrainVector;
-
-    // Compute elastic constitutive tensor
-    Matrix C = ZeroMatrix(strain_size, strain_size);
-    CalculateElasticMatrix(C, mE, mNU);
-
-    // Compute effective stresses
-    Vector EffectiveStressVector = prod(C, StrainVector);
-
-    // Equivalent strain based on the energy norm
-    double eps_eq = sqrt((1.0/mE)*inner_prod(trans(StrainVector), EffectiveStressVector)) - mInitialEps;
-
-    // Compute trial state
-    double alpha_trial = mAlpha_old;
-
-    // Determine loading function
-    double f = eps_eq - alpha_trial;
-
-    // Check loading function and compute damage multiplier
-    double dlambda;
-    if (mDamageFlag != -1)
+    if (CalculateStresses)
     {
-        if( f > TOL )
+        this->StressIntegration(StrainVector, TOL, CurrentProcessInfo, props);
+
+        SD_MathUtils<double>::StressTensorToVector(m_stress_alg, StressVector);
+
+        #ifdef DEBUG_DAMAGE
+        // if (mElemId == 1 && mGaussId == 0)
         {
-            // Damage/loading state
-            dlambda = f;
-            mDamageFlag = 1;
-            // std::cout << "Damage is updated at element " << mElemId << ", point " << mGaussId << std::endl;
+            KRATOS_WATCH(StressVector)
         }
-        else
-        {
-            // Elastic/unloading state
-            dlambda = 0.0;
-            mDamageFlag = 0;
-        }
+        #endif
     }
-    else
-    {
-        dlambda = 0.0; // forcing steady damage
-    }
-
-//     KRATOS_WATCH(dlambda);
-
-    // Update internal variable
-    mAlpha = mAlpha_old + dlambda;
-
-    // Calculate softening function
-    double H = SofteningLaw(mAlpha_old);
-
-    // Update stress-like internal variable
-    mq = mq_old + H*dlambda;
-
-    // Update damage variable
-    mD = mInitialDamage + (1.0 - mInitialDamage) * (1.0 - (mq/mAlpha));
-
-//     KRATOS_WATCH(mD);
-//     KRATOS_WATCH(mq);
-//     KRATOS_WATCH(mAlpha);
-
-//     if (mD > 1.0)
-//     {
-//        KRATOS_WATCH("DAMAGE VARIABLE IS NOT VALID.");
-//        KRATOS_WATCH(mq/mAlpha);
-//     }
-//
-//     if (mD < 0)
-//        KRATOS_WATCH("DAMAGE VARIABLE IS NEGATIVE ...");
-
-    // Update corrected stresses
-    Matrix C_t = (1.0 - mD)*C;
-    mCurrentStress = prod( C_t, StrainVector );
-
-    //==========================================================================================
-    //----------------------------------{ EXPLICIT ALGORITHM }----------------------------------
-    //==========================================================================================
-
-    mDeltaTime = CurrentProcessInfo[DELTA_TIME];
-
-    // Explicit extrapolation of the internal variable alpha
-    mdAlpha = mAlpha_old - mAlpha_old_old;
-    mAlpha_alg = mAlpha_old + mDeltaTime / mDeltaTime_old * mdAlpha;
-
-    // Compute stress-like internal variable
-    mq_alg = mq_old + H*mdAlpha;
-
-    // Compute extrapolated damage variable
-    mDamage_alg = mInitialDamage + (1.0 - mInitialDamage) * ( 1.0 - ( mq_alg / mAlpha_alg ) );
-
-    if (std::abs(mDamage_alg - 1.0) < 1e-3)
-    {
-        mDamage_alg = 0.999;
-        std::cout << "Damage is 0.999 at element " << mElemId << ", point " << mGaussId << std::endl;
-    }
-
-    // Compute algorithmic tangent operator
-    mC_alg = (1.0 - mDamage_alg)*C;
 
     if (CalculateTangent)
     {
-        // Set algorithmic tangent operator
-        noalias(AlgorithmicTangent) = mC_alg;
+        this->ComputeTangent(AlgorithmicTangent, CurrentProcessInfo, props);
+
+        #ifdef DEBUG_DAMAGE
+        // if (mElemId == 1 && mGaussId == 0)
+        {
+            KRATOS_WATCH(AlgorithmicTangent)
+        }
+        #endif
     }
 
-    // Compute extrapolated stresses
-    if (CalculateStresses)
-        noalias(StressVector) = prod( mC_alg, StrainVector );
+    #ifdef DEBUG_DAMAGE
+    // if (mElemId == 1 && mGaussId == 0)
+    {
+        KRATOS_WATCH("------------")
+    }
+    #endif
+
+    // KRATOS_WATCH(StressVector)
+    // KRATOS_WATCH(AlgorithmicTangent)
 }
 
-void IsotropicDamageIMPLEX::CalculateElasticMatrix( Matrix& C, const double E, const double NU ) const
+void IsotropicDamageIMPLEX::StressIntegration(const Vector& StrainVector, const double TOL,
+            const ProcessInfo& CurrentProcessInfo, const Properties& rProperties)
 {
-    // Compute elastic constitutive tensor
-    if (C.size1() == 6) // 3D
-    {
-        double c1 = E / (( 1.00 + NU ) * ( 1 - 2 * NU ) );
-        double c2 = c1 * ( 1 - NU );
-        double c3 = c1 * NU;
-        double c4 = c1 * 0.5 * ( 1 - 2 * NU );
-        C(0,0) = c2;  C(0,1) = c3;  C(0,2) = c3;  C(0,3) = 0.0; C(0,4) = 0.0; C(0,5) = 0.0;
-        C(1,0) = c3;  C(1,1) = c2;  C(1,2) = c3;  C(1,3) = 0.0; C(1,4) = 0.0; C(1,5) = 0.0;
-        C(2,0) = c3;  C(2,1) = c3;  C(2,2) = c2;  C(2,3) = 0.0; C(2,4) = 0.0; C(2,5) = 0.0;
-        C(3,0) = 0.0; C(3,1) = 0.0; C(3,2) = 0.0; C(3,3) = c4;  C(3,4) = 0.0; C(3,5) = 0.0;
-        C(4,0) = 0.0; C(4,1) = 0.0; C(4,2) = 0.0; C(4,3) = 0.0; C(4,4) = c4;  C(4,5) = 0.0;
-        C(5,0) = 0.0; C(5,1) = 0.0; C(5,2) = 0.0; C(5,3) = 0.0; C(5,4) = 0.0; C(5,5) = c4;
-    }
-    else if (C.size1() == 3)    // plane strain
-    {
-        double c1 = E * ( 1.00 - NU ) / (( 1.00 + NU ) * ( 1.00 - 2 * NU ) );
-        double c2 = E * NU / (( 1.00 + NU ) * ( 1.00 - 2 * NU ) );
-        double c3 = 0.5 * E / ( 1 + NU );
+    /***************** Implicit integration *****************/
 
-        C( 0, 0 ) = c1;
-        C( 0, 1 ) = c2;
-        C( 0, 2 ) = 0.0;
-        C( 1, 0 ) = c2;
-        C( 1, 1 ) = c1;
-        C( 1, 2 ) = 0.0;
-        C( 2, 0 ) = 0.0;
-        C( 2, 1 ) = 0.0;
-        C( 2, 2 ) = c3;
+    // equivalent strain
+    SD_MathUtils<double>::StrainVectorToTensor(StrainVector, m_strain_n1);
+
+    SD_MathUtils<double>::Fourth_Order_Tensor De;
+    SD_MathUtils<double>::CalculateFourthOrderZeroTensor(De);
+    SD_MathUtils<double>::CalculateElasticTensor(De, mE, mNU);
+
+    Matrix effective_stress(3, 3);
+    effective_stress.clear();
+    SD_MathUtils<double>::ContractFourthOrderTensor(1.0, De, m_strain_n1, effective_stress);
+
+    double eps = std::sqrt(SD_MathUtils<double>::mat_inner_prod(effective_stress, m_strain_n1) / mE) - mInitialEps;
+
+    // loading check
+    const double H = this->SofteningLaw(mKappa_old);
+    mKappa = mKappa_old;
+    mq = mq_old;
+    if (mDamageFlag != -1) // -1 is the special value. It will stop the damage update
+    {
+        // if( eps > mKappa + TOL )
+        if( eps > mKappa )
+        {
+            mKappa = eps;
+
+            mq = mq_old + H*(mKappa - mKappa_old);
+
+            mDamageFlag = 1;
+        }
+        else
+        {
+            mDamageFlag = 0;
+        }
+
+        // damage parameter
+        mCurrentDamage = (1.0 - mq/mKappa);
     }
+
+    // stress update
+    noalias(m_stress_n1) = (1.0 - mCurrentDamage) * effective_stress;
+
+    /***************** Explicit integration *****************/
+
+    // compute extrapolated damage variable
+    double dkappa = mKappa_old - mKappa_old_old;
+    // KRATOS_WATCH(dkappa)
+    double kappa_alg = mKappa_old + dkappa;
+
+    double q_alg = mq_old + H*dkappa;
+
+    mCurrentDamageAlg = 1.0 - ( q_alg / kappa_alg );
+
+    // algorithmic stress update
+    noalias(m_stress_alg) = (1.0 - mCurrentDamageAlg) * effective_stress;
 }
 
-double IsotropicDamageIMPLEX::SofteningLaw( const double alpha) const
+void IsotropicDamageIMPLEX::ComputeTangent(Matrix& AlgorithmicTangent,
+        const ProcessInfo& CurrentProcessInfo, const Properties& rProperties) const
 {
-     double H = -(mE_0/mE_f)*exp(-(alpha-mE_0)/mE_f);
+    SD_MathUtils<double>::Fourth_Order_Tensor D;
+    SD_MathUtils<double>::CalculateFourthOrderZeroTensor(D);
+    SD_MathUtils<double>::CalculateElasticTensor(D, mE, mNU);
 
-     return H;
+    SD_MathUtils<double>::ScaleFourthOrderTensor(D, 1.0 - mCurrentDamageAlg);
+
+    SD_MathUtils<double>::TensorToMatrix(D, AlgorithmicTangent);
 }
 
 double IsotropicDamageIMPLEX::DamageFunction(const double kappa) const
 {
-    return 1.0 - mE_0/kappa * std::exp(-(kappa-mE_0)/mE_f);
+    return 1.0 - me0/kappa * std::exp(-(kappa-me0)/mef); // TODO check this damage function. It is too sensitive.
 }
 
 double IsotropicDamageIMPLEX::DamageFunctionDerivative(const double kappa) const
 {
-    return mE_0/kappa * (1.0/kappa + 1.0/mE_f) * std::exp(-(kappa-mE_0)/mE_f);
+    return me0/kappa * (1.0/kappa + 1.0/mef) * std::exp(-(kappa-me0)/mef);
+}
+
+double IsotropicDamageIMPLEX::SofteningLaw( const double kappa) const
+{
+    return -(me0/mef) * std::exp(-(kappa-me0)/mef);
 }
 
 double IsotropicDamageIMPLEX::ComputeKappa(const double d, const double TOL, const int max_iters) const
 {
-    double kappa = mAlpha_old; // starting value
+    double kappa = mKappa_old; // starting value
 
     int it = 0;
     do
@@ -547,6 +471,7 @@ double IsotropicDamageIMPLEX::ComputeKappa(const double d, const double TOL, con
     KRATOS_ERROR << "The Newton-Raphson iteration does not converge within " << max_iters << " iterations";
 }
 
+//**********************************************************************
 int IsotropicDamageIMPLEX::Check( const Properties& props, const GeometryType& geom, const ProcessInfo& CurrentProcessInfo ) const
 {
     KRATOS_TRY
@@ -557,3 +482,5 @@ int IsotropicDamageIMPLEX::Check( const Properties& props, const GeometryType& g
 }
 
 } // Namespace Kratos
+
+#undef DEBUG_DAMAGE
