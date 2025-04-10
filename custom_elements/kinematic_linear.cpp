@@ -2202,6 +2202,24 @@ namespace Kratos
         }
     }
 
+    void KinematicLinear::SetValuesOnIntegrationPoints( const Variable<array_1d<double, 3> >& rVariable, const std::vector<array_1d<double, 3> >& rValues, const ProcessInfo& rCurrentProcessInfo )
+    {
+        if (rVariable == INTEGRATION_POINT_LOCAL)
+            KRATOS_ERROR << "KinematicLinear element does not support for given natural coordinates of the integration point" << std::endl;
+
+        if ( rValues.size() != mConstitutiveLawVector.size() )
+        {
+            KRATOS_ERROR << "Error at KinematicLinear element " << Id() << ", The size of rValues and mConstitutiveLawVector is incompatible" << std::endl
+                         << "rValues.size(): " << rValues.size() << std::endl
+                         << "mConstitutiveLawVector.size(): " << mConstitutiveLawVector.size() << std::endl;
+        }
+
+        for ( unsigned int PointNumber = 0; PointNumber < mConstitutiveLawVector.size(); ++PointNumber )
+        {
+            mConstitutiveLawVector[PointNumber]->SetValue( rVariable, rValues[PointNumber], rCurrentProcessInfo );
+        }
+    }
+
     void KinematicLinear::SetValuesOnIntegrationPoints( const Variable<double>& rVariable, const std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo )
     {
         if ( rVariable == K0 )

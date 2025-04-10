@@ -216,6 +216,8 @@ public:
 
     void SetValuesOnIntegrationPoints( const Variable<VectorType>& rVariable, const std::vector<VectorType>& rValues, const ProcessInfo& rCurrentProcessInfo ) override;
 
+    void SetValuesOnIntegrationPoints( const Variable<array_1d<double, 3> >& rVariable, const std::vector<array_1d<double, 3> >& rValues, const ProcessInfo& rCurrentProcessInfo ) override;
+
     void SetValuesOnIntegrationPoints( const Variable<ConstitutiveLaw::Pointer>& rVariable, const std::vector<ConstitutiveLaw::Pointer>& rValues, const ProcessInfo& rCurrentProcessInfo ) override;
 
     void GetValuesVector( VectorType& values, int Step = 0 ) const override;
