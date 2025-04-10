@@ -252,6 +252,12 @@ class SolverAdvanced(structural_solver_static.StaticStructuralSolver):
                     raise Exception("time_scheme must be given when analysis_type is -1")
                 self.time_scheme = self.analysis_parameters["time_scheme"]
                 self.MoveMeshFlag = self.analysis_parameters["move_mesh"]
+            elif( self.analysis_parameters['analysis_type'] == 10 ):
+                print("performing frequency analysis")
+                if 'omega' not in self.analysis_parameters:
+                    raise Exception("Omega is necessary for steady state dynamics analysis at specific frequency")
+                omega = self.analysis_parameters['omega']
+                self.time_scheme = SteadyStateDynamicsScheme(omega)
             else:
                 print("analysis type is not defined! Define in analysis_parameters['analysis_type']:")
                 print("   'using static scheme': static analysis")
