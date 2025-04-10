@@ -191,10 +191,16 @@ public:
     ///@}
     ///@name Operations
     ///@{
+
     /**
      * Registers the structural application in the KRATOS kernel
      */
     void Register() final;
+
+    /**
+     * Registers the structural application variables in the KRATOS kernel
+     */
+    void RegisterVariables() final;
 
     ///@}
     ///@name Access
