@@ -231,22 +231,8 @@ public:
     {
         KRATOS_TRY
 
-        rCurrentElement.CalculateLocalSystem(LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
-        rCurrentElement.EquationIdVector(EquationId, CurrentProcessInfo);
-
-        Vector acceleration;
-        rCurrentElement.GetSecondDerivativesVector(acceleration, 0);
-
-        if (acceleration.size() > 0)
-        {
-            Matrix MassMatrix;
-
-            rCurrentElement.CalculateMassMatrix(MassMatrix, CurrentProcessInfo);
-
-            noalias(RHS_Contribution) -= prod(MassMatrix, acceleration);
-
-            noalias(LHS_Contribution) -= mOmega*mOmega*MassMatrix;
-        }
+        this->CalculateSystemContributionsImpl(rCurrentElement,
+                LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
 
         KRATOS_CATCH("")
     }
@@ -260,22 +246,8 @@ public:
     {
         KRATOS_TRY
 
-        rCurrentCondition.CalculateLocalSystem(LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
-        rCurrentCondition.EquationIdVector(EquationId, CurrentProcessInfo);
-
-        Vector acceleration;
-        rCurrentCondition.GetSecondDerivativesVector(acceleration, 0);
-
-        if (acceleration.size() > 0)
-        {
-            Matrix MassMatrix;
-
-            rCurrentCondition.CalculateMassMatrix(MassMatrix, CurrentProcessInfo);
-
-            noalias(RHS_Contribution) -= prod(MassMatrix, acceleration);
-
-            noalias(LHS_Contribution) -= mOmega*mOmega*MassMatrix;
-        }
+        this->CalculateSystemContributionsImpl(rCurrentCondition,
+                LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
 
         KRATOS_CATCH("")
     }
@@ -343,6 +315,37 @@ private:
     /*@} */
     /**@name Private Operations*/
     /*@{ */
+
+    template<typename TEntityType>
+    inline void CalculateSystemContributionsImpl(
+        TEntityType& rCurrentElement,
+        typename TEntityType::MatrixType& LHS_Contribution,
+        typename TEntityType::VectorType& RHS_Contribution,
+        typename TEntityType::EquationIdVectorType& EquationId,
+        const ProcessInfo& CurrentProcessInfo) const
+    {
+        KRATOS_TRY
+
+        rCurrentElement.CalculateLocalSystem(LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
+        rCurrentElement.EquationIdVector(EquationId, CurrentProcessInfo);
+
+        typename TEntityType::VectorType acceleration;
+        rCurrentElement.GetSecondDerivativesVector(acceleration, 0);
+
+        if (acceleration.size() > 0)
+        {
+            typename TEntityType::MatrixType MassMatrix;
+
+            rCurrentElement.CalculateMassMatrix(MassMatrix, CurrentProcessInfo);
+
+            noalias(RHS_Contribution) -= prod(MassMatrix, acceleration);
+
+            noalias(LHS_Contribution) -= mOmega*mOmega*MassMatrix;
+        }
+
+        KRATOS_CATCH("")
+    }
+
     /*@} */
     /**@name Private  Access */
     /*@{ */
