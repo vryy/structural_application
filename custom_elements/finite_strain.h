@@ -102,17 +102,47 @@ class KRATOS_API(STRUCTURAL_APPLICATION) FiniteStrain : public Element, public P
 public:
     ///@name Type Definitions
     ///@{
-    ///Reference type definition for constitutive laws
-    typedef ConstitutiveLaw ConstitutiveLawType;
-    ///Pointer type for constitutive laws
-    typedef ConstitutiveLawType::Pointer ConstitutiveLawPointerType;
-    ///Type definition for integration methods
-    typedef GeometryData::IntegrationMethod IntegrationMethod;
-    ///Type for local coordinates
-    typedef GeometryType::CoordinatesArrayType CoordinatesArrayType;
 
     /// Counted pointer of FiniteStrain
     KRATOS_CLASS_POINTER_DEFINITION(FiniteStrain);
+
+    typedef Element BaseType;
+
+    typedef typename BaseType::ElementType ElementType;
+
+    typedef GeometryData::IntegrationMethod IntegrationMethod;
+
+    typedef typename BaseType::ConstitutiveLawType ConstitutiveLawType;
+
+    typedef typename ConstitutiveLawType::Pointer ConstitutiveLawPointerType;
+
+    typedef typename BaseType::NodesArrayType NodesArrayType;
+
+    typedef typename BaseType::EquationIdVectorType EquationIdVectorType;
+
+    typedef typename BaseType::DofsVectorType DofsVectorType;
+
+    typedef typename BaseType::IndexType IndexType;
+
+    typedef typename BaseType::DataType DataType;
+
+    typedef typename BaseType::ValueType ValueType;
+
+    typedef typename BaseType::VectorType VectorType;
+
+    typedef typename BaseType::ZeroVectorType ZeroVectorType;
+
+    typedef typename BaseType::MatrixType MatrixType;
+
+    typedef typename BaseType::ZeroMatrixType ZeroMatrixType;
+
+    typedef typename BaseType::GeometryType GeometryType;
+
+    typedef typename BaseType::PropertiesType PropertiesType;
+
+    typedef typename GeometryType::CoordinatesArrayType CoordinatesArrayType;
+
+    typedef typename GeometryType::IntegrationPointsArrayType IntegrationPointsArrayType;
 
     ///@}
     ///@name Life Cycle
@@ -123,7 +153,7 @@ public:
     FiniteStrain(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
     /// Destructor.
-    virtual ~FiniteStrain();
+    ~FiniteStrain() override;
 
     ///@}
     ///@name Operators
@@ -137,9 +167,9 @@ public:
      */
     IntegrationMethod GetIntegrationMethod() const override;
 
-    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override;
+    typename ElementType::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override;
 
-    Element::Pointer Create( IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties ) const override;
+    typename ElementType::Pointer Create( IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties ) const override;
 
     void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
@@ -306,14 +336,14 @@ protected:
                               bool CalculateStiffnessMatrixFlag,
                               bool CalculateResidualVectorFlag);
 
-    void AddBodyForcesToRHS( Vector& R, const Vector& N_DISP, const double& Weight ) const;
+    void AddBodyForcesToRHS( Vector& R, const VectorType& N_DISP, const double Weight ) const;
 
     void CalculateAndAdd_ExtForceContribution(
         const Vector& N,
         const ProcessInfo& CurrentProcessInfo,
         const Vector& BodyForce,
         VectorType& mResidualVector,
-        const double& weight
+        const double weight
     ) const;
 
     /// Calculate Almansi strain, providing B
@@ -364,7 +394,7 @@ private:
 
     virtual void InitializeMaterial(const ProcessInfo& CurrentProcessInfo);
 
-    double CalculateIntegrationWeight(const double& GaussPointWeight, const double& DetJ0);
+    double CalculateIntegrationWeight(const double GaussPointWeight, const double DetJ0);
 
     // void CalculateB(MatrixType& B,
     //                 const MatrixType& F,
@@ -386,22 +416,9 @@ private:
     ///@{
     friend class Serializer;
 
-    // A private default constructor necessary for serialization
-
-
-
     void save(Serializer& rSerializer) const override;
-//        {
-//            rSerializer.save("Name", "FiniteStrain");
-//            KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element);
-//        }
 
     void load(Serializer& rSerializer) override;
-//        {
-//            KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
-//        }
-
-
 
     ///@name Private Inquiry
     ///@{
@@ -422,20 +439,6 @@ private:
 ///@}
 ///@name Input and output
 ///@{
-/// input stream function
-/*  inline std::istream& operator >> (std::istream& rIStream,
-FiniteStrain& rThis);
- */
-/// output stream function
-/*  inline std::ostream& operator << (std::ostream& rOStream,
-const FiniteStrain& rThis)
-{
-rThis.PrintInfo(rOStream);
-rOStream << std::endl;
-rThis.PrintData(rOStream);
-
-return rOStream;
-}*/
 ///@}
 
 } // namespace Kratos.

@@ -116,9 +116,10 @@ Detail class definition.
 
  */
 template<class TSparseSpace,
-         class TDenseSpace
+         class TDenseSpace,
+         class TModelPartType = ModelPart
          >
-class MultiPhaseFlowCriteria : public ConvergenceCriteria< TSparseSpace, TDenseSpace >
+class MultiPhaseFlowCriteria : public ConvergenceCriteria< TSparseSpace, TDenseSpace, TModelPartType >
 {
 public:
     /**@name Type Definitions */
@@ -126,9 +127,13 @@ public:
 
     KRATOS_CLASS_POINTER_DEFINITION( MultiPhaseFlowCriteria );
 
-    typedef ConvergenceCriteria< TSparseSpace, TDenseSpace > BaseType;
+    typedef ConvergenceCriteria< TSparseSpace, TDenseSpace, TModelPartType > BaseType;
 
     typedef typename BaseType::TDataType TDataType;
+
+    typedef typename BaseType::ValueType ValueType;
+
+    typedef typename BaseType::ModelPartType ModelPartType;
 
     typedef typename BaseType::DofsArrayType DofsArrayType;
 
@@ -144,9 +149,9 @@ public:
     /** Constructor.
      */
     MultiPhaseFlowCriteria(
-        TDataType RelativeTolerance,
-        TDataType AbsoluteTolerance)
-        : ConvergenceCriteria< TSparseSpace, TDenseSpace >()
+        ValueType RelativeTolerance,
+        ValueType AbsoluteTolerance)
+        : BaseType()
     {
         mRelativeTolerance = RelativeTolerance;
         mAbsoluteTolerance = AbsoluteTolerance;
@@ -159,9 +164,8 @@ public:
 
     /** Destructor.
      */
-    virtual ~MultiPhaseFlowCriteria()
-    {
-    }
+    ~MultiPhaseFlowCriteria() override
+    {}
 
 
     void SetType(const int& Type)
@@ -169,32 +173,31 @@ public:
         mCheckType = Type;
     }
 
-
     /*@} */
     /**@name Operators
      */
     /*@{ */
 
     /*Criterias that need to be called before getting the solution */
-    virtual bool PreCriteria(
-        ModelPart& r_model_part,
+    bool PreCriteria(
+        ModelPartType& r_model_part,
         DofsArrayType& rDofSet,
         const TSystemMatrixType& A,
         const TSystemVectorType& Dx,
         const TSystemVectorType& b
-    )
+    ) override
     {
         return true;
     }
 
     /*Criterias that need to be called after getting the solution */
     bool PostCriteria(
-        ModelPart& r_model_part,
+        ModelPartType& r_model_part,
         DofsArrayType& rDofSet,
         const TSystemMatrixType& A,
         const TSystemVectorType& Dx,
         const TSystemVectorType& b
-    )
+    ) override
     {
         if (Dx.size() != 0) //if we are solving for something
         {
@@ -252,22 +255,22 @@ public:
                 }
             }
 
-            norm_x = sqrt(norm_x);
-            norm_Dx = sqrt(norm_Dx);
-            norm_b = sqrt(norm_b);
+            norm_x = std::sqrt(norm_x);
+            norm_Dx = std::sqrt(norm_Dx);
+            norm_b = std::sqrt(norm_b);
 
             if (HasWaterPres)
             {
-                norm_x_WATER = sqrt(norm_x_WATER);
-                norm_Dx_WATER = sqrt(norm_Dx_WATER);
-                norm_b_WATER = sqrt(norm_b_WATER);
+                norm_x_WATER = std::sqrt(norm_x_WATER);
+                norm_Dx_WATER = std::sqrt(norm_Dx_WATER);
+                norm_b_WATER = std::sqrt(norm_b_WATER);
             }
 
             if (HasAirPres)
             {
-                norm_x_AIR = sqrt(norm_x_AIR);
-                norm_Dx_AIR = sqrt(norm_Dx_AIR);
-                norm_b_AIR = sqrt(norm_b_AIR);
+                norm_x_AIR = std::sqrt(norm_x_AIR);
+                norm_Dx_AIR = std::sqrt(norm_Dx_AIR);
+                norm_b_AIR = std::sqrt(norm_b_AIR);
             }
 
             double ratioDisp = 1.0;
@@ -480,32 +483,30 @@ public:
     }
 
     void Initialize(
-        ModelPart& r_model_part
-    )
+        ModelPartType& r_model_part
+    ) override
     {
     }
 
     void InitializeSolutionStep(
-        ModelPart& r_model_part,
+        ModelPartType& r_model_part,
         DofsArrayType& rDofSet,
         const TSystemMatrixType& A,
         const TSystemVectorType& Dx,
         const TSystemVectorType& b
-    )
+    ) override
     {
     }
 
     void FinalizeSolutionStep(
-        ModelPart& r_model_part,
+        ModelPartType& r_model_part,
         DofsArrayType& rDofSet,
         const TSystemMatrixType& A,
         const TSystemVectorType& Dx,
         const TSystemVectorType& b
-    )
+    ) override
     {
     }
-
-
 
     /*@} */
     /**@name Operations */
@@ -528,6 +529,17 @@ public:
 
 
     /*@} */
+
+    ///@name Input and output
+    ///@{
+
+    /// Turn back information as a string.
+    std::string Info() const override
+    {
+        return "ConvergenceCriteria";
+    }
+
+    ///@}
 
 protected:
     /**@name Protected static Member Variables */
@@ -564,7 +576,6 @@ protected:
     /*@{ */
 
 
-
     /*@} */
 
 private:
@@ -577,8 +588,8 @@ private:
 
     /*@{ */
 
-    TDataType mRelativeTolerance;
-    TDataType mAbsoluteTolerance;
+    ValueType mRelativeTolerance;
+    ValueType mAbsoluteTolerance;
     int mCheckType;
 
     /*@} */

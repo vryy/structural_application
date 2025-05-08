@@ -165,8 +165,8 @@ void MeanDisplacementConstraint<IDimIndex>::CalculateAll( MatrixType& rLeftHandS
     // obtain the Lagrange multiplier value
     const int mindex = this->GetValue(LAGRANGE_MULTIPLIER_INDEX);
 
-    const auto* pprocess_info = dynamic_cast<const ProcessInfoWithDofs*>(&rCurrentProcessInfo);
-    if (pprocess_info == NULL)
+    const auto* pprocess_info = dynamic_cast<const ProcessInfoWithDofs<>*>(&rCurrentProcessInfo);
+    if (pprocess_info == nullptr)
         KRATOS_ERROR << "ProcessInfoWithDofs is required to use MeanDisplacementConstraint condition";
 
     const double lambda = pprocess_info->GetDof(LAGRANGE_MULTIPLIER_CONSTRAINT, mindex).GetSolutionStepValue();
@@ -239,8 +239,8 @@ void MeanDisplacementConstraint<IDimIndex>::EquationIdVector( EquationIdVectorTy
         KRATOS_ERROR << "LAGRANGE_MULTIPLIER_INDEX is not assigned to MeanDisplacementConstraint";
 
     const int mindex = this->GetValue(LAGRANGE_MULTIPLIER_INDEX);
-    const auto* pprocess_info = dynamic_cast<const ProcessInfoWithDofs*>(&CurrentProcessInfo);
-    if (pprocess_info == NULL)
+    const auto* pprocess_info = dynamic_cast<const ProcessInfoWithDofs<>*>(&CurrentProcessInfo);
+    if (pprocess_info == nullptr)
         KRATOS_ERROR << "ProcessInfoWithDofs is required to use MeanDisplacementConstraint condition";
     rResult[GetGeometry().size()] = pprocess_info->GetDof(LAGRANGE_MULTIPLIER_CONSTRAINT, mindex).EquationId();
 }
@@ -268,10 +268,10 @@ void MeanDisplacementConstraint<IDimIndex>::GetDofList( DofsVectorType& Conditio
         KRATOS_ERROR << "LAGRANGE_MULTIPLIER_INDEX is not assigned to MeanDisplacementConstraint";
 
     const int mindex = this->GetValue(LAGRANGE_MULTIPLIER_INDEX);
-    const auto* pprocess_info = dynamic_cast<const ProcessInfoWithDofs*>(&CurrentProcessInfo);
-    if (pprocess_info == NULL)
+    const auto* pprocess_info = dynamic_cast<const ProcessInfoWithDofs<>*>(&CurrentProcessInfo);
+    if (pprocess_info == nullptr)
         KRATOS_ERROR << "ProcessInfoWithDofs is required to use MeanDisplacementConstraint condition";
-    auto* pprocess_info_no_const = const_cast<ProcessInfoWithDofs*>(pprocess_info);
+    auto* pprocess_info_no_const = const_cast<ProcessInfoWithDofs<>*>(pprocess_info);
     ConditionalDofList[GetGeometry().size()] = pprocess_info_no_const->pGetDof(LAGRANGE_MULTIPLIER_CONSTRAINT, mindex);
     // ConditionalDofList[GetGeometry().size()] = pprocess_info->pGetDof(LAGRANGE_MULTIPLIER_CONSTRAINT, mindex);
 }

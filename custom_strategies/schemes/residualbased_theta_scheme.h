@@ -60,11 +60,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 /* Project includes */
 #include "includes/define.h"
 #include "includes/kratos_flags.h"
-#include "includes/model_part.h"
 #include "solving_strategies/schemes/scheme.h"
 #include "includes/variables.h"
-#include "containers/array_1d.h"
-#include "includes/element.h"
 #include "structural_application_variables.h"
 
 namespace Kratos
@@ -89,8 +86,8 @@ Overview of the interpolation:
     ud = (u_(n+1) - u_n) / dt
     udd = (u_(n+1) - u_n)/dt^2 - ud_n/dt
  */
-template<class TSparseSpace,  class TDenseSpace>
-class ResidualBasedThetaScheme: public Scheme<TSparseSpace,TDenseSpace>
+template<class TSparseSpace, class TDenseSpace>
+class ResidualBasedThetaScheme : public Scheme<TSparseSpace,TDenseSpace>
 {
 public:
     /**@name Type Definitions */
@@ -157,7 +154,7 @@ public:
     /**
 
     /** Destructor.*/
-    virtual ~ResidualBasedThetaScheme()
+    ~ResidualBasedThetaScheme() override
     {}
 
     /*@} */
@@ -1217,8 +1214,6 @@ public:
             }
         }
     }
-    //***************************************************************************
-    //***************************************************************************
 
     void CalculateSystemContributions(
         Element& rCurrentElement,
@@ -1300,14 +1295,13 @@ public:
         KRATOS_CATCH("")
     }
 
-
     /**
     */
     void CalculateSystemContributions(
         Condition& rCurrentCondition,
         LocalSystemMatrixType& LHS_Contribution,
         LocalSystemVectorType& RHS_Contribution,
-        Element::EquationIdVectorType& EquationId,
+        Condition::EquationIdVectorType& EquationId,
         const ProcessInfo& CurrentProcessInfo) override
     {
         KRATOS_TRY
@@ -1332,7 +1326,7 @@ public:
     void CalculateRHSContribution(
         Condition& rCurrentCondition,
         LocalSystemVectorType& RHS_Contribution,
-        Element::EquationIdVectorType& EquationId,
+        Condition::EquationIdVectorType& EquationId,
         const ProcessInfo& CurrentProcessInfo) override
     {
         KRATOS_TRY
@@ -1499,6 +1493,7 @@ private:
     /**@name Un accessible methods */
     /*@{ */
 }; /* Class Scheme */
+
 }  /* namespace Kratos.*/
 
 #endif /* KRATOS_RESIDUALBASED_THETA_SCHEME  defined */

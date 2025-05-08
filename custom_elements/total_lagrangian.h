@@ -109,19 +109,47 @@ class KRATOS_API(STRUCTURAL_APPLICATION) TotalLagrangian : public Element, publi
 public:
     ///@name Type Definitions
     ///@{
-    ///Reference type definition for constitutive laws
-    typedef ConstitutiveLaw ConstitutiveLawType;
-    ///Pointer type for constitutive laws
-    typedef ConstitutiveLawType::Pointer ConstitutiveLawPointerType;
-    ///Type definition for integration methods
-    typedef GeometryData::IntegrationMethod IntegrationMethod;
-    ///Type for local coordinates
-    typedef GeometryType::CoordinatesArrayType CoordinatesArrayType;
-    ///Type for integration point container
-    typedef GeometryType::IntegrationPointsArrayType IntegrationPointsArrayType;
 
     /// Counted pointer of TotalLagrangian
     KRATOS_CLASS_POINTER_DEFINITION(TotalLagrangian);
+
+    typedef Element BaseType;
+
+    typedef typename BaseType::ElementType ElementType;
+
+    typedef GeometryData::IntegrationMethod IntegrationMethod;
+
+    typedef typename BaseType::ConstitutiveLawType ConstitutiveLawType;
+
+    typedef typename ConstitutiveLawType::Pointer ConstitutiveLawPointerType;
+
+    typedef typename BaseType::NodesArrayType NodesArrayType;
+
+    typedef typename BaseType::EquationIdVectorType EquationIdVectorType;
+
+    typedef typename BaseType::DofsVectorType DofsVectorType;
+
+    typedef typename BaseType::IndexType IndexType;
+
+    typedef typename BaseType::DataType DataType;
+
+    typedef typename BaseType::ValueType ValueType;
+
+    typedef typename BaseType::VectorType VectorType;
+
+    typedef typename BaseType::ZeroVectorType ZeroVectorType;
+
+    typedef typename BaseType::MatrixType MatrixType;
+
+    typedef typename BaseType::ZeroMatrixType ZeroMatrixType;
+
+    typedef typename BaseType::GeometryType GeometryType;
+
+    typedef typename BaseType::PropertiesType PropertiesType;
+
+    typedef typename GeometryType::CoordinatesArrayType CoordinatesArrayType;
+
+    typedef typename GeometryType::IntegrationPointsArrayType IntegrationPointsArrayType;
 
     /// local Jacobian container
     struct MyJacobians
@@ -151,7 +179,7 @@ public:
     TotalLagrangian(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
     /// Destructor.
-    virtual ~TotalLagrangian();
+    ~TotalLagrangian() override;
 
     ///@}
     ///@name Operators
@@ -165,9 +193,9 @@ public:
      */
     IntegrationMethod GetIntegrationMethod() const override;
 
-    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override;
+    typename ElementType::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override;
 
-    Element::Pointer Create( IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties ) const override;
+    typename ElementType::Pointer Create( IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties ) const override;
 
     void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
@@ -201,9 +229,9 @@ public:
 
     void SetValuesOnIntegrationPoints(const Variable<Matrix>& rVariable, std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo);
 
-    void CalculateOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateOnIntegrationPoints(const Variable<DataType>& rVariable, std::vector<DataType>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
-    void CalculateOnIntegrationPoints(const Variable<array_1d<double, 3> >& rVariable, std::vector<array_1d<double, 3> >& rValues, const ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateOnIntegrationPoints(const Variable<array_1d<DataType, 3> >& rVariable, std::vector<array_1d<DataType, 3> >& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
@@ -213,7 +241,7 @@ public:
     void GetFirstDerivativesVector(Vector& values, int Step = 0) const override;
     void GetSecondDerivativesVector(Vector& values, int Step = 0) const override;
 
-    void Calculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& rCurrentProcessInfo);
+    void Calculate(const Variable<DataType>& rVariable, DataType& Output, const ProcessInfo& rCurrentProcessInfo);
 
     //************************************************************************************
     //************************************************************************************
@@ -307,7 +335,7 @@ protected:
         const Vector& N,
         const Matrix& DN_DX,
         const Vector& StressVector,
-        double Weight
+        DataType Weight
     ) const;
 
     void CalculateBodyForces(
@@ -315,14 +343,14 @@ protected:
         const ProcessInfo& CurrentProcessInfo
     ) const;
 
-    void AddBodyForcesToRHS( Vector& R, const Vector& N_DISP, const double& Weight ) const;
+    void AddBodyForcesToRHS( Vector& R, const Vector& N_DISP, const DataType& Weight ) const;
 
     void CalculateAndAdd_ExtForceContribution(
         const Vector& N,
         const ProcessInfo& CurrentProcessInfo,
         const Vector& BodyForce,
         VectorType& mResidualVector,
-        double Weight
+        DataType Weight
     ) const;
 
     virtual unsigned int GetStrainSize( unsigned int dim ) const
@@ -352,7 +380,7 @@ protected:
         this->CalculateB(B, F, DN_DX);
     }
 
-    virtual double GetIntegrationWeight( double Weight, const Vector& N ) const
+    virtual DataType GetIntegrationWeight( DataType Weight, const Vector& N ) const
     {
         return Weight;
     }
@@ -388,7 +416,7 @@ private:
     ///@name Member Variables
     ///@{
 
-    double mTotalDomainInitialSize;
+    DataType mTotalDomainInitialSize;
     bool mIsInitialized;
 
     ///@}
@@ -399,7 +427,7 @@ private:
 //        MatrixType& K,
 //        Matrix& B,
 //        Matrix& D,
-//        double weight);
+//        DataType weight);
 
     void InitializeVariables();
 

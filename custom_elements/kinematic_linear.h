@@ -103,31 +103,60 @@ namespace Kratos
  * This element is designed to always compute Jacobian in the reference configuration. It is not influenced
  * by the MoveMeshFlag.
  */
-class KRATOS_API(STRUCTURAL_APPLICATION) KinematicLinear : public Element, public PrescribedObject
+template<typename TNodeType>
+class KRATOS_API(STRUCTURAL_APPLICATION) BaseKinematicLinear : public BaseElement<TNodeType>, public BasePrescribedObject<TNodeType>
 {
 
 public:
     ///@name Type Definitions
     ///@{
+
+    typedef BaseElement<TNodeType> BaseType;
+
+    typedef typename BaseType::ElementType ElementType;
+
     typedef GeometryData::IntegrationMethod IntegrationMethod;
 
-    typedef ConstitutiveLaw ConstitutiveLawType;
+    typedef typename BaseType::ConstitutiveLawType ConstitutiveLawType;
 
-    typedef ConstitutiveLawType::Pointer ConstitutiveLawPointerType;
+    typedef typename ConstitutiveLawType::Pointer ConstitutiveLawPointerType;
 
-    KRATOS_CLASS_POINTER_DEFINITION( KinematicLinear );
+    typedef typename BaseType::NodesArrayType NodesArrayType;
+
+    typedef typename BaseType::EquationIdVectorType EquationIdVectorType;
+
+    typedef typename BaseType::DofsVectorType DofsVectorType;
+
+    typedef typename BaseType::IndexType IndexType;
+
+    typedef typename BaseType::DataType DataType;
+
+    typedef typename BaseType::ValueType ValueType;
+
+    typedef typename BaseType::VectorType VectorType;
+
+    typedef typename BaseType::ZeroVectorType ZeroVectorType;
+
+    typedef typename BaseType::MatrixType MatrixType;
+
+    typedef typename BaseType::ZeroMatrixType ZeroMatrixType;
+
+    typedef typename BaseType::GeometryType GeometryType;
+
+    typedef typename BaseType::PropertiesType PropertiesType;
+
+    KRATOS_CLASS_POINTER_DEFINITION( BaseKinematicLinear );
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    KinematicLinear( IndexType NewId, GeometryType::Pointer pGeometry );
-    KinematicLinear( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties );
+    BaseKinematicLinear( IndexType NewId, typename GeometryType::Pointer pGeometry );
+    BaseKinematicLinear( IndexType NewId, typename GeometryType::Pointer pGeometry, typename PropertiesType::Pointer pProperties );
 
     /// Destructor.
-    virtual ~KinematicLinear();
-
+    ~BaseKinematicLinear() override;
 
     ///@}
     ///@name Operators
@@ -139,9 +168,9 @@ public:
     ///@{
     IntegrationMethod GetIntegrationMethod() const override;
 
-    Element::Pointer Create( IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties ) const override;
+    typename BaseType::Pointer Create( IndexType NewId, NodesArrayType const& ThisNodes, typename PropertiesType::Pointer pProperties ) const override;
 
-    Element::Pointer Create( IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties ) const override;
+    typename BaseType::Pointer Create( IndexType NewId, typename GeometryType::Pointer pGeom, typename PropertiesType::Pointer pProperties ) const override;
 
     void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
@@ -172,9 +201,9 @@ public:
     ///@brief Routines to enable the element to use with nonlinear mass damping time integration scheme
     ///@{
 
-    void AddInertiaForces(VectorType& rRightHandSideVector, double coeff, const ProcessInfo& rCurrentProcessInfo) override;
+    void AddInertiaForces(VectorType& rRightHandSideVector, DataType coeff, const ProcessInfo& rCurrentProcessInfo) override;
 
-    void AddDampingForces(VectorType& rRightHandSideVector, double coeff, const ProcessInfo& rCurrentProcessInfo) override;
+    void AddDampingForces(VectorType& rRightHandSideVector, DataType coeff, const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateLocalAccelerationContribution(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
 
@@ -194,9 +223,9 @@ public:
 
     void CalculateOnIntegrationPoints( const Variable<VectorType>& rVariable, std::vector<VectorType>& rValues, const ProcessInfo& rCurrentProcessInfo ) override;
 
-    void CalculateOnIntegrationPoints(const Variable<array_1d<double, 3> >& rVariable, std::vector<array_1d<double, 3> >& rValues, const ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateOnIntegrationPoints(const Variable<array_1d<DataType, 3> >& rVariable, std::vector<array_1d<DataType, 3> >& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
-    void CalculateOnIntegrationPoints( const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo ) override;
+    void CalculateOnIntegrationPoints( const Variable<DataType>& rVariable, std::vector<DataType>& rValues, const ProcessInfo& rCurrentProcessInfo ) override;
 
     void CalculateOnIntegrationPoints( const Variable<int>& rVariable, std::vector<int>& rValues, const ProcessInfo& rCurrentProcessInfo ) override;
 
@@ -204,9 +233,9 @@ public:
     void CalculateOnIntegrationPoints( const Variable<std::string>& rVariable, std::vector<std::string>& rValues, const ProcessInfo& rCurrentProcessInfo ) override;
     #endif
 
-    void CalculateOnIntegrationPoints( const Variable<ConstitutiveLaw::Pointer>& rVariable, std::vector<ConstitutiveLaw::Pointer>& rValues, const ProcessInfo& rCurrentProcessInfo ) override;
+    void CalculateOnIntegrationPoints( const Variable<typename ConstitutiveLawType::Pointer>& rVariable, std::vector<typename ConstitutiveLawType::Pointer>& rValues, const ProcessInfo& rCurrentProcessInfo ) override;
 
-    void SetValuesOnIntegrationPoints( const Variable<double>& rVariable, const std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo ) override;
+    void SetValuesOnIntegrationPoints( const Variable<DataType>& rVariable, const std::vector<DataType>& rValues, const ProcessInfo& rCurrentProcessInfo ) override;
 
     void SetValuesOnIntegrationPoints( const Variable<int>& rVariable, const std::vector<int>& rValues, const ProcessInfo& rCurrentProcessInfo ) override;
 
@@ -216,9 +245,9 @@ public:
 
     void SetValuesOnIntegrationPoints( const Variable<VectorType>& rVariable, const std::vector<VectorType>& rValues, const ProcessInfo& rCurrentProcessInfo ) override;
 
-    void SetValuesOnIntegrationPoints( const Variable<array_1d<double, 3> >& rVariable, const std::vector<array_1d<double, 3> >& rValues, const ProcessInfo& rCurrentProcessInfo ) override;
+    void SetValuesOnIntegrationPoints( const Variable<array_1d<DataType, 3> >& rVariable, const std::vector<array_1d<DataType, 3> >& rValues, const ProcessInfo& rCurrentProcessInfo ) override;
 
-    void SetValuesOnIntegrationPoints( const Variable<ConstitutiveLaw::Pointer>& rVariable, const std::vector<ConstitutiveLaw::Pointer>& rValues, const ProcessInfo& rCurrentProcessInfo ) override;
+    void SetValuesOnIntegrationPoints( const Variable<typename ConstitutiveLawType::Pointer>& rVariable, const std::vector<typename ConstitutiveLawType::Pointer>& rValues, const ProcessInfo& rCurrentProcessInfo ) override;
 
     void GetValuesVector( VectorType& values, int Step = 0 ) const override;
 
@@ -245,19 +274,21 @@ public:
     /// Turn back information as a string.
     std::string Info() const override
     {
-        return "KinematicLinear";
+        std::stringstream ss;
+        ss << "KinematicLinear<" << DataTypeToString<DataType>::Get() << ">";
+        return ss.str();
     }
 
     /// Print information about this object.
     void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << Info() << " #" << Id();
+        rOStream << Info() << " #" << this->Id();
     }
 
     /// Print object's data.
     void PrintData(std::ostream& rOStream) const override
     {
-        Element::PrintData(rOStream);
+        BaseType::PrintData(rOStream);
         const IntegrationMethod ThisIntegrationMethod = this->GetIntegrationMethod();
         rOStream << "mConstitutiveLawVector::size = " << mConstitutiveLawVector.size() << std::endl;
         rOStream << "IntegrationMethod: " << static_cast<std::underlying_type<IntegrationMethod>::type>(ThisIntegrationMethod);
@@ -280,7 +311,7 @@ protected:
     ///@{
 
     MatrixType mInitialDisp;
-    std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector;
+    std::vector<typename ConstitutiveLawType::Pointer> mConstitutiveLawVector;
 
     ///@}
     ///@name Protected Operators
@@ -292,21 +323,32 @@ protected:
 
     void InitializeMaterial(const ProcessInfo& rCurrentProcessInfo);
 
-    virtual void CalculateBoperator( MatrixType& B_Operator, const VectorType& N, const MatrixType& DN_DX ) const;
+    virtual void CalculateBoperator( MatrixType& B_Operator, const Vector& N, const MatrixType& DN_DX ) const;
 
     virtual void CalculateBBaroperator( MatrixType& B_Operator, const MatrixType& DN_DX, const MatrixType& Bdil_bar ) const;
 
-    virtual unsigned int GetStrainSize( const unsigned int& dim ) const
+    virtual unsigned int WorkingSpaceDimension() const
+    {
+        return this->GetGeometry().WorkingSpaceDimension();
+    }
+
+    virtual unsigned int GetStrainSize( const unsigned int dim ) const
     {
         return dim * (dim + 1) / 2;
     }
 
-    virtual double GetIntegrationWeight( double Weight, const VectorType& N ) const
+    virtual ValueType GetIntegrationWeight( ValueType Weight, const Vector& N ) const
     {
         return Weight;
     }
 
-    virtual void CalculateJacobian( GeometryType::JacobiansType& J, const IntegrationMethod ThisIntegrationMethod ) const;
+    virtual void CalculateJacobian( typename GeometryType::JacobiansType& J, const IntegrationMethod ThisIntegrationMethod ) const;
+
+    /** K += weight*Btrans*D*B */
+    void CalculateAll( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector,
+                       const ProcessInfo& rCurrentProcessInfo,
+                       bool CalculateStiffnessMatrixFlag,
+                       bool CalculateResidualVectorFlag );
 
     ///@}
     ///@name Serialization
@@ -315,18 +357,18 @@ protected:
     friend class Serializer;
 
     // A private default constructor necessary for serialization
-    KinematicLinear() {}
+    BaseKinematicLinear() {}
 
     void save( Serializer& rSerializer ) const override
     {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer,  Element );
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, BaseType );
         rSerializer.save( "mInitialDisp", mInitialDisp );
         rSerializer.save( "mConstitutiveLawVector", mConstitutiveLawVector );
     }
 
     void load( Serializer& rSerializer ) override
     {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer,  Element );
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, BaseType );
         rSerializer.load( "mInitialDisp", mInitialDisp );
         int tmp;
         rSerializer.load( "mConstitutiveLawVector", mConstitutiveLawVector );
@@ -352,7 +394,7 @@ protected:
     //************************************************************************************
     //************************************************************************************
 
-    void CalculateNumericalStiffness(Matrix& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo, const double epsilon);
+    void CalculateNumericalStiffness(MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo, const ValueType epsilon);
 
 private:
     ///@name Static Member Variables
@@ -365,28 +407,21 @@ private:
     ///@}
     ///@name Private Operators
     ///@{
-    /** K += weight*Btrans*D*B */
-    void CalculateAll( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector,
-                       const ProcessInfo& rCurrentProcessInfo,
-                       bool CalculateStiffnessMatrixFlag,
-                       bool CalculateResidualVectorFlag );
 
     //************************************************************************************
     //************************************************************************************
     //************************************************************************************
     //************************************************************************************
 
-    //CALCULATE FORCEVECTORS DISPLACEMENT
+    void AddBodyForcesToRHS( VectorType& R, const Vector& N_DISP, DataType Weight, DataType detJ ) const;
 
-    void AddBodyForcesToRHS( VectorType& R, const VectorType& N_DISP, double Weight, double detJ ) const;
-
-    void CalculateAndAdd_ExtForceContribution( const VectorType& N, const ProcessInfo& CurrentProcessInfo,
+    void CalculateAndAdd_ExtForceContribution( const Vector& N, const ProcessInfo& CurrentProcessInfo,
                                                const VectorType& BodyForce, VectorType& rRightHandSideVector,
-                                               double weight, double detJ) const;
+                                               DataType Weight, DataType detJ) const;
 
-    void AddInternalForcesToRHS( VectorType& R, const MatrixType& B_Operator, VectorType& StressVector, double Weight, double detJ ) const;
+    void AddInternalForcesToRHS( VectorType& R, const MatrixType& B_Operator, VectorType& StressVector, DataType Weight, DataType detJ ) const;
 
-    void CalculateStiffnesMatrix( MatrixType& K, const MatrixType& tan_C, const MatrixType& B_Operator, double Weight, double detJ ) const;
+    void CalculateStiffnesMatrix( MatrixType& K, const MatrixType& tan_C, const MatrixType& B_Operator, DataType Weight, DataType detJ ) const;
 
     void CalculateStressAndTangentialStiffness( VectorType& StressVector, MatrixType& tanC_U,
                                                 VectorType& StrainVector, const MatrixType& B_Operator,
@@ -414,20 +449,22 @@ private:
     ///@{
 
     /// Assignment operator.
-    //KinematicLinear& operator=(const KinematicLinear& rOther);
+    //BaseKinematicLinear& operator=(const BaseKinematicLinear& rOther);
 
     /// Copy constructor.
-    //KinematicLinear(const KinematicLinear& rOther);
-
+    //BaseKinematicLinear(const BaseKinematicLinear& rOther);
 
     ///@}
 
-}; // Class KinematicLinear
+}; // Class BaseKinematicLinear
 
 ///@}
 ///@name Type Definitions
 ///@{
 
+typedef BaseKinematicLinear<RealNode> KinematicLinear;
+typedef BaseKinematicLinear<ComplexNode> ComplexKinematicLinear;
+typedef BaseKinematicLinear<GComplexNode> GComplexKinematicLinear;
 
 ///@}
 ///@name Input and output

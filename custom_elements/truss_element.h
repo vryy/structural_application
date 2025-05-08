@@ -99,10 +99,43 @@ class TrussElement : public Element, public PrescribedObject
 public:
     ///@name Type Definitions
     ///@{
-    typedef GeometryData::IntegrationMethod IntegrationMethod;
 
     /// Counted pointer of TrussElement
     KRATOS_CLASS_POINTER_DEFINITION(TrussElement);
+
+    typedef Element BaseType;
+
+    typedef typename BaseType::ElementType ElementType;
+
+    typedef GeometryData::IntegrationMethod IntegrationMethod;
+
+    typedef typename BaseType::ConstitutiveLawType ConstitutiveLawType;
+
+    typedef typename ConstitutiveLawType::Pointer ConstitutiveLawPointerType;
+
+    typedef typename BaseType::NodesArrayType NodesArrayType;
+
+    typedef typename BaseType::EquationIdVectorType EquationIdVectorType;
+
+    typedef typename BaseType::DofsVectorType DofsVectorType;
+
+    typedef typename BaseType::IndexType IndexType;
+
+    typedef typename BaseType::DataType DataType;
+
+    typedef typename BaseType::ValueType ValueType;
+
+    typedef typename BaseType::VectorType VectorType;
+
+    typedef typename BaseType::ZeroVectorType ZeroVectorType;
+
+    typedef typename BaseType::MatrixType MatrixType;
+
+    typedef typename BaseType::ZeroMatrixType ZeroMatrixType;
+
+    typedef typename BaseType::GeometryType GeometryType;
+
+    typedef typename BaseType::PropertiesType PropertiesType;
 
     ///@}
     ///@name Life Cycle
@@ -113,8 +146,7 @@ public:
     TrussElement(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties);
 
     /// Destructor.
-    virtual ~TrussElement();
-
+    ~TrussElement() override;
 
     ///@}
     ///@name Operators
@@ -127,7 +159,7 @@ public:
 
     IntegrationMethod GetIntegrationMethod() const override;
 
-    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const override;
+    typename ElementType::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const override;
 
     void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
@@ -185,7 +217,6 @@ public:
     void PrintData(std::ostream& rOStream) const final
     {
     }
-
 
     ///@}
     ///@name Friends
@@ -304,24 +335,8 @@ private:
 ///@{
 
 
-/// input stream function
-/*  inline std::istream& operator >> (std::istream& rIStream,
-                   TrussElement& rThis);
-*/
-/// output stream function
-/*  inline std::ostream& operator << (std::ostream& rOStream,
-                   const TrussElement& rThis)
-           {
-                   rThis.PrintInfo(rOStream);
-                   rOStream << std::endl;
-                   rThis.PrintData(rOStream);
-
-                   return rOStream;
-}*/
 ///@}
 
 }  // namespace Kratos.
 
 #endif // KRATOS_TRUSS_ELEMENT_INCLUDED defined
-
-

@@ -63,19 +63,17 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/define.h"
 #include "includes/kratos_flags.h"
 #include "includes/model_part.h"
-#include "includes/variables.h"
-#include "includes/element.h"
 #include "includes/fnv_1a_hash.h"
 #ifdef SD_APP_FORWARD_COMPATIBILITY
 #include "custom_python3/legacy_structural_app_vars.h"
 #else
 #include "includes/legacy_structural_app_vars.h"
 #endif
-#include "containers/array_1d.h"
 #include "solving_strategies/schemes/scheme.h"
 #include "structural_application_variables.h"
 #include "custom_elements/prescribed_object.h"
 #include "residualbased_newmark_helper.h"
+// #include "residualbased_scheme_variables_list.h"
 
 namespace Kratos
 {
@@ -97,7 +95,7 @@ namespace Kratos
  * Implementation of Time Integration scheme based on Generalized-Alpha Method
  */
 template<class TSparseSpace, class TDenseSpace, int TMassDampingType = 0>
-class ResidualBasedNewmarkScheme : public Scheme<TSparseSpace,TDenseSpace>
+class ResidualBasedNewmarkScheme : public Scheme<TSparseSpace, TDenseSpace>
 {
 public:
     /**@name Type Definitions */
@@ -115,8 +113,6 @@ public:
     typedef typename BaseType::ElementsArrayType ElementsArrayType;
 
     typedef typename BaseType::ConditionsArrayType ConditionsArrayType;
-
-    typedef typename Element::DofsVectorType DofsVectorType;
 
     typedef typename BaseType::TSystemMatrixType TSystemMatrixType;
 
@@ -238,7 +234,7 @@ public:
     }
 
     /** Destructor.*/
-    virtual ~ResidualBasedNewmarkScheme()
+    ~ResidualBasedNewmarkScheme() override
     {}
 
     /**@name Operators */
@@ -1618,7 +1614,7 @@ public:
         Condition& rCurrentCondition,
         LocalSystemMatrixType& LHS_Contribution,
         LocalSystemVectorType& RHS_Contribution,
-        Element::EquationIdVectorType& EquationId,
+        Condition::EquationIdVectorType& EquationId,
         const ProcessInfo& CurrentProcessInfo) override
     {
         KRATOS_TRY
@@ -1633,7 +1629,7 @@ public:
     void CalculateLHSContribution(
         Condition& rCurrentCondition,
         LocalSystemMatrixType& LHS_Contribution,
-        Element::EquationIdVectorType& EquationId,
+        Condition::EquationIdVectorType& EquationId,
         const ProcessInfo& CurrentProcessInfo) override
     {
         KRATOS_TRY
@@ -1648,7 +1644,7 @@ public:
     void CalculateRHSContribution(
         Condition& rCurrentCondition,
         LocalSystemVectorType& RHS_Contribution,
-        Element::EquationIdVectorType& EquationId,
+        Condition::EquationIdVectorType& EquationId,
         const ProcessInfo& CurrentProcessInfo) override
     {
         KRATOS_TRY

@@ -61,14 +61,29 @@ namespace Kratos
 namespace Python
 {
 
+template<typename TEntityType, typename TEntitiesContainerType>
+boost::python::list ExtractReactionNodes(CalculateReactionProcess& rDummy, const TEntitiesContainerType& rElements)
+{
+    typedef CalculateReactionProcess::IndexType IndexType;
+
+    std::set<IndexType> react_nodes;
+    rDummy.ExtractReactionNodes<TEntityType, TEntitiesContainerType>(react_nodes, rElements);
+
+    boost::python::list alist;
+    for (auto it = react_nodes.begin(); it != react_nodes.end(); ++it)
+        alist.append(*it);
+
+    return std::move(alist);
+}
+
 void AddCustomProcessesToPython()
 {
     using namespace boost::python;
 
     typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
-    typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
-    typedef BuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType> BuilderAndSolverType;
+    typedef LinearSolver<SparseSpaceType, LocalSpaceType, ModelPart> LinearSolverType;
+    typedef BuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType, ModelPart> BuilderAndSolverType;
 
     typedef typename SparseSpaceType::MatrixType SparseMatrixType;
     typedef typename SparseSpaceType::VectorType SparseVectorType;
@@ -82,6 +97,8 @@ void AddCustomProcessesToPython()
 
     class_<CalculateReactionProcess, bases<Process>, boost::noncopyable>
     ("CalculateReactionProcess", init<ModelPart&, CalculateReactionProcess::SchemeType&>())
+    .def("ExtractReactionNodesForElement", &ExtractReactionNodes<Element, ModelPart::ElementsContainerType>)
+    .def("ExtractReactionNodesForCondition", &ExtractReactionNodes<Condition, ModelPart::ConditionsContainerType>)
     ;
 
     class_<CalculateReactionOnBoundaryProcess, bases<Process>, boost::noncopyable>
@@ -89,9 +106,21 @@ void AddCustomProcessesToPython()
     .def("GetReactionForces", &CalculateReactionOnBoundaryProcess::GetReactionForces)
     ;
 
-    class_<CalculateStrainEnergyProcess, bases<Process>, boost::noncopyable>
+    class_<CalculateStrainEnergyProcess<ModelPart>, bases<Process>, boost::noncopyable>
     ("CalculateStrainEnergyProcess", init<const ModelPart&>())
-    .def("GetEnergy", &CalculateStrainEnergyProcess::GetEnergy)
+    .def("GetEnergy", &CalculateStrainEnergyProcess<ModelPart>::GetEnergy)
+    ;
+
+    class_<CalculateStrainEnergyProcess<ComplexModelPart>, bases<Process>, boost::noncopyable>
+    ("CalculateStrainEnergyComplexProcess", init<const ComplexModelPart&>())
+    .def("GetEnergy", &CalculateStrainEnergyProcess<ComplexModelPart>::GetEnergy)
+    ;
+
+    class_<CalculateStrainEnergyProcessFactory, boost::noncopyable>
+    ("CalculateStrainEnergyProcessFactory", init<>())
+    .def("Create", &CalculateStrainEnergyProcessFactory::Create<ModelPart>)
+    .def("Create", &CalculateStrainEnergyProcessFactory::Create<ComplexModelPart>)
+    .def("Create", &CalculateStrainEnergyProcessFactory::Create<GComplexModelPart>)
     ;
 
     typedef ArcLengthConstraint<BuilderAndSolverType> ArcLengthConstraintType;

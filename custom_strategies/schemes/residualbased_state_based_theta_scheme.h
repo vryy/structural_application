@@ -101,8 +101,8 @@ v_(n+1) = (u_(n+1) - u_n) / (theta*dt) - (1-theta)/theta * v_n
 residual = theta*f_(n+1) + (1-theta)*f_n - r(theta*u_(n+1) + (1-theta)*u_n) - M*(v_(n+1) - v_n) / dt
 tangent = (M + theta*theta*dt*dt*K) / (theta*dt*dt)
  */
-template<class TSparseSpace,  class TDenseSpace >
-class ResidualBasedStateBasedThetaScheme: public Scheme<TSparseSpace,TDenseSpace>
+template<class TSparseSpace, class TDenseSpace >
+class ResidualBasedStateBasedThetaScheme: public Scheme<TSparseSpace, TDenseSpace>
 {
 public:
     /**@name Type Definitions */
@@ -172,7 +172,7 @@ public:
     /**
 
     /** Destructor.*/
-    virtual ~ResidualBasedStateBasedThetaScheme()
+    ~ResidualBasedStateBasedThetaScheme() override
     {}
 
     /*@} */
@@ -1299,7 +1299,7 @@ public:
         Condition& rCurrentCondition,
         LocalSystemMatrixType& LHS_Contribution,
         LocalSystemVectorType& RHS_Contribution,
-        Element::EquationIdVectorType& EquationId,
+        Condition::EquationIdVectorType& EquationId,
         const ProcessInfo& CurrentProcessInfo) override
     {
         KRATOS_TRY
@@ -1324,7 +1324,7 @@ public:
     void CalculateRHSContribution(
         Condition& rCurrentCondition,
         LocalSystemVectorType& RHS_Contribution,
-        Element::EquationIdVectorType& EquationId,
+        Condition::EquationIdVectorType& EquationId,
         const ProcessInfo& CurrentProcessInfo) override
     {
         KRATOS_TRY
@@ -1506,6 +1506,7 @@ private:
     /**@name Un accessible methods */
     /*@{ */
 }; /* Class Scheme */
+
 }  /* namespace Kratos.*/
 
 #endif /* KRATOS_RESIDUALBASED_STATE_BASED_THETA_SCHEME  defined */

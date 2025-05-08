@@ -94,7 +94,7 @@ public:
     typedef GeometryType::CoordinatesArrayType CoordinatesArrayType;
     typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
     typedef UblasSpace<double, Matrix, Vector> DenseSpaceType;
-    typedef LinearSolver<SparseSpaceType, DenseSpaceType> LinearSolverType;
+    typedef LinearSolver<SparseSpaceType, DenseSpaceType, ModelPart> LinearSolverType;
 
     KRATOS_CLASS_POINTER_DEFINITION( VariableTransferUtility );
 
@@ -103,7 +103,7 @@ public:
      */
     VariableTransferUtility()
     {
-        mpLinearSolver = LinearSolverType::Pointer(new SkylineLUFactorizationSolver<SparseSpaceType, DenseSpaceType>());
+        mpLinearSolver = LinearSolverType::Pointer(new SkylineLUFactorizationSolver<SparseSpaceType, DenseSpaceType, ModelPart>());
         std::cout << "VariableTransferUtility created" << std::endl;
         mEchoLevel = 0;
     }

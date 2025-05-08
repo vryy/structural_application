@@ -110,6 +110,9 @@ public:
     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
     typedef Scheme<SparseSpaceType, LocalSpaceType> SchemeType;
 
+    typedef std::size_t IndexType;
+    typedef std::size_t SizeType;
+
     /// Pointer definition of CalculateReactionProcess
     KRATOS_CLASS_POINTER_DEFINITION(CalculateReactionProcess);
 
@@ -211,6 +214,33 @@ public:
     ///@name Inquiry
     ///@{
 
+    /// Extract the reaction nodes on the boundary of the set of elements to compute reaction.
+    template<typename TEntityType, typename TEntitiesContainerType>
+    void ExtractReactionNodes(std::set<IndexType>& react_nodes, const TEntitiesContainerType& rElements) const
+    {
+        react_nodes.clear();
+
+        // for (typename TEntitiesContainerType::const_iterator i_element = rElements.begin();
+        //         i_element != rElements.end(); ++i_element)
+        // {
+        //     if( i_element->GetValue(IS_MARKED_FOR_REACTION) )
+        //     {
+        //         const auto& rGeometry = i_element->GetGeometry();
+        //         for (unsigned int i = 0; i < rGeometry.size(); ++i)
+        //         {
+        //             const IndexType node_id = rGeometry[i].Id();
+        //             const bool found = (react_nodes.find(node_id) != react_nodes.end());
+
+        //             if (!found)
+        //                 react_nodes.insert(node_id);
+        //             else
+        //                 react_nodes.erase(node_id);
+        //         }
+        //     }
+        // }
+
+        KRATOS_ERROR << "The implemetation is wrong. It's needed to be rewritten.";
+    }
 
     ///@}
     ///@name Input and output
@@ -233,7 +263,6 @@ public:
     {
         rOStream << " ModelPart: " << mr_model_part.Name();
     }
-
 
     ///@}
     ///@name Friends

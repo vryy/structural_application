@@ -65,47 +65,51 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace Kratos
 {
-/**
- * TO BE TESTED!!!
- */
-PlaneStrain::PlaneStrain()
-    : ConstitutiveLaw()
+
+template<class TNodeType>
+PlaneStrainImpl<TNodeType>::PlaneStrainImpl()
+    : BaseType()
 {
 }
 
-/**
- * TO BE TESTED!!!
- */
-PlaneStrain::~PlaneStrain()
+template<class TNodeType>
+PlaneStrainImpl<TNodeType>::~PlaneStrainImpl()
 {
 }
 
-bool PlaneStrain::Has(const Variable<int>& rThisVariable)
+template<class TNodeType>
+bool PlaneStrainImpl<TNodeType>::Has(const Variable<int>& rThisVariable)
 {
     return false;
 }
 
-bool PlaneStrain::Has( const Variable<double>& rThisVariable )
+template<class TNodeType>
+bool PlaneStrainImpl<TNodeType>::Has( const Variable<DataType>& rThisVariable )
 {
     return false;
 }
 
-bool PlaneStrain::Has( const Variable<Vector>& rThisVariable )
+template<class TNodeType>
+bool PlaneStrainImpl<TNodeType>::Has( const Variable<VectorType>& rThisVariable )
 {
-    if(rThisVariable == STRESSES)
+    if(rThisVariable == VARSEL(DataType, STRESSES))
         return true;
 
     return false;
 }
 
-bool PlaneStrain::Has( const Variable<Matrix>& rThisVariable )
+template<class TNodeType>
+bool PlaneStrainImpl<TNodeType>::Has( const Variable<MatrixType>& rThisVariable )
 {
-    if(rThisVariable == ALGORITHMIC_TANGENT || rThisVariable == THREED_ALGORITHMIC_TANGENT)
+    if(rThisVariable == VARSEL(DataType, ALGORITHMIC_TANGENT)
+    || rThisVariable == VARSEL(DataType, THREED_ALGORITHMIC_TANGENT))
         return true;
+
     return false;
 }
 
-int& PlaneStrain::GetValue( const Variable<int>& rThisVariable, int& rValue )
+template<class TNodeType>
+int& PlaneStrainImpl<TNodeType>::GetValue( const Variable<int>& rThisVariable, int& rValue )
 {
     if (rThisVariable == IS_SHAPE_FUNCTION_REQUIRED)
         rValue = 0;
@@ -113,188 +117,208 @@ int& PlaneStrain::GetValue( const Variable<int>& rThisVariable, int& rValue )
     return rValue;
 }
 
-double& PlaneStrain::GetValue( const Variable<double>& rThisVariable, double& rValue )
+template<class TNodeType>
+typename PlaneStrainImpl<TNodeType>::DataType& PlaneStrainImpl<TNodeType>::GetValue( const Variable<DataType>& rThisVariable, DataType& rValue )
 {
-    if(rThisVariable==DELTA_TIME)
+    if(rThisVariable == VARSEL(DataType, DELTA_TIME))
         rValue = sqrt(mE/mDE);
 
-    if(rThisVariable == PRESTRESS_FACTOR)
+    if(rThisVariable == VARSEL(DataType, PRESTRESS_FACTOR))
         rValue = mPrestressFactor;
 
-    if(rThisVariable == YOUNG_MODULUS)
+    if(rThisVariable == VARSEL(DataType, YOUNG_MODULUS))
         rValue = mE;
 
-    if(rThisVariable == POISSON_RATIO)
+    if(rThisVariable == VARSEL(DataType, POISSON_RATIO))
         rValue = mNU;
 
-    if (rThisVariable == PRESSURE_P)
+    if (rThisVariable == VARSEL(DataType, PRESSURE_P))
     {
-        double o_zz = mNU * (mCurrentStress[0] + mCurrentStress[1]);
+        DataType o_zz = mNU * (mCurrentStress[0] + mCurrentStress[1]);
         rValue = -(mCurrentStress[0] + mCurrentStress[1] + o_zz) / 3;
         return rValue;
     }
 
-    if (rThisVariable == PRESSURE_Q || rThisVariable == VON_MISES_STRESS)
+    if (rThisVariable == VARSEL(DataType, PRESSURE_Q) || rThisVariable == VARSEL(DataType, VON_MISES_STRESS))
     {
-        double o_zz = mNU * (mCurrentStress[0] + mCurrentStress[1]);
-        double p = (mCurrentStress[0] + mCurrentStress[1] + o_zz) / 3;
-        double sxx = mCurrentStress[0] - p;
-        double syy = mCurrentStress[1] - p;
-        double szz = o_zz - p;
-        double sxy = mCurrentStress[2];
-        double syz = 0.0;
-        double sxz = 0.0;
+        DataType o_zz = mNU * (mCurrentStress[0] + mCurrentStress[1]);
+        DataType p = (mCurrentStress[0] + mCurrentStress[1] + o_zz) / 3;
+        DataType sxx = mCurrentStress[0] - p;
+        DataType syy = mCurrentStress[1] - p;
+        DataType szz = o_zz - p;
+        DataType sxy = mCurrentStress[2];
+        DataType syz = 0.0;
+        DataType sxz = 0.0;
 
-        rValue = sqrt( 3.0 * ( 0.5*(sxx*sxx + syy*syy + szz*szz) + sxy*sxy + syz*syz + sxz*sxz ) );
+        rValue = std::sqrt( 3.0 * ( 0.5*(sxx*sxx + syy*syy + szz*szz) + sxy*sxy + syz*syz + sxz*sxz ) );
         return rValue;
     }
 
     return rValue;
 }
 
-Vector& PlaneStrain::GetValue( const Variable<Vector>& rThisVariable, Vector& rValue )
+template<class TNodeType>
+typename PlaneStrainImpl<TNodeType>::VectorType& PlaneStrainImpl<TNodeType>::GetValue( const Variable<VectorType>& rThisVariable, VectorType& rValue )
 {
-    if ( rThisVariable == STRESSES || rThisVariable == STRESSES_OLD )
+    if constexpr (std::is_arithmetic<DataType>::value)
     {
-        rValue = mCurrentStress;
-    }
-    else if ( rThisVariable == PRESTRESS || rThisVariable == INSITU_STRESS )
-    {
-        rValue = mPreStress;
-    }
-    else if ( rThisVariable == THREED_STRESSES )
-    {
-        if(rValue.size() != 6)
-            rValue.resize(6, false);
-        rValue(0) = mCurrentStress(0);
-        rValue(1) = mCurrentStress(1);
-        rValue(2) = mNU * (mCurrentStress(0) + mCurrentStress(1));
-        rValue(3) = mCurrentStress(2);
-        rValue(4) = 0.0;
-        rValue(5) = 0.0;
-    }
-    else if ( rThisVariable == THREED_PRESTRESS )
-    {
-        if(rValue.size() != 6)
-            rValue.resize(6, false);
-        rValue(0) = mPreStress(0);
-        rValue(1) = mPreStress(1);
-        rValue(2) = mNU * (mPreStress(0) + mPreStress(1));
-        rValue(3) = mPreStress(2);
-        rValue(4) = 0.0;
-        rValue(5) = 0.0;
-    }
-    else if ( rThisVariable == THREED_STRAIN )
-    {
-        // REF: http://www.efunda.com/formulae/solid_mechanics/mat_mechanics/hooke_plane_strain.cfm
-        if(rValue.size() != 6)
-            rValue.resize(6, false);
-        double aux = (1.0+mNU)/mE;
-        rValue(0) = aux * ((1.0-mNU)*mCurrentStress(0) - mNU*mCurrentStress(1));
-        rValue(1) = aux * ((1.0-mNU)*mCurrentStress(1) - mNU*mCurrentStress(0));
-        rValue(2) = 0.0;
-        rValue(3) = 2.0*aux*mCurrentStress(2);
-        rValue(4) = 0.0;
-        rValue(5) = 0.0;
+        if ( rThisVariable == STRESSES || rThisVariable == STRESSES_OLD )
+        {
+            rValue = mCurrentStress;
+        }
+        else if ( rThisVariable == PRESTRESS || rThisVariable == INSITU_STRESS )
+        {
+            rValue = mPreStress;
+        }
+        else if ( rThisVariable == THREED_STRESSES )
+        {
+            if(rValue.size() != 6)
+                rValue.resize(6, false);
+            rValue(0) = mCurrentStress(0);
+            rValue(1) = mCurrentStress(1);
+            rValue(2) = mNU * (mCurrentStress(0) + mCurrentStress(1));
+            rValue(3) = mCurrentStress(2);
+            rValue(4) = 0.0;
+            rValue(5) = 0.0;
+        }
+        else if ( rThisVariable == THREED_PRESTRESS )
+        {
+            if(rValue.size() != 6)
+                rValue.resize(6, false);
+            rValue(0) = mPreStress(0);
+            rValue(1) = mPreStress(1);
+            rValue(2) = mNU * (mPreStress(0) + mPreStress(1));
+            rValue(3) = mPreStress(2);
+            rValue(4) = 0.0;
+            rValue(5) = 0.0;
+        }
+        else if ( rThisVariable == THREED_STRAIN )
+        {
+            // REF: http://www.efunda.com/formulae/solid_mechanics/mat_mechanics/hooke_plane_strain.cfm
+            if(rValue.size() != 6)
+                rValue.resize(6, false);
+            DataType aux = (1.0+mNU)/mE;
+            rValue(0) = aux * ((1.0-mNU)*mCurrentStress(0) - mNU*mCurrentStress(1));
+            rValue(1) = aux * ((1.0-mNU)*mCurrentStress(1) - mNU*mCurrentStress(0));
+            rValue(2) = 0.0;
+            rValue(3) = 2.0*aux*mCurrentStress(2);
+            rValue(4) = 0.0;
+            rValue(5) = 0.0;
+        }
     }
 
     return rValue;
 }
 
-Matrix& PlaneStrain::GetValue( const Variable<Matrix>& rThisVariable, Matrix& rValue )
+template<class TNodeType>
+typename PlaneStrainImpl<TNodeType>::MatrixType& PlaneStrainImpl<TNodeType>::GetValue( const Variable<MatrixType>& rThisVariable, MatrixType& rValue )
 {
-    if(rThisVariable == ALGORITHMIC_TANGENT || rThisVariable == ELASTIC_TANGENT)
+    if constexpr (std::is_arithmetic<DataType>::value)
     {
-        if(rValue.size1() != 3 || rValue.size2() != 3)
-            rValue.resize(3, 3, false);
-        CalculateElasticMatrix( rValue, mE, mNU );
-    }
-    else if( rThisVariable == THREED_ALGORITHMIC_TANGENT )
-    {
-        if (rValue.size1() != 6 || rValue.size2() != 6)
-            rValue.resize(6, 6, false);
-        Isotropic3D::CalculateElasticMatrix(rValue, mE, mNU);
-    }
-    else if(rThisVariable == ELASTIC_STRAIN_TENSOR)
-    {
-        Vector StrainVector(3);
-        this->CalculateStrain(mE, mNU, mCurrentStress + mPrestressFactor * mPreStress, StrainVector);
-        SD_MathUtils<double>::StrainVectorToTensor(StrainVector, rValue);
-    }
-    else if(rThisVariable == CAUCHY_STRESS_TENSOR)
-    {
-        if (rValue.size1() != 3 || rValue.size2() != 3)
-            rValue.resize(3, 3, false);
-        SD_MathUtils<double>::StrainVectorToTensor(mCurrentStress, rValue);
+        if(rThisVariable == ALGORITHMIC_TANGENT || rThisVariable == ELASTIC_TANGENT)
+        {
+            if(rValue.size1() != 3 || rValue.size2() != 3)
+                rValue.resize(3, 3, false);
+            CalculateElasticMatrix( rValue, mE, mNU );
+        }
+        else if( rThisVariable == THREED_ALGORITHMIC_TANGENT )
+        {
+            if (rValue.size1() != 6 || rValue.size2() != 6)
+                rValue.resize(6, 6, false);
+            Isotropic3D::CalculateElasticMatrix(rValue, mE, mNU);
+        }
+        else if(rThisVariable == ELASTIC_STRAIN_TENSOR)
+        {
+            VectorType StrainVector(3);
+            this->CalculateStrain(mE, mNU, mCurrentStress + mPrestressFactor * mPreStress, StrainVector);
+            SD_MathUtils<DataType>::StrainVectorToTensor(StrainVector, rValue);
+        }
+        else if(rThisVariable == CAUCHY_STRESS_TENSOR)
+        {
+            if (rValue.size1() != 3 || rValue.size2() != 3)
+                rValue.resize(3, 3, false);
+            SD_MathUtils<DataType>::StrainVectorToTensor(mCurrentStress, rValue);
+        }
     }
 
     return rValue ;
 }
 
-void PlaneStrain::SetValue( const Variable<int>& rThisVariable, const int& rValue,
+template<class TNodeType>
+void PlaneStrainImpl<TNodeType>::SetValue( const Variable<int>& rThisVariable, const int& rValue,
                             const ProcessInfo& rCurrentProcessInfo )
 {
 }
 
-void PlaneStrain::SetValue( const Variable<double>& rThisVariable, const double& rValue,
+template<class TNodeType>
+void PlaneStrainImpl<TNodeType>::SetValue( const Variable<DataType>& rThisVariable, const DataType& rValue,
                             const ProcessInfo& rCurrentProcessInfo )
 {
-    if ( rThisVariable == PRESTRESS_FACTOR )
-        mPrestressFactor = rValue;
-    if ( rThisVariable == YOUNG_MODULUS )
-        mE = rValue;
-    if ( rThisVariable == POISSON_RATIO )
-        mNU = rValue;
+    if constexpr (std::is_arithmetic<DataType>::value)
+    {
+        if ( rThisVariable == PRESTRESS_FACTOR )
+            mPrestressFactor = rValue;
+        if ( rThisVariable == YOUNG_MODULUS )
+            mE = rValue;
+        if ( rThisVariable == POISSON_RATIO )
+            mNU = rValue;
+    }
 }
 
-void PlaneStrain::SetValue( const Variable<Vector>& rThisVariable, const Vector& rValue,
+template<class TNodeType>
+void PlaneStrainImpl<TNodeType>::SetValue( const Variable<VectorType>& rThisVariable, const VectorType& rValue,
                             const ProcessInfo& rCurrentProcessInfo )
 {
-    if ( rThisVariable == PRESTRESS || rThisVariable == INSITU_STRESS )
+    if constexpr (std::is_arithmetic<DataType>::value)
     {
-        if (rValue.size() == 3)
+        if ( rThisVariable == PRESTRESS || rThisVariable == INSITU_STRESS )
         {
-            noalias(mPreStress) = rValue;
+            if (rValue.size() == 3)
+            {
+                noalias(mPreStress) = rValue;
+            }
+            else if (rValue.size() == 4 || rValue.size() == 6)
+            {
+                mPreStress(0) = rValue(0);
+                mPreStress(1) = rValue(1);
+                mPreStress(2) = rValue(3);
+            }
         }
-        else if (rValue.size() == 4 || rValue.size() == 6)
+        else if ( rThisVariable == STRESSES || rThisVariable == INITIAL_STRESS )
         {
-            mPreStress(0) = rValue(0);
-            mPreStress(1) = rValue(1);
-            mPreStress(2) = rValue(3);
-        }
-    }
-    else if ( rThisVariable == STRESSES || rThisVariable == INITIAL_STRESS )
-    {
-        if(mCurrentStress.size() != rValue.size())
-            mCurrentStress.resize(rValue.size(), false);
-        noalias(mCurrentStress) = rValue;
-    }
-    else if ( rThisVariable == THREED_STRESSES )
-    {
-        if (rValue.size() == 3)
-        {
+            if(mCurrentStress.size() != rValue.size())
+                mCurrentStress.resize(rValue.size(), false);
             noalias(mCurrentStress) = rValue;
         }
-        else if (rValue.size() == 4 || rValue.size() == 6)
+        else if ( rThisVariable == THREED_STRESSES )
         {
-            mCurrentStress(0) = rValue(0);
-            mCurrentStress(1) = rValue(1);
-            mCurrentStress(2) = rValue(3);
+            if (rValue.size() == 3)
+            {
+                noalias(mCurrentStress) = rValue;
+            }
+            else if (rValue.size() == 4 || rValue.size() == 6)
+            {
+                mCurrentStress(0) = rValue(0);
+                mCurrentStress(1) = rValue(1);
+                mCurrentStress(2) = rValue(3);
+            }
         }
     }
 }
 
-void PlaneStrain::SetValue( const Variable<Matrix>& rThisVariable, const Matrix& rValue,
+template<class TNodeType>
+void PlaneStrainImpl<TNodeType>::SetValue( const Variable<MatrixType>& rThisVariable, const MatrixType& rValue,
                             const ProcessInfo& rCurrentProcessInfo )
 {
 }
 
-void PlaneStrain::CalculateMaterialResponseCauchy (Parameters& rValues)
+template<class TNodeType>
+void PlaneStrainImpl<TNodeType>::CalculateMaterialResponseCauchy (typename BaseType::Parameters& rValues)
 {
     if (rValues.IsSetStressVector())
     {
-        const Vector& StrainVector = rValues.GetStrainVector();
-        Vector& StressVector = rValues.GetStressVector();
+        const VectorType& StrainVector = rValues.GetStrainVector();
+        VectorType& StressVector = rValues.GetStressVector();
 
         if(StressVector.size() != 3)
             StressVector.resize(3, false);
@@ -303,17 +327,18 @@ void PlaneStrain::CalculateMaterialResponseCauchy (Parameters& rValues)
 
     if (rValues.IsSetConstitutiveMatrix())
     {
-        Matrix& AlgorithmicTangent = rValues.GetConstitutiveMatrix();
+        MatrixType& AlgorithmicTangent = rValues.GetConstitutiveMatrix();
         if(AlgorithmicTangent.size1() != 3 || AlgorithmicTangent.size2() != 3)
             AlgorithmicTangent.resize(3, 3, false);
         CalculateConstitutiveMatrix( AlgorithmicTangent );
     }
 }
 
-void PlaneStrain::CalculateMaterialResponse( const Vector& StrainVector,
-        const Matrix& DeformationGradient,
-        Vector& StressVector,
-        Matrix& AlgorithmicTangent,
+template<class TNodeType>
+void PlaneStrainImpl<TNodeType>::CalculateMaterialResponse( const VectorType& StrainVector,
+        const MatrixType& DeformationGradient,
+        VectorType& StressVector,
+        MatrixType& AlgorithmicTangent,
         const ProcessInfo& CurrentProcessInfo,
         const Properties& props,
         const GeometryType& geom,
@@ -322,8 +347,8 @@ void PlaneStrain::CalculateMaterialResponse( const Vector& StrainVector,
         int CalculateTangent,
         bool SaveInternalVariables )
 {
-    ConstitutiveLaw::Parameters const_params;
-    Vector ThisStrainVector = StrainVector;
+    typename BaseType::Parameters const_params;
+    VectorType ThisStrainVector = StrainVector;
     const_params.SetStrainVector(ThisStrainVector);
     const_params.SetStressVector(StressVector);
     const_params.SetConstitutiveMatrix(AlgorithmicTangent);
@@ -331,50 +356,49 @@ void PlaneStrain::CalculateMaterialResponse( const Vector& StrainVector,
     this->CalculateMaterialResponseCauchy(const_params);
 }
 
-/**
- * TO BE TESTED!!!
- */
-void PlaneStrain::InitializeMaterial( const Properties& props,
+template<class TNodeType>
+void PlaneStrainImpl<TNodeType>::InitializeMaterial( const Properties& props,
                                       const GeometryType& geom,
                                       const Vector& ShapeFunctionsValues )
 {
-    mCurrentStress = ZeroVector( 3 );
-    mPreStress = ZeroVector( 3 );
+    mCurrentStress = ZeroVectorType( 3 );
+    mPreStress = ZeroVectorType( 3 );
     mPrestressFactor = 1.0;
     mE  = props[YOUNG_MODULUS];
     mNU = props[POISSON_RATIO];
     mDE = props[DENSITY];
 }
 
-void PlaneStrain::ResetMaterial( const Properties& props,
+template<class TNodeType>
+void PlaneStrainImpl<TNodeType>::ResetMaterial( const Properties& props,
                                  const GeometryType& geom,
                                  const Vector& ShapeFunctionsValues )
 {
-    noalias(mCurrentStress) = ZeroVector(3);
+    noalias(mCurrentStress) = ZeroVectorType(3);
 }
 
-void PlaneStrain::InitializeNonLinearIteration( const Properties& rMaterialProperties,
+template<class TNodeType>
+void PlaneStrainImpl<TNodeType>::InitializeNonLinearIteration( const Properties& rMaterialProperties,
                                                 const GeometryType& rElementGeometry,
                                                 const Vector& rShapeFunctionsValues,
                                                 const ProcessInfo& rCurrentProcessInfo )
 {
 }
 
-void PlaneStrain::FinalizeNonLinearIteration( const Properties& rMaterialProperties,
+template<class TNodeType>
+void PlaneStrainImpl<TNodeType>::FinalizeNonLinearIteration( const Properties& rMaterialProperties,
                                               const GeometryType& rElementGeometry,
                                               const Vector& rShapeFunctionsValues,
                                               const ProcessInfo& rCurrentProcessInfo )
 {
 }
 
-/**
- * TO BE TESTED!!!
- */
-void PlaneStrain::CalculateElasticMatrix( Matrix& C, const double& E, const double& NU ) const
+template<class TNodeType>
+void PlaneStrainImpl<TNodeType>::CalculateElasticMatrix( MatrixType& C, const DataType E, const DataType NU ) const
 {
-    double c1 = E * ( 1.00 - NU ) / (( 1.00 + NU ) * ( 1.00 - 2 * NU ) );
-    double c2 = E * NU / (( 1.00 + NU ) * ( 1.00 - 2 * NU ) );
-    double c3 = 0.5 * E / ( 1 + NU );
+    DataType c1 = E * ( 1.00 - NU ) / (( 1.00 + NU ) * ( 1.00 - 2 * NU ) );
+    DataType c2 = E * NU / (( 1.00 + NU ) * ( 1.00 - 2 * NU ) );
+    DataType c3 = 0.5 * E / ( 1.00 + NU );
 
     C( 0, 0 ) = c1;
     C( 0, 1 ) = c2;
@@ -387,7 +411,8 @@ void PlaneStrain::CalculateElasticMatrix( Matrix& C, const double& E, const doub
     C( 2, 2 ) = c3;
 }
 
-void PlaneStrain::CalculateStress( const Vector& StrainVector, Vector& StressVector )
+template<class TNodeType>
+void PlaneStrainImpl<TNodeType>::CalculateStress( const VectorType& StrainVector, VectorType& StressVector )
 {
     this->CalculateStress(mE, mNU, StrainVector, StressVector);
 
@@ -396,11 +421,12 @@ void PlaneStrain::CalculateStress( const Vector& StrainVector, Vector& StressVec
     noalias( mCurrentStress ) = StressVector;
 }
 
-void PlaneStrain::CalculateStress( const double& E, const double& NU, const Vector& StrainVector, Vector& StressVector ) const
+template<class TNodeType>
+void PlaneStrainImpl<TNodeType>::CalculateStress( const DataType E, const DataType NU, const VectorType& StrainVector, VectorType& StressVector ) const
 {
-    double c1 = E * ( 1.00 - NU ) / (( 1.00 + NU ) * ( 1.00 - 2 * NU ) );
-    double c2 = E * NU / (( 1.00 + NU ) * ( 1.00 - 2 * NU ) );
-    double c3 = 0.5 * E / ( 1 + NU );
+    DataType c1 = E * ( 1.00 - NU ) / (( 1.00 + NU ) * ( 1.00 - 2 * NU ) );
+    DataType c2 = E * NU / (( 1.00 + NU ) * ( 1.00 - 2 * NU ) );
+    DataType c3 = 0.5 * E / ( 1.00 + NU );
 
     // compute the stress based on strain
     StressVector[0] = c1 * StrainVector[0] + c2 * StrainVector[1];
@@ -408,46 +434,43 @@ void PlaneStrain::CalculateStress( const double& E, const double& NU, const Vect
     StressVector[2] = c3 * StrainVector[2];
 }
 
-
-void PlaneStrain::CalculateStrain(const double& E, const double& NU, const Vector& StressVector, Vector& StrainVector ) const
+template<class TNodeType>
+void PlaneStrainImpl<TNodeType>::CalculateStrain(const DataType E, const DataType NU, const VectorType& StressVector, VectorType& StrainVector ) const
 {
-    const double c1 = ( 1.00 - NU * NU ) / E;
-    const double c2 = -NU * ( 1.00 + NU ) / E;
-    const double c3 = 2 * ( 1 + NU ) / E;
+    const DataType c1 = ( 1.00 - NU * NU ) / E;
+    const DataType c2 = -NU * ( 1.00 + NU ) / E;
+    const DataType c3 = 2 * ( 1.00 + NU ) / E;
 
     StrainVector(0) = c1 * StressVector(0) + c2 * StressVector(1);
     StrainVector(1) = c2 * StressVector(0) + c1 * StressVector(1);
     StrainVector(2) = c3 * StressVector(2);
 }
 
-/**
- * TO BE REVIEWED!!!
- */
-void PlaneStrain::CalculateConstitutiveMatrix( Matrix& rResult ) const
+template<class TNodeType>
+void PlaneStrainImpl<TNodeType>::CalculateConstitutiveMatrix( MatrixType& rResult ) const
 {
     CalculateElasticMatrix( rResult, mE, mNU );
 }
 
-
-std::size_t PlaneStrain::GetStrainSize() const
+template<class TNodeType>
+std::size_t PlaneStrainImpl<TNodeType>::GetStrainSize() const
 {
     return 3;
 }
 
-//**********************************************************************
-
-void PlaneStrain::CalculateCauchyStresses(
-    Vector& rCauchy_StressVector,
-    const Matrix& rF,
-    const Vector& rPK2_StressVector,
-    const Vector& rGreenLagrangeStrainVector ) const
+template<class TNodeType>
+void PlaneStrainImpl<TNodeType>::CalculateCauchyStresses(
+    VectorType& rCauchy_StressVector,
+    const MatrixType& rF,
+    const VectorType& rPK2_StressVector,
+    const VectorType& rGreenLagrangeStrainVector ) const
 {
-    Matrix S = MathUtils<double>::StressVectorToTensor( rPK2_StressVector );
+    MatrixType S = MathUtils<DataType>::StressVectorToTensor( rPK2_StressVector );
 
-    double J = MathUtils<double>::Det2( rF );
+    DataType J = MathUtils<DataType>::Det2( rF );
 
-    boost::numeric::ublas::bounded_matrix<double, 2, 2> temp;
-    boost::numeric::ublas::bounded_matrix<double, 2, 2> aux;
+    boost::numeric::ublas::bounded_matrix<DataType, 2, 2> temp;
+    boost::numeric::ublas::bounded_matrix<DataType, 2, 2> aux;
 
     noalias( temp ) = prod( rF, S );
     noalias( aux ) = prod( temp, trans( rF ) );
@@ -463,21 +486,19 @@ void PlaneStrain::CalculateCauchyStresses(
     rCauchy_StressVector[2] = aux( 0,1 );
 }
 
-//**********************************************************************
-
-void PlaneStrain::Calculate( const Variable<Matrix>& rVariable, Matrix& rResult,
+template<class TNodeType>
+void PlaneStrainImpl<TNodeType>::Calculate( const Variable<MatrixType>& rVariable, MatrixType& rResult,
                              const ProcessInfo& rCurrentProcessInfo ) const
 {
 }
 
-//**********************************************************************
-
-int PlaneStrain::Check(const Properties& props, const GeometryType& geom, const ProcessInfo& CurrentProcessInfo) const
+template<class TNodeType>
+int PlaneStrainImpl<TNodeType>::Check(const Properties& props, const GeometryType& geom, const ProcessInfo& CurrentProcessInfo) const
 {
     if(YOUNG_MODULUS.Key() == 0 || props[YOUNG_MODULUS]<= 0.00)
         KRATOS_ERROR << "YOUNG_MODULUS has Key zero or invalid value";
 
-    const double& nu = props[POISSON_RATIO];
+    const double nu = std::abs(props[POISSON_RATIO]);
     const bool check = bool( (nu >0.499 && nu<0.501 ) || (nu < -0.999 && nu > -1.01 ) );
     if(POISSON_RATIO.Key() == 0 || check==true) // props[POISSON_RATIO] == 1.00 || props[POISSON_RATIO] == -1.00)
         KRATOS_ERROR << "POISSON_RATIO has Key zero invalid value";
@@ -487,5 +508,9 @@ int PlaneStrain::Check(const Properties& props, const GeometryType& geom, const 
 
     return 0;
 }
+
+template class PlaneStrainImpl<RealNode>;
+template class PlaneStrainImpl<ComplexNode>;
+template class PlaneStrainImpl<GComplexNode>;
 
 } // Namespace Kratos

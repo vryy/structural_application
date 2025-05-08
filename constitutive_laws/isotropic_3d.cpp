@@ -53,7 +53,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <iostream>
 
 // External includes
-#include<cmath>
+#include <cmath>
 
 // Project includes
 #include "utilities/math_utils.h"
@@ -64,28 +64,25 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 namespace Kratos
 {
 
-
-/**
- * TO BE TESTED!!!
- */
-Isotropic3D::Isotropic3D()
-    : ConstitutiveLaw()
+template<class TNodeType>
+Isotropic3DImpl<TNodeType>::Isotropic3DImpl()
+    : BaseType()
 {
 }
 
-/**
- * TO BE TESTED!!!
- */
-Isotropic3D::~Isotropic3D()
+template<class TNodeType>
+Isotropic3DImpl<TNodeType>::~Isotropic3DImpl()
 {
 }
 
-bool Isotropic3D::Has( const Variable<int>& rThisVariable )
+template<class TNodeType>
+bool Isotropic3DImpl<TNodeType>::Has( const Variable<int>& rThisVariable )
 {
     return false;
 }
 
-bool Isotropic3D::Has( const Variable<double>& rThisVariable )
+template<class TNodeType>
+bool Isotropic3DImpl<TNodeType>::Has( const Variable<DataType>& rThisVariable )
 {
     if ( rThisVariable == PRESTRESS_FACTOR || rThisVariable == YOUNG_MODULUS || rThisVariable == POISSON_RATIO )
         return true;
@@ -93,7 +90,8 @@ bool Isotropic3D::Has( const Variable<double>& rThisVariable )
     return false;
 }
 
-bool Isotropic3D::Has( const Variable<Vector>& rThisVariable )
+template<class TNodeType>
+bool Isotropic3DImpl<TNodeType>::Has( const Variable<VectorType>& rThisVariable )
 {
     if ( rThisVariable == INSITU_STRESS )
         return true;
@@ -107,7 +105,8 @@ bool Isotropic3D::Has( const Variable<Vector>& rThisVariable )
     return false;
 }
 
-bool Isotropic3D::Has( const Variable<Matrix>& rThisVariable )
+template<class TNodeType>
+bool Isotropic3DImpl<TNodeType>::Has( const Variable<MatrixType>& rThisVariable )
 {
     if ( rThisVariable == CAUCHY_STRESS_TENSOR )
         return true;
@@ -116,8 +115,8 @@ bool Isotropic3D::Has( const Variable<Matrix>& rThisVariable )
     return false;
 }
 
-
-int& Isotropic3D::GetValue( const Variable<int>& rThisVariable, int& rValue )
+template<class TNodeType>
+int& Isotropic3DImpl<TNodeType>::GetValue( const Variable<int>& rThisVariable, int& rValue )
 {
     if (rThisVariable == IS_SHAPE_FUNCTION_REQUIRED)
         rValue = 0;
@@ -125,7 +124,8 @@ int& Isotropic3D::GetValue( const Variable<int>& rThisVariable, int& rValue )
     return rValue;
 }
 
-double& Isotropic3D::GetValue( const Variable<double>& rThisVariable, double& rValue )
+template<class TNodeType>
+typename Isotropic3DImpl<TNodeType>::DataType& Isotropic3DImpl<TNodeType>::GetValue( const Variable<DataType>& rThisVariable, DataType& rValue )
 {
     if ( rThisVariable == PRESTRESS_FACTOR )
     {
@@ -165,15 +165,15 @@ double& Isotropic3D::GetValue( const Variable<double>& rThisVariable, double& rV
 
     if (rThisVariable == PRESSURE_Q || rThisVariable == VON_MISES_STRESS)
     {
-        double p = (mCurrentStress[0] + mCurrentStress[1] + mCurrentStress[2]) / 3;
-        double sxx = mCurrentStress[0] - p;
-        double syy = mCurrentStress[1] - p;
-        double szz = mCurrentStress[2] - p;
-        double sxy = mCurrentStress[3];
-        double syz = mCurrentStress[4];
-        double sxz = mCurrentStress[5];
+        DataType p = (mCurrentStress[0] + mCurrentStress[1] + mCurrentStress[2]) / 3;
+        DataType sxx = mCurrentStress[0] - p;
+        DataType syy = mCurrentStress[1] - p;
+        DataType szz = mCurrentStress[2] - p;
+        DataType sxy = mCurrentStress[3];
+        DataType syz = mCurrentStress[4];
+        DataType sxz = mCurrentStress[5];
 
-        rValue = sqrt( 3.0 * ( 0.5*(sxx*sxx + syy*syy + szz*szz) + sxy*sxy + syz*syz + sxz*sxz ) );
+        rValue = std::sqrt( 3.0 * ( 0.5*(sxx*sxx + syy*syy + szz*szz) + sxy*sxy + syz*syz + sxz*sxz ) );
         return rValue;
     }
 
@@ -181,7 +181,8 @@ double& Isotropic3D::GetValue( const Variable<double>& rThisVariable, double& rV
     return rValue;
 }
 
-Vector& Isotropic3D::GetValue( const Variable<Vector>& rThisVariable, Vector& rValue )
+template<class TNodeType>
+typename Isotropic3DImpl<TNodeType>::VectorType& Isotropic3DImpl<TNodeType>::GetValue( const Variable<VectorType>& rThisVariable, VectorType& rValue )
 {
     if ( rThisVariable == INSITU_STRESS || rThisVariable == PRESTRESS )
     {
@@ -205,7 +206,7 @@ Vector& Isotropic3D::GetValue( const Variable<Vector>& rThisVariable, Vector& rV
         // REF: http://www.efunda.com/formulae/solid_mechanics/mat_mechanics/hooke_plane_stress.cfm
         const unsigned int size = mCurrentStress.size();
         rValue.resize(size, false );
-        Vector Stress = mCurrentStress + mPrestressFactor * mPrestress;
+        VectorType Stress = mCurrentStress + mPrestressFactor * mPrestress;
         rValue(0) = (Stress(0) - mNU*Stress(1) - mNU*Stress(2)) / mE;
         rValue(1) = (Stress(1) - mNU*Stress(0) - mNU*Stress(2)) / mE;
         rValue(2) = (Stress(2) - mNU*Stress(0) - mNU*Stress(1)) / mE;
@@ -217,20 +218,21 @@ Vector& Isotropic3D::GetValue( const Variable<Vector>& rThisVariable, Vector& rV
 
     if ( rThisVariable == PLASTIC_STRAIN_VECTOR )
     {
-        rValue = ZeroVector( 6 );
+        rValue = ZeroVectorType( 6 );
         return( rValue );
     }
 
     if ( rThisVariable == INTERNAL_VARIABLES )
     {
-        rValue = ZeroVector( 1 );
+        rValue = ZeroVectorType( 1 );
         return( rValue );
     }
 
     return rValue;
 }
 
-Matrix& Isotropic3D::GetValue( const Variable<Matrix>& rThisVariable, Matrix& rValue )
+template<class TNodeType>
+typename Isotropic3DImpl<TNodeType>::MatrixType& Isotropic3DImpl<TNodeType>::GetValue( const Variable<MatrixType>& rThisVariable, MatrixType& rValue )
 {
     if(rThisVariable == ALGORITHMIC_TANGENT || rThisVariable == ELASTIC_TANGENT || rThisVariable == THREED_ALGORITHMIC_TANGENT)
     {
@@ -240,26 +242,28 @@ Matrix& Isotropic3D::GetValue( const Variable<Matrix>& rThisVariable, Matrix& rV
     }
     else if(rThisVariable == ELASTIC_STRAIN_TENSOR)
     {
-        Vector StrainVector(6);
+        VectorType StrainVector(6);
         this->CalculateStrain(mE, mNU, mCurrentStress + mPrestressFactor * mPrestress, StrainVector);
-        SD_MathUtils<double>::StrainVectorToTensor(StrainVector, rValue);
+        SD_MathUtils<DataType>::StrainVectorToTensor(StrainVector, rValue);
     }
     else if(rThisVariable == CAUCHY_STRESS_TENSOR)
     {
         if (rValue.size1() != 3 || rValue.size2() != 3)
             rValue.resize(3, 3, false);
-        SD_MathUtils<double>::StrainVectorToTensor(mCurrentStress, rValue);
+        SD_MathUtils<DataType>::StrainVectorToTensor(mCurrentStress, rValue);
     }
 
     return rValue ;
 }
 
-void Isotropic3D::SetValue( const Variable<int>& rThisVariable, const int& rValue,
+template<class TNodeType>
+void Isotropic3DImpl<TNodeType>::SetValue( const Variable<int>& rThisVariable, const int& rValue,
                             const ProcessInfo& rCurrentProcessInfo )
 {
 }
 
-void Isotropic3D::SetValue( const Variable<double>& rThisVariable, const double& rValue,
+template<class TNodeType>
+void Isotropic3DImpl<TNodeType>::SetValue( const Variable<DataType>& rThisVariable, const DataType& rValue,
                             const ProcessInfo& rCurrentProcessInfo )
 {
     if ( rThisVariable == PRESTRESS_FACTOR )
@@ -270,13 +274,15 @@ void Isotropic3D::SetValue( const Variable<double>& rThisVariable, const double&
         mNU = rValue;
 }
 
-void Isotropic3D::SetValue( const Variable<array_1d<double, 3> >& rThisVariable,
-                            const array_1d<double, 3>& rValue,
+template<class TNodeType>
+void Isotropic3DImpl<TNodeType>::SetValue( const Variable<array_1d<DataType, 3> >& rThisVariable,
+                            const array_1d<DataType, 3>& rValue,
                             const ProcessInfo& rCurrentProcessInfo )
 {
 }
 
-void Isotropic3D::SetValue( const Variable<Vector>& rThisVariable, const Vector& rValue,
+template<class TNodeType>
+void Isotropic3DImpl<TNodeType>::SetValue( const Variable<VectorType>& rThisVariable, const VectorType& rValue,
                             const ProcessInfo& rCurrentProcessInfo )
 {
     if ( rThisVariable == INSITU_STRESS || rThisVariable == PRESTRESS )
@@ -289,64 +295,71 @@ void Isotropic3D::SetValue( const Variable<Vector>& rThisVariable, const Vector&
     }
 }
 
-void Isotropic3D::SetValue( const Variable<Matrix>& rThisVariable, const Matrix& rValue,
+template<class TNodeType>
+void Isotropic3DImpl<TNodeType>::SetValue( const Variable<MatrixType>& rThisVariable, const MatrixType& rValue,
                             const ProcessInfo& rCurrentProcessInfo )
 {
 }
 
-
-void Isotropic3D::InitializeMaterial( const Properties& props,
+template<class TNodeType>
+void Isotropic3DImpl<TNodeType>::InitializeMaterial( const Properties& props,
                                       const GeometryType& geom,
                                       const Vector& ShapeFunctionsValues )
 {
-    mCurrentStress = ZeroVector( 6 );
-    mPrestress = ZeroVector( 6 );
+    mCurrentStress = ZeroVectorType( 6 );
+    mPrestress = ZeroVectorType( 6 );
     mPrestressFactor = 1.0;
     mE = props[YOUNG_MODULUS];
     mNU = props[POISSON_RATIO];
     mDE = props[DENSITY];
 }
 
-void Isotropic3D::ResetMaterial( const Properties& props,
+template<class TNodeType>
+void Isotropic3DImpl<TNodeType>::ResetMaterial( const Properties& props,
                                  const GeometryType& geom,
                                  const Vector& ShapeFunctionsValues )
 {
     noalias(mCurrentStress) = mPrestressFactor*mPrestress;
 }
 
-void Isotropic3D::InitializeSolutionStep( const Properties& props,
+template<class TNodeType>
+void Isotropic3DImpl<TNodeType>::InitializeSolutionStep( const Properties& props,
         const GeometryType& geom, //this is just to give the array of nodes
         const Vector& ShapeFunctionsValues ,
         const ProcessInfo& CurrentProcessInfo )
 {
 }
 
-void Isotropic3D::InitializeNonLinearIteration( const Properties& props,
+template<class TNodeType>
+void Isotropic3DImpl<TNodeType>::InitializeNonLinearIteration( const Properties& props,
         const GeometryType& geom, //this is just to give the array of nodes
         const Vector& ShapeFunctionsValues ,
         const ProcessInfo& CurrentProcessInfo )
 {
 }
 
-void Isotropic3D::FinalizeNonLinearIteration( const Properties& props,
+template<class TNodeType>
+void Isotropic3DImpl<TNodeType>::FinalizeNonLinearIteration( const Properties& props,
         const GeometryType& geom, //this is just to give the array of nodes
         const Vector& ShapeFunctionsValues ,
         const ProcessInfo& CurrentProcessInfo )
 {
 }
 
-void Isotropic3D::FinalizeSolutionStep( const Properties& props,
+template<class TNodeType>
+void Isotropic3DImpl<TNodeType>::FinalizeSolutionStep( const Properties& props,
         const GeometryType& geom, //this is just to give the array of nodes
         const Vector& ShapeFunctionsValues ,
         const ProcessInfo& CurrentProcessInfo )
 {
 }
 
-void Isotropic3D::CalculateMaterialResponseCauchy (Parameters& rValues)
+template<class TNodeType>
+void Isotropic3DImpl<TNodeType>::CalculateMaterialResponseCauchy (typename BaseType::Parameters& rValues)
 {
     if (rValues.IsSetConstitutiveMatrix())
     {
-        Matrix& AlgorithmicTangent = rValues.GetConstitutiveMatrix();
+        MatrixType& AlgorithmicTangent = rValues.GetConstitutiveMatrix();
         if(AlgorithmicTangent.size1() != 6 || AlgorithmicTangent.size2() != 6)
             AlgorithmicTangent.resize(6, 6, false);
         CalculateElasticMatrix( AlgorithmicTangent, mE, mNU );
@@ -354,29 +367,30 @@ void Isotropic3D::CalculateMaterialResponseCauchy (Parameters& rValues)
 
     if (rValues.IsSetStressVector())
     {
-        const Vector& StrainVector = rValues.GetStrainVector();
-        Vector& StressVector = rValues.GetStressVector();
+        const VectorType& StrainVector = rValues.GetStrainVector();
+        VectorType& StressVector = rValues.GetStressVector();
         if(StressVector.size() != 6)
             StressVector.resize(6, false);
 
         if (rValues.IsSetConstitutiveMatrix())
         {
-            Matrix& AlgorithmicTangent = rValues.GetConstitutiveMatrix();
+            MatrixType& AlgorithmicTangent = rValues.GetConstitutiveMatrix();
             CalculateStress( StrainVector, AlgorithmicTangent, StressVector );
         }
         else
         {
-            Matrix AlgorithmicTangent(6, 6);
+            MatrixType AlgorithmicTangent(6, 6);
             CalculateElasticMatrix( AlgorithmicTangent, mE, mNU );
             CalculateStress( StrainVector, AlgorithmicTangent, StressVector );
         }
     }
 }
 
-void Isotropic3D::CalculateMaterialResponse( const Vector& StrainVector,
-        const Matrix& DeformationGradient,
-        Vector& StressVector,
-        Matrix& AlgorithmicTangent,
+template<class TNodeType>
+void Isotropic3DImpl<TNodeType>::CalculateMaterialResponse( const VectorType& StrainVector,
+        const MatrixType& DeformationGradient,
+        VectorType& StressVector,
+        MatrixType& AlgorithmicTangent,
         const ProcessInfo& CurrentProcessInfo,
         const Properties& props,
         const GeometryType& geom,
@@ -385,8 +399,8 @@ void Isotropic3D::CalculateMaterialResponse( const Vector& StrainVector,
         int CalculateTangent,
         bool SaveInternalVariables )
 {
-    ConstitutiveLaw::Parameters const_params;
-    Vector ThisStrainVector = StrainVector;
+    typename BaseType::Parameters const_params;
+    VectorType ThisStrainVector = StrainVector;
     const_params.SetStrainVector(ThisStrainVector);
     if (CalculateStresses)
         const_params.SetStressVector(StressVector);
@@ -396,13 +410,15 @@ void Isotropic3D::CalculateMaterialResponse( const Vector& StrainVector,
     this->CalculateMaterialResponseCauchy(const_params);
 }
 
-void Isotropic3D::CalculateElasticMatrix( Matrix& C, const double& E, const double& NU )
+template<class TNodeType>
+void Isotropic3DImpl<TNodeType>::CalculateElasticMatrix( MatrixType& C, const DataType E, const DataType NU )
 {
     //setting up material matrix
-    double c1 = E / (( 1.00 + NU ) * ( 1 - 2 * NU ) );
-    double c2 = c1 * ( 1 - NU );
-    double c3 = c1 * NU;
-    double c4 = c1 * 0.5 * ( 1 - 2 * NU );
+    DataType c1 = E / (( 1.00 + NU ) * ( 1.00 - 2.00 * NU ) );
+    DataType c2 = c1 * ( 1.00 - NU );
+    DataType c3 = c1 * NU;
+    DataType c4 = c1 * 0.5 * ( 1.00 - 2.00 * NU );
+
     //filling material matrix
     noalias(C) = ZeroMatrix(6, 6);
     C( 0, 0 ) = c2;
@@ -419,7 +435,8 @@ void Isotropic3D::CalculateElasticMatrix( Matrix& C, const double& E, const doub
     C( 5, 5 ) = c4;
 }
 
-void Isotropic3D::CalculateStress( const Vector& StrainVector, Matrix& AlgorithmicTangent, Vector& StressVector )
+template<class TNodeType>
+void Isotropic3DImpl<TNodeType>::CalculateStress( const VectorType& StrainVector, const MatrixType& AlgorithmicTangent, VectorType& StressVector )
 {
     if ( StressVector.size() != 6 )
     {
@@ -431,25 +448,27 @@ void Isotropic3D::CalculateStress( const Vector& StrainVector, Matrix& Algorithm
     noalias(mCurrentStress) = StressVector;
 }
 
-void Isotropic3D::CalculateStress( const double& E, const double& NU, const Vector& StrainVector, Vector& StressVector ) const
+template<class TNodeType>
+void Isotropic3DImpl<TNodeType>::CalculateStress( const DataType E, const DataType NU, const VectorType& StrainVector, VectorType& StressVector ) const
 {
     if ( StressVector.size() != 6 )
     {
         StressVector.resize( 6, false );
     }
 
-    Matrix Ce( 6, 6 );
+    MatrixType Ce( 6, 6 );
 
     this->CalculateElasticMatrix( Ce, E, NU );
 
     noalias( StressVector ) = prod( Ce, StrainVector );
 }
 
-void Isotropic3D::CalculateStrain( const double& E, const double& NU, const Vector& StressVector, Vector& StrainVector ) const
+template<class TNodeType>
+void Isotropic3DImpl<TNodeType>::CalculateStrain( const DataType E, const DataType NU, const VectorType& StressVector, VectorType& StrainVector ) const
 {
-    const double c1 = 1.0 / E;
-    const double c2 = -NU * c1;
-    const double c3 = 2 * (1 + NU) / E;
+    const DataType c1 = 1.0 / E;
+    const DataType c2 = -NU * c1;
+    const DataType c3 = 2 * (1.0 + NU) / E;
 
     StrainVector(0) = c1 * StressVector(0) + c2 * StressVector(1) + c2 * StressVector(2);
     StrainVector(1) = c2 * StressVector(0) + c1 * StressVector(1) + c2 * StressVector(2);
@@ -459,18 +478,18 @@ void Isotropic3D::CalculateStrain( const double& E, const double& NU, const Vect
     StrainVector(5) = c3 * StressVector(5);
 }
 
-//**********************************************************************
-void Isotropic3D::CalculateCauchyStresses(
-    Vector& rCauchy_StressVector,
-    const Matrix& rF,
-    const Vector& rPK2_StressVector,
-    const Vector& rGreenLagrangeStrainVector )
+template<class TNodeType>
+void Isotropic3DImpl<TNodeType>::CalculateCauchyStresses(
+    VectorType& rCauchy_StressVector,
+    const MatrixType& rF,
+    const VectorType& rPK2_StressVector,
+    const VectorType& rGreenLagrangeStrainVector )
 {
-    Matrix S = MathUtils<double>::StressVectorToTensor( rPK2_StressVector );
+    MatrixType S = MathUtils<DataType>::StressVectorToTensor( rPK2_StressVector );
 
-    double J = MathUtils<double>::Det3( rF );
-    boost::numeric::ublas::bounded_matrix<double, 3, 3> mstemp;
-    boost::numeric::ublas::bounded_matrix<double, 3, 3> msaux;
+    DataType J = MathUtils<DataType>::Det3( rF );
+    boost::numeric::ublas::bounded_matrix<DataType, 3, 3> mstemp;
+    boost::numeric::ublas::bounded_matrix<DataType, 3, 3> msaux;
 
     noalias( mstemp ) = prod( rF, S );
     noalias( msaux ) = prod( mstemp, trans( rF ) );
@@ -492,8 +511,8 @@ void Isotropic3D::CalculateCauchyStresses(
     rCauchy_StressVector[5] = msaux( 1, 2 );
 }
 
-//**********************************************************************
-int Isotropic3D::Check( const Properties& props, const GeometryType& geom, const ProcessInfo& CurrentProcessInfo ) const
+template<class TNodeType>
+int Isotropic3DImpl<TNodeType>::Check( const Properties& props, const GeometryType& geom, const ProcessInfo& CurrentProcessInfo ) const
 {
     KRATOS_TRY
 
@@ -514,4 +533,9 @@ int Isotropic3D::Check( const Properties& props, const GeometryType& geom, const
 
     KRATOS_CATCH( "" );
 }
+
+template class Isotropic3DImpl<RealNode>;
+template class Isotropic3DImpl<ComplexNode>;
+template class Isotropic3DImpl<GComplexNode>;
+
 } // Namespace Kratos

@@ -100,6 +100,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
     #include "custom_elements/corotational_linear_beam_element.h"
     #include "custom_elements/kinematic_linear.h"
     #include "custom_elements/kinematic_linear_axisymmetric.h"
+    #include "custom_elements/kinematic_linear_anti_plane.h"
     #include "custom_elements/updated_kinematic_linear.h"
     #include "custom_elements/shell_isotropic.h"
     #include "custom_elements/shell_anisotropic.h"
@@ -136,6 +137,27 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
     #include "constitutive_laws/dummy_constitutive_law.h"
     #include "constitutive_laws/cam_clay_3d.h"
 #endif
+
+#define STRUCTURAL_APPLICATION_DEFINE_ELEMENT_ALL_GEOMETRIES(element_type) \
+    const element_type m##element_type##2D3N; \
+    const element_type m##element_type##2D6N; \
+    const element_type m##element_type##2D4N; \
+    const element_type m##element_type##2D8N; \
+    const element_type m##element_type##2D9N; \
+    const element_type m##element_type##3D4N; \
+    const element_type m##element_type##3D10N; \
+    const element_type m##element_type##3D8N; \
+    const element_type m##element_type##3D20N; \
+    const element_type m##element_type##3D27N; \
+    const element_type m##element_type##3D6N; \
+    const element_type m##element_type##3D15N;
+
+#define STRUCTURAL_APPLICATION_DEFINE_ELEMENT_ALL_2D_GEOMETRIES(element_type) \
+    const element_type m##element_type##3N; \
+    const element_type m##element_type##6N; \
+    const element_type m##element_type##4N; \
+    const element_type m##element_type##8N; \
+    const element_type m##element_type##9N; \
 
 #define STRUCTURAL_APPLICATION_DEFINE_CONDITION_ALL_GEOMETRIES(condition_type) \
     const condition_type m##condition_type##2D2N; \
@@ -346,76 +368,26 @@ private:
     const ShellIsotropic mIsoShellElement;
     const ShellAnisotropic mAnisoShellElement;
 
-    const TotalLagrangian mTotalLagrangian2D3N;
-    const TotalLagrangian mTotalLagrangian2D4N;
-    const TotalLagrangian mTotalLagrangian2D6N;
-    const TotalLagrangian mTotalLagrangian2D8N;
-    const TotalLagrangian mTotalLagrangian2D9N;
-    const TotalLagrangian mTotalLagrangian3D4N;
-    const TotalLagrangian mTotalLagrangian3D10N;
-    const TotalLagrangian mTotalLagrangian3D6N;
-    const TotalLagrangian mTotalLagrangian3D15N;
-    const TotalLagrangian mTotalLagrangian3D8N;
-    const TotalLagrangian mTotalLagrangian3D20N;
-    const TotalLagrangian mTotalLagrangian3D27N;
+    STRUCTURAL_APPLICATION_DEFINE_ELEMENT_ALL_GEOMETRIES(TotalLagrangian)
 
-    const TotalLagrangianAxisymmetric mTotalLagrangianAxisymmetric3N;
-    const TotalLagrangianAxisymmetric mTotalLagrangianAxisymmetric4N;
-    const TotalLagrangianAxisymmetric mTotalLagrangianAxisymmetric6N;
-    const TotalLagrangianAxisymmetric mTotalLagrangianAxisymmetric8N;
-    const TotalLagrangianAxisymmetric mTotalLagrangianAxisymmetric9N;
+    STRUCTURAL_APPLICATION_DEFINE_ELEMENT_ALL_2D_GEOMETRIES(TotalLagrangianAxisymmetric)
 
 
-    const FiniteStrain mFiniteStrain2D3N;
-    const FiniteStrain mFiniteStrain2D4N;
-    const FiniteStrain mFiniteStrain2D6N;
-    const FiniteStrain mFiniteStrain2D8N;
-    const FiniteStrain mFiniteStrain2D9N;
-    const FiniteStrain mFiniteStrain3D4N;
-    const FiniteStrain mFiniteStrain3D10N;
-    const FiniteStrain mFiniteStrain3D6N;
-    const FiniteStrain mFiniteStrain3D15N;
-    const FiniteStrain mFiniteStrain3D8N;
-    const FiniteStrain mFiniteStrain3D20N;
-    const FiniteStrain mFiniteStrain3D27N;
+    STRUCTURAL_APPLICATION_DEFINE_ELEMENT_ALL_GEOMETRIES(FiniteStrain)
 
-    const FiniteStrainAxisymmetric mFiniteStrainAxisymmetric3N;
-    const FiniteStrainAxisymmetric mFiniteStrainAxisymmetric4N;
-    const FiniteStrainAxisymmetric mFiniteStrainAxisymmetric6N;
-    const FiniteStrainAxisymmetric mFiniteStrainAxisymmetric8N;
-    const FiniteStrainAxisymmetric mFiniteStrainAxisymmetric9N;
+    STRUCTURAL_APPLICATION_DEFINE_ELEMENT_ALL_2D_GEOMETRIES(FiniteStrainAxisymmetric)
 
-    const KinematicLinear mKinematicLinear2D3N;
-    const KinematicLinear mKinematicLinear2D4N;
-    const KinematicLinear mKinematicLinear2D6N;
-    const KinematicLinear mKinematicLinear2D8N;
-    const KinematicLinear mKinematicLinear2D9N;
-    const KinematicLinear mKinematicLinear3D4N;
-    const KinematicLinear mKinematicLinear3D10N;
-    const KinematicLinear mKinematicLinear3D8N;
-    const KinematicLinear mKinematicLinear3D20N;
-    const KinematicLinear mKinematicLinear3D27N;
-    const KinematicLinear mKinematicLinear3D6N;
-    const KinematicLinear mKinematicLinear3D15N;
+    STRUCTURAL_APPLICATION_DEFINE_ELEMENT_ALL_GEOMETRIES(KinematicLinear)
+    STRUCTURAL_APPLICATION_DEFINE_ELEMENT_ALL_GEOMETRIES(ComplexKinematicLinear)
+    STRUCTURAL_APPLICATION_DEFINE_ELEMENT_ALL_GEOMETRIES(GComplexKinematicLinear)
 
-    const KinematicLinearAxisymmetric mKinematicLinearAxisymmetric3N;
-    const KinematicLinearAxisymmetric mKinematicLinearAxisymmetric4N;
-    const KinematicLinearAxisymmetric mKinematicLinearAxisymmetric6N;
-    const KinematicLinearAxisymmetric mKinematicLinearAxisymmetric8N;
-    const KinematicLinearAxisymmetric mKinematicLinearAxisymmetric9N;
+    STRUCTURAL_APPLICATION_DEFINE_ELEMENT_ALL_2D_GEOMETRIES(KinematicLinearAxisymmetric)
 
-    const UpdatedKinematicLinear mUpdatedKinematicLinear2D3N;
-    const UpdatedKinematicLinear mUpdatedKinematicLinear2D4N;
-    const UpdatedKinematicLinear mUpdatedKinematicLinear2D6N;
-    const UpdatedKinematicLinear mUpdatedKinematicLinear2D8N;
-    const UpdatedKinematicLinear mUpdatedKinematicLinear2D9N;
-    const UpdatedKinematicLinear mUpdatedKinematicLinear3D4N;
-    const UpdatedKinematicLinear mUpdatedKinematicLinear3D10N;
-    const UpdatedKinematicLinear mUpdatedKinematicLinear3D8N;
-    const UpdatedKinematicLinear mUpdatedKinematicLinear3D20N;
-    const UpdatedKinematicLinear mUpdatedKinematicLinear3D27N;
-    const UpdatedKinematicLinear mUpdatedKinematicLinear3D6N;
-    const UpdatedKinematicLinear mUpdatedKinematicLinear3D15N;
+    STRUCTURAL_APPLICATION_DEFINE_ELEMENT_ALL_2D_GEOMETRIES(KinematicLinearAntiPlane)
+    STRUCTURAL_APPLICATION_DEFINE_ELEMENT_ALL_2D_GEOMETRIES(ComplexKinematicLinearAntiPlane)
+    STRUCTURAL_APPLICATION_DEFINE_ELEMENT_ALL_2D_GEOMETRIES(GComplexKinematicLinearAntiPlane)
+
+    STRUCTURAL_APPLICATION_DEFINE_ELEMENT_ALL_GEOMETRIES(UpdatedKinematicLinear)
 
     const Ebst mEbst3D3N;
     const EbstVel mEbstVel3D3N;
@@ -439,16 +411,7 @@ private:
     const DummyElement mDummyVolumeElement3D20N;
     const DummyElement mDummyVolumeElement3D27N;
 
-    const DummyElement mDummyElement2D3N;
-    const DummyElement mDummyElement2D6N;
-    const DummyElement mDummyElement2D4N;
-    const DummyElement mDummyElement2D8N;
-    const DummyElement mDummyElement2D9N;
-    const DummyElement mDummyElement3D4N;
-    const DummyElement mDummyElement3D10N;
-    const DummyElement mDummyElement3D8N;
-    const DummyElement mDummyElement3D20N;
-    const DummyElement mDummyElement3D27N;
+    STRUCTURAL_APPLICATION_DEFINE_ELEMENT_ALL_GEOMETRIES(DummyElement)
 
     const Face2D  mFace2D;
     const Face3D  mFace3D3N;

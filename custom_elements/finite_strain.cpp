@@ -636,7 +636,7 @@ namespace Kratos
 //************************************************************************************
 //************************************************************************************
 
-    double FiniteStrain::CalculateIntegrationWeight( const double& GaussPointWeight, const double& DetJ )
+    double FiniteStrain::CalculateIntegrationWeight( const double GaussPointWeight, const double DetJ )
     {
         //to permorm the integration over the reference domain we need to include
         // the thickness in 2D
@@ -1019,7 +1019,7 @@ namespace Kratos
 //************************************************************************************
 //************************************************************************************
 
-    void FiniteStrain::AddBodyForcesToRHS( Vector& R, const Vector& N_DISP, const double& Weight ) const
+    void FiniteStrain::AddBodyForcesToRHS( VectorType& R, const Vector& N_DISP, const double Weight ) const
     {
         KRATOS_TRY
 
@@ -1057,10 +1057,11 @@ namespace Kratos
         const ProcessInfo& CurrentProcessInfo,
         const Vector& BodyForce,
         VectorType& rRightHandSideVector,
-        const double& weight
+        const double weight
     ) const
     {
         KRATOS_TRY
+
         unsigned int number_of_nodes = GetGeometry().PointsNumber();
         unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
@@ -2106,4 +2107,6 @@ namespace Kratos
 
 #undef ENABLE_DEBUG_CONSTITUTIVE_LAW
 #undef CHECK_DEFORMATION_GRADIENT
-#undef USE_DETERMINANT_F0_FOR_FBAR
+#undef USE_DETERMINANT_FO_FOR_FBAR
+#undef DEBUG_ELEMENT_ID
+#undef DEBUG_POINT_ID
