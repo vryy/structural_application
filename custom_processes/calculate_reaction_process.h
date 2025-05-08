@@ -110,6 +110,9 @@ public:
     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
     typedef Scheme<SparseSpaceType, LocalSpaceType> SchemeType;
 
+    typedef std::size_t IndexType;
+    typedef std::size_t SizeType;
+
     /// Pointer definition of CalculateReactionProcess
     KRATOS_CLASS_POINTER_DEFINITION(CalculateReactionProcess);
 

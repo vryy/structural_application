@@ -214,7 +214,6 @@ protected:
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer,  BaseType );
     }
 
-
     ///@}
     ///@name Protected  Access
     ///@{

@@ -91,15 +91,20 @@ namespace Kratos
 /// Short class definition.
 /** A class to compute the strain energy of the model_part
 */
+template<class TModelPartType>
 class CalculateStrainEnergyProcess : public Process
 {
 public:
     ///@name Type Definitions
     ///@{
-    typedef Element::GeometryType GeometryType;
-    typedef GeometryType::PointType NodeType;
-    typedef GeometryType::PointType::PointType PointType;
-    typedef ModelPart::ElementsContainerType ElementsContainerType;
+
+    typedef TModelPartType ModelPartType;
+    typedef typename ModelPartType::DataType DataType;
+    typedef typename ModelPartType::ElementType ElementType;
+    typedef typename ElementType::GeometryType GeometryType;
+    typedef typename GeometryType::PointType NodeType;
+    typedef typename GeometryType::PointType::PointType PointType;
+    typedef typename ModelPartType::ElementsContainerType ElementsContainerType;
 
     /// Pointer definition of CalculateStrainEnergyProcess
     KRATOS_CLASS_POINTER_DEFINITION(CalculateStrainEnergyProcess);
@@ -110,15 +115,14 @@ public:
 
     /// Default constructor.
     /// This constructor will take all elements of the model_part for topology optimization
-    CalculateStrainEnergyProcess(const ModelPart& r_model_part)
+    CalculateStrainEnergyProcess(const ModelPartType& r_model_part)
     : mr_model_part(r_model_part), mEnergy(0.0)
     {}
 
     /// Destructor.
-    virtual ~CalculateStrainEnergyProcess()
+    ~CalculateStrainEnergyProcess() override
     {
     }
-
 
     ///@}
     ///@name Operators
@@ -136,21 +140,21 @@ public:
         const ElementsContainerType& rElements = mr_model_part.Elements();
 
         mEnergy = 0.0;
-        for(ElementsContainerType::const_iterator i_element = rElements.begin() ; i_element != rElements.end(); ++i_element)
+        for(auto i_element = rElements.begin() ; i_element != rElements.end(); ++i_element)
         {
             // get the integration points
-            const GeometryType::IntegrationPointsArrayType& integration_points = i_element->GetGeometry().IntegrationPoints( i_element->GetIntegrationMethod() );
+            const typename GeometryType::IntegrationPointsArrayType& integration_points = i_element->GetGeometry().IntegrationPoints( i_element->GetIntegrationMethod() );
 
             // compute strain energy (i.e compliance) at the integration points
-            std::vector<double> StrainEnergyAtIntegrationPoints;
-            i_element->CalculateOnIntegrationPoints(STRAIN_ENERGY, StrainEnergyAtIntegrationPoints, mr_model_part.GetProcessInfo());
+            std::vector<DataType> StrainEnergyAtIntegrationPoints;
+            i_element->CalculateOnIntegrationPoints(VARSEL(DataType, STRAIN_ENERGY), StrainEnergyAtIntegrationPoints, mr_model_part.GetProcessInfo());
 
             // get the Jacobian at integration points
-            std::vector<double> Jacobian;
-            i_element->CalculateOnIntegrationPoints(JACOBIAN_0, Jacobian, mr_model_part.GetProcessInfo());
+            std::vector<DataType> Jacobian;
+            i_element->CalculateOnIntegrationPoints(VARSEL(DataType, JACOBIAN_0), Jacobian, mr_model_part.GetProcessInfo());
 
             // compute strain energy at the element
-            double StrainEnergy = 0.0;
+            DataType StrainEnergy = 0.0;
             for(unsigned int PointNumber = 0; PointNumber < integration_points.size(); ++PointNumber)
             {
                 StrainEnergy += integration_points[PointNumber].Weight() * StrainEnergyAtIntegrationPoints[PointNumber] * Jacobian[PointNumber];
@@ -173,7 +177,7 @@ public:
     ///@{
 
     /// Get the computed strain energy
-    double GetEnergy() const
+    DataType GetEnergy() const
     {
         return mEnergy;
     }
@@ -204,7 +208,6 @@ public:
     {
         rOStream << " Total strain energy: " << mEnergy;
     }
-
 
     ///@}
     ///@name Friends
@@ -259,8 +262,8 @@ private:
     ///@name Member Variables
     ///@{
 
-    const ModelPart& mr_model_part;
-    double mEnergy;
+    const ModelPartType& mr_model_part;
+    DataType mEnergy;
 
     ///@}
     ///@name Private Operators
@@ -302,11 +305,21 @@ private:
 ///@name Type Definitions
 ///@{
 
+/// Helper class to create the CalculateStrainEnergyProcess based on type of model_part
+struct CalculateStrainEnergyProcessFactory
+{
+    template<class TModelPartType>
+    static Process::Pointer Create(const TModelPartType& r_model_part)
+    {
+        return Process::Pointer(new CalculateStrainEnergyProcess<TModelPartType>(r_model_part));
+    }
+};
 
 ///@}
 ///@name Input and output
 ///@{
 
+///@}
 
 }  // namespace Kratos.
 

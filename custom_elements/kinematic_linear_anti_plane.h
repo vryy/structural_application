@@ -45,13 +45,13 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 //   Project Name:        Kratos
 //   Modified by:         $Author: hbui $
-//   Date:                $Date: 14 Feb 2022 $
+//   Date:                $Date: 2 May 2025 $
 //
 //
 
 
-#if !defined(KRATOS_KINEMATIC_LINEAR_AXISYMMETRIC_INCLUDED )
-#define  KRATOS_KINEMATIC_LINEAR_AXISYMMETRIC_INCLUDED
+#if !defined(KRATOS_KINEMATIC_LINEAR_ANTI_PLANE_INCLUDED )
+#define  KRATOS_KINEMATIC_LINEAR_ANTI_PLANE_INCLUDED
 
 
 
@@ -89,24 +89,30 @@ namespace Kratos
 
 /// Short class definition.
 /** Detail class definition.
- * Define a small strain element with strain measure as Infinitesimal strain and stress measure as Cauchy stress for Axisymmetric problem
+ * Define a small strain element with strain measure as Infinitesimal strain and stress measure as Cauchy stress for anti-plane stress state
+ * The anti-plane motion is characterized by only vertical displacement, hence this element only carries Uz dofs.
  * Reference:
- * +    Ted Belytschko, Nonlinear Finite Elements for Continua and Structures, 2014, (E4.4.6)
+ * +    https://chatgpt.com/share/68148590-57d8-8006-a0df-9aee9d24bb66
  */
-class KRATOS_API(STRUCTURAL_APPLICATION) KinematicLinearAxisymmetric : public KinematicLinear
+template<class TNodeType>
+class KRATOS_API(STRUCTURAL_APPLICATION) BaseKinematicLinearAntiPlane : public BaseKinematicLinear<TNodeType>
 {
 
 public:
     ///@name Type Definitions
     ///@{
 
-    typedef KinematicLinear BaseType;
+    typedef BaseKinematicLinear<TNodeType> BaseType;
 
     typedef typename BaseType::ElementType ElementType;
 
     typedef typename BaseType::IndexType IndexType;
 
+    typedef typename BaseType::IndexType SizeType;
+
     typedef typename BaseType::DataType DataType;
+
+    typedef typename BaseType::ValueType ValueType;
 
     typedef typename BaseType::NodesArrayType NodesArrayType;
 
@@ -114,18 +120,27 @@ public:
 
     typedef typename BaseType::PropertiesType PropertiesType;
 
-    KRATOS_CLASS_POINTER_DEFINITION( KinematicLinearAxisymmetric );
+    typedef typename BaseType::EquationIdVectorType EquationIdVectorType;
+
+    typedef typename BaseType::DofsVectorType DofsVectorType;
+
+    typedef typename BaseType::VectorType VectorType;
+    typedef typename BaseType::ZeroVectorType ZeroVectorType;
+    typedef typename BaseType::MatrixType MatrixType;
+    typedef typename BaseType::ZeroMatrixType ZeroMatrixType;
+
+    KRATOS_CLASS_POINTER_DEFINITION( BaseKinematicLinearAntiPlane );
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    KinematicLinearAxisymmetric( IndexType NewId, GeometryType::Pointer pGeometry );
-    KinematicLinearAxisymmetric( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties );
+    BaseKinematicLinearAntiPlane( IndexType NewId, typename GeometryType::Pointer pGeometry );
+    BaseKinematicLinearAntiPlane( IndexType NewId, typename GeometryType::Pointer pGeometry, typename PropertiesType::Pointer pProperties );
 
     /// Destructor.
-    ~KinematicLinearAxisymmetric() override;
+    ~BaseKinematicLinearAntiPlane() override;
 
     ///@}
     ///@name Operators
@@ -136,9 +151,27 @@ public:
     ///@name Operations
     ///@{
 
-    typename ElementType::Pointer Create( IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties ) const override;
+    typename ElementType::Pointer Create( IndexType NewId, NodesArrayType const& ThisNodes, typename PropertiesType::Pointer pProperties ) const override;
 
-    typename ElementType::Pointer Create( IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties ) const override;
+    typename ElementType::Pointer Create( IndexType NewId, typename GeometryType::Pointer pGeom, typename PropertiesType::Pointer pProperties ) const override;
+
+    void CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo ) override;
+
+    void CalculateRightHandSide( VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo ) override;
+
+    void CalculateMassMatrix( MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo ) override;
+
+    void CalculateDampingMatrix( MatrixType& rDampMatrix, const ProcessInfo& rCurrentProcessInfo ) override;
+
+    void EquationIdVector( EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo ) const override;
+
+    void GetDofList( DofsVectorType& ElementalDofList, const ProcessInfo& CurrentProcessInfo ) const override;
+
+    void GetValuesVector( VectorType& values, int Step = 0 ) const override;
+
+    void GetFirstDerivativesVector( VectorType& values, int Step = 0 ) const override;
+
+    void GetSecondDerivativesVector( VectorType& values, int Step = 0 ) const override;
 
     ///@}
     ///@name Access
@@ -157,7 +190,7 @@ public:
     /// Turn back information as a string.
     std::string Info() const override
     {
-        return "KinematicLinearAxisymmetric";
+        return "BaseKinematicLinearAntiPlane";
     }
 
     ///@}
@@ -189,30 +222,14 @@ protected:
 
     void CalculateBBaroperator( MatrixType& B_Operator, const MatrixType& DN_DX, const MatrixType& Bdil_bar ) const override;
 
+    SizeType WorkingSpaceDimension() const override
+    {
+        return 3; // this is 2D element but working space dimension is 3
+    }
+
     unsigned int GetStrainSize( const unsigned int dim ) const override
     {
-        return 4;
-    }
-
-    double GetIntegrationWeight( double Weight, const VectorType& N ) const override;
-
-    ///@}
-    ///@name Serialization
-    ///@{
-
-    friend class Serializer;
-
-    // A private default constructor necessary for serialization
-    KinematicLinearAxisymmetric() {}
-
-    void save( Serializer& rSerializer ) const override
-    {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, BaseType );
-    }
-
-    void load( Serializer& rSerializer ) override
-    {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, BaseType );
+        return 6; // although there are only two nonzero strain components. The full strain is needed to work with 3D constitutive law.
     }
 
     ///@}
@@ -260,23 +277,45 @@ private:
 
 
     ///@}
+    ///@name Serialization
+    ///@{
+
+    friend class Serializer;
+
+    // A private default constructor necessary for serialization
+    BaseKinematicLinearAntiPlane() {}
+
+    void save( Serializer& rSerializer ) const override
+    {
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, BaseType );
+    }
+
+    void load( Serializer& rSerializer ) override
+    {
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, BaseType );
+    }
+
+    ///@}
     ///@name Un accessible methods
     ///@{
 
     /// Assignment operator.
-    //KinematicLinearAxisymmetric& operator=(const KinematicLinearAxisymmetric& rOther);
+    //BaseKinematicLinearAntiPlane& operator=(const BaseKinematicLinearAntiPlane& rOther);
 
     /// Copy constructor.
-    //KinematicLinearAxisymmetric(const KinematicLinearAxisymmetric& rOther);
+    //BaseKinematicLinearAntiPlane(const BaseKinematicLinearAntiPlane& rOther);
 
     ///@}
 
-}; // Class KinematicLinearAxisymmetric
+}; // Class BaseKinematicLinearAntiPlane
 
 ///@}
 ///@name Type Definitions
 ///@{
 
+typedef BaseKinematicLinearAntiPlane<RealNode> KinematicLinearAntiPlane;
+typedef BaseKinematicLinearAntiPlane<ComplexNode> ComplexKinematicLinearAntiPlane;
+typedef BaseKinematicLinearAntiPlane<GComplexNode> GComplexKinematicLinearAntiPlane;
 
 ///@}
 ///@name Input and output
@@ -287,4 +326,4 @@ private:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_KINEMATIC_LINEAR_AXISYMMETRIC_INCLUDED defined
+#endif // KRATOS_KINEMATIC_LINEAR_ANTI_PLANE_INCLUDED defined

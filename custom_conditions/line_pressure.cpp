@@ -243,6 +243,8 @@ void LinePressure::CalculateDampingMatrix( MatrixType& rDampingMatrix,
     KRATOS_CATCH( "" )
 }
 
+//***********************************************************************************
+//***********************************************************************************
 /**
  * This function provides the place to perform checks on the completeness of the input.
  * It is designed to be called only once (or anyway, not often) typically at the beginning
@@ -255,6 +257,4 @@ int LinePressure::Check( const ProcessInfo& rCurrentProcessInfo ) const
     return 0;
 }
 
-//***********************************************************************************
-//***********************************************************************************
 } // Namespace Kratos.

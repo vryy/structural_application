@@ -95,9 +95,6 @@ class DeactivationUtility
 {
 public:
 
-    typedef PointerVectorSet<Element> ElementsArrayType;
-    typedef PointerVectorSet<Condition> ConditionsArrayType;
-
     /**
      * class pointer definition
      */
@@ -134,14 +131,15 @@ public:
      * This is done even for those elements that are deactivated
      * in the beginning of the simulation
      */
-    void Initialize( ModelPart& model_part )
+    template<class TModelPartType>
+    void Initialize( TModelPartType& model_part )
     {
         if(mEchoLevel > 0)
             std::cout << "initializing deactivation utility" << std::endl;
 
         //initializing elements
-        for ( ElementsArrayType::ptr_iterator it=model_part.Elements().ptr_begin();
-                it!=model_part.Elements().ptr_end(); ++it )
+        for ( auto it = model_part.Elements().ptr_begin();
+                it != model_part.Elements().ptr_end(); ++it )
         {
             if( (*it)->GetValue(ACTIVATION_LEVEL) < 0 )
             {
@@ -155,7 +153,7 @@ public:
             }
             // (*it)->Initialize(); // elements shall not be initialized here. They should be initialized by the nonlinear solver.
         }
-        for ( ConditionsArrayType::ptr_iterator it=model_part.Conditions().ptr_begin();
+        for ( auto it = model_part.Conditions().ptr_begin();
                 it != model_part.Conditions().ptr_end(); ++it )
         {
             if( (*it)->GetValue(IS_CONTACT_MASTER) || (*it)->GetValue(IS_CONTACT_SLAVE) )
@@ -184,7 +182,8 @@ public:
      * This is done even for those elements that are deactivated
      * in the beginning of the simulation
      */
-    void InitializeWithThreads( ModelPart& model_part )
+    template<class TModelPartType>
+    void InitializeWithThreads( TModelPartType& model_part )
     {
         if(mEchoLevel > 0)
             std::cout << "multithreaded initializing deactivation utility" << std::endl;
@@ -200,10 +199,10 @@ public:
         #pragma omp parallel for
         for(int k = 0; k < number_of_threads; ++k)
         {
-            ElementsArrayType::ptr_iterator it_begin = model_part.Elements().ptr_begin() + element_partition[k];
-            ElementsArrayType::ptr_iterator it_end = model_part.Elements().ptr_begin() + element_partition[k + 1];
+            auto it_begin = model_part.Elements().ptr_begin() + element_partition[k];
+            auto it_end = model_part.Elements().ptr_begin() + element_partition[k + 1];
 
-            for (ElementsArrayType::ptr_iterator it = it_begin; it != it_end; ++it)
+            for (auto it = it_begin; it != it_end; ++it)
             {
                 if( (*it)->GetValue(ACTIVATION_LEVEL) < 0 )
                 {
@@ -222,10 +221,10 @@ public:
         #pragma omp parallel for
         for(int k = 0; k < number_of_threads; ++k)
         {
-            ConditionsArrayType::ptr_iterator it_begin = model_part.Conditions().ptr_begin() + condition_partition[k];
-            ConditionsArrayType::ptr_iterator it_end = model_part.Conditions().ptr_begin() + condition_partition[k + 1];
+            auto it_begin = model_part.Conditions().ptr_begin() + condition_partition[k];
+            auto it_end = model_part.Conditions().ptr_begin() + condition_partition[k + 1];
 
-            for (ConditionsArrayType::ptr_iterator it = it_begin; it != it_end; ++it)
+            for (auto it = it_begin; it != it_end; ++it)
             {
                 if( (*it)->GetValue(IS_CONTACT_MASTER) || (*it)->GetValue(IS_CONTACT_SLAVE) )
                 {
@@ -256,16 +255,18 @@ public:
      * container and can be restored by calling Reactivate() or
      * ReactivateAll()
      */
-    void Deactivate( ModelPart& model_part, int from_level, int to_level )
+    template<class TModelPartType>
+    void Deactivate( TModelPartType& model_part, int from_level, int to_level )
     {
         KRATOS_TRY;
 
         //first step: reactivate all elements and conditions
         ReactivateAll( model_part );
+
         //second step: deactivate elements and conditions to be deactivated currently
         // identify elements to be deactivated
-        for ( ElementsArrayType::ptr_iterator it=model_part.Elements().ptr_begin();
-                it!=model_part.Elements().ptr_end(); ++it)
+        for ( auto it = model_part.Elements().ptr_begin();
+                it != model_part.Elements().ptr_end(); ++it)
         {
             //if element is to be deactivated
             if( ( (*it)->GetValue( ACTIVATION_LEVEL ) >= from_level
@@ -278,7 +279,7 @@ public:
                 (*it)->Set( ACTIVE, false );
             }
         }
-        for( ConditionsArrayType::ptr_iterator it = model_part.Conditions().ptr_begin();
+        for( auto it = model_part.Conditions().ptr_begin();
                 it != model_part.Conditions().ptr_end(); ++it )
         {
 //                     std::cout << "condition: " << (*it)->Id() <<  "has activation level: " << (*it)->GetValue( ACTIVATION_LEVEL ) << std::endl;
@@ -303,15 +304,16 @@ public:
      * Reactivates all elements and conditions stored in the
      * intermediate containers
      */
-    void ReactivateAll( ModelPart& model_part )
+    template<class TModelPartType>
+    void ReactivateAll( TModelPartType& model_part )
     {
-        for ( ElementsArrayType::ptr_iterator it=model_part.Elements().ptr_begin();
-                it!=model_part.Elements().ptr_end(); ++it)
+        for ( auto it = model_part.Elements().ptr_begin();
+                it != model_part.Elements().ptr_end(); ++it)
         {
             (*it)->GetValue( IS_INACTIVE ) = false;
             (*it)->Set( ACTIVE, true );
         }
-        for( ConditionsArrayType::ptr_iterator it = model_part.Conditions().ptr_begin();
+        for( auto it = model_part.Conditions().ptr_begin();
                 it != model_part.Conditions().ptr_end(); ++it )
         {
             (*it)->GetValue( IS_INACTIVE ) = false;
@@ -323,11 +325,13 @@ public:
      * reactivate all elements with activation level in range
      * (from_level, to_level)
      */
-    void Reactivate( ModelPart& model_part, int from_level, int to_level )
+    template<class TModelPartType>
+    void Reactivate( TModelPartType& model_part, int from_level, int to_level )
     {
-        KRATOS_TRY;
-        for ( ElementsArrayType::ptr_iterator it=model_part.Elements().ptr_begin();
-                it!=model_part.Elements().ptr_end(); ++it)
+        KRATOS_TRY
+
+        for ( auto it = model_part.Elements().ptr_begin();
+                it != model_part.Elements().ptr_end(); ++it)
         {
             //if element is to be reactivated
             if( (*it)->GetValue( ACTIVATION_LEVEL ) >= from_level
@@ -336,7 +340,7 @@ public:
                 (*it)->SetValue(ACTIVATION_LEVEL, 0 );
             }
         }
-        for( ConditionsArrayType::ptr_iterator it = model_part.Conditions().ptr_begin();
+        for( auto it = model_part.Conditions().ptr_begin();
                 it != model_part.Conditions().ptr_end(); ++it )
         {
             if( ! ( (*it)->GetValue( IS_CONTACT_MASTER ) || (*it)->GetValue(IS_CONTACT_SLAVE) ) )
@@ -348,22 +352,24 @@ public:
                 }
             }
         }
-        KRATOS_CATCH("");
+
+        KRATOS_CATCH("")
     }
 
     /**
      * reactivate all elements with activation level in range
      * (from_level, to_level)
      */
-    void ReactivateStressFree( ModelPart& model_part, int from_level, int to_level )
+    template<class TModelPartType>
+    void ReactivateStressFree( TModelPartType& model_part, int from_level, int to_level )
     {
-        KRATOS_TRY;
+        KRATOS_TRY
 
         ProcessInfo& CurrentProcessInfo = model_part.GetProcessInfo();
         CurrentProcessInfo[RESET_CONFIGURATION] = 1;
 
-        for ( ElementsArrayType::ptr_iterator it=model_part.Elements().ptr_begin();
-                it!=model_part.Elements().ptr_end(); ++it)
+        for ( auto it = model_part.Elements().ptr_begin();
+                it != model_part.Elements().ptr_end(); ++it)
         {
             //if element is to be reactivated
             if( (*it)->GetValue( ACTIVATION_LEVEL ) >= from_level
@@ -373,7 +379,7 @@ public:
                 (*it)->SetValue(ACTIVATION_LEVEL, 0 );
             }
         }
-        for( ConditionsArrayType::ptr_iterator it = model_part.Conditions().ptr_begin();
+        for( auto it = model_part.Conditions().ptr_begin();
                 it != model_part.Conditions().ptr_end(); ++it )
         {
             if( ! ( (*it)->GetValue( IS_CONTACT_MASTER ) || (*it)->GetValue(IS_CONTACT_SLAVE) ) )
@@ -388,12 +394,12 @@ public:
 
         CurrentProcessInfo[RESET_CONFIGURATION] = 0;
 
-        KRATOS_CATCH("");
+        KRATOS_CATCH("")
     }
 
     /// Get name from an abject
     template<class Object>
-    std::string GetName(const Object& o)
+    std::string GetName(const Object& o) const
     {
         return std::string(typeid(o).name());
     }
@@ -426,8 +432,7 @@ private:
     /**
      * Containers for deactivated elements and conditions
      */
-    PointerVector<Element> mDeactivatedElements;
-    PointerVector<Condition> mDeactivatedConditions;
+
     int mEchoLevel;
 
     /**
@@ -440,7 +445,7 @@ private:
      */
     //DeactivationUtility(DeactivationUtility const& rOther);
 
-};//class DeactivationUtility
+}; //class DeactivationUtility
 
 }  // namespace Kratos.
 

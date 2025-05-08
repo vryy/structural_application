@@ -90,34 +90,76 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "structural_application_variables.h"
 
 #ifdef SD_APP_FORWARD_COMPATIBILITY
-#define STRUCTURAL_APP_CREATE_ELEMENT(element_type, geometry_type, number_of_nodes) \
-    element_type( 0, Element::GeometryType::Pointer( new geometry_type <Node>( Element::GeometryType::PointsArrayType( number_of_nodes ) ) ) )
-#define STRUCTURAL_APP_CREATE_CONDITION(condition_type, geometry_type, number_of_nodes) \
-    condition_type( 0, Condition::GeometryType::Pointer( new geometry_type <Node>( Condition::GeometryType::PointsArrayType( number_of_nodes ) ) ) )
+    #define STRUCTURAL_APPLICATION_CREATE_ELEMENT(element_type, geometry_type, number_of_nodes) \
+        element_type( 0, Element::GeometryType::Pointer( new geometry_type <Node>( Element::GeometryType::PointsArrayType( number_of_nodes ) ) ) )
+    #define STRUCTURAL_APPLICATION_CREATE_CONDITION(condition_type, geometry_type, number_of_nodes) \
+        condition_type( 0, Condition::GeometryType::Pointer( new geometry_type <Node>( Condition::GeometryType::PointsArrayType( number_of_nodes ) ) ) )
 #else
-#define STRUCTURAL_APP_CREATE_ELEMENT(element_type, geometry_type, number_of_nodes) \
-    element_type( 0, Element::GeometryType::Pointer( new geometry_type <Node<3> >( Element::GeometryType::PointsArrayType( number_of_nodes, Node<3>() ) ) ) )
-#define STRUCTURAL_APP_CREATE_CONDITION(condition_type, geometry_type, number_of_nodes) \
-    condition_type( 0, Condition::GeometryType::Pointer( new geometry_type <Node<3> >( Condition::GeometryType::PointsArrayType( number_of_nodes, Node<3>() ) ) ) )
+    #define STRUCTURAL_APPLICATION_CREATE_ELEMENT(element_type, geometry_type, node_type, number_of_nodes) \
+        element_type( 0, typename geometry_type <node_type>::Pointer( new geometry_type <node_type>( typename geometry_type <node_type>::PointsArrayType( number_of_nodes, node_type() ) ) ) )
+    #define STRUCTURAL_APPLICATION_CREATE_CONDITION(condition_type, geometry_type, node_type, number_of_nodes) \
+        condition_type( 0, typename geometry_type <node_type>::Pointer( new geometry_type <node_type>( typename geometry_type <node_type>::PointsArrayType( number_of_nodes, node_type() ) ) ) )
 #endif
 
-#define STRUCTURAL_APPLICATION_CREATE_CONDITION_ALL_GEOMETRIES(condition_type) \
-    STRUCTURAL_APP_CREATE_CONDITION(m##condition_type##2D2N, Line2D2, 2), \
-    STRUCTURAL_APP_CREATE_CONDITION(m##condition_type##2D3N, Line2D3, 3), \
-    STRUCTURAL_APP_CREATE_CONDITION(m##condition_type##3D3N, Triangle3D3, 3), \
-    STRUCTURAL_APP_CREATE_CONDITION(m##condition_type##3D6N, Triangle3D6, 6), \
-    STRUCTURAL_APP_CREATE_CONDITION(m##condition_type##3D4N, Quadrilateral3D4, 4), \
-    STRUCTURAL_APP_CREATE_CONDITION(m##condition_type##3D8N, Quadrilateral3D8, 8), \
-    STRUCTURAL_APP_CREATE_CONDITION(m##condition_type##3D9N, Quadrilateral3D9, 9) \
+#define STRUCTURAL_APPLICATION_CREATE_ELEMENT_ALL_GEOMETRIES(element_type) \
+    STRUCTURAL_APPLICATION_CREATE_ELEMENT(m##element_type##2D3N,  Triangle2D3,      typename element_type::NodeType, 3),    \
+    STRUCTURAL_APPLICATION_CREATE_ELEMENT(m##element_type##2D6N,  Triangle2D6,      typename element_type::NodeType, 6),    \
+    STRUCTURAL_APPLICATION_CREATE_ELEMENT(m##element_type##2D4N,  Quadrilateral2D4, typename element_type::NodeType, 4),    \
+    STRUCTURAL_APPLICATION_CREATE_ELEMENT(m##element_type##2D8N,  Quadrilateral2D8, typename element_type::NodeType, 8),    \
+    STRUCTURAL_APPLICATION_CREATE_ELEMENT(m##element_type##2D9N,  Quadrilateral2D9, typename element_type::NodeType, 9),    \
+    STRUCTURAL_APPLICATION_CREATE_ELEMENT(m##element_type##3D4N,  Tetrahedra3D4,    typename element_type::NodeType, 4),    \
+    STRUCTURAL_APPLICATION_CREATE_ELEMENT(m##element_type##3D10N, Tetrahedra3D10,   typename element_type::NodeType, 10),   \
+    STRUCTURAL_APPLICATION_CREATE_ELEMENT(m##element_type##3D8N,  Hexahedra3D8,     typename element_type::NodeType, 8),    \
+    STRUCTURAL_APPLICATION_CREATE_ELEMENT(m##element_type##3D20N, Hexahedra3D20,    typename element_type::NodeType, 20),   \
+    STRUCTURAL_APPLICATION_CREATE_ELEMENT(m##element_type##3D27N, Hexahedra3D27,    typename element_type::NodeType, 27),   \
+    STRUCTURAL_APPLICATION_CREATE_ELEMENT(m##element_type##3D6N,  Prism3D6,         typename element_type::NodeType, 6),    \
+    STRUCTURAL_APPLICATION_CREATE_ELEMENT(m##element_type##3D15N, Prism3D15,        typename element_type::NodeType, 15)    \
 
-#define STRUCTURAL_APPLICATION_REGISTER_CONDITION_ALL_GEOMETRIES(condition_type) \
-    KRATOS_REGISTER_CONDITION( #condition_type"2D2N", m##condition_type##2D2N ) \
-    KRATOS_REGISTER_CONDITION( #condition_type"2D3N", m##condition_type##2D3N ) \
-    KRATOS_REGISTER_CONDITION( #condition_type"3D3N", m##condition_type##3D3N ) \
-    KRATOS_REGISTER_CONDITION( #condition_type"3D6N", m##condition_type##3D6N ) \
-    KRATOS_REGISTER_CONDITION( #condition_type"3D4N", m##condition_type##3D4N ) \
-    KRATOS_REGISTER_CONDITION( #condition_type"3D8N", m##condition_type##3D8N ) \
-    KRATOS_REGISTER_CONDITION( #condition_type"3D9N", m##condition_type##3D9N ) \
+#define STRUCTURAL_APPLICATION_CREATE_ELEMENT_ALL_2D_GEOMETRIES(element_type) \
+    STRUCTURAL_APPLICATION_CREATE_ELEMENT(m##element_type##3N,  Triangle2D3,      typename element_type::NodeType, 3),  \
+    STRUCTURAL_APPLICATION_CREATE_ELEMENT(m##element_type##6N,  Triangle2D6,      typename element_type::NodeType, 6),  \
+    STRUCTURAL_APPLICATION_CREATE_ELEMENT(m##element_type##4N,  Quadrilateral2D4, typename element_type::NodeType, 4),  \
+    STRUCTURAL_APPLICATION_CREATE_ELEMENT(m##element_type##8N,  Quadrilateral2D8, typename element_type::NodeType, 8),  \
+    STRUCTURAL_APPLICATION_CREATE_ELEMENT(m##element_type##9N,  Quadrilateral2D9, typename element_type::NodeType, 9)  \
+
+#define STRUCTURAL_APPLICATION_CREATE_CONDITION_ALL_GEOMETRIES(condition_type) \
+    STRUCTURAL_APPLICATION_CREATE_CONDITION(m##condition_type##2D2N, Line2D2,           typename condition_type::NodeType, 2),  \
+    STRUCTURAL_APPLICATION_CREATE_CONDITION(m##condition_type##2D3N, Line2D3,           typename condition_type::NodeType, 3),  \
+    STRUCTURAL_APPLICATION_CREATE_CONDITION(m##condition_type##3D3N, Triangle3D3,       typename condition_type::NodeType, 3),  \
+    STRUCTURAL_APPLICATION_CREATE_CONDITION(m##condition_type##3D6N, Triangle3D6,       typename condition_type::NodeType, 6),  \
+    STRUCTURAL_APPLICATION_CREATE_CONDITION(m##condition_type##3D4N, Quadrilateral3D4,  typename condition_type::NodeType, 4),  \
+    STRUCTURAL_APPLICATION_CREATE_CONDITION(m##condition_type##3D8N, Quadrilateral3D8,  typename condition_type::NodeType, 8),  \
+    STRUCTURAL_APPLICATION_CREATE_CONDITION(m##condition_type##3D9N, Quadrilateral3D9,  typename condition_type::NodeType, 9)   \
+
+#define STRUCTURAL_APPLICATION_REGISTER_ELEMENT_ALL_GEOMETRIES(element_type) \
+    KRATOS_REGISTER_ENTITY( typename element_type::ElementType, #element_type"2D3N", m##element_type##2D3N )    \
+    KRATOS_REGISTER_ENTITY( typename element_type::ElementType, #element_type"2D6N", m##element_type##2D6N )    \
+    KRATOS_REGISTER_ENTITY( typename element_type::ElementType, #element_type"2D4N", m##element_type##2D4N )    \
+    KRATOS_REGISTER_ENTITY( typename element_type::ElementType, #element_type"2D8N", m##element_type##2D8N )    \
+    KRATOS_REGISTER_ENTITY( typename element_type::ElementType, #element_type"2D9N", m##element_type##2D9N )    \
+    KRATOS_REGISTER_ENTITY( typename element_type::ElementType, #element_type"3D4N", m##element_type##3D4N )    \
+    KRATOS_REGISTER_ENTITY( typename element_type::ElementType, #element_type"3D10N", m##element_type##3D10N )  \
+    KRATOS_REGISTER_ENTITY( typename element_type::ElementType, #element_type"3D8N", m##element_type##3D8N )    \
+    KRATOS_REGISTER_ENTITY( typename element_type::ElementType, #element_type"3D20N", m##element_type##3D20N )  \
+    KRATOS_REGISTER_ENTITY( typename element_type::ElementType, #element_type"3D27N", m##element_type##3D27N )  \
+    KRATOS_REGISTER_ENTITY( typename element_type::ElementType, #element_type"3D6N", m##element_type##3D6N )    \
+    KRATOS_REGISTER_ENTITY( typename element_type::ElementType, #element_type"3D15N", m##element_type##3D15N )  \
+
+#define STRUCTURAL_APPLICATION_REGISTER_ELEMENT_ALL_2D_GEOMETRIES(element_type) \
+    KRATOS_REGISTER_ENTITY( typename element_type::ElementType, #element_type"3N", m##element_type##3N )    \
+    KRATOS_REGISTER_ENTITY( typename element_type::ElementType, #element_type"6N", m##element_type##6N )    \
+    KRATOS_REGISTER_ENTITY( typename element_type::ElementType, #element_type"4N", m##element_type##4N )    \
+    KRATOS_REGISTER_ENTITY( typename element_type::ElementType, #element_type"8N", m##element_type##8N )    \
+    KRATOS_REGISTER_ENTITY( typename element_type::ElementType, #element_type"9N", m##element_type##9N )    \
+
+#define STRUCTURAL_APPLICATION_REGISTER_CONDITION_ALL_GEOMETRIES(condition_type)    \
+    KRATOS_REGISTER_CONDITION( #condition_type"2D2N", m##condition_type##2D2N )     \
+    KRATOS_REGISTER_CONDITION( #condition_type"2D3N", m##condition_type##2D3N )     \
+    KRATOS_REGISTER_CONDITION( #condition_type"3D3N", m##condition_type##3D3N )     \
+    KRATOS_REGISTER_CONDITION( #condition_type"3D6N", m##condition_type##3D6N )     \
+    KRATOS_REGISTER_CONDITION( #condition_type"3D4N", m##condition_type##3D4N )     \
+    KRATOS_REGISTER_CONDITION( #condition_type"3D8N", m##condition_type##3D8N )     \
+    KRATOS_REGISTER_CONDITION( #condition_type"3D9N", m##condition_type##3D9N )     \
 
 namespace Kratos
 {
@@ -217,106 +259,47 @@ KratosStructuralApplication::KratosStructuralApplication()
     , mIsoShellElement( 0, Element::GeometryType::Pointer( new Triangle3D3<Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) )
     , mAnisoShellElement( 0, Element::GeometryType::Pointer( new Triangle3D3<Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) )
     //
-    , mTotalLagrangian2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3<Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) )
-    , mTotalLagrangian2D4N( 0, Element::GeometryType::Pointer( new Quadrilateral2D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4, Node<3>() ) ) ) )
-    , mTotalLagrangian2D6N( 0, Element::GeometryType::Pointer( new Triangle2D6 <Node<3> >( Element::GeometryType::PointsArrayType( 6, Node<3>() ) ) ) )
-    , mTotalLagrangian2D8N( 0, Element::GeometryType::Pointer( new Quadrilateral2D8 <Node<3> >( Element::GeometryType::PointsArrayType( 8, Node<3>() ) ) ) )
-    , mTotalLagrangian2D9N( 0, Element::GeometryType::Pointer( new Quadrilateral2D9 <Node<3> >( Element::GeometryType::PointsArrayType( 9, Node<3>() ) ) ) )
-    , mTotalLagrangian3D4N( 0, Element::GeometryType::Pointer( new Tetrahedra3D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4, Node<3>() ) ) ) )
-    , mTotalLagrangian3D10N( 0, Element::GeometryType::Pointer( new Tetrahedra3D10 <Node<3> >( Element::GeometryType::PointsArrayType( 10, Node<3>() ) ) ) )
-    , mTotalLagrangian3D6N( 0, Element::GeometryType::Pointer( new Prism3D6 <Node<3> >( Element::GeometryType::PointsArrayType( 6, Node<3>() ) ) ) )
-    , mTotalLagrangian3D15N( 0, Element::GeometryType::Pointer( new Prism3D15 <Node<3> >( Element::GeometryType::PointsArrayType( 15, Node<3>() ) ) ) )
-    , mTotalLagrangian3D8N( 0, Element::GeometryType::Pointer( new Hexahedra3D8 <Node<3> >( Element::GeometryType::PointsArrayType( 8, Node<3>() ) ) ) )
-    , mTotalLagrangian3D20N( 0, Element::GeometryType::Pointer( new Hexahedra3D20 <Node<3> >( Element::GeometryType::PointsArrayType( 20, Node<3>() ) ) ) )
-    , mTotalLagrangian3D27N( 0, Element::GeometryType::Pointer( new Hexahedra3D27 <Node<3> >( Element::GeometryType::PointsArrayType( 27, Node<3>() ) ) ) )
+    , STRUCTURAL_APPLICATION_CREATE_ELEMENT_ALL_GEOMETRIES(TotalLagrangian)
     //
-    , mTotalLagrangianAxisymmetric3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) )
-    , mTotalLagrangianAxisymmetric4N( 0, Element::GeometryType::Pointer( new Quadrilateral2D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4, Node<3>() ) ) ) )
-    , mTotalLagrangianAxisymmetric6N( 0, Element::GeometryType::Pointer( new Triangle2D6 <Node<3> >( Element::GeometryType::PointsArrayType( 6, Node<3>() ) ) ) )
-    , mTotalLagrangianAxisymmetric8N( 0, Element::GeometryType::Pointer( new Quadrilateral2D8 <Node<3> >( Element::GeometryType::PointsArrayType( 8, Node<3>() ) ) ) )
-    , mTotalLagrangianAxisymmetric9N( 0, Element::GeometryType::Pointer( new Quadrilateral2D9 <Node<3> >( Element::GeometryType::PointsArrayType( 9, Node<3>() ) ) ) )
+    , STRUCTURAL_APPLICATION_CREATE_ELEMENT_ALL_2D_GEOMETRIES(TotalLagrangianAxisymmetric)
     //
-    , mFiniteStrain2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3<Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) )
-    , mFiniteStrain2D4N( 0, Element::GeometryType::Pointer( new Quadrilateral2D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4, Node<3>() ) ) ) )
-    , mFiniteStrain2D6N( 0, Element::GeometryType::Pointer( new Triangle2D6 <Node<3> >( Element::GeometryType::PointsArrayType( 6, Node<3>() ) ) ) )
-    , mFiniteStrain2D8N( 0, Element::GeometryType::Pointer( new Quadrilateral2D8 <Node<3> >( Element::GeometryType::PointsArrayType( 8, Node<3>() ) ) ) )
-    , mFiniteStrain2D9N( 0, Element::GeometryType::Pointer( new Quadrilateral2D9 <Node<3> >( Element::GeometryType::PointsArrayType( 9, Node<3>() ) ) ) )
-    , mFiniteStrain3D4N( 0, Element::GeometryType::Pointer( new Tetrahedra3D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4, Node<3>() ) ) ) )
-    , mFiniteStrain3D10N( 0, Element::GeometryType::Pointer( new Tetrahedra3D10 <Node<3> >( Element::GeometryType::PointsArrayType( 10, Node<3>() ) ) ) )
-    , mFiniteStrain3D6N( 0, Element::GeometryType::Pointer( new Prism3D6 <Node<3> >( Element::GeometryType::PointsArrayType( 6, Node<3>() ) ) ) )
-    , mFiniteStrain3D15N( 0, Element::GeometryType::Pointer( new Prism3D15 <Node<3> >( Element::GeometryType::PointsArrayType( 15, Node<3>() ) ) ) )
-    , mFiniteStrain3D8N( 0, Element::GeometryType::Pointer( new Hexahedra3D8 <Node<3> >( Element::GeometryType::PointsArrayType( 8, Node<3>() ) ) ) )
-    , mFiniteStrain3D20N( 0, Element::GeometryType::Pointer( new Hexahedra3D20 <Node<3> >( Element::GeometryType::PointsArrayType( 20, Node<3>() ) ) ) )
-    , mFiniteStrain3D27N( 0, Element::GeometryType::Pointer( new Hexahedra3D27 <Node<3> >( Element::GeometryType::PointsArrayType( 27, Node<3>() ) ) ) )
+    , STRUCTURAL_APPLICATION_CREATE_ELEMENT_ALL_GEOMETRIES(FiniteStrain)
     //
-    , mFiniteStrainAxisymmetric3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) )
-    , mFiniteStrainAxisymmetric4N( 0, Element::GeometryType::Pointer( new Quadrilateral2D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4, Node<3>() ) ) ) )
-    , mFiniteStrainAxisymmetric6N( 0, Element::GeometryType::Pointer( new Triangle2D6 <Node<3> >( Element::GeometryType::PointsArrayType( 6, Node<3>() ) ) ) )
-    , mFiniteStrainAxisymmetric8N( 0, Element::GeometryType::Pointer( new Quadrilateral2D8 <Node<3> >( Element::GeometryType::PointsArrayType( 8, Node<3>() ) ) ) )
-    , mFiniteStrainAxisymmetric9N( 0, Element::GeometryType::Pointer( new Quadrilateral2D9 <Node<3> >( Element::GeometryType::PointsArrayType( 9, Node<3>() ) ) ) )
+    , STRUCTURAL_APPLICATION_CREATE_ELEMENT_ALL_2D_GEOMETRIES(FiniteStrainAxisymmetric)
     //
-    , mKinematicLinear2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) )
-    , mKinematicLinear2D4N( 0, Element::GeometryType::Pointer( new Quadrilateral2D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4, Node<3>() ) ) ) )
-    , mKinematicLinear2D6N( 0, Element::GeometryType::Pointer( new Triangle2D6 <Node<3> >( Element::GeometryType::PointsArrayType( 6, Node<3>() ) ) ) )
-    , mKinematicLinear2D8N( 0, Element::GeometryType::Pointer( new Quadrilateral2D8 <Node<3> >( Element::GeometryType::PointsArrayType( 8, Node<3>() ) ) ) )
-    , mKinematicLinear2D9N( 0, Element::GeometryType::Pointer( new Quadrilateral2D9 <Node<3> >( Element::GeometryType::PointsArrayType( 9, Node<3>() ) ) ) )
-    , mKinematicLinear3D4N( 0, Element::GeometryType::Pointer( new Tetrahedra3D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4, Node<3>() ) ) ) )
-    , mKinematicLinear3D10N( 0, Element::GeometryType::Pointer( new Tetrahedra3D10 <Node<3> >( Element::GeometryType::PointsArrayType( 10, Node<3>() ) ) ) )
-    , mKinematicLinear3D8N( 0, Element::GeometryType::Pointer( new Hexahedra3D8 <Node<3> >( Element::GeometryType::PointsArrayType( 8, Node<3>() ) ) ) )
-    , mKinematicLinear3D20N( 0, Element::GeometryType::Pointer( new Hexahedra3D20 <Node<3> >( Element::GeometryType::PointsArrayType( 20, Node<3>() ) ) ) )
-    , mKinematicLinear3D27N( 0, Element::GeometryType::Pointer( new Hexahedra3D27 <Node<3> >( Element::GeometryType::PointsArrayType( 27, Node<3>() ) ) ) )
-    , mKinematicLinear3D6N( 0, Element::GeometryType::Pointer( new Prism3D6 <Node<3> >( Element::GeometryType::PointsArrayType( 6, Node<3>() ) ) ) )
-    , mKinematicLinear3D15N( 0, Element::GeometryType::Pointer( new Prism3D15 <Node<3> >( Element::GeometryType::PointsArrayType( 15, Node<3>() ) ) ) )
+    , STRUCTURAL_APPLICATION_CREATE_ELEMENT_ALL_GEOMETRIES(KinematicLinear)
+    , STRUCTURAL_APPLICATION_CREATE_ELEMENT_ALL_GEOMETRIES(ComplexKinematicLinear)
+    , STRUCTURAL_APPLICATION_CREATE_ELEMENT_ALL_GEOMETRIES(GComplexKinematicLinear)
     //
-    , mUpdatedKinematicLinear2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) )
-    , mUpdatedKinematicLinear2D4N( 0, Element::GeometryType::Pointer( new Quadrilateral2D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4, Node<3>() ) ) ) )
-    , mUpdatedKinematicLinear2D6N( 0, Element::GeometryType::Pointer( new Triangle2D6 <Node<3> >( Element::GeometryType::PointsArrayType( 6, Node<3>() ) ) ) )
-    , mUpdatedKinematicLinear2D8N( 0, Element::GeometryType::Pointer( new Quadrilateral2D8 <Node<3> >( Element::GeometryType::PointsArrayType( 8, Node<3>() ) ) ) )
-    , mUpdatedKinematicLinear2D9N( 0, Element::GeometryType::Pointer( new Quadrilateral2D9 <Node<3> >( Element::GeometryType::PointsArrayType( 9, Node<3>() ) ) ) )
-    , mUpdatedKinematicLinear3D4N( 0, Element::GeometryType::Pointer( new Tetrahedra3D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4, Node<3>() ) ) ) )
-    , mUpdatedKinematicLinear3D10N( 0, Element::GeometryType::Pointer( new Tetrahedra3D10 <Node<3> >( Element::GeometryType::PointsArrayType( 10, Node<3>() ) ) ) )
-    , mUpdatedKinematicLinear3D8N( 0, Element::GeometryType::Pointer( new Hexahedra3D8 <Node<3> >( Element::GeometryType::PointsArrayType( 8, Node<3>() ) ) ) )
-    , mUpdatedKinematicLinear3D20N( 0, Element::GeometryType::Pointer( new Hexahedra3D20 <Node<3> >( Element::GeometryType::PointsArrayType( 20, Node<3>() ) ) ) )
-    , mUpdatedKinematicLinear3D27N( 0, Element::GeometryType::Pointer( new Hexahedra3D27 <Node<3> >( Element::GeometryType::PointsArrayType( 27, Node<3>() ) ) ) )
-    , mUpdatedKinematicLinear3D6N( 0, Element::GeometryType::Pointer( new Prism3D6 <Node<3> >( Element::GeometryType::PointsArrayType( 6, Node<3>() ) ) ) )
-    , mUpdatedKinematicLinear3D15N( 0, Element::GeometryType::Pointer( new Prism3D15 <Node<3> >( Element::GeometryType::PointsArrayType( 15, Node<3>() ) ) ) )
+    , STRUCTURAL_APPLICATION_CREATE_ELEMENT_ALL_GEOMETRIES(UpdatedKinematicLinear)
     //
-    , mKinematicLinearAxisymmetric3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) )
-    , mKinematicLinearAxisymmetric4N( 0, Element::GeometryType::Pointer( new Quadrilateral2D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4, Node<3>() ) ) ) )
-    , mKinematicLinearAxisymmetric6N( 0, Element::GeometryType::Pointer( new Triangle2D6 <Node<3> >( Element::GeometryType::PointsArrayType( 6, Node<3>() ) ) ) )
-    , mKinematicLinearAxisymmetric8N( 0, Element::GeometryType::Pointer( new Quadrilateral2D8 <Node<3> >( Element::GeometryType::PointsArrayType( 8, Node<3>() ) ) ) )
-    , mKinematicLinearAxisymmetric9N( 0, Element::GeometryType::Pointer( new Quadrilateral2D9 <Node<3> >( Element::GeometryType::PointsArrayType( 9, Node<3>() ) ) ) )
+    , STRUCTURAL_APPLICATION_CREATE_ELEMENT_ALL_2D_GEOMETRIES(KinematicLinearAxisymmetric)
+    //
+    , STRUCTURAL_APPLICATION_CREATE_ELEMENT_ALL_2D_GEOMETRIES(KinematicLinearAntiPlane)
+    , STRUCTURAL_APPLICATION_CREATE_ELEMENT_ALL_2D_GEOMETRIES(ComplexKinematicLinearAntiPlane)
+    , STRUCTURAL_APPLICATION_CREATE_ELEMENT_ALL_2D_GEOMETRIES(GComplexKinematicLinearAntiPlane)
     //
     , mEbst3D3N( 0, Element::GeometryType::Pointer( new Triangle3D3<Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) )
     , mEbstVel3D3N( 0, Element::GeometryType::Pointer( new Triangle3D3<Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) )
     , mEASElementQ4E4( 0, Element::GeometryType::Pointer( new Quadrilateral2D4<Node<3> >( Element::GeometryType::PointsArrayType( 4, Node<3>() ) ) ) )
 
-    , STRUCTURAL_APP_CREATE_ELEMENT( mDummySurfaceElement2D3N, Triangle2D3, 3 )
-    , STRUCTURAL_APP_CREATE_ELEMENT( mDummySurfaceElement2D6N, Triangle2D6, 6 )
-    , STRUCTURAL_APP_CREATE_ELEMENT( mDummySurfaceElement2D4N, Quadrilateral2D4, 4 )
-    , STRUCTURAL_APP_CREATE_ELEMENT( mDummySurfaceElement2D8N, Quadrilateral2D8, 8 )
-    , STRUCTURAL_APP_CREATE_ELEMENT( mDummySurfaceElement2D9N, Quadrilateral2D9, 9 )
-    , STRUCTURAL_APP_CREATE_ELEMENT( mDummySurfaceElement3D3N, Triangle3D3, 3 )
-    , STRUCTURAL_APP_CREATE_ELEMENT( mDummySurfaceElement3D6N, Triangle3D6, 6 )
-    , STRUCTURAL_APP_CREATE_ELEMENT( mDummySurfaceElement3D4N, Quadrilateral3D4, 4 )
-    , STRUCTURAL_APP_CREATE_ELEMENT( mDummySurfaceElement3D8N, Quadrilateral3D8, 8 )
-    , STRUCTURAL_APP_CREATE_ELEMENT( mDummySurfaceElement3D9N, Quadrilateral3D9, 9 )
-    , STRUCTURAL_APP_CREATE_ELEMENT( mDummyVolumeElement3D4N, Tetrahedra3D4, 4 )
-    , STRUCTURAL_APP_CREATE_ELEMENT( mDummyVolumeElement3D10N, Tetrahedra3D10, 10 )
-    , STRUCTURAL_APP_CREATE_ELEMENT( mDummyVolumeElement3D8N, Hexahedra3D8, 8 )
-    , STRUCTURAL_APP_CREATE_ELEMENT( mDummyVolumeElement3D20N, Hexahedra3D20, 20 )
-    , STRUCTURAL_APP_CREATE_ELEMENT( mDummyVolumeElement3D27N, Hexahedra3D27, 27 )
-    , STRUCTURAL_APP_CREATE_ELEMENT( mDummyElement2D3N, Triangle2D3, 3 )
-    , STRUCTURAL_APP_CREATE_ELEMENT( mDummyElement2D6N, Triangle2D6, 6 )
-    , STRUCTURAL_APP_CREATE_ELEMENT( mDummyElement2D4N, Quadrilateral2D4, 4 )
-    , STRUCTURAL_APP_CREATE_ELEMENT( mDummyElement2D8N, Quadrilateral2D8, 8 )
-    , STRUCTURAL_APP_CREATE_ELEMENT( mDummyElement2D9N, Quadrilateral2D9, 9 )
-    , STRUCTURAL_APP_CREATE_ELEMENT( mDummyElement3D4N, Tetrahedra3D4, 4 )
-    , STRUCTURAL_APP_CREATE_ELEMENT( mDummyElement3D10N, Tetrahedra3D10, 10 )
-    , STRUCTURAL_APP_CREATE_ELEMENT( mDummyElement3D8N, Hexahedra3D8, 8 )
-    , STRUCTURAL_APP_CREATE_ELEMENT( mDummyElement3D20N, Hexahedra3D20, 20 )
-    , STRUCTURAL_APP_CREATE_ELEMENT( mDummyElement3D27N, Hexahedra3D27, 27 )
-
+    , STRUCTURAL_APPLICATION_CREATE_ELEMENT( mDummySurfaceElement2D3N, Triangle2D3,      Node<3>, 3 )
+    , STRUCTURAL_APPLICATION_CREATE_ELEMENT( mDummySurfaceElement2D6N, Triangle2D6,      Node<3>, 6 )
+    , STRUCTURAL_APPLICATION_CREATE_ELEMENT( mDummySurfaceElement2D4N, Quadrilateral2D4, Node<3>, 4 )
+    , STRUCTURAL_APPLICATION_CREATE_ELEMENT( mDummySurfaceElement2D8N, Quadrilateral2D8, Node<3>, 8 )
+    , STRUCTURAL_APPLICATION_CREATE_ELEMENT( mDummySurfaceElement2D9N, Quadrilateral2D9, Node<3>, 9 )
+    , STRUCTURAL_APPLICATION_CREATE_ELEMENT( mDummySurfaceElement3D3N, Triangle3D3,      Node<3>, 3 )
+    , STRUCTURAL_APPLICATION_CREATE_ELEMENT( mDummySurfaceElement3D6N, Triangle3D6,      Node<3>, 6 )
+    , STRUCTURAL_APPLICATION_CREATE_ELEMENT( mDummySurfaceElement3D4N, Quadrilateral3D4, Node<3>, 4 )
+    , STRUCTURAL_APPLICATION_CREATE_ELEMENT( mDummySurfaceElement3D8N, Quadrilateral3D8, Node<3>, 8 )
+    , STRUCTURAL_APPLICATION_CREATE_ELEMENT( mDummySurfaceElement3D9N, Quadrilateral3D9, Node<3>, 9 )
+    , STRUCTURAL_APPLICATION_CREATE_ELEMENT( mDummyVolumeElement3D4N,  Tetrahedra3D4,    Node<3>, 4 )
+    , STRUCTURAL_APPLICATION_CREATE_ELEMENT( mDummyVolumeElement3D10N, Tetrahedra3D10,   Node<3>, 10 )
+    , STRUCTURAL_APPLICATION_CREATE_ELEMENT( mDummyVolumeElement3D8N,  Hexahedra3D8,     Node<3>, 8 )
+    , STRUCTURAL_APPLICATION_CREATE_ELEMENT( mDummyVolumeElement3D20N, Hexahedra3D20,    Node<3>, 20 )
+    , STRUCTURAL_APPLICATION_CREATE_ELEMENT( mDummyVolumeElement3D27N, Hexahedra3D27,    Node<3>, 27 )
+    , STRUCTURAL_APPLICATION_CREATE_ELEMENT_ALL_GEOMETRIES(DummyElement)
+    //
     , mFace2D( 0, Element::GeometryType::Pointer( new Line2D2<Node<3> >( Element::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) )
     , mFace3D3N( 0, Element::GeometryType::Pointer( new Triangle3D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) )
     , mFace3D6N( 0, Element::GeometryType::Pointer( new Triangle3D6 <Node<3> >( Element::GeometryType::PointsArrayType( 6, Node<3>() ) ) ) )
@@ -344,8 +327,8 @@ KratosStructuralApplication::KratosStructuralApplication()
     , mLineForce3D3N( 0, Element::GeometryType::Pointer( new Line3D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) )
     , mLinePressure2D2N( 0, Element::GeometryType::Pointer( new Line2D2 <Node<3> >( Element::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) )
     , mLinePressure2D3N( 0, Element::GeometryType::Pointer( new Line2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) )
-    , STRUCTURAL_APP_CREATE_CONDITION( mLinePressureDistributed2D2N, Line2D2, 2 )
-    , STRUCTURAL_APP_CREATE_CONDITION( mLinePressureDistributed2D3N, Line2D3, 3 )
+    , STRUCTURAL_APPLICATION_CREATE_CONDITION( mLinePressureDistributed2D2N, Line2D2, Node<3>, 2 )
+    , STRUCTURAL_APPLICATION_CREATE_CONDITION( mLinePressureDistributed2D3N, Line2D3, Node<3>, 3 )
     , mLineTraction2D2N( 0, Element::GeometryType::Pointer( new Line2D2 <Node<3> >( Element::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) )
     , mLineTraction2D3N( 0, Element::GeometryType::Pointer( new Line2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) )
     , mFaceForce3D3N( 0, Element::GeometryType::Pointer( new Triangle3D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) )
@@ -394,34 +377,34 @@ KratosStructuralApplication::KratosStructuralApplication()
     , mPointPointJointCondition( 0, Element::GeometryType::Pointer( new Line3D2 <Node<3> >( Element::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) )
     , mPointPointLagrangeCondition( 0, Element::GeometryType::Pointer( new Line3D2 <Node<3> >( Element::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) )
 
-    , STRUCTURAL_APP_CREATE_CONDITION( mDummyLineCondition2D2N, Line2D2, 2 )
-    , STRUCTURAL_APP_CREATE_CONDITION( mDummyLineCondition2D3N, Line2D3, 3 )
-    , STRUCTURAL_APP_CREATE_CONDITION( mDummySurfaceCondition2D3N, Triangle2D3, 3 )
-    , STRUCTURAL_APP_CREATE_CONDITION( mDummySurfaceCondition2D6N, Triangle2D6, 6 )
-    , STRUCTURAL_APP_CREATE_CONDITION( mDummySurfaceCondition2D4N, Quadrilateral2D4, 4 )
-    , STRUCTURAL_APP_CREATE_CONDITION( mDummySurfaceCondition2D8N, Quadrilateral2D8, 8 )
-    , STRUCTURAL_APP_CREATE_CONDITION( mDummySurfaceCondition2D9N, Quadrilateral2D9, 9 )
-    , STRUCTURAL_APP_CREATE_CONDITION( mDummySurfaceCondition3D3N, Triangle3D3, 3 )
-    , STRUCTURAL_APP_CREATE_CONDITION( mDummySurfaceCondition3D6N, Triangle3D6, 6 )
-    , STRUCTURAL_APP_CREATE_CONDITION( mDummySurfaceCondition3D4N, Quadrilateral3D4, 4 )
-    , STRUCTURAL_APP_CREATE_CONDITION( mDummySurfaceCondition3D8N, Quadrilateral3D8, 8 )
-    , STRUCTURAL_APP_CREATE_CONDITION( mDummySurfaceCondition3D9N, Quadrilateral3D9, 9 )
-    , STRUCTURAL_APP_CREATE_CONDITION( mDummyConditionPoint2D, Point2D, 1 )
-    , STRUCTURAL_APP_CREATE_CONDITION( mDummyConditionPoint3D, Point3D, 1 )
-    , STRUCTURAL_APP_CREATE_CONDITION( mDummyConditionLine2N, Line3D2, 2 )
-    , STRUCTURAL_APP_CREATE_CONDITION( mDummyConditionLine3N, Line3D3, 3 )
-    , STRUCTURAL_APP_CREATE_CONDITION( mDummyCondition2D3N, Triangle2D3, 3 )
-    , STRUCTURAL_APP_CREATE_CONDITION( mDummyCondition2D4N, Quadrilateral2D4, 4 )
-    , STRUCTURAL_APP_CREATE_CONDITION( mDummyCondition2D6N, Triangle2D6, 6 )
-    , STRUCTURAL_APP_CREATE_CONDITION( mDummyCondition2D8N, Quadrilateral2D8, 8 )
-    , STRUCTURAL_APP_CREATE_CONDITION( mDummyCondition2D9N, Quadrilateral2D9, 9 )
-    , STRUCTURAL_APP_CREATE_CONDITION( mDummyCondition3D4N, Tetrahedra3D4, 4 )
-    , STRUCTURAL_APP_CREATE_CONDITION( mDummyCondition3D10N, Tetrahedra3D10, 10 )
-    , STRUCTURAL_APP_CREATE_CONDITION( mDummyCondition3D8N, Hexahedra3D8, 8 )
-    , STRUCTURAL_APP_CREATE_CONDITION( mDummyCondition3D20N, Hexahedra3D20, 20 )
-    , STRUCTURAL_APP_CREATE_CONDITION( mDummyCondition3D27N, Hexahedra3D27, 27 )
-    , STRUCTURAL_APP_CREATE_CONDITION( mDummyCondition3D6N, Prism3D6, 6 )
-    , STRUCTURAL_APP_CREATE_CONDITION( mDummyCondition3D15N, Prism3D15, 15 )
+    , STRUCTURAL_APPLICATION_CREATE_CONDITION( mDummyLineCondition2D2N, Line2D2, Node<3>, 2 )
+    , STRUCTURAL_APPLICATION_CREATE_CONDITION( mDummyLineCondition2D3N, Line2D3, Node<3>, 3 )
+    , STRUCTURAL_APPLICATION_CREATE_CONDITION( mDummySurfaceCondition2D3N, Triangle2D3, Node<3>, 3 )
+    , STRUCTURAL_APPLICATION_CREATE_CONDITION( mDummySurfaceCondition2D6N, Triangle2D6, Node<3>, 6 )
+    , STRUCTURAL_APPLICATION_CREATE_CONDITION( mDummySurfaceCondition2D4N, Quadrilateral2D4, Node<3>, 4 )
+    , STRUCTURAL_APPLICATION_CREATE_CONDITION( mDummySurfaceCondition2D8N, Quadrilateral2D8, Node<3>, 8 )
+    , STRUCTURAL_APPLICATION_CREATE_CONDITION( mDummySurfaceCondition2D9N, Quadrilateral2D9, Node<3>, 9 )
+    , STRUCTURAL_APPLICATION_CREATE_CONDITION( mDummySurfaceCondition3D3N, Triangle3D3, Node<3>, 3 )
+    , STRUCTURAL_APPLICATION_CREATE_CONDITION( mDummySurfaceCondition3D6N, Triangle3D6, Node<3>, 6 )
+    , STRUCTURAL_APPLICATION_CREATE_CONDITION( mDummySurfaceCondition3D4N, Quadrilateral3D4, Node<3>, 4 )
+    , STRUCTURAL_APPLICATION_CREATE_CONDITION( mDummySurfaceCondition3D8N, Quadrilateral3D8, Node<3>, 8 )
+    , STRUCTURAL_APPLICATION_CREATE_CONDITION( mDummySurfaceCondition3D9N, Quadrilateral3D9, Node<3>, 9 )
+    , STRUCTURAL_APPLICATION_CREATE_CONDITION( mDummyConditionPoint2D, Point2D, Node<3>, 1 )
+    , STRUCTURAL_APPLICATION_CREATE_CONDITION( mDummyConditionPoint3D, Point3D, Node<3>, 1 )
+    , STRUCTURAL_APPLICATION_CREATE_CONDITION( mDummyConditionLine2N, Line3D2, Node<3>, 2 )
+    , STRUCTURAL_APPLICATION_CREATE_CONDITION( mDummyConditionLine3N, Line3D3, Node<3>, 3 )
+    , STRUCTURAL_APPLICATION_CREATE_CONDITION( mDummyCondition2D3N, Triangle2D3, Node<3>, 3 )
+    , STRUCTURAL_APPLICATION_CREATE_CONDITION( mDummyCondition2D4N, Quadrilateral2D4, Node<3>, 4 )
+    , STRUCTURAL_APPLICATION_CREATE_CONDITION( mDummyCondition2D6N, Triangle2D6, Node<3>, 6 )
+    , STRUCTURAL_APPLICATION_CREATE_CONDITION( mDummyCondition2D8N, Quadrilateral2D8, Node<3>, 8 )
+    , STRUCTURAL_APPLICATION_CREATE_CONDITION( mDummyCondition2D9N, Quadrilateral2D9, Node<3>, 9 )
+    , STRUCTURAL_APPLICATION_CREATE_CONDITION( mDummyCondition3D4N, Tetrahedra3D4, Node<3>, 4 )
+    , STRUCTURAL_APPLICATION_CREATE_CONDITION( mDummyCondition3D10N, Tetrahedra3D10, Node<3>, 10 )
+    , STRUCTURAL_APPLICATION_CREATE_CONDITION( mDummyCondition3D8N, Hexahedra3D8, Node<3>, 8 )
+    , STRUCTURAL_APPLICATION_CREATE_CONDITION( mDummyCondition3D20N, Hexahedra3D20, Node<3>, 20 )
+    , STRUCTURAL_APPLICATION_CREATE_CONDITION( mDummyCondition3D27N, Hexahedra3D27, Node<3>, 27 )
+    , STRUCTURAL_APPLICATION_CREATE_CONDITION( mDummyCondition3D6N, Prism3D6, Node<3>, 6 )
+    , STRUCTURAL_APPLICATION_CREATE_CONDITION( mDummyCondition3D15N, Prism3D15, Node<3>, 15 )
 
     , mIsotropic3D()
     , mDummyConstitutiveLaw()
@@ -439,7 +422,7 @@ void KratosStructuralApplication::Register()
 
     /// Register elements and conditions
 
-    #ifdef SD_APP_FORWARD_COMPATIBILITY
+#ifdef SD_APP_FORWARD_COMPATIBILITY
     KRATOS_REGISTER_ELEMENT( "CrisfieldTrussElement3D2N", mCrisfieldTrussElement3D2N )
     KRATOS_REGISTER_ELEMENT( "CrisfieldTrussElement3D3N", mCrisfieldTrussElement3D3N )
     // KRATOS_REGISTER_ELEMENT( "TrussElement3D2N", mTrussElement3D2N )
@@ -450,31 +433,8 @@ void KratosStructuralApplication::Register()
     KRATOS_REGISTER_ELEMENT( "TimoshenkoBeamElement3D3N", mTimoshenkoBeamElement3D3N )
     KRATOS_REGISTER_ELEMENT( "TimoshenkoLinearBeamElement2D2N", mTimoshenkoLinearBeamElement2D2N )
     KRATOS_REGISTER_ELEMENT( "TimoshenkoLinearBeamElement3D2N", mTimoshenkoLinearBeamElement3D2N )
-    KRATOS_REGISTER_ELEMENT( "TotalLagrangian2D3N", mTotalLagrangian2D3N )
-    KRATOS_REGISTER_ELEMENT( "TotalLagrangian2D4N", mTotalLagrangian2D4N )
-    KRATOS_REGISTER_ELEMENT( "TotalLagrangian2D6N", mTotalLagrangian2D6N )
-    KRATOS_REGISTER_ELEMENT( "TotalLagrangian2D8N", mTotalLagrangian2D8N )
-    KRATOS_REGISTER_ELEMENT( "TotalLagrangian2D9N", mTotalLagrangian2D9N )
-    KRATOS_REGISTER_ELEMENT( "TotalLagrangian3D4N", mTotalLagrangian3D4N )
-    KRATOS_REGISTER_ELEMENT( "TotalLagrangian3D10N", mTotalLagrangian3D10N )
-    KRATOS_REGISTER_ELEMENT( "TotalLagrangian3D6N", mTotalLagrangian3D6N )
-    KRATOS_REGISTER_ELEMENT( "TotalLagrangian3D15N", mTotalLagrangian3D15N )
-    KRATOS_REGISTER_ELEMENT( "TotalLagrangian3D8N", mTotalLagrangian3D8N )
-    KRATOS_REGISTER_ELEMENT( "TotalLagrangian3D20N", mTotalLagrangian3D20N )
-    KRATOS_REGISTER_ELEMENT( "TotalLagrangian3D27N", mTotalLagrangian3D27N )
 
-    KRATOS_REGISTER_ELEMENT( "KinematicLinear2D3N", mKinematicLinear2D3N )
-    KRATOS_REGISTER_ELEMENT( "KinematicLinear2D4N", mKinematicLinear2D4N )
-    KRATOS_REGISTER_ELEMENT( "KinematicLinear2D6N", mKinematicLinear2D6N )
-    KRATOS_REGISTER_ELEMENT( "KinematicLinear2D8N", mKinematicLinear2D8N )
-    KRATOS_REGISTER_ELEMENT( "KinematicLinear2D9N", mKinematicLinear2D9N )
-    KRATOS_REGISTER_ELEMENT( "KinematicLinear3D4N", mKinematicLinear3D4N )
-    KRATOS_REGISTER_ELEMENT( "KinematicLinear3D10N", mKinematicLinear3D10N )
-    KRATOS_REGISTER_ELEMENT( "KinematicLinear3D8N", mKinematicLinear3D8N )
-    KRATOS_REGISTER_ELEMENT( "KinematicLinear3D20N", mKinematicLinear3D20N )
-    KRATOS_REGISTER_ELEMENT( "KinematicLinear3D27N", mKinematicLinear3D27N )
-    KRATOS_REGISTER_ELEMENT( "KinematicLinear3D6N", mKinematicLinear3D6N )
-    KRATOS_REGISTER_ELEMENT( "KinematicLinear3D15N", mKinematicLinear3D15N )
+    STRUCTURAL_APPLICATION_REGISTER_ELEMENT_ALL_GEOMETRIES(TotalLagrangian)
 
     KRATOS_REGISTER_CONDITION( "Face2D", mFace2D )
     KRATOS_REGISTER_CONDITION( "Face3D", mFace3D3N )
@@ -510,7 +470,7 @@ void KratosStructuralApplication::Register()
     KRATOS_REGISTER_CONDITION( "PointForce2D", mPointForce2D )
     KRATOS_REGISTER_CONDITION( "PointMoment3D", mPointMoment3D )
 
-    #else // if SD_APP_FORWARD_COMPATIBILITY
+#else // if SD_APP_FORWARD_COMPATIBILITY
 
     KRATOS_REGISTER_ELEMENT( "CrisfieldTrussElement3D2N", mCrisfieldTrussElement3D2N )
     KRATOS_REGISTER_ELEMENT( "CrisfieldTrussElement3D3N", mCrisfieldTrussElement3D3N )
@@ -518,25 +478,11 @@ void KratosStructuralApplication::Register()
     KRATOS_REGISTER_ELEMENT( "TrussElement3D3N", mTrussElement3D3N )
     //KRATOS_REGISTER_ELEMENT( "LinearIncompresibleElement2D3N", mLinearIncompresibleElement2D3N )
     //KRATOS_REGISTER_ELEMENT( "LinearIncompresibleElement3D4N", mLinearIncompresibleElement3D4N )
-    KRATOS_REGISTER_ELEMENT( "TotalLagrangian", mTotalLagrangian3D4N )
-    KRATOS_REGISTER_ELEMENT( "TotalLagrangian2D3N", mTotalLagrangian2D3N )
-    KRATOS_REGISTER_ELEMENT( "TotalLagrangian2D4N", mTotalLagrangian2D4N )
-    KRATOS_REGISTER_ELEMENT( "TotalLagrangian2D6N", mTotalLagrangian2D6N )
-    KRATOS_REGISTER_ELEMENT( "TotalLagrangian2D8N", mTotalLagrangian2D8N )
-    KRATOS_REGISTER_ELEMENT( "TotalLagrangian2D9N", mTotalLagrangian2D9N )
-    KRATOS_REGISTER_ELEMENT( "TotalLagrangian3D4N", mTotalLagrangian3D4N )
-    KRATOS_REGISTER_ELEMENT( "TotalLagrangian3D10N", mTotalLagrangian3D10N )
-    KRATOS_REGISTER_ELEMENT( "TotalLagrangian3D6N", mTotalLagrangian3D6N )
-    KRATOS_REGISTER_ELEMENT( "TotalLagrangian3D15N", mTotalLagrangian3D15N )
-    KRATOS_REGISTER_ELEMENT( "TotalLagrangian3D8N", mTotalLagrangian3D8N )
-    KRATOS_REGISTER_ELEMENT( "TotalLagrangian3D20N", mTotalLagrangian3D20N )
-    KRATOS_REGISTER_ELEMENT( "TotalLagrangian3D27N", mTotalLagrangian3D27N )
 
-    KRATOS_REGISTER_ELEMENT( "TotalLagrangianAxisymmetric3N", mTotalLagrangianAxisymmetric3N )
-    KRATOS_REGISTER_ELEMENT( "TotalLagrangianAxisymmetric4N", mTotalLagrangianAxisymmetric4N )
-    KRATOS_REGISTER_ELEMENT( "TotalLagrangianAxisymmetric6N", mTotalLagrangianAxisymmetric6N )
-    KRATOS_REGISTER_ELEMENT( "TotalLagrangianAxisymmetric8N", mTotalLagrangianAxisymmetric8N )
-    KRATOS_REGISTER_ELEMENT( "TotalLagrangianAxisymmetric9N", mTotalLagrangianAxisymmetric9N )
+    STRUCTURAL_APPLICATION_REGISTER_ELEMENT_ALL_GEOMETRIES(TotalLagrangian)
+    // KRATOS_REGISTER_ELEMENT( "TotalLagrangian", mTotalLagrangian3D4N )
+
+    STRUCTURAL_APPLICATION_REGISTER_ELEMENT_ALL_2D_GEOMETRIES(TotalLagrangianAxisymmetric)
 
     KRATOS_REGISTER_ELEMENT( "BeamElement3D2N", mBeamElement3D2N )
     KRATOS_REGISTER_ELEMENT( "BeamElement3D3N", mBeamElement3D3N )
@@ -547,56 +493,21 @@ void KratosStructuralApplication::Register()
     KRATOS_REGISTER_ELEMENT( "TimoshenkoLinearBeamElement2D2N", mTimoshenkoLinearBeamElement2D2N )
     KRATOS_REGISTER_ELEMENT( "TimoshenkoLinearBeamElement3D2N", mTimoshenkoLinearBeamElement3D2N )
 
-    KRATOS_REGISTER_ELEMENT( "FiniteStrain2D3N", mFiniteStrain2D3N )
-    KRATOS_REGISTER_ELEMENT( "FiniteStrain2D4N", mFiniteStrain2D4N )
-    KRATOS_REGISTER_ELEMENT( "FiniteStrain2D6N", mFiniteStrain2D6N )
-    KRATOS_REGISTER_ELEMENT( "FiniteStrain2D8N", mFiniteStrain2D8N )
-    KRATOS_REGISTER_ELEMENT( "FiniteStrain2D9N", mFiniteStrain2D9N )
-    KRATOS_REGISTER_ELEMENT( "FiniteStrain3D4N", mFiniteStrain3D4N )
-    KRATOS_REGISTER_ELEMENT( "FiniteStrain3D10N", mFiniteStrain3D10N )
-    KRATOS_REGISTER_ELEMENT( "FiniteStrain3D6N", mFiniteStrain3D6N )
-    KRATOS_REGISTER_ELEMENT( "FiniteStrain3D15N", mFiniteStrain3D15N )
-    KRATOS_REGISTER_ELEMENT( "FiniteStrain3D8N", mFiniteStrain3D8N )
-    KRATOS_REGISTER_ELEMENT( "FiniteStrain3D20N", mFiniteStrain3D20N )
-    KRATOS_REGISTER_ELEMENT( "FiniteStrain3D27N", mFiniteStrain3D27N )
+    STRUCTURAL_APPLICATION_REGISTER_ELEMENT_ALL_GEOMETRIES(FiniteStrain)
 
-    KRATOS_REGISTER_ELEMENT( "FiniteStrainAxisymmetric3N", mFiniteStrainAxisymmetric3N )
-    KRATOS_REGISTER_ELEMENT( "FiniteStrainAxisymmetric4N", mFiniteStrainAxisymmetric4N )
-    KRATOS_REGISTER_ELEMENT( "FiniteStrainAxisymmetric6N", mFiniteStrainAxisymmetric6N )
-    KRATOS_REGISTER_ELEMENT( "FiniteStrainAxisymmetric8N", mFiniteStrainAxisymmetric8N )
-    KRATOS_REGISTER_ELEMENT( "FiniteStrainAxisymmetric9N", mFiniteStrainAxisymmetric9N )
+    STRUCTURAL_APPLICATION_REGISTER_ELEMENT_ALL_2D_GEOMETRIES(FiniteStrainAxisymmetric)
 
-    KRATOS_REGISTER_ELEMENT( "KinematicLinear2D3N", mKinematicLinear2D3N )
-    KRATOS_REGISTER_ELEMENT( "KinematicLinear2D4N", mKinematicLinear2D4N )
-    KRATOS_REGISTER_ELEMENT( "KinematicLinear2D6N", mKinematicLinear2D6N )
-    KRATOS_REGISTER_ELEMENT( "KinematicLinear2D8N", mKinematicLinear2D8N )
-    KRATOS_REGISTER_ELEMENT( "KinematicLinear2D9N", mKinematicLinear2D9N )
-    KRATOS_REGISTER_ELEMENT( "KinematicLinear3D4N", mKinematicLinear3D4N )
-    KRATOS_REGISTER_ELEMENT( "KinematicLinear3D10N", mKinematicLinear3D10N )
-    KRATOS_REGISTER_ELEMENT( "KinematicLinear3D8N", mKinematicLinear3D8N )
-    KRATOS_REGISTER_ELEMENT( "KinematicLinear3D20N", mKinematicLinear3D20N )
-    KRATOS_REGISTER_ELEMENT( "KinematicLinear3D27N", mKinematicLinear3D27N )
-    KRATOS_REGISTER_ELEMENT( "KinematicLinear3D6N", mKinematicLinear3D6N )
-    KRATOS_REGISTER_ELEMENT( "KinematicLinear3D15N", mKinematicLinear3D15N )
+    STRUCTURAL_APPLICATION_REGISTER_ELEMENT_ALL_GEOMETRIES(KinematicLinear)
+    STRUCTURAL_APPLICATION_REGISTER_ELEMENT_ALL_GEOMETRIES(ComplexKinematicLinear)
+    STRUCTURAL_APPLICATION_REGISTER_ELEMENT_ALL_GEOMETRIES(GComplexKinematicLinear)
 
-    KRATOS_REGISTER_ELEMENT( "KinematicLinearAxisymmetric3N", mKinematicLinearAxisymmetric3N )
-    KRATOS_REGISTER_ELEMENT( "KinematicLinearAxisymmetric4N", mKinematicLinearAxisymmetric4N )
-    KRATOS_REGISTER_ELEMENT( "KinematicLinearAxisymmetric6N", mKinematicLinearAxisymmetric6N )
-    KRATOS_REGISTER_ELEMENT( "KinematicLinearAxisymmetric8N", mKinematicLinearAxisymmetric8N )
-    KRATOS_REGISTER_ELEMENT( "KinematicLinearAxisymmetric9N", mKinematicLinearAxisymmetric9N )
+    STRUCTURAL_APPLICATION_REGISTER_ELEMENT_ALL_2D_GEOMETRIES(KinematicLinearAxisymmetric)
 
-    KRATOS_REGISTER_ELEMENT( "UpdatedKinematicLinear2D3N", mUpdatedKinematicLinear2D3N )
-    KRATOS_REGISTER_ELEMENT( "UpdatedKinematicLinear2D4N", mUpdatedKinematicLinear2D4N )
-    KRATOS_REGISTER_ELEMENT( "UpdatedKinematicLinear2D6N", mUpdatedKinematicLinear2D6N )
-    KRATOS_REGISTER_ELEMENT( "UpdatedKinematicLinear2D8N", mUpdatedKinematicLinear2D8N )
-    KRATOS_REGISTER_ELEMENT( "UpdatedKinematicLinear2D9N", mUpdatedKinematicLinear2D9N )
-    KRATOS_REGISTER_ELEMENT( "UpdatedKinematicLinear3D4N", mUpdatedKinematicLinear3D4N )
-    KRATOS_REGISTER_ELEMENT( "UpdatedKinematicLinear3D10N", mUpdatedKinematicLinear3D10N )
-    KRATOS_REGISTER_ELEMENT( "UpdatedKinematicLinear3D8N", mUpdatedKinematicLinear3D8N )
-    KRATOS_REGISTER_ELEMENT( "UpdatedKinematicLinear3D20N", mUpdatedKinematicLinear3D20N )
-    KRATOS_REGISTER_ELEMENT( "UpdatedKinematicLinear3D27N", mUpdatedKinematicLinear3D27N )
-    KRATOS_REGISTER_ELEMENT( "UpdatedKinematicLinear3D6N", mUpdatedKinematicLinear3D6N )
-    KRATOS_REGISTER_ELEMENT( "UpdatedKinematicLinear3D15N", mUpdatedKinematicLinear3D15N )
+    STRUCTURAL_APPLICATION_REGISTER_ELEMENT_ALL_2D_GEOMETRIES(KinematicLinearAntiPlane)
+    STRUCTURAL_APPLICATION_REGISTER_ELEMENT_ALL_2D_GEOMETRIES(ComplexKinematicLinearAntiPlane)
+    STRUCTURAL_APPLICATION_REGISTER_ELEMENT_ALL_2D_GEOMETRIES(GComplexKinematicLinearAntiPlane)
+
+    STRUCTURAL_APPLICATION_REGISTER_ELEMENT_ALL_GEOMETRIES(UpdatedKinematicLinear)
 
     KRATOS_REGISTER_ELEMENT( "IsoShellElement", mIsoShellElement )
     KRATOS_REGISTER_ELEMENT( "AnisoShellElement", mAnisoShellElement )
@@ -621,16 +532,7 @@ void KratosStructuralApplication::Register()
     KRATOS_REGISTER_ELEMENT( "DummyVolumeElement3D20N", mDummyVolumeElement3D20N )
     KRATOS_REGISTER_ELEMENT( "DummyVolumeElement3D27N", mDummyVolumeElement3D27N )
 
-    KRATOS_REGISTER_ELEMENT( "DummyElement2D3N", mDummyElement2D3N )
-    KRATOS_REGISTER_ELEMENT( "DummyElement2D6N", mDummyElement2D6N )
-    KRATOS_REGISTER_ELEMENT( "DummyElement2D4N", mDummyElement2D4N )
-    KRATOS_REGISTER_ELEMENT( "DummyElement2D8N", mDummyElement2D8N )
-    KRATOS_REGISTER_ELEMENT( "DummyElement2D9N", mDummyElement2D9N )
-    KRATOS_REGISTER_ELEMENT( "DummyElement3D4N", mDummyElement3D4N )
-    KRATOS_REGISTER_ELEMENT( "DummyElement3D10N", mDummyElement3D10N )
-    KRATOS_REGISTER_ELEMENT( "DummyElement3D8N", mDummyElement3D8N )
-    KRATOS_REGISTER_ELEMENT( "DummyElement3D20N", mDummyElement3D20N )
-    KRATOS_REGISTER_ELEMENT( "DummyElement3D27N", mDummyElement3D27N )
+    STRUCTURAL_APPLICATION_REGISTER_ELEMENT_ALL_GEOMETRIES(DummyElement)
 
     KRATOS_REGISTER_CONDITION( "Face2D", mFace2D )
     KRATOS_REGISTER_CONDITION( "Face3D", mFace3D3N )
@@ -744,7 +646,7 @@ void KratosStructuralApplication::Register()
     Serializer::Register( "Isotropic3D", mIsotropic3D );
     Serializer::Register( "DummyConstitutiveLaw", mDummyConstitutiveLaw );
     Serializer::Register( "CamClay3D", mCamClay3D );
-    #endif
+#endif
 }
 
 void KratosStructuralApplication::RegisterVariables()
@@ -802,7 +704,7 @@ void KratosStructuralApplication::RegisterVariables()
 //  KRATOS_REGISTER_VARIABLE(POSITIVE_FACE_PRESSURE )
 
     //KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(VAUX);
-    KRATOS_REGISTER_VARIABLE( CONSTITUTIVE_LAW_NO_INITIALIZE )
+    KRATOS_REGISTER_CONSTITUTIVE_LAW_VARIABLE( CONSTITUTIVE_LAW_NO_INITIALIZE )
 //     KRATOS_REGISTER_VARIABLE(DP_EPSILON)
 //     KRATOS_REGISTER_VARIABLE(INSITU_STRESS)
 //     KRATOS_REGISTER_VARIABLE(DP_ALPHA1)

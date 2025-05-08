@@ -81,7 +81,7 @@ public:
 
     typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
     typedef UblasSpace<double, Matrix, Vector> DenseSpaceType;
-    typedef LinearSolver<SparseSpaceType, DenseSpaceType> LinearSolverType;
+    typedef LinearSolver<SparseSpaceType, DenseSpaceType, ModelPart> LinearSolverType;
 
     struct DoubleVariableInitializer
     {

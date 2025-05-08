@@ -71,7 +71,8 @@ namespace Kratos
 namespace Python
 {
 
-void  AddCustomStrategiesToPython();
+void AddCustomStrategiesToPython();
+void AddCustomComplexStrategiesToPython();
 
 }  // namespace Python.
 

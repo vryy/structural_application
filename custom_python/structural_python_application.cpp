@@ -86,6 +86,7 @@ BOOST_PYTHON_MODULE( KratosStructuralApplication )
            ;
 
     AddCustomStrategiesToPython();
+    AddCustomComplexStrategiesToPython();
     AddConstitutiveLawsToPython();
     AddPhaseLawsToPython();
     AddCustomUtilitiesToPython();

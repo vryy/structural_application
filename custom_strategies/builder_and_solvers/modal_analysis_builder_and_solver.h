@@ -130,7 +130,7 @@ template<class TSparseSpace,
          class TLinearSolver //= LinearSolver<TSparseSpace,TDenseSpace>
          >
 class ModalAnalysisBuilderAndSolver
-    : public BuilderAndSolver< TSparseSpace,TDenseSpace,TLinearSolver >
+    : public BuilderAndSolver< TSparseSpace, TDenseSpace, TLinearSolver, ModelPart >
 {
 public:
     /**@name Type Definitions */
@@ -138,9 +138,13 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION( ModalAnalysisBuilderAndSolver );
 
 
-    typedef BuilderAndSolver<TSparseSpace,TDenseSpace, TLinearSolver> BaseType;
+    typedef BuilderAndSolver<TSparseSpace,TDenseSpace, TLinearSolver, ModelPart> BaseType;
 
     typedef typename BaseType::TSchemeType TSchemeType;
+
+    typedef typename BaseType::IndexType IndexType;
+
+    typedef typename BaseType::SizeType SizeType;
 
     typedef typename BaseType::TDataType TDataType;
 
@@ -157,11 +161,9 @@ public:
     typedef typename BaseType::TSystemMatrixPointerType TSystemMatrixPointerType;
     typedef typename BaseType::TSystemVectorPointerType TSystemVectorPointerType;
 
-    typedef typename BaseType::NodesArrayType NodesArrayType;
-    typedef typename BaseType::ElementsArrayType ElementsArrayType;
-    typedef typename BaseType::ConditionsArrayType ConditionsArrayType;
-
+    typedef typename BaseType::NodesContainerType NodesContainerType;
     typedef typename BaseType::ElementsContainerType ElementsContainerType;
+    typedef typename BaseType::ConditionsContainerType ConditionsContainerType;
 
     /*@} */
     /**@name Life Cycle
@@ -174,11 +176,9 @@ public:
     : BaseType(pNewLinearSystemSolver), mMaxEigenSolutions(1), mTolerance(1.0e-8), mMaxIterations(1000)
     {}
 
-
     /** Destructor.
     */
-    virtual ~ModalAnalysisBuilderAndSolver() {}
-
+    ~ModalAnalysisBuilderAndSolver() override {}
 
     /*@} */
     /**@name Operators
@@ -203,13 +203,13 @@ public:
 
     //**************************************************************************
     //**************************************************************************
-    virtual void SetUpDofSet( typename TSchemeType::Pointer pScheme, ModelPart& r_model_part )
+    void SetUpDofSet( typename TSchemeType::Pointer pScheme, ModelPart& r_model_part ) override
     {
         KRATOS_TRY
 
         KRATOS_WATCH("setting up the dofs");
         //Gets the array of elements from the modeler
-        ElementsArrayType& pElements = r_model_part.Elements();
+        ElementsContainerType& pElements = r_model_part.Elements();
 
         Element::DofsVectorType ElementalDofList;
 
@@ -220,7 +220,7 @@ public:
         //mDofSet.clear();
 
         //double StartTime = GetTickCount();
-        for (typename ElementsArrayType::iterator it=pElements.begin();
+        for (typename ElementsContainerType::iterator it=pElements.begin();
                 it!=pElements.end(); ++it)
         {
             // gets list of Dof involved on every element
@@ -234,8 +234,8 @@ public:
         }
 
         //taking in account conditions
-        ConditionsArrayType& pConditions = r_model_part.Conditions();
-        for (typename ConditionsArrayType::iterator it=pConditions.begin();
+        ConditionsContainerType& pConditions = r_model_part.Conditions();
+        for (typename ConditionsContainerType::iterator it=pConditions.begin();
                 it!=pConditions.end(); ++it)
         {
             // gets list of Dof involved on every element
@@ -252,16 +252,17 @@ public:
 
         //throws an execption if there are no Degrees of freedom involved in the analysis
         if (BaseType::mDofSet.size()==0)
-            KRATOS_THROW_ERROR(std::logic_error, "No degrees of freedom!", "");
+            KRATOS_ERROR << "No degrees of freedom!";
         BaseType::mDofSetIsInitialized = true;
+
         KRATOS_CATCH("")
     }
 
     //**************************************************************************
     //**************************************************************************
-    virtual void SetUpSystem(
+    void SetUpSystem(
         ModelPart& r_model_part
-    )
+    ) override
     {
         // Set equation id for degrees of freedom
         // the free degrees of freedom are positioned at the beginning of the system,
@@ -270,8 +271,8 @@ public:
         // that means that if the EquationId is greater than "mEquationSystemSize"
         // the pointed degree of freedom is restrained
         //
-        int free_id = 0;
-        int fix_id = BaseType::mDofSet.size();
+        IndexType free_id = 0;
+        IndexType fix_id = BaseType::mDofSet.size();
 
         for (typename DofsArrayType::iterator dof_iterator = BaseType::mDofSet.begin(); dof_iterator != BaseType::mDofSet.end(); ++dof_iterator)
             if (dof_iterator->IsFixed())
@@ -284,12 +285,12 @@ public:
 
     //**************************************************************************
     //**************************************************************************
-    virtual void ResizeAndInitializeEigenSystem(
+    void ResizeAndInitializeEigenSystem(
         TSystemMatrixPointerType& pK,
         TSystemMatrixPointerType& pM,
-        ElementsArrayType& rElements,
-        ConditionsArrayType& rConditions,
-        ProcessInfo& CurrentProcessInfo
+        ElementsContainerType& rElements,
+        ConditionsContainerType& rConditions,
+        const ProcessInfo& CurrentProcessInfo
     )
     {
         KRATOS_TRY
@@ -360,21 +361,21 @@ public:
 
     //**************************************************************************
     //**************************************************************************
-    virtual void BuildAndSolve( typename TSchemeType::Pointer pScheme,
+    void BuildAndSolve( typename TSchemeType::Pointer pScheme,
                         ModelPart& r_model_part,
                         TSystemMatrixType& A,
                         TSystemVectorType& Dx,
-                        TSystemVectorType& b )
+                        TSystemVectorType& b ) override
     {
         KRATOS_TRY
 
         Kratos::timer building_time;
 
         //getting the elements from the model
-        ElementsArrayType& pElements = r_model_part.Elements();
+        ElementsContainerType& pElements = r_model_part.Elements();
 
         //getting the array of the conditions
-        ConditionsArrayType& pConditions = r_model_part.Conditions();
+        ConditionsContainerType& pConditions = r_model_part.Conditions();
 
         //construct mass matrix structure
         TSystemMatrixType M = TSystemMatrixType( A.size1(), A.size2() );
@@ -400,7 +401,7 @@ public:
 
         Kratos::timer solve_time;
 
-        typedef PowerIterationEigenvalueSolver<TSparseSpace, TDenseSpace, TLinearSolver> EigenvalueSolverType;
+        typedef PowerIterationEigenvalueSolver<TSparseSpace, TDenseSpace, TLinearSolver, ModelPart> EigenvalueSolverType;
         EigenvalueSolverType eigenvalue_solver( mTolerance, mMaxIterations, mMaxEigenSolutions, BaseType::mpLinearSystemSolver );
 
         eigenvalue_solver.Solve( A, M, mEigenvalues, mEigenvectors);
@@ -423,7 +424,7 @@ public:
     this function is intended to be called at the end of the solution step to clean up memory
     storage not needed
     */
-    void Clear()
+    void Clear() override
     {
         this->mDofSet = DofsArrayType();
 
@@ -476,9 +477,9 @@ protected:
     //**************************************************************************
     virtual void ConstructMatrixStructure(
         TSystemMatrixType& A,
-        ElementsContainerType& rElements,
-        ConditionsArrayType& rConditions,
-        ProcessInfo& CurrentProcessInfo)
+        const ElementsContainerType& rElements,
+        const ConditionsContainerType& rConditions,
+        const ProcessInfo& CurrentProcessInfo) const
     {
 
         std::size_t equation_size = A.size1();
@@ -486,7 +487,7 @@ protected:
         //              std::vector<std::vector<std::size_t> > dirichlet_indices(TSystemSpaceType::Size1(mDirichletMatrix));
 
         Element::EquationIdVectorType ids(3,0);
-        for(typename ElementsContainerType::iterator i_element = rElements.begin() ; i_element != rElements.end() ; i_element++)
+        for(auto i_element = rElements.begin() ; i_element != rElements.end() ; i_element++)
         {
             (i_element)->EquationIdVector(ids, CurrentProcessInfo);
 
@@ -503,7 +504,7 @@ protected:
                 }
         }
 
-        for(typename ConditionsArrayType::iterator i_condition = rConditions.begin() ; i_condition != rConditions.end() ; i_condition++)
+        for(auto i_condition = rConditions.begin() ; i_condition != rConditions.end() ; i_condition++)
         {
             (i_condition)->EquationIdVector(ids, CurrentProcessInfo);
             for(std::size_t i = 0 ; i < ids.size() ; i++)
@@ -546,9 +547,9 @@ protected:
     //**************************************************************************
     void AssembleLHS(
         TSystemMatrixType& A,
-        LocalSystemMatrixType& LHS_Contribution,
-        Element::EquationIdVectorType& EquationId
-    )
+        const LocalSystemMatrixType& LHS_Contribution,
+        const Element::EquationIdVectorType& EquationId
+    ) const
     {
         unsigned int local_size = LHS_Contribution.size1();
 
@@ -568,8 +569,6 @@ protected:
             }
         }
     }
-
-
 
     /*@} */
     /**@name Protected Operations*/
@@ -625,17 +624,18 @@ private:
         typename TSchemeType::Pointer pScheme,
         ModelPart& r_model_part,
         TSystemMatrixType& K,
-        TSystemMatrixType& M )
+        TSystemMatrixType& M ) const
     {
         KRATOS_TRY
+
         if(!pScheme)
-            KRATOS_THROW_ERROR(std::runtime_error, "No scheme provided!", "");
+            KRATOS_ERROR << "No scheme provided!";
 
         //getting the elements from the model
-        ElementsArrayType& pElements = r_model_part.Elements();
+        ElementsContainerType& pElements = r_model_part.Elements();
 
         //getting the array of the conditions
-        ConditionsArrayType& ConditionsArray = r_model_part.Conditions();
+        ConditionsContainerType& ConditionsArray = r_model_part.Conditions();
 
         //create a partition of the element array
         int number_of_threads = omp_get_max_threads();
@@ -655,14 +655,14 @@ private:
             //vector containing the localization in the system of the different
             //terms
             Element::EquationIdVectorType EquationId;
-            ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
-            typename ElementsArrayType::iterator
+            const ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
+            typename ElementsContainerType::iterator
             it_begin=pElements.begin()+element_partition[k];
-            typename ElementsArrayType::iterator
+            typename ElementsContainerType::iterator
             it_end=pElements.begin()+element_partition[k+1];
 
             // assemble all elements
-            for (typename ElementsArrayType::iterator it=it_begin; it!=it_end; ++it)
+            for (typename ElementsContainerType::iterator it=it_begin; it!=it_end; ++it)
             {
                 //calculate elemental contribution
                 pScheme->CalculateSystemContributions(*it, K_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
@@ -695,13 +695,13 @@ private:
 
             ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
 
-            typename ConditionsArrayType::iterator
+            typename ConditionsContainerType::iterator
             it_begin=ConditionsArray.begin()+condition_partition[k];
-            typename ConditionsArrayType::iterator
+            typename ConditionsContainerType::iterator
             it_end=ConditionsArray.begin()+condition_partition[k+1];
 
             // assemble all conditions
-            for (typename ConditionsArrayType::iterator it=it_begin; it!=it_end; ++it)
+            for (typename ConditionsContainerType::iterator it=it_begin; it!=it_end; ++it)
             {
                 //calculate elemental contribution
                 pScheme->CalculateSystemContributions(*it, K_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
@@ -725,7 +725,7 @@ private:
 
     //******************************************************************************************
     //******************************************************************************************
-    inline void AddUnique(std::vector<std::size_t>& v, const std::size_t& candidate)
+    inline void AddUnique(std::vector<std::size_t>& v, const std::size_t& candidate) const
     {
         std::vector<std::size_t>::iterator i = v.begin();
         std::vector<std::size_t>::iterator endit = v.end();
@@ -742,7 +742,7 @@ private:
 
     //******************************************************************************************
     //******************************************************************************************
-    inline void CreatePartition(unsigned int number_of_threads,const int number_of_rows, std::vector<unsigned int>& partitions)
+    inline void CreatePartition(unsigned int number_of_threads,const int number_of_rows, std::vector<unsigned int>& partitions) const
     {
         partitions.resize(number_of_threads+1);
         int partition_size = number_of_rows / number_of_threads;

@@ -73,7 +73,7 @@ class SolvingStrategyPython:
         if 'log_strain_energy' not in self.Parameters:
             self.Parameters['log_strain_energy'] = False
         if self.Parameters['calculate_strain_energy'] == True:
-            self.calculate_strain_energy_process = CalculateStrainEnergyProcess(self.model_part)
+            self.calculate_strain_energy_process = CalculateStrainEnergyProcessFactory.Create(self.model_part)
             self.attached_processes.append(self.calculate_strain_energy_process)
         if self.Parameters['log_strain_energy'] == True:
             self.log_energy = open('strain_energy_newton_raphson.log', 'w')
@@ -302,6 +302,7 @@ class SolvingStrategyPython:
 
     #######################################################################
     def InitializeSolutionStep(self):
+        print("newton_raphson_strategy.ExecuteIteration:InitializeSolutionStep is called")
         if(self.builder_and_solver.GetDofSetIsInitializedFlag() == False or self.ReformDofSetAtEachStep == True):
             #initialize the list of degrees of freedom to be used
             self.builder_and_solver.SetUpDofSet(self.time_scheme,self.model_part)

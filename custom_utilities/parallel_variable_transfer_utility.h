@@ -884,7 +884,7 @@ public:
                     }
                 }
                 double start_solve = omp_get_wtime();
-                SkylineLUFactorizationSolver<SpaceType, SpaceType>().Solve(M, g, b);
+                SkylineLUFactorizationSolver<SpaceType, SpaceType, ModelPart>().Solve(M, g, b);
                 double stop_solve = omp_get_wtime();
                 std::cout << "solving time: " << stop_solve - start_solve << std::endl;
                 for(ModelPart::NodeIterator it = model_part.NodesBegin() ;
@@ -994,7 +994,7 @@ public:
                     }
                     }
 
-                        SkylineLUFactorizationSolver<SpaceType, SpaceType>().Solve(M, g, b);
+                        SkylineLUFactorizationSolver<SpaceType, SpaceType, ModelPart>().Solve(M, g, b);
 
                         for(unsigned int prim=0 ; prim<(*it)->GetGeometry().size(); prim++)
                         {
@@ -1094,7 +1094,7 @@ public:
                 }
             }
             double start_solve = omp_get_wtime();
-            SkylineLUFactorizationSolver<SpaceType, SpaceType>().Solve(M, g, b);
+            SkylineLUFactorizationSolver<SpaceType, SpaceType, ModelPart>().Solve(M, g, b);
             double stop_solve = omp_get_wtime();
             std::cout << "solving time: " << stop_solve - start_solve << std::endl;
             for(ModelPart::NodeIterator it = model_part.NodesBegin() ;
@@ -1201,7 +1201,7 @@ public:
         std::cout << "assembling time: " << stop_prod - start_prod << std::endl;
 
         double start_solve = omp_get_wtime();
-        SkylineLUFactorizationSolver<SpaceType, SpaceType>().Solve(M, g, b);
+        SkylineLUFactorizationSolver<SpaceType, SpaceType, ModelPart>().Solve(M, g, b);
         double stop_solve = omp_get_wtime();
         std::cout << "solving time: " << stop_solve - start_solve << std::endl;
         for(ModelPart::NodeIterator it = model_part.NodesBegin() ;
@@ -1337,7 +1337,7 @@ public:
                     }
                 }
 
-                SkylineLUFactorizationSolver<SpaceType, SpaceType>().Solve(M, g, b);
+                SkylineLUFactorizationSolver<SpaceType, SpaceType, ModelPart>().Solve(M, g, b);
                 for(ModelPart::NodeIterator it = rTarget.NodesBegin() ;
                         it != rTarget.NodesEnd() ; it++)
                 {
@@ -1470,7 +1470,7 @@ public:
                     }
                 }
             }
-            SkylineLUFactorizationSolver<SpaceType, SpaceType>().Solve(M, g, b);
+            SkylineLUFactorizationSolver<SpaceType, SpaceType, ModelPart>().Solve(M, g, b);
             for(ModelPart::NodeIterator it = rTarget.NodesBegin() ;
                     it != rTarget.NodesEnd() ; it++)
             {
@@ -1572,7 +1572,7 @@ public:
                 }
             }
         }
-        SkylineLUFactorizationSolver<SpaceType, SpaceType>().Solve(M, g, b);
+        SkylineLUFactorizationSolver<SpaceType, SpaceType, ModelPart>().Solve(M, g, b);
         for(ModelPart::NodeIterator it = rTarget.NodesBegin() ;
                 it != rTarget.NodesEnd() ; it++)
         {

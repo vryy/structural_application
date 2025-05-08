@@ -81,6 +81,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_strategies/schemes/arc_length_displacement_control_support_scheme.h"
 #include "custom_strategies/schemes/arc_length_displacement_control_energy_release_support_scheme.h"
 #include "custom_strategies/schemes/steady_state_dynamics_scheme.h"
+#include "custom_strategies/schemes/complex_steady_state_dynamics_scheme.h"
 
 //builder_and_solvers
 #include "solving_strategies/builder_and_solvers/builder_and_solver.h"
@@ -120,12 +121,12 @@ void AddArcLengthDisplacementControlSupportScheme(const std::string& PostFix)
     ;
 }
 
-void  AddCustomStrategiesToPython()
+void AddCustomStrategiesToPython()
 {
-    typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
-    typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
+    typedef UblasSpace<KRATOS_DOUBLE_TYPE, CompressedMatrix, Vector> SparseSpaceType;
+    typedef UblasSpace<KRATOS_DOUBLE_TYPE, Matrix, Vector> LocalSpaceType;
 
-    typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
+    typedef LinearSolver<SparseSpaceType, LocalSpaceType, ModelPart> LinearSolverType;
 
     typedef Scheme< SparseSpaceType, LocalSpaceType > BaseSchemeType;
     typedef ResidualBasedIncrementalUpdateStaticDeactivationScheme< SparseSpaceType, LocalSpaceType > ResidualBasedIncrementalUpdateStaticDeactivationSchemeType;
@@ -139,11 +140,11 @@ void  AddCustomStrategiesToPython()
     typedef ResidualBasedMixedForwardEulerScheme< SparseSpaceType, LocalSpaceType > ResidualBasedMixedForwardEulerSchemeType;
     typedef SteadyStateDynamicsScheme< SparseSpaceType, LocalSpaceType > SteadyStateDynamicsSchemeType;
 
-    typedef ConvergenceCriteria< SparseSpaceType, LocalSpaceType > ConvergenceCriteriaBaseType;
+    typedef ConvergenceCriteria< SparseSpaceType, LocalSpaceType, ModelPart > ConvergenceCriteriaBaseType;
 
-    typedef MultiPhaseFlowCriteria< SparseSpaceType,  LocalSpaceType > MultiPhaseFlowCriteriaType;
+    typedef MultiPhaseFlowCriteria< SparseSpaceType, LocalSpaceType, ModelPart > MultiPhaseFlowCriteriaType;
 
-    typedef BuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType> BuilderAndSolverType;
+    typedef BuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType, ModelPart> BuilderAndSolverType;
 
     typedef ModalAnalysisBuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType> ModalAnalysisBuilderAndSolverType;
 
@@ -262,7 +263,27 @@ void  AddCustomStrategiesToPython()
     .def("BuildEigenSystem", &ModalAnalysisBuilderAndSolverType::BuildEigenSystem)
     ;
 }
+
+void AddCustomComplexStrategiesToPython()
+{
+    typedef UblasSpace<KRATOS_COMPLEX_TYPE, ComplexCompressedMatrix, ComplexVector> SparseSpaceType;
+    typedef UblasSpace<KRATOS_COMPLEX_TYPE, ComplexMatrix, ComplexVector> LocalSpaceType;
+
+    typedef LinearSolver<SparseSpaceType, LocalSpaceType, ComplexModelPart > LinearSolverType;
+
+    typedef Scheme< SparseSpaceType, LocalSpaceType, ComplexModelPart > BaseSchemeType;
+
+    typedef ComplexSteadyStateDynamicsScheme< SparseSpaceType, LocalSpaceType, ComplexModelPart > SteadyStateDynamicsSchemeType;
+
+    class_< SteadyStateDynamicsSchemeType,
+            bases< BaseSchemeType >, boost::noncopyable >
+            (
+                "ComplexSteadyStateDynamicsScheme", init<const typename SteadyStateDynamicsSchemeType::ValueType>()
+            )
+            .def("SetOmega", &SteadyStateDynamicsSchemeType::SetOmega)
+            ;
+}
+
 }  // namespace Python.
 
 } // Namespace Kratos
-

@@ -72,18 +72,28 @@ namespace Kratos
  * As there are no further parameters the functionality is limited
  * to linear elasticity.
  */
-
-class Isotropic3D : public ConstitutiveLaw
+template<class TNodeType>
+class KRATOS_API(STRUCTURAL_APPLICATION) Isotropic3DImpl : public ConstitutiveLawImpl<TNodeType>
 {
     public:
         /**
          * Type Definitions
          */
-        typedef ConstitutiveLaw BaseType;
+        typedef ConstitutiveLawImpl<TNodeType> BaseType;
+
+        typedef typename BaseType::GeometryType GeometryType;
+        typedef typename BaseType::DataType DataType;
+        typedef typename BaseType::SizeType SizeType;
+        typedef typename BaseType::VectorType VectorType;
+        typedef typename BaseType::MatrixType MatrixType;
+
+        typedef typename MatrixVectorTypeSelector<DataType>::ZeroVectorType ZeroVectorType;
+        typedef typename MatrixVectorTypeSelector<DataType>::ZeroMatrixType ZeroMatrixType;
+
         /**
          * Counted pointer of Isotropic3D
          */
-        KRATOS_CLASS_POINTER_DEFINITION(Isotropic3D);
+        KRATOS_CLASS_POINTER_DEFINITION(Isotropic3DImpl);
 
         /**
          * Life Cycle
@@ -91,12 +101,12 @@ class Isotropic3D : public ConstitutiveLaw
         /**
          * Default constructor.
          */
-        Isotropic3D();
+        Isotropic3DImpl();
 
         /**
          * Destructor.
          */
-        virtual ~Isotropic3D();
+        ~Isotropic3DImpl() override;
 
         /**
          * Operators
@@ -106,46 +116,46 @@ class Isotropic3D : public ConstitutiveLaw
          * Operations
          */
 
-        ConstitutiveLaw::Pointer Clone() const override
+        typename BaseType::Pointer Clone() const override
         {
-            ConstitutiveLaw::Pointer p_clone( new Isotropic3D() );
+            typename BaseType::Pointer p_clone( new Isotropic3DImpl() );
             return p_clone;
         }
 
-        ConstitutiveLaw::StrainMeasure GetStrainMeasure() override
+        typename BaseType::StrainMeasure GetStrainMeasure() override
         {
-            return StrainMeasure_Infinitesimal;
+            return BaseType::StrainMeasure_Infinitesimal;
         }
 
-        ConstitutiveLaw::StressMeasure GetStressMeasure() override
+        typename BaseType::StressMeasure GetStressMeasure() override
         {
-            return StressMeasure_Cauchy;
+            return BaseType::StressMeasure_Cauchy;
         }
 
-        void GetLawFeatures(Features& rFeatures) final
+        void GetLawFeatures(typename BaseType::Features& rFeatures) final
         {
             rFeatures.SetStrainMeasure(this->GetStrainMeasure());
         }
 
         bool Has( const Variable<int>& rThisVariable ) override;
-        bool Has( const Variable<double>& rThisVariable ) override;
-        bool Has( const Variable<Vector>& rThisVariable ) override;
-        bool Has( const Variable<Matrix>& rThisVariable ) override;
+        bool Has( const Variable<DataType>& rThisVariable ) override;
+        bool Has( const Variable<VectorType>& rThisVariable ) override;
+        bool Has( const Variable<MatrixType>& rThisVariable ) override;
 
         int& GetValue( const Variable<int>& rThisVariable, int& rValue ) override;
-        double& GetValue( const Variable<double>& rThisVariable, double& rValue ) override;
-        Vector& GetValue( const Variable<Vector>& rThisVariable, Vector& rValue ) override;
-        Matrix& GetValue( const Variable<Matrix>& rThisVariable, Matrix& rValue ) override;
+        DataType& GetValue( const Variable<DataType>& rThisVariable, DataType& rValue ) override;
+        VectorType& GetValue( const Variable<VectorType>& rThisVariable, VectorType& rValue ) override;
+        MatrixType& GetValue( const Variable<MatrixType>& rThisVariable, MatrixType& rValue ) override;
 
         void SetValue( const Variable<int>& rThisVariable, const int& rValue,
                        const ProcessInfo& rCurrentProcessInfo ) override;
-        void SetValue( const Variable<double>& rThisVariable, const double& rValue,
+        void SetValue( const Variable<DataType>& rThisVariable, const DataType& rValue,
                        const ProcessInfo& rCurrentProcessInfo ) override;
-        void SetValue( const Variable<array_1d<double, 3 > >& rThisVariable,
-                       const array_1d<double, 3 > & rValue, const ProcessInfo& rCurrentProcessInfo ) override;
-        void SetValue( const Variable<Vector>& rThisVariable, const Vector& rValue,
+        void SetValue( const Variable<array_1d<DataType, 3 > >& rThisVariable,
+                       const array_1d<DataType, 3 > & rValue, const ProcessInfo& rCurrentProcessInfo ) override;
+        void SetValue( const Variable<VectorType>& rThisVariable, const VectorType& rValue,
                        const ProcessInfo& rCurrentProcessInfo ) override;
-        void SetValue( const Variable<Matrix>& rThisVariable, const Matrix& rValue,
+        void SetValue( const Variable<MatrixType>& rThisVariable, const MatrixType& rValue,
                        const ProcessInfo& rCurrentProcessInfo ) override;
 
         /**
@@ -191,10 +201,10 @@ class Isotropic3D : public ConstitutiveLaw
          * @param PK2_StressVector the current second Piola-Kirchhoff-Stress vector
          * @param GreenLagrangeStrainVector the current Green-Lagrangian strains
          */
-        void CalculateCauchyStresses( Vector& Cauchy_StressVector,
-                                      const Matrix& F,
-                                      const Vector& PK2_StressVector,
-                                      const Vector& GreenLagrangeStrainVector ) override;
+        void CalculateCauchyStresses( VectorType& Cauchy_StressVector,
+                                      const MatrixType& F,
+                                      const VectorType& PK2_StressVector,
+                                      const VectorType& GreenLagrangeStrainVector ) override;
 
         /**
          * This function is designed to be called once to perform all the checks needed
@@ -213,13 +223,13 @@ class Isotropic3D : public ConstitutiveLaw
          * Computes the material response in terms of Cauchy stresses and constitutive tensor
          * @see Parameters
          */
-        void CalculateMaterialResponseCauchy (Parameters& rValues) final;
+        void CalculateMaterialResponseCauchy (typename BaseType::Parameters& rValues) final;
 
         /// DEPRECATED function
-        void CalculateMaterialResponse( const Vector& StrainVector,
-                                        const Matrix& DeformationGradient,
-                                        Vector& StressVector,
-                                        Matrix& AlgorithmicTangent,
+        void CalculateMaterialResponse( const VectorType& StrainVector,
+                                        const MatrixType& DeformationGradient,
+                                        VectorType& StressVector,
+                                        MatrixType& AlgorithmicTangent,
                                         const ProcessInfo& CurrentProcessInfo,
                                         const Properties& props,
                                         const GeometryType& geom,
@@ -243,14 +253,14 @@ class Isotropic3D : public ConstitutiveLaw
          * @param StrainVector the current vector of strains
          * @param rResult the stress vector corresponding to the given strains
          */
-        void CalculateStress(const double& E, const double& NU, const Vector& StrainVector, Vector& rResult) const;
+        void CalculateStress(const DataType E, const DataType NU, const VectorType& StrainVector, VectorType& rResult) const;
 
         /**
          * Calculates the strain for given stress state
          * @param StrainVector the current vector of strains
          * @param rResult the stress vector corresponding to the given strains
          */
-        void CalculateStrain(const double& E, const double& NU, const Vector& StressVector, Vector& rResult) const;
+        void CalculateStrain(const DataType E, const DataType NU, const VectorType& StressVector, VectorType& rResult) const;
 
         /**
          * calculates the linear elastic constitutive matrix in terms of Young's modulus and
@@ -259,7 +269,7 @@ class Isotropic3D : public ConstitutiveLaw
          * @param NU the Poisson ratio
          * @return the linear elastic constitutive matrix
          */
-        static void CalculateElasticMatrix( Matrix& C, const double& E, const double& NU );
+        static void CalculateElasticMatrix( MatrixType& C, const DataType E, const DataType NU );
 
         /**
          * Input and output
@@ -270,7 +280,7 @@ class Isotropic3D : public ConstitutiveLaw
          */
         std::string Info() const override
         {
-            return "Isotropic3D";
+            return "Isotropic3DImpl";
         }
 
         /**
@@ -291,7 +301,7 @@ class Isotropic3D : public ConstitutiveLaw
          * there are several protected class members
          */
 
-        Vector mCurrentStress;
+        VectorType mCurrentStress;
 
     private:
 
@@ -302,7 +312,7 @@ class Isotropic3D : public ConstitutiveLaw
 
         void save( Serializer& rSerializer ) const override
         {
-            KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, ConstitutiveLaw );
+            KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, BaseType );
             rSerializer.save( "Prestress", mPrestress );
             rSerializer.save( "PrestressFactor", mPrestressFactor );
             rSerializer.save( "CurrentStress", mCurrentStress );
@@ -313,7 +323,7 @@ class Isotropic3D : public ConstitutiveLaw
 
         void load( Serializer& rSerializer ) override
         {
-            KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ConstitutiveLaw );
+            KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, BaseType );
             rSerializer.load( "Prestress", mPrestress );
             rSerializer.load( "PrestressFactor", mPrestressFactor );
             rSerializer.load( "CurrentStress", mCurrentStress );
@@ -333,11 +343,11 @@ class Isotropic3D : public ConstitutiveLaw
          * @param StrainVector the current vector of strains
          * @param rResult the stress vector corresponding to the given strains
          */
-        void CalculateStress( const Vector& StrainVector, Matrix& AlgorithmicTangent, Vector& rResult );
+        void CalculateStress( const VectorType& StrainVector, const MatrixType& AlgorithmicTangent, VectorType& rResult );
 
-        Vector mPrestress;
-        double mPrestressFactor;
-        double mE, mNU, mDE;
+        VectorType mPrestress;
+        DataType mPrestressFactor;
+        DataType mE, mNU, mDE;
 
         /**
          * Un accessible methods
@@ -345,12 +355,16 @@ class Isotropic3D : public ConstitutiveLaw
         /**
          * Assignment operator.
          */
-        //Isotropic3D& operator=(const IsotropicPlaneStressWrinklingNew& rOther);
+        //Isotropic3DImpl& operator=(const Isotropic3DImpl& rOther);
         /**
          * Copy constructor.
          */
-        //Isotropic3D(const IsotropicPlaneStressWrinklingNew& rOther);
-}; // Class Isotropic3D
+        //Isotropic3DImpl(const Isotropic3DImpl& rOther);
+}; // Class Isotropic3DImpl
+
+typedef Isotropic3DImpl<RealNode> Isotropic3D;
+typedef Isotropic3DImpl<ComplexNode> ComplexIsotropic3D;
+typedef Isotropic3DImpl<GComplexNode> GComplexIsotropic3D;
 
 } // namespace Kratos.
 

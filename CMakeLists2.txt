@@ -15,6 +15,7 @@ set( KRATOS_STRUCTURAL_APPLICATION_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/finite_strain_axisymmetric.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/kinematic_linear.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/kinematic_linear_axisymmetric.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/kinematic_linear_anti_plane.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/updated_kinematic_linear.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/crisfield_truss_element.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/truss_element.cpp

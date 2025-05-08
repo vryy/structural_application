@@ -48,20 +48,51 @@ def AddDofs(model_part, config=None):
 class StaticStructuralSolver:
     #
 
-    def __init__(self, model_part, domain_size):
+    def __init__(self, model_part, domain_size, abs_tol=1e-9, rel_tol=1e-6):
 
+        self.domain_size = domain_size
         self.model_part = model_part
-        self.time_scheme = ResidualBasedIncrementalUpdateStaticScheme()
-        # if called here, Check may be called before the system is completely set up!!!
-        self.time_scheme.Check(self.model_part)
 
-        # definition of the solvers
-        self.structure_linear_solver = SkylineLUFactorizationSolver()
+        if self.model_part.Type == "ModelPart":
+            self.time_scheme = ResidualBasedIncrementalUpdateStaticScheme()
+            # if called here, Check may be called before the system is completely set up!!!
+            # self.time_scheme.Check(self.model_part) # Check shall be called in Initialize
 
-        # definition of the convergence criteria
-#        self.conv_criteria = DisplacementCriteria(0.0001,1e-6)
-        self.conv_criteria = DisplacementCriteria(1e-6, 1e-9)
-        self.conv_criteria.Check(self.model_part)
+            # definition of the solvers
+            self.structure_linear_solver = SkylineLUFactorizationSolver()
+
+            # definition of the convergence criteria
+            self.conv_criteria = DisplacementCriteria(rel_tol, abs_tol)
+            # self.conv_criteria.Check(self.model_part)
+
+        elif self.model_part.Type == "ComplexModelPart":
+            self.time_scheme = ComplexResidualBasedIncrementalUpdateStaticScheme()
+            # if called here, Check may be called before the system is completely set up!!!
+            # self.time_scheme.Check(self.model_part) # Check shall be called in Initialize
+
+            # definition of the solvers
+            self.structure_linear_solver = ComplexSkylineLUFactorizationSolver()
+
+            # definition of the convergence criteria
+            self.conv_criteria = ComplexDisplacementCriteria(rel_tol, abs_tol)
+            # self.conv_criteria.Check(self.model_part)
+
+        elif self.model_part.Type == "GComplexModelPart":
+            self.time_scheme = GComplexResidualBasedIncrementalUpdateStaticScheme()
+            # if called here, Check may be called before the system is completely set up!!!
+            # self.time_scheme.Check(self.model_part) # Check shall be called in Initialize
+
+            # definition of the solvers
+            self.structure_linear_solver = GComplexSkylineLUFactorizationSolver()
+
+            # definition of the convergence criteria
+            self.conv_criteria = GComplexDisplacementCriteria(rel_tol, abs_tol)
+            # self.conv_criteria.Check(self.model_part)
+
+        else:
+
+            raise Exception("Unknown " + self.model_part.Type)
+
         self.MaxNewtonRapshonIterations = 100
 
         self.CalculateReactionFlag = True
@@ -77,8 +108,13 @@ class StaticStructuralSolver:
         # (self.solver).SetEchoLevel(2)
 
         # creating the solution strategy
-        self.solver = ResidualBasedNewtonRaphsonStrategy(self.model_part, self.time_scheme, self.structure_linear_solver, self.conv_criteria, self.MaxNewtonRapshonIterations, self.CalculateReactionFlag, self.ReformDofSetAtEachStep, self.MoveMeshFlag)
-        self.solver.Check()
+        if self.model_part.Type == "ModelPart":
+            self.solver = ResidualBasedNewtonRaphsonStrategy(self.model_part, self.time_scheme, self.structure_linear_solver, self.conv_criteria, self.MaxNewtonRapshonIterations, self.CalculateReactionFlag, self.ReformDofSetAtEachStep, self.MoveMeshFlag)
+        elif self.model_part.Type == "ComplexModelPart":
+            self.solver = ComplexResidualBasedNewtonRaphsonStrategy(self.model_part, self.time_scheme, self.structure_linear_solver, self.conv_criteria, self.MaxNewtonRapshonIterations, self.CalculateReactionFlag, self.ReformDofSetAtEachStep, self.MoveMeshFlag)
+        elif self.model_part.Type == "GComplexModelPart":
+            self.solver = GComplexResidualBasedNewtonRaphsonStrategy(self.model_part, self.time_scheme, self.structure_linear_solver, self.conv_criteria, self.MaxNewtonRapshonIterations, self.CalculateReactionFlag, self.ReformDofSetAtEachStep, self.MoveMeshFlag)
+        # self.solver.Check()
 
         #(self.solver).SetReformDofSetAtEachStepFlag(True)
         #(self.solver).SetMoveMeshFlag(True)

@@ -97,6 +97,40 @@ public:
     /// Counted pointer of CrisfieldTrussElement
     KRATOS_CLASS_POINTER_DEFINITION(CrisfieldTrussElement);
 
+    typedef Element BaseType;
+
+    typedef typename BaseType::ElementType ElementType;
+
+    typedef GeometryData::IntegrationMethod IntegrationMethod;
+
+    typedef typename BaseType::ConstitutiveLawType ConstitutiveLawType;
+
+    typedef typename ConstitutiveLawType::Pointer ConstitutiveLawPointerType;
+
+    typedef typename BaseType::NodesArrayType NodesArrayType;
+
+    typedef typename BaseType::EquationIdVectorType EquationIdVectorType;
+
+    typedef typename BaseType::DofsVectorType DofsVectorType;
+
+    typedef typename BaseType::IndexType IndexType;
+
+    typedef typename BaseType::DataType DataType;
+
+    typedef typename BaseType::ValueType ValueType;
+
+    typedef typename BaseType::VectorType VectorType;
+
+    typedef typename BaseType::ZeroVectorType ZeroVectorType;
+
+    typedef typename BaseType::MatrixType MatrixType;
+
+    typedef typename BaseType::ZeroMatrixType ZeroMatrixType;
+
+    typedef typename BaseType::GeometryType GeometryType;
+
+    typedef typename BaseType::PropertiesType PropertiesType;
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -118,11 +152,10 @@ public:
     * @param pProperties properties pointer
     * @see CrisfieldTrussElement(IndexType NewId, GeometryType::Pointer pGeometry)
     */
-    CrisfieldTrussElement(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties);
+    CrisfieldTrussElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
     /// Destructor.
-    virtual ~CrisfieldTrussElement();
-
+    ~CrisfieldTrussElement() override;
 
     ///@}
     ///@name Operators
@@ -140,7 +173,7 @@ public:
     * @param ThisNodes array of nodes
     * @param pProperties properties pointer
     */
-    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const override;
+    typename ElementType::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override;
 
     /**
     * Initialization of the Crisfield truss element.
@@ -273,7 +306,6 @@ public:
     {
         rOStream << "Lenght: " << CalculateLength() << std::endl;
     }
-
 
     ///@}
     ///@name Friends
@@ -482,7 +514,6 @@ private:
     /// Copy constructor.
     //CrisfieldTrussElement(const CrisfieldTrussElement& rOther);
 
-
     ///@}
 
 }; // Class CrisfieldTrussElement
@@ -497,24 +528,8 @@ private:
 ///@{
 
 
-/// input stream function
-/*  inline std::istream& operator >> (std::istream& rIStream,
-                    CrisfieldTrussElement& rThis);
-*/
-/// output stream function
-/*  inline std::ostream& operator << (std::ostream& rOStream,
-                    const CrisfieldTrussElement& rThis)
-    {
-      rThis.PrintInfo(rOStream);
-      rOStream << std::endl;
-      rThis.PrintData(rOStream);
-
-      return rOStream;
-    }*/
 ///@}
 
 }  // namespace Kratos.
 
 #endif // KRATOS_TOTAL_CRISFIELD_ELEMENT_H_INCLUDED  defined
-
-

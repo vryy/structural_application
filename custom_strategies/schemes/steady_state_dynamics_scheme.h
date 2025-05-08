@@ -61,8 +61,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/define.h"
 #include "includes/kratos_flags.h"
 #include "includes/model_part.h"
-#include "includes/variables.h"
-#include "includes/element.h"
 #include "includes/fnv_1a_hash.h"
 #ifdef SD_APP_FORWARD_COMPATIBILITY
 #include "custom_python3/legacy_structural_app_vars.h"
@@ -92,27 +90,26 @@ namespace Kratos
  * Steady state dynamics scheme for analysis in frequency domain
  * Reference: tn6.pdf
  */
-template<class TSparseSpace, class TDenseSpace>
-class SteadyStateDynamicsScheme : public Scheme<TSparseSpace, TDenseSpace>
+template<class TSparseSpace, class TDenseSpace, class TModelPartType = ModelPart>
+class SteadyStateDynamicsScheme : public Scheme<TSparseSpace, TDenseSpace, TModelPartType>
 {
 public:
     /**@name Type Definitions */
     KRATOS_CLASS_POINTER_DEFINITION( SteadyStateDynamicsScheme );
 
-    typedef Scheme<TSparseSpace,TDenseSpace> BaseType;
+    typedef Scheme<TSparseSpace, TDenseSpace, TModelPartType> BaseType;
 
-    typedef TSparseSpace SparseSpaceType;
-    typedef TDenseSpace DenseSpaceType;
+    typedef typename BaseType::ModelPartType ModelPartType;
 
     typedef typename BaseType::TDataType TDataType;
 
+    typedef typename DataTypeToValueType<TDataType>::value_type ValueType;
+
     typedef typename BaseType::DofsArrayType DofsArrayType;
 
-    typedef typename BaseType::ElementsArrayType ElementsArrayType;
+    typedef typename BaseType::ElementType ElementType;
 
-    typedef typename BaseType::ConditionsArrayType ConditionsArrayType;
-
-    typedef typename Element::DofsVectorType DofsVectorType;
+    typedef typename BaseType::ConditionType ConditionType;
 
     typedef typename BaseType::TSystemMatrixType TSystemMatrixType;
 
@@ -125,7 +122,7 @@ public:
     /**
      * Constructor
      */
-    SteadyStateDynamicsScheme(const double omega) : BaseType(), mOmega(omega)
+    SteadyStateDynamicsScheme(const ValueType omega) : BaseType(), mOmega(omega)
     {
         std::cout << "Steady State Dynamics Scheme!!!!!!!!!!!!!!!!!!!!!Omega = " << mOmega << std::endl;
     }
@@ -147,18 +144,18 @@ public:
     /**@name Operations */
     /*@{ */
 
-    double GetOmega() const
+    ValueType GetOmega() const
     {
         return mOmega;
     }
 
-    void SetOmega(double omega)
+    void SetOmega(ValueType omega)
     {
         mOmega = omega;
     }
 
     /// Initialize the scheme
-    void Initialize(ModelPart& r_model_part) override
+    void Initialize(ModelPartType& r_model_part) override
     {
         BaseType::Initialize(r_model_part);
 
@@ -170,7 +167,7 @@ public:
     }
 
     void Update(
-        ModelPart& r_model_part,
+        ModelPartType& r_model_part,
         DofsArrayType& rDofSet,
         TSystemMatrixType& A,
         TSystemVectorType& Dx,
@@ -182,35 +179,35 @@ public:
 
         for (typename DofsArrayType::iterator dof_iterator = rDofSet.begin(); dof_iterator != rDofSet.end(); ++dof_iterator)
         {
-            ModelPart::NodeType& rNode = r_model_part.GetNode(dof_iterator->Id());
+            typename ModelPartType::NodeType& rNode = r_model_part.GetNode(dof_iterator->Id());
 
-            if (dof_iterator->GetVariable() == DISPLACEMENT_X)
+            if (dof_iterator->GetVariable() == VARSELC(TDataType, DISPLACEMENT, X))
             {
                 if (dof_iterator->IsFree())
                 {
-                    rNode.GetSolutionStepValue(DISPLACEMENT_X)
+                    rNode.GetSolutionStepValue(VARSELC(TDataType, DISPLACEMENT, X))
                     += Dx[dof_iterator->EquationId()];
-                    rNode.GetSolutionStepValue(ACCELERATION_X)
+                    rNode.GetSolutionStepValue(VARSELC(TDataType, ACCELERATION, X))
                     -= mOmega*mOmega*Dx[dof_iterator->EquationId()];
                 }
             }
-            else if (dof_iterator->GetVariable() == DISPLACEMENT_Y)
+            else if (dof_iterator->GetVariable() == VARSELC(TDataType, DISPLACEMENT, Y))
             {
                 if (dof_iterator->IsFree())
                 {
-                    rNode.GetSolutionStepValue(DISPLACEMENT_Y)
+                    rNode.GetSolutionStepValue(VARSELC(TDataType, DISPLACEMENT, Y))
                     += Dx[dof_iterator->EquationId()];
-                    rNode.GetSolutionStepValue(ACCELERATION_Y)
+                    rNode.GetSolutionStepValue(VARSELC(TDataType, ACCELERATION, Y))
                     -= mOmega*mOmega*Dx[dof_iterator->EquationId()];
                 }
             }
-            else if (dof_iterator->GetVariable() == DISPLACEMENT_Z)
+            else if (dof_iterator->GetVariable() == VARSELC(TDataType, DISPLACEMENT, Z))
             {
                 if (dof_iterator->IsFree())
                 {
-                    rNode.GetSolutionStepValue(DISPLACEMENT_Z)
+                    rNode.GetSolutionStepValue(VARSELC(TDataType, DISPLACEMENT, Z))
                     += Dx[dof_iterator->EquationId()];
-                    rNode.GetSolutionStepValue(ACCELERATION_Z)
+                    rNode.GetSolutionStepValue(VARSELC(TDataType, ACCELERATION, Z))
                     -= mOmega*mOmega*Dx[dof_iterator->EquationId()];
                 }
             }
@@ -223,10 +220,10 @@ public:
     //***************************************************************************
 
     void CalculateSystemContributions(
-        Element& rCurrentElement,
+        ElementType& rCurrentElement,
         LocalSystemMatrixType& LHS_Contribution,
         LocalSystemVectorType& RHS_Contribution,
-        Element::EquationIdVectorType& EquationId,
+        typename ElementType::EquationIdVectorType& EquationId,
         const ProcessInfo& CurrentProcessInfo) override
     {
         KRATOS_TRY
@@ -238,10 +235,10 @@ public:
     }
 
     void CalculateSystemContributions(
-        Condition& rCurrentCondition,
+        ConditionType& rCurrentCondition,
         LocalSystemMatrixType& LHS_Contribution,
         LocalSystemVectorType& RHS_Contribution,
-        Condition::EquationIdVectorType& EquationId,
+        typename ConditionType::EquationIdVectorType& EquationId,
         const ProcessInfo& CurrentProcessInfo) override
     {
         KRATOS_TRY
@@ -308,7 +305,7 @@ private:
     /*@} */
     /**@name Member Variables */
     /*@{ */
-    double mOmega;
+    ValueType mOmega;
     /*@} */
     /**@name Private Operators*/
     /*@{ */

@@ -95,6 +95,8 @@ namespace Python
 using namespace boost::python;
 
 typedef ConstitutiveLaw ConstitutiveLawBaseType;
+typedef ComplexConstitutiveLaw ComplexConstitutiveLawBaseType;
+typedef GComplexConstitutiveLaw GComplexConstitutiveLawBaseType;
 typedef Properties::Pointer PropertiesPointer;
 
 typedef std::vector<ConstitutiveLaw::Pointer> MaterialsContainer;
@@ -184,11 +186,18 @@ void  AddConstitutiveLawsToPython()
       init<>() )
     ;
 
-    void(PlaneStrain::*PlaneStrain_CalculateStress)(const double&, const double&, const Vector&, Vector&) const = &PlaneStrain::CalculateStress;
+    void(PlaneStrain::*PlaneStrain_CalculateStress)(const double, const double, const Vector&, Vector&) const = &PlaneStrain::CalculateStress;
     class_< PlaneStrain, bases< ConstitutiveLawBaseType >, boost::noncopyable >
     ( "PlaneStrain",
       init<>() )
     .def("CalculateStress", PlaneStrain_CalculateStress)
+    ;
+
+    void(ComplexPlaneStrain::*ComplexPlaneStrain_CalculateStress)(const KRATOS_COMPLEX_TYPE, const KRATOS_COMPLEX_TYPE, const ComplexVector&, ComplexVector&) const = &ComplexPlaneStrain::CalculateStress;
+    class_< ComplexPlaneStrain, bases< ComplexConstitutiveLawBaseType >, boost::noncopyable >
+    ( "ComplexPlaneStrain",
+      init<>() )
+    .def("CalculateStress", ComplexPlaneStrain_CalculateStress)
     ;
 
     class_< PlaneStress, bases< ConstitutiveLawBaseType >, boost::noncopyable >
@@ -202,11 +211,25 @@ void  AddConstitutiveLawsToPython()
     class_< NeoHookean3D, bases< ConstitutiveLawBaseType >, boost::noncopyable >
     ( "NeoHookean3D", init<>() );
 
-    void(Isotropic3D::*Isotropic3D_CalculateStress)(const double&, const double&, const Vector&, Vector&) const = &Isotropic3D::CalculateStress;
+    void(Isotropic3D::*Isotropic3D_CalculateStress)(const double, const double, const Vector&, Vector&) const = &Isotropic3D::CalculateStress;
     class_< Isotropic3D, bases< ConstitutiveLawBaseType >,  boost::noncopyable >
     ( "Isotropic3D",
       init<>() )
     .def("CalculateStress", Isotropic3D_CalculateStress)
+    ;
+
+    void(ComplexIsotropic3D::*ComplexIsotropic3D_CalculateStress)(const KRATOS_COMPLEX_TYPE, const KRATOS_COMPLEX_TYPE, const ComplexVector&, ComplexVector&) const = &ComplexIsotropic3D::CalculateStress;
+    class_< ComplexIsotropic3D, bases< ComplexConstitutiveLawBaseType >,  boost::noncopyable >
+    ( "ComplexIsotropic3D",
+      init<>() )
+    .def("CalculateStress", ComplexIsotropic3D_CalculateStress)
+    ;
+
+    void(GComplexIsotropic3D::*GComplexIsotropic3D_CalculateStress)(const KRATOS_COMPLEX_TYPE, const KRATOS_COMPLEX_TYPE, const ComplexVector&, ComplexVector&) const = &GComplexIsotropic3D::CalculateStress;
+    class_< GComplexIsotropic3D, bases< GComplexConstitutiveLawBaseType >,  boost::noncopyable >
+    ( "GComplexIsotropic3D",
+      init<>() )
+    .def("CalculateStress", GComplexIsotropic3D_CalculateStress)
     ;
 
     class_< Isotropic3DDC, bases< ConstitutiveLawBaseType >,  boost::noncopyable >

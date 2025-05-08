@@ -89,7 +89,7 @@ namespace Kratos
     {
     }
 
-    void KinematicLinearAxisymmetric::CalculateBoperator( Matrix& B_Operator, const Vector& N, const Matrix& DN_DX ) const
+    void KinematicLinearAxisymmetric::CalculateBoperator( MatrixType& B_Operator, const Vector& N, const MatrixType& DN_DX ) const
     {
         KRATOS_TRY
 
@@ -98,9 +98,9 @@ namespace Kratos
         KRATOS_CATCH( "" )
     }
 
-    void KinematicLinearAxisymmetric::CalculateBBaroperator( Matrix& B_Operator, const Matrix& DN_DX, const Matrix& Bdil_bar ) const
+    void KinematicLinearAxisymmetric::CalculateBBaroperator( MatrixType& B_Operator, const MatrixType& DN_DX, const MatrixType& Bdil_bar ) const
     {
-        KRATOS_THROW_ERROR(std::logic_error, "Not yet implemented", "")
+        KRATOS_ERROR << "Not yet implemented";
     }
 
     double KinematicLinearAxisymmetric::GetIntegrationWeight( double Weight, const Vector& N ) const
@@ -117,6 +117,4 @@ namespace Kratos
 
 } // Namespace Kratos
 
-#ifdef ENABLE_DEBUG_CONSTITUTIVE_LAW
 #undef ENABLE_DEBUG_CONSTITUTIVE_LAW
-#endif
