@@ -398,7 +398,7 @@ void Pile_Kinematic_Linear::CalculateAll( MatrixType& rLeftHandSideMatrix,
     //Calculating contact area
     //********************************
 
-    Matrix& inertia = mpPileElement->GetProperties()[INERTIA];
+    const Matrix& inertia = mpPileElement->GetProperties()[INERTIA];
     double mArea = mpPileElement->GetProperties()[CROSS_AREA];
     double mInertia_x = inertia(0,0);
     double mInertia_y = inertia(1,1);
@@ -495,9 +495,9 @@ void Pile_Kinematic_Linear::CalculateAll( MatrixType& rLeftHandSideMatrix,
     //calculating normal vector
     vPile = vCurentPile - vOriginPileProj;
 
-    noalias( mPileGlobalPoint ) = GetGlobalCoordinates( mpPileElement, mPileGlobalPoint, mPileLocalPoint );
+    noalias( mPileGlobalPoint ) = GetGlobalCoordinates( *mpPileElement, mPileGlobalPoint, mPileLocalPoint );
 
-    noalias( mSoilGlobalPoint ) = GetGlobalCoordinates( mpSoilElement, mSoilGlobalPoint, mSoilLocalPoint );
+    noalias( mSoilGlobalPoint ) = GetGlobalCoordinates( *mpSoilElement, mSoilGlobalPoint, mSoilLocalPoint );
 
     double norm_vPile;
     norm_vPile = sqrt( vPile( 0 ) * vPile( 0 ) + vPile( 1 ) * vPile( 1 ) + vPile(2 ) * vPile( 2 ) );
@@ -1174,7 +1174,7 @@ void Pile_Kinematic_Linear::CalculateDampingMatrix( MatrixType& rDampMatrix, con
     //********************************
     //Calculating contact area
     //********************************
-    Matrix& inertia = mpPileElement->GetProperties()[INERTIA];
+    const Matrix& inertia = mpPileElement->GetProperties()[INERTIA];
     double mArea = mpPileElement->GetProperties()[CROSS_AREA];
     double mInertia_x = inertia(0,0);
     double mInertia_y = inertia(1,1);
@@ -1196,23 +1196,18 @@ void Pile_Kinematic_Linear::CalculateDampingMatrix( MatrixType& rDampMatrix, con
 
     noalias( TPileN ) = ZeroMatrix( 2, 3 );
 
-
     //calculating tangential vectors
-
 
     for ( unsigned int n = 0; n < mpPileElement->GetGeometry().size(); n++ )
     {
-
-
         TPileN( 0, 0 ) += ( mpPileElement->GetGeometry()[n].X())* PileDN( n, 0 );
         TPileN( 0, 1 ) += ( mpPileElement->GetGeometry()[n].Y())* PileDN( n, 0 );
         TPileN( 0, 2 ) += ( mpPileElement->GetGeometry()[n].Z())* PileDN( n, 0 );
         TPileN( 1, 0 ) +=0;
         TPileN( 1, 1 ) +=0;
         TPileN( 1, 2 ) +=0;
-
-
     }
+
     //calculating curent possition of the pile target point
     Vector vCurentPile( 3 );
 
@@ -1220,12 +1215,10 @@ void Pile_Kinematic_Linear::CalculateDampingMatrix( MatrixType& rDampMatrix, con
 
     for ( unsigned int n = 0; n < mpPileElement->GetGeometry().size(); n++ )
     {
-
         {
             vCurentPile[0] += ( mpPileElement->GetGeometry()[n].X())*  PileShapeFunctionValues[n];
             vCurentPile[1] += ( mpPileElement->GetGeometry()[n].Y() )*  PileShapeFunctionValues[n];
             vCurentPile[2] += ( mpPileElement->GetGeometry()[n].Z())*  PileShapeFunctionValues[n];
-
         }
     }
 
@@ -1236,7 +1229,6 @@ void Pile_Kinematic_Linear::CalculateDampingMatrix( MatrixType& rDampMatrix, con
 
     for ( unsigned int n = 0; n < mpPileElement->GetGeometry().size(); n++ )
     {
-
         {
             vOrigintPile( 0 ) +=  (mpPileElement->GetGeometry()[n].X() - mpPileElement->GetGeometry()[n].GetSolutionStepValue( DISPLACEMENT_X, 0 ))*  PileShapeFunctionValues[n];
             vOrigintPile( 1 ) +=   (mpPileElement->GetGeometry()[n].Y() - mpPileElement->GetGeometry()[n].GetSolutionStepValue( DISPLACEMENT_Y, 0 ))*  PileShapeFunctionValues[n];
@@ -1258,9 +1250,9 @@ void Pile_Kinematic_Linear::CalculateDampingMatrix( MatrixType& rDampMatrix, con
 
     }
 
-    noalias( mPileGlobalPoint ) = GetGlobalCoordinates( mpPileElement, mPileGlobalPoint, mPileLocalPoint );
+    noalias( mPileGlobalPoint ) = GetGlobalCoordinates( *mpPileElement, mPileGlobalPoint, mPileLocalPoint );
 
-    noalias( mSoilGlobalPoint ) = GetGlobalCoordinates( mpSoilElement, mSoilGlobalPoint, mSoilLocalPoint );
+    noalias( mSoilGlobalPoint ) = GetGlobalCoordinates( *mpSoilElement, mSoilGlobalPoint, mSoilLocalPoint );
 
     Vector relDispS( 3 );
 
@@ -1289,9 +1281,9 @@ void Pile_Kinematic_Linear::CalculateDampingMatrix( MatrixType& rDampMatrix, con
         TPileN( 1, 2 ) = 0;
     }
 
-    noalias( mPileGlobalPoint ) = GetGlobalCoordinates( mpPileElement, mPileGlobalPoint, mPileLocalPoint );
+    noalias( mPileGlobalPoint ) = GetGlobalCoordinates( *mpPileElement, mPileGlobalPoint, mPileLocalPoint );
 
-    noalias( mSoilGlobalPoint ) = GetGlobalCoordinates( mpSoilElement, mSoilGlobalPoint, mSoilLocalPoint );
+    noalias( mSoilGlobalPoint ) = GetGlobalCoordinates( *mpSoilElement, mSoilGlobalPoint, mSoilLocalPoint );
     Vector relDisp( 3 );
 
     noalias( relDisp ) = ( mPileGlobalPoint - mSoilGlobalPoint );
@@ -1378,9 +1370,9 @@ void Pile_Kinematic_Linear::CalculateDampingMatrix( MatrixType& rDampMatrix, con
 
     }
 
-    noalias( mPileGlobalPoint ) = GetGlobalCoordinates( mpPileElement, mPileGlobalPoint, mPileLocalPoint );
+    noalias( mPileGlobalPoint ) = GetGlobalCoordinates( *mpPileElement, mPileGlobalPoint, mPileLocalPoint );
 
-    noalias( mSoilGlobalPoint ) = GetGlobalCoordinates( mpSoilElement, mSoilGlobalPoint, mSoilLocalPoint );
+    noalias( mSoilGlobalPoint ) = GetGlobalCoordinates( *mpSoilElement, mSoilGlobalPoint, mSoilLocalPoint );
 
 
     Vector vPileNonNormalized = ZeroVector( 3 );
@@ -2182,7 +2174,7 @@ void Pile_Kinematic_Linear::UpdatePileLocalPoint( )
 
         //updating rResult
 
-        mPileGlobalPoint = GetGlobalCoordinates( mpPileElement, mPileGlobalPoint, mPileLocalPoint );
+        mPileGlobalPoint = GetGlobalCoordinates( *mpPileElement, mPileGlobalPoint, mPileLocalPoint );
 
         if ( fabs( deltaXi1 ) < 1e-7 && fabs( deltaXi2 ) < 1e-7 )
         {
@@ -2371,25 +2363,25 @@ Vector Pile_Kinematic_Linear::GetRelativVelocity()
 * @param LocalCoordinates local coordinates
 * @return global coordinates
 */
-PointType& Pile_Kinematic_Linear::GetGlobalCoordinates( Element::Pointer rElement, PointType& rResult, const PointType& LocalCoordinates )
+PointType& Pile_Kinematic_Linear::GetGlobalCoordinates( const Element& rElement, PointType& rResult, const PointType& LocalCoordinates ) const
 {
     noalias( rResult ) = ZeroVector( 3 );
 
-    for ( IndexType i = 0 ; i < rElement->GetGeometry().size() ; i++ )
+    for ( IndexType i = 0 ; i < rElement.GetGeometry().size() ; i++ )
     {
-        double shape_func = rElement->GetGeometry().ShapeFunctionValue( i, LocalCoordinates );
+        double shape_func = rElement.GetGeometry().ShapeFunctionValue( i, LocalCoordinates );
 
         rResult( 0 ) += shape_func *
-                        (( rElement->GetGeometry()[i] ).X0()
-                         + ( rElement->GetGeometry()[i] ).GetSolutionStepValue( DISPLACEMENT_X ) );
+                        (( rElement.GetGeometry()[i] ).X0()
+                         + ( rElement.GetGeometry()[i] ).GetSolutionStepValue( DISPLACEMENT_X ) );
 
         rResult( 1 ) += shape_func *
-                        (( rElement->GetGeometry()[i] ).Y0()
-                         + ( rElement->GetGeometry()[i] ).GetSolutionStepValue( DISPLACEMENT_Y ) );
+                        (( rElement.GetGeometry()[i] ).Y0()
+                         + ( rElement.GetGeometry()[i] ).GetSolutionStepValue( DISPLACEMENT_Y ) );
 
         rResult( 2 ) += shape_func *
-                        (( rElement->GetGeometry()[i] ).Z0()
-                         + ( rElement->GetGeometry()[i] ).GetSolutionStepValue( DISPLACEMENT_Z ) );
+                        (( rElement.GetGeometry()[i] ).Z0()
+                         + ( rElement.GetGeometry()[i] ).GetSolutionStepValue( DISPLACEMENT_Z ) );
     }
 
     return rResult;

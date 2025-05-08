@@ -327,11 +327,6 @@ protected:
 
     virtual void CalculateBBaroperator( MatrixType& B_Operator, const MatrixType& DN_DX, const MatrixType& Bdil_bar ) const;
 
-    virtual unsigned int WorkingSpaceDimension() const
-    {
-        return this->GetGeometry().WorkingSpaceDimension();
-    }
-
     virtual unsigned int GetStrainSize( const unsigned int dim ) const
     {
         return dim * (dim + 1) / 2;
