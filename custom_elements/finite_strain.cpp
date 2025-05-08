@@ -191,7 +191,7 @@ namespace Kratos
 
         //initializing the Jacobian in the reference configuration
         GeometryType::JacobiansType J0;
-        Matrix DeltaPosition(GetGeometry().size(), 3);
+        MatrixType DeltaPosition(GetGeometry().size(), 3);
 
         for ( unsigned int node = 0; node < GetGeometry().size(); ++node )
         {
@@ -241,37 +241,37 @@ namespace Kratos
         const unsigned int g_size = this->GetGSize(dim);
         const unsigned int f_size = this->GetFSize(dim);
 
-        Matrix B_Operator;
+        MatrixType B_Operator;
         if (CalculateResidualVectorFlag)
         {
             B_Operator.resize( strain_size, number_of_nodes * dim, false );
         }
 
-        Matrix Gx;
-        Matrix GX( g_size, number_of_nodes*dim );
+        MatrixType Gx;
+        MatrixType GX( g_size, number_of_nodes*dim );
         if (CalculateStiffnessMatrixFlag)
         {
             Gx.resize( g_size, number_of_nodes * dim, false );
         }
 
-        Matrix F( f_size, f_size );
+        MatrixType F( f_size, f_size );
 
 
-        Matrix A( g_size, g_size );
+        MatrixType A( g_size, g_size );
 
-        Matrix B( dim, dim );
+        MatrixType B( dim, dim );
 
-        Vector StrainVector( strain_size );
+        VectorType StrainVector( strain_size );
 
-        Vector StressVector( strain_size );
+        VectorType StressVector( strain_size );
 
-        Matrix DN_DX( number_of_nodes, dim );
+        MatrixType DN_DX( number_of_nodes, dim );
         Vector N( number_of_nodes );
-        Matrix DN_Dx( number_of_nodes, dim );
+        MatrixType DN_Dx( number_of_nodes, dim );
 
-        Matrix CurrentDisp( number_of_nodes, 3 );
+        MatrixType CurrentDisp( number_of_nodes, 3 );
 
-        Matrix InvJ0(dim, dim), InvJ(dim, dim);
+        MatrixType InvJ0(dim, dim), InvJ(dim, dim);
 
         double DetJ0, DetJ;
 
@@ -280,7 +280,7 @@ namespace Kratos
         #ifdef ENABLE_DEBUG_CONSTITUTIVE_LAW
         if (Id() == DEBUG_ELEMENT_ID)
         {
-            Vector disp_e;
+            VectorType disp_e;
             this->GetValuesVector(disp_e, 0);
             KRATOS_WATCH(disp_e)
         }
@@ -331,7 +331,7 @@ namespace Kratos
         const Matrix& Ncontainer = GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod );
 
         //initializing the Jacobian in the reference configuration
-        Matrix DeltaPosition(GetGeometry().size(), 3);
+        MatrixType DeltaPosition(GetGeometry().size(), 3);
         for ( unsigned int node = 0; node < GetGeometry().size(); ++node )
             noalias( row( DeltaPosition, node ) ) = GetGeometry()[node].Coordinates() - GetGeometry()[node].GetInitialPosition();
 
@@ -344,7 +344,7 @@ namespace Kratos
 
         //calculating actual jacobian
         GeometryType::JacobiansType J;
-        Matrix ShiftedDisp = DeltaPosition - CurrentDisp;
+        MatrixType ShiftedDisp = DeltaPosition - CurrentDisp;
         J = GetGeometry().Jacobian( J, mThisIntegrationMethod, ShiftedDisp );
 
         /////////////////////////////////////////////////////////////////////////
@@ -352,7 +352,7 @@ namespace Kratos
         //// Reference: Souze de Neto, Computational Plasticity, Box 15.1
         /////////////////////////////////////////////////////////////////////////
         const bool is_fbar = GetProperties().Has(IS_FBAR) ? GetProperties()[IS_FBAR] : false;
-        Matrix FO, GOx, Q, A3d, eye, stress_tensor;
+        MatrixType FO, GOx, Q, A3d, eye, stress_tensor;
         SD_MathUtils<double>::Fourth_Order_Tensor Atensor, Qtensor, ItimesI;
         double DetFO;
         if (is_fbar)
@@ -360,29 +360,29 @@ namespace Kratos
             CoordinatesArrayType origin;
             GeometryUtility::ComputeOrigin(GetGeometry().GetGeometryFamily(), origin);
 
-            Matrix J0O, JO;
+            MatrixType J0O, JO;
             J0O = GetGeometry().Jacobian( J0O, origin, DeltaPosition );
             JO = GetGeometry().Jacobian( JO, origin, ShiftedDisp );
 
             Vector NO( number_of_nodes );
             NO = GetGeometry().ShapeFunctionsValues(NO, origin);
 
-            Matrix DN_De_O( number_of_nodes, dim );
+            MatrixType DN_De_O( number_of_nodes, dim );
             DN_De_O = GetGeometry().ShapeFunctionsLocalGradients(DN_De_O, origin);
 
-            Matrix InvJ0O(dim, dim), InvJO(dim, dim);
+            MatrixType InvJ0O(dim, dim), InvJO(dim, dim);
             double DetJ0O, DetJO;
-            Matrix DN_Dx_O( number_of_nodes, dim );
+            MatrixType DN_Dx_O( number_of_nodes, dim );
 
             MathUtils<double>::InvertMatrix( J0O, InvJ0O, DetJ0O );
             MathUtils<double>::InvertMatrix( JO, InvJO, DetJO );
             noalias( DN_Dx_O ) = prod( DN_De_O, InvJO );
 
             // FO
-            Matrix DN_DX_O( number_of_nodes, dim );
+            MatrixType DN_DX_O( number_of_nodes, dim );
             noalias( DN_DX_O ) = prod( DN_De_O, InvJ0O );
 
-            Matrix GOX(g_size, number_of_nodes * dim);
+            MatrixType GOX(g_size, number_of_nodes * dim);
             this->CalculateG( GOX, NO, DN_DX_O );
 
             FO.resize(f_size, f_size, false);
@@ -506,7 +506,7 @@ namespace Kratos
                 CalculateB( B_Operator, N, DN_Dx, CurrentDisp );
 
                 //contribution to external forces
-                const Vector& BodyForce = GetProperties()[BODY_FORCE];
+                const VectorType& BodyForce = GetProperties()[BODY_FORCE];
                 CalculateAndAdd_ExtForceContribution( N, rCurrentProcessInfo, BodyForce, rRightHandSideVector, IntToReferenceWeight );
 
                 //contribution of gravity (if there is)
@@ -522,7 +522,7 @@ namespace Kratos
                 this->CalculateG( Gx, N, DN_Dx, CurrentDisp );
 
                 //contributions to stiffness
-                noalias( rLeftHandSideMatrix ) += prod( trans( Gx ), ( IntToReferenceWeight ) * Matrix( prod( A, Gx ) ) ); //to be optimized to remove the temporary
+                noalias( rLeftHandSideMatrix ) += prod( trans( Gx ), ( IntToReferenceWeight ) * MatrixType( prod( A, Gx ) ) ); //to be optimized to remove the temporary
 
                 if (is_fbar)
                 {
@@ -555,7 +555,7 @@ namespace Kratos
                     SD_MathUtils<double>::TensorToUnsymmetricMatrix(Qtensor, Q);
 
                     //contributions to stiffness
-                    noalias( rLeftHandSideMatrix ) += prod( trans( Gx ), ( IntToReferenceWeight ) * Matrix( prod( Q, GOx - Gx ) ) );
+                    noalias( rLeftHandSideMatrix ) += prod( trans( Gx ), ( IntToReferenceWeight ) * MatrixType( prod( Q, GOx - Gx ) ) );
                 }
             }
         }
@@ -616,7 +616,7 @@ namespace Kratos
         //calculation flags
         bool CalculateStiffnessMatrixFlag = false;
         bool CalculateResidualVectorFlag = true;
-        MatrixType temp = Matrix();
+        MatrixType temp = MatrixType();
 
         CalculateAll( temp, rRightHandSideVector, rCurrentProcessInfo, CalculateStiffnessMatrixFlag, CalculateResidualVectorFlag );
     }
@@ -945,7 +945,7 @@ namespace Kratos
             GetGeometry().Initialize(mThisIntegrationMethod);
             #endif
 
-            const Matrix Ncontainer = GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod );
+            const Matrix& Ncontainer = GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod );
 
             for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); ++i )
             {
@@ -996,7 +996,7 @@ namespace Kratos
             GetGeometry().Initialize(mThisIntegrationMethod);
             #endif
 
-            const Matrix Ncontainer = GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod );
+            const Matrix& Ncontainer = GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod );
 
             for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); i++ )
                 mConstitutiveLawVector[i]->ResetMaterial( GetProperties(), GetGeometry(), row( Ncontainer, i ) );
@@ -1055,7 +1055,7 @@ namespace Kratos
     void FiniteStrain::CalculateAndAdd_ExtForceContribution(
         const Vector& N,
         const ProcessInfo& CurrentProcessInfo,
-        const Vector& BodyForce,
+        const VectorType& BodyForce,
         VectorType& rRightHandSideVector,
         const double weight
     ) const
@@ -1078,7 +1078,7 @@ namespace Kratos
 //************************************************************************************
 //************************************************************************************
 
-    void FiniteStrain::CalculateF( Matrix& F, const Matrix& G_Operator, const Matrix& CurrentDisp ) const
+    void FiniteStrain::CalculateF( MatrixType& F, const MatrixType& G_Operator, const MatrixType& CurrentDisp ) const
     {
         const unsigned int dim = F.size1();
         SD_MathUtils<double>::CalculateF( dim, F, G_Operator, CurrentDisp );
@@ -1087,13 +1087,13 @@ namespace Kratos
 //************************************************************************************
 //************************************************************************************
 
-    void FiniteStrain::CalculateStrain( const Matrix& B, Vector& StrainVector ) const
+    void FiniteStrain::CalculateStrain( const MatrixType& B, VectorType& StrainVector ) const
     {
         KRATOS_TRY
 
         const unsigned int dimension = B.size1();
 
-        Matrix InvB(dimension, dimension);
+        MatrixType InvB(dimension, dimension);
         double DetB;
         MathUtils<double>::InvertMatrix(B, InvB, DetB);
 
@@ -1126,7 +1126,7 @@ namespace Kratos
 //************************************************************************************
 //************************************************************************************
 
-    void FiniteStrain::CalculateB( Matrix& B_Operator, const VectorType& N, const Matrix& DN_DX, const Matrix& CurrentDisp ) const
+    void FiniteStrain::CalculateB( MatrixType& B_Operator, const Vector& N, const MatrixType& DN_DX, const MatrixType& CurrentDisp ) const
     {
         KRATOS_TRY
 
@@ -1139,7 +1139,7 @@ namespace Kratos
 //************************************************************************************
 //************************************************************************************
 
-    void FiniteStrain::CalculateG( Matrix& G_Operator, const VectorType& N, const Matrix& DN_DX ) const
+    void FiniteStrain::CalculateG( MatrixType& G_Operator, const Vector& N, const MatrixType& DN_DX ) const
     {
         KRATOS_TRY
 
@@ -1149,7 +1149,7 @@ namespace Kratos
         KRATOS_CATCH( "" )
     }
 
-    void FiniteStrain::CalculateG( Matrix& G_Operator, const VectorType& N, const Matrix& DN_DX, const Matrix& CurrentDisp ) const
+    void FiniteStrain::CalculateG( MatrixType& G_Operator, const Vector& N, const MatrixType& DN_DX, const MatrixType& CurrentDisp ) const
     {
         this->CalculateG( G_Operator, N, DN_DX );
     }
@@ -1250,7 +1250,7 @@ namespace Kratos
         const Matrix& Ncontainer = GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod );
 
         //initializing the Jacobian in the reference configuration
-        Matrix DeltaPosition(GetGeometry().size(), 3);
+        MatrixType DeltaPosition(GetGeometry().size(), 3);
         for ( unsigned int node = 0; node < GetGeometry().size(); ++node )
             noalias( row( DeltaPosition, node ) ) = GetGeometry()[node].Coordinates() - GetGeometry()[node].GetInitialPosition();
 
@@ -1259,7 +1259,7 @@ namespace Kratos
         double DetJ0;
 
         //Current displacements
-        Matrix CurrentDisp(GetGeometry().size(), 3);
+        MatrixType CurrentDisp(GetGeometry().size(), 3);
         for ( unsigned int node = 0; node < GetGeometry().size(); ++node )
             noalias( row( CurrentDisp, node ) ) = GetGeometry()[node].GetSolutionStepValue( DISPLACEMENT );
 
@@ -1318,7 +1318,7 @@ namespace Kratos
 //************************************************************************************
 //************************************************************************************
 
-    void FiniteStrain::SetValuesOnIntegrationPoints( const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo )
+    void FiniteStrain::SetValuesOnIntegrationPoints( const Variable<VectorType>& rVariable, std::vector<VectorType>& rValues, const ProcessInfo& rCurrentProcessInfo )
     {
         //   std::cout << mConstitutiveLawVector[0] << std::endl;
         //  if (rVariable==INSITU_STRESS)
@@ -1350,7 +1350,7 @@ namespace Kratos
 //************************************************************************************
 //************************************************************************************
 
-    void FiniteStrain::SetValuesOnIntegrationPoints( const Variable<Matrix>& rVariable, std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo )
+    void FiniteStrain::SetValuesOnIntegrationPoints( const Variable<MatrixType>& rVariable, std::vector<MatrixType>& rValues, const ProcessInfo& rCurrentProcessInfo )
     {
         for ( unsigned int PointNumber = 0; PointNumber < GetGeometry().IntegrationPoints( mThisIntegrationMethod ).size(); PointNumber++ )
         {
@@ -1464,17 +1464,17 @@ namespace Kratos
         const unsigned int g_size = this->GetGSize(dim);
         const unsigned int f_size = this->GetFSize(dim);
 
-        Matrix F( f_size, f_size );
+        MatrixType F( f_size, f_size );
 
-        Matrix DN_DX( number_of_nodes, dim );
+        MatrixType DN_DX( number_of_nodes, dim );
 
-        Matrix GX( g_size, number_of_nodes*dim );
+        MatrixType GX( g_size, number_of_nodes*dim );
 
         Vector N( number_of_nodes );
 
-        Matrix CurrentDisp( number_of_nodes, 3 );
+        MatrixType CurrentDisp( number_of_nodes, 3 );
 
-        Matrix InvJ0(dim, dim), InvJ(dim, dim);
+        MatrixType InvJ0(dim, dim), InvJ(dim, dim);
 
         double DetJ0, DetJ;
 
@@ -1491,7 +1491,7 @@ namespace Kratos
         const GeometryType::ShapeFunctionsGradientsType& DN_De = GetGeometry().ShapeFunctionsLocalGradients( mThisIntegrationMethod );
 
         //initializing the Jacobian in the reference configuration
-        Matrix DeltaPosition(GetGeometry().size(), 3);
+        MatrixType DeltaPosition(GetGeometry().size(), 3);
         for ( unsigned int node = 0; node < GetGeometry().size(); ++node )
             noalias( row( DeltaPosition, node ) ) = GetGeometry()[node].Coordinates() - GetGeometry()[node].GetInitialPosition();
 
@@ -1511,7 +1511,7 @@ namespace Kratos
         J0 = GetGeometry().Jacobian( J0, mThisIntegrationMethod, DeltaPosition );
 
         //calculating actual jacobian
-        Matrix ShiftedDisp = DeltaPosition - CurrentDisp;
+        MatrixType ShiftedDisp = DeltaPosition - CurrentDisp;
 
         #ifdef ENABLE_DEBUG_CONSTITUTIVE_LAW
         // KRATOS_WATCH(DeltaPosition)
@@ -1526,20 +1526,20 @@ namespace Kratos
 
         const bool is_fbar = GetProperties().Has(IS_FBAR) ? GetProperties()[IS_FBAR] : false;
 
-        Matrix FO;
+        MatrixType FO;
         double DetFO, DetF;
         if (is_fbar)
         {
             CoordinatesArrayType origin;
             GeometryUtility::ComputeOrigin(GetGeometry().GetGeometryFamily(), origin);
 
-            Matrix J0O, JO;
+            MatrixType J0O, JO;
             J0O = GetGeometry().Jacobian( J0O, origin, DeltaPosition );
             JO = GetGeometry().Jacobian( JO, origin, ShiftedDisp );
 
-            Matrix InvJ0O(dim, dim), InvJO(dim, dim);
+            MatrixType InvJ0O(dim, dim), InvJO(dim, dim);
             double DetJ0O, DetJO;
-            Matrix DN_Dx_O( number_of_nodes, dim );
+            MatrixType DN_Dx_O( number_of_nodes, dim );
 
             MathUtils<double>::InvertMatrix( J0O, InvJ0O, DetJ0O );
 
@@ -1547,13 +1547,13 @@ namespace Kratos
             Vector NO( number_of_nodes );
             NO = GetGeometry().ShapeFunctionsValues(NO, origin);
 
-            Matrix DN_De_O( number_of_nodes, dim );
+            MatrixType DN_De_O( number_of_nodes, dim );
             DN_De_O = GetGeometry().ShapeFunctionsLocalGradients(DN_De_O, origin);
 
-            Matrix DN_DX_O( number_of_nodes, dim );
+            MatrixType DN_DX_O( number_of_nodes, dim );
             noalias( DN_DX_O ) = prod( DN_De_O, InvJ0O );
 
-            Matrix GOX(g_size, number_of_nodes * dim);
+            MatrixType GOX(g_size, number_of_nodes * dim);
             this->CalculateG( GOX, NO, DN_DX_O );
 
             FO.resize(f_size, f_size, false);
@@ -1694,7 +1694,7 @@ namespace Kratos
 //************************************************************************************
 //************************************************************************************
 
-    void FiniteStrain::CalculateOnIntegrationPoints( const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo )
+    void FiniteStrain::CalculateOnIntegrationPoints( const Variable<VectorType>& rVariable, std::vector<VectorType>& rValues, const ProcessInfo& rCurrentProcessInfo )
     {
         const unsigned int size = GetGeometry().IntegrationPoints( mThisIntegrationMethod ).size();
         const unsigned int dim = GetGeometry().WorkingSpaceDimension();
@@ -1766,8 +1766,8 @@ namespace Kratos
 //************************************************************************************
 //************************************************************************************
 
-    void FiniteStrain::CalculateOnIntegrationPoints( const Variable<Matrix>& rVariable,
-            std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo )
+    void FiniteStrain::CalculateOnIntegrationPoints( const Variable<MatrixType>& rVariable,
+            std::vector<MatrixType>& rValues, const ProcessInfo& rCurrentProcessInfo )
     {
         KRATOS_TRY
 
@@ -1776,21 +1776,21 @@ namespace Kratos
         const unsigned int g_size = this->GetGSize(dim);
         const unsigned int f_size = this->GetFSize(dim);
 
-        Matrix F( f_size, f_size );
+        MatrixType F( f_size, f_size );
 
-        Matrix strain_tensor( f_size, f_size );
+        MatrixType strain_tensor( f_size, f_size );
 
-        Matrix DN_DX( number_of_nodes, dim );
+        MatrixType DN_DX( number_of_nodes, dim );
 
-        Matrix GX( g_size, number_of_nodes*dim );
+        MatrixType GX( g_size, number_of_nodes*dim );
 
         Vector N( number_of_nodes );
 
-        Matrix CurrentDisp( number_of_nodes, 3 );
+        MatrixType CurrentDisp( number_of_nodes, 3 );
 
-        Matrix InvJ0(dim, dim), InvJ(dim, dim);
+        MatrixType InvJ0(dim, dim), InvJ(dim, dim);
 
-        const Matrix eye = IdentityMatrix(f_size);
+        const MatrixType eye = IdentityMatrixType(f_size);
 
         double DetJ0, DetJ;
 
@@ -1807,7 +1807,7 @@ namespace Kratos
         const GeometryType::ShapeFunctionsGradientsType& DN_De = GetGeometry().ShapeFunctionsLocalGradients( mThisIntegrationMethod );
 
         //initializing the Jacobian in the reference configuration
-        Matrix DeltaPosition(GetGeometry().size(), 3);
+        MatrixType DeltaPosition(GetGeometry().size(), 3);
         for ( unsigned int node = 0; node < GetGeometry().size(); ++node )
             noalias( row( DeltaPosition, node ) ) = GetGeometry()[node].Coordinates() - GetGeometry()[node].GetInitialPosition();
 
@@ -1819,7 +1819,7 @@ namespace Kratos
         J0 = GetGeometry().Jacobian( J0, mThisIntegrationMethod, DeltaPosition );
 
         //calculating actual jacobian
-        Matrix ShiftedDisp = DeltaPosition - CurrentDisp;
+        MatrixType ShiftedDisp = DeltaPosition - CurrentDisp;
 
         GeometryType::JacobiansType J;
         J = GetGeometry().Jacobian( J, mThisIntegrationMethod, ShiftedDisp );
@@ -1829,20 +1829,20 @@ namespace Kratos
 
         const bool is_fbar = GetProperties().Has(IS_FBAR) ? GetProperties()[IS_FBAR] : false;
 
-        Matrix FO;
+        MatrixType FO;
         double DetFO, DetF;
         if (is_fbar)
         {
             CoordinatesArrayType origin;
             GeometryUtility::ComputeOrigin(GetGeometry().GetGeometryFamily(), origin);
 
-            Matrix J0O, JO;
+            MatrixType J0O, JO;
             J0O = GetGeometry().Jacobian( J0O, origin, DeltaPosition );
             JO = GetGeometry().Jacobian( JO, origin, ShiftedDisp );
 
-            Matrix InvJ0O(dim, dim), InvJO(dim, dim);
+            MatrixType InvJ0O(dim, dim), InvJO(dim, dim);
             double DetJ0O, DetJO;
-            Matrix DN_Dx_O( number_of_nodes, dim );
+            MatrixType DN_Dx_O( number_of_nodes, dim );
 
             MathUtils<double>::InvertMatrix( J0O, InvJ0O, DetJ0O );
 
@@ -1850,13 +1850,13 @@ namespace Kratos
             Vector NO( number_of_nodes );
             NO = GetGeometry().ShapeFunctionsValues(NO, origin);
 
-            Matrix DN_De_O( number_of_nodes, dim );
+            MatrixType DN_De_O( number_of_nodes, dim );
             DN_De_O = GetGeometry().ShapeFunctionsLocalGradients(DN_De_O, origin);
 
-            Matrix DN_DX_O( number_of_nodes, dim );
+            MatrixType DN_DX_O( number_of_nodes, dim );
             noalias( DN_DX_O ) = prod( DN_De_O, InvJ0O );
 
-            Matrix GOX(g_size, number_of_nodes * dim);
+            MatrixType GOX(g_size, number_of_nodes * dim);
             this->CalculateG( GOX, NO, DN_DX_O );
 
             FO.resize(f_size, f_size, false);
@@ -1923,7 +1923,7 @@ namespace Kratos
                 if ( rValues[PointNumber].size1() != f_size || rValues[PointNumber].size2() != f_size )
                     rValues[PointNumber].resize( f_size, f_size, false );
 
-                Matrix F3d(3, 3);
+                MatrixType F3d(3, 3);
                 if (f_size == 2)
                 {
                     for (unsigned int i = 0; i < 2; ++i)
@@ -1935,7 +1935,7 @@ namespace Kratos
                     noalias(F3d) = F;
 
                 //strain calculation
-                Matrix Aux( 3, 3 );
+                MatrixType Aux( 3, 3 );
                 if (rVariable == RIGHT_STRETCH_TENSOR)
                     noalias( Aux ) = prod( trans( F3d ), F3d );
                 else if (rVariable == LEFT_STRETCH_TENSOR)
@@ -1943,17 +1943,17 @@ namespace Kratos
 
                 //polar decomposition
                 std::vector<double> pri(3);
-                std::vector<Matrix> eigprj(3);
+                std::vector<MatrixType> eigprj(3);
                 EigenUtility::calculate_principle_stresses( Aux(0, 0), Aux(1, 1), Aux(2, 2),
                         Aux(0, 1), Aux(1, 2), Aux(0, 2),
                         pri[0], pri[1], pri[2], eigprj[0], eigprj[1], eigprj[2]);
 
-                Matrix stretch_tensor(3, 3);
+                MatrixType stretch_tensor(3, 3);
                 SD_MathUtils<double>::ComputeIsotropicTensorFunction(EigenUtility::sqrt, stretch_tensor, pri, eigprj);
 
                 if (f_size == 2)
                 {
-                    Matrix& value = rValues[PointNumber];
+                    MatrixType& value = rValues[PointNumber];
                     for (unsigned int i = 0; i < 2; ++i)
                         for (unsigned int j = 0; j < 2; ++j)
                             value(i, j) = stretch_tensor(i, j);
@@ -1985,7 +1985,7 @@ namespace Kratos
 //************************************************************************************
 //************************************************************************************
 
-    void FiniteStrain::GetValuesVector( Vector& values, int Step ) const
+    void FiniteStrain::GetValuesVector( VectorType& values, int Step ) const
     {
         const unsigned int number_of_nodes = GetGeometry().size();
         const unsigned int dim = GetGeometry().WorkingSpaceDimension();
@@ -2008,7 +2008,7 @@ namespace Kratos
 //************************************************************************************
 //************************************************************************************
 
-    void FiniteStrain::GetFirstDerivativesVector( Vector& values, int Step ) const
+    void FiniteStrain::GetFirstDerivativesVector( VectorType& values, int Step ) const
     {
         const unsigned int number_of_nodes = GetGeometry().size();
         const unsigned int dim = GetGeometry().WorkingSpaceDimension();
@@ -2030,7 +2030,7 @@ namespace Kratos
 //************************************************************************************
 //************************************************************************************
 
-    void FiniteStrain::GetSecondDerivativesVector( Vector& values, int Step ) const
+    void FiniteStrain::GetSecondDerivativesVector( VectorType& values, int Step ) const
     {
         const unsigned int number_of_nodes = GetGeometry().size();
         const unsigned int dim = GetGeometry().WorkingSpaceDimension();

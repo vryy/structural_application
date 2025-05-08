@@ -136,6 +136,8 @@ public:
 
     typedef typename BaseType::ZeroMatrixType ZeroMatrixType;
 
+    typedef typename BaseType::IdentityMatrixType IdentityMatrixType;
+
     typedef typename BaseType::GeometryType GeometryType;
 
     typedef typename BaseType::PropertiesType PropertiesType;
@@ -199,11 +201,11 @@ public:
 
     void CalculateDampingMatrix(MatrixType& rDampingMatrix, const ProcessInfo& rCurrentProcessInfo) override;
 
-    void SetValuesOnIntegrationPoints( const Variable<double>& rVariable, const std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo ) override;
+    void SetValuesOnIntegrationPoints( const Variable<DataType>& rVariable, const std::vector<DataType>& rValues, const ProcessInfo& rCurrentProcessInfo ) override;
 
     void SetValuesOnIntegrationPoints( const Variable<int>& rVariable, const std::vector<int>& rValues, const ProcessInfo& rCurrentProcessInfo ) override;
 
-    void SetValuesOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo);
+    void SetValuesOnIntegrationPoints(const Variable<VectorType>& rVariable, std::vector<VectorType>& rValues, const ProcessInfo& rCurrentProcessInfo);
 
     void SetValuesOnIntegrationPoints(const Variable<MatrixType>& rVariable, std::vector<MatrixType>& rValues, const ProcessInfo& rCurrentProcessInfo);
 
@@ -213,13 +215,13 @@ public:
 
     void CalculateOnIntegrationPoints(const Variable<array_1d<double, 3> >& rVariable, std::vector<array_1d<double, 3> >& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
-    void CalculateOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateOnIntegrationPoints(const Variable<VectorType>& rVariable, std::vector<VectorType>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateOnIntegrationPoints(const Variable<MatrixType>& rVariable, std::vector<MatrixType>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
-    void GetValuesVector(Vector& values, int Step = 0) const override;
-    void GetFirstDerivativesVector(Vector& values, int Step = 0) const override;
-    void GetSecondDerivativesVector(Vector& values, int Step = 0) const override;
+    void GetValuesVector(VectorType& values, int Step = 0) const override;
+    void GetFirstDerivativesVector(VectorType& values, int Step = 0) const override;
+    void GetSecondDerivativesVector(VectorType& values, int Step = 0) const override;
 
     //************************************************************************************
     //************************************************************************************
@@ -309,19 +311,19 @@ protected:
     }
 
     /// Calculate the B operator
-    virtual void CalculateB( MatrixType& B_Operator, const VectorType& N, const MatrixType& DN_DX, const MatrixType& CurrentDisp ) const;
+    virtual void CalculateB( MatrixType& B_Operator, const Vector& N, const MatrixType& DN_DX, const MatrixType& CurrentDisp ) const;
 
     /// Calculate the G operator
-    virtual void CalculateG( MatrixType& G_Operator, const VectorType& N, const MatrixType& DN_DX ) const;
+    virtual void CalculateG( MatrixType& G_Operator, const Vector& N, const MatrixType& DN_DX ) const;
 
     /// Calculate the G operator
-    virtual void CalculateG( MatrixType& G_Operator, const VectorType& N, const MatrixType& DN_DX, const MatrixType& CurrentDisp ) const;
+    virtual void CalculateG( MatrixType& G_Operator, const Vector& N, const MatrixType& DN_DX, const MatrixType& CurrentDisp ) const;
 
     /// Calculate the deformation gradient
     virtual void CalculateF( MatrixType& F, const MatrixType& G_Operator, const MatrixType& CurrentDisp ) const;
 
     /// Get the integration weight
-    virtual double GetIntegrationWeight( double Weight, const VectorType& N, const MatrixType& CurrentDisp ) const
+    virtual double GetIntegrationWeight( double Weight, const Vector& N, const MatrixType& CurrentDisp ) const
     {
         return Weight;
     }
@@ -336,18 +338,18 @@ protected:
                               bool CalculateStiffnessMatrixFlag,
                               bool CalculateResidualVectorFlag);
 
-    void AddBodyForcesToRHS( Vector& R, const VectorType& N_DISP, const double Weight ) const;
+    void AddBodyForcesToRHS( VectorType& R, const Vector& N_DISP, const double Weight ) const;
 
     void CalculateAndAdd_ExtForceContribution(
         const Vector& N,
         const ProcessInfo& CurrentProcessInfo,
-        const Vector& BodyForce,
+        const VectorType& BodyForce,
         VectorType& mResidualVector,
         const double weight
     ) const;
 
     /// Calculate Almansi strain, providing B
-    virtual void CalculateStrain( const MatrixType& B, Vector& StrainVector ) const;
+    virtual void CalculateStrain( const MatrixType& B, VectorType& StrainVector ) const;
 
     ///@}
     ///@name Protected Operations
@@ -386,7 +388,7 @@ private:
     ///@{
 
     void CalculateBodyForces(
-        Vector& BodyForce,
+        VectorType& BodyForce,
         const ProcessInfo& CurrentProcessInfo
     );
 
