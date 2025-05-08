@@ -263,6 +263,8 @@ KratosStructuralApplication::KratosStructuralApplication()
     //
     , STRUCTURAL_APPLICATION_CREATE_ELEMENT_ALL_2D_GEOMETRIES(TotalLagrangianAxisymmetric)
     //
+    , STRUCTURAL_APPLICATION_CREATE_ELEMENT_ALL_GEOMETRIES(UpdatedLagrangian)
+    //
     , STRUCTURAL_APPLICATION_CREATE_ELEMENT_ALL_GEOMETRIES(FiniteStrain)
     //
     , STRUCTURAL_APPLICATION_CREATE_ELEMENT_ALL_2D_GEOMETRIES(FiniteStrainAxisymmetric)
@@ -483,6 +485,8 @@ void KratosStructuralApplication::Register()
     // KRATOS_REGISTER_ELEMENT( "TotalLagrangian", mTotalLagrangian3D4N )
 
     STRUCTURAL_APPLICATION_REGISTER_ELEMENT_ALL_2D_GEOMETRIES(TotalLagrangianAxisymmetric)
+
+    STRUCTURAL_APPLICATION_REGISTER_ELEMENT_ALL_GEOMETRIES(UpdatedLagrangian)
 
     KRATOS_REGISTER_ELEMENT( "BeamElement3D2N", mBeamElement3D2N )
     KRATOS_REGISTER_ELEMENT( "BeamElement3D3N", mBeamElement3D3N )

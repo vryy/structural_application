@@ -92,6 +92,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #else
     #include "custom_elements/total_lagrangian.h"
     #include "custom_elements/total_lagrangian_axisymmetric.h"
+    #include "custom_elements/updated_lagrangian.h"
     #include "custom_elements/finite_strain.h"
     #include "custom_elements/finite_strain_axisymmetric.h"
     #include "custom_elements/beam_element.h"
@@ -372,6 +373,7 @@ private:
 
     STRUCTURAL_APPLICATION_DEFINE_ELEMENT_ALL_2D_GEOMETRIES(TotalLagrangianAxisymmetric)
 
+    STRUCTURAL_APPLICATION_DEFINE_ELEMENT_ALL_GEOMETRIES(UpdatedLagrangian)
 
     STRUCTURAL_APPLICATION_DEFINE_ELEMENT_ALL_GEOMETRIES(FiniteStrain)
 
