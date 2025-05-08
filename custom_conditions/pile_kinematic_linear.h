@@ -172,8 +172,8 @@ namespace Kratos
 
             PointType mPileLocalPoint;
             PointType mSoilLocalPoint;
-            Element::Pointer mpPileElement;
-            Element::Pointer mpSoilElement;
+            Element::ConstPointer mpPileElement;
+            Element::ConstPointer mpSoilElement;
             PointType mPileGlobalPoint;
             PointType mSoilGlobalPoint;
 //            Vector mTPileGlobalVector;
@@ -205,7 +205,7 @@ namespace Kratos
 
             Vector NormalVector( Element::Pointer rElement, const GeometryType::CoordinatesArrayType& LocalPoint );
 
-            PointType& GetGlobalCoordinates( Element::Pointer rElement, PointType& rResult, const PointType& LocalCoordinates );
+            PointType& GetGlobalCoordinates( const Element& rElement, PointType& rResult, const PointType& LocalCoordinates ) const;
 
             Matrix TangentialVectors( Element::Pointer rElement,
                                       const GeometryType::CoordinatesArrayType& LocalPoint );

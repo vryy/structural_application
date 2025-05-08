@@ -422,6 +422,9 @@ private:
         Stresses.resize( integration_points.size() );
         ie->CalculateOnIntegrationPoints( STRESSES, Stresses, rCurrentProcessInfo );
 
+        typedef decltype(*ie) ElementType;
+        const auto& rProperties = static_cast<const ElementType&>(*ie).GetProperties();
+
         for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
         {
             double weight = integration_points[PointNumber].Weight();
@@ -442,7 +445,7 @@ private:
 
             noalias( RHSPart1 ) += weight * DetJ0[PointNumber] * prod( trans( Ebart_Operator ), Stresses[PointNumber] );
 
-            Vector BodyForce = ie->GetProperties()[BODY_FORCE];
+            Vector BodyForce = rProperties[BODY_FORCE];
             BodyForce.resize( dim, true );
 
             //check for gravity
@@ -456,8 +459,8 @@ private:
             }
             else
             {
-                noalias( gravity ) = ie->GetProperties()[GRAVITY];
-                density = ie->GetProperties()[DENSITY];
+                noalias( gravity ) = rProperties[GRAVITY];
+                density = rProperties[DENSITY];
             }
 
             noalias( BodyForce ) += density * gravity;
