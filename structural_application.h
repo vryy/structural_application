@@ -77,8 +77,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
     #include "custom_elements/kinematic_linear.h"
     #include "custom_elements/kinematic_linear_axisymmetric.h"
     #include "custom_elements/total_lagrangian.h"
-    #include "custom_conditions/pointforce3D.h"
-    #include "custom_conditions/pointforce2D.h"
+    #include "custom_conditions/point_force.h"
     #include "custom_conditions/pointmoment3D.h"
     #include "custom_conditions/face2D.h"
     #include "custom_conditions/face3D.h"
@@ -122,8 +121,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
     #include "custom_conditions/line_pressure.h"
     #include "custom_conditions/line_pressure_distributed.h"
     #include "custom_conditions/line_traction.h"
-    #include "custom_conditions/pointforce3D.h"
-    #include "custom_conditions/pointforce2D.h"
+    #include "custom_conditions/point_force.h"
     #include "custom_conditions/point_point_joint_condition.h"
     #include "custom_conditions/point_point_lagrange_condition.h"
     #include "custom_conditions/elastic_constraint.h"
@@ -315,8 +313,8 @@ private:
     const KinematicLinearAxisymmetric mKinematicLinearAxisymmetric8N;
     const KinematicLinearAxisymmetric mKinematicLinearAxisymmetric9N;
 
-    const PointForce2D  mPointForce2D;
-    const PointForce3D  mPointForce3D;
+    const PointForce2D mPointForce2D;
+    const PointForce3D mPointForce3D;
     const Face2D  mFace2D;
     const Face3D  mFace3D3N;
     const Face3D  mFace3D6N;
@@ -451,8 +449,10 @@ private:
     const FaceForce3D mFaceForce3D4N;
     const FaceForce3D mFaceForce3D8N;
     const FaceForce3D mFaceForce3D9N;
-    const PointForce3D  mPointForce3D;
-    const PointForce2D  mPointForce2D;
+    const PointForce3D mPointForce3D;
+    const ComplexPointForce3D mComplexPointForce3D;
+    const PointForce2D mPointForce2D;
+    const ComplexPointForce2D mComplexPointForce2D;
     const ElasticConstraint mElasticPointConstraint;
     const ElasticConstraint mElasticLineConstraint2N;
     const ElasticConstraint mElasticLineConstraint3N;

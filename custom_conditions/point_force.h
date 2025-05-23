@@ -7,8 +7,8 @@
 //
 
 
-#if !defined(KRATOS_PointForce3D_CONDITION_H_INCLUDED )
-#define  KRATOS_PointForce3D_CONDITION_H_INCLUDED
+#if !defined(KRATOS_POINT_FORCE_CONDITION_H_INCLUDED )
+#define  KRATOS_POINT_FORCE_CONDITION_H_INCLUDED
 
 
 
@@ -50,30 +50,59 @@ namespace Kratos
 /// Short class definition.
 /** Detail class definition.
 */
-class PointForce3D
-    : public Condition
+template<int TDim, typename TNodeType>
+class PointForce : public BaseCondition<TNodeType>
 {
 public:
     ///@name Type Definitions
     ///@{
 
+    typedef BaseCondition<TNodeType> BaseType;
+
+    typedef typename BaseType::ConditionType ConditionType;
+
+    typedef GeometryData::IntegrationMethod IntegrationMethod;
+
+    typedef typename BaseType::NodesArrayType NodesArrayType;
+
+    typedef typename BaseType::EquationIdVectorType EquationIdVectorType;
+
+    typedef typename BaseType::DofsVectorType DofsVectorType;
+
+    typedef typename BaseType::IndexType IndexType;
+
+    typedef typename BaseType::DataType DataType;
+
+    typedef typename BaseType::ValueType ValueType;
+
+    typedef typename BaseType::VectorType VectorType;
+
+    typedef typename BaseType::ZeroVectorType ZeroVectorType;
+
+    typedef typename BaseType::MatrixType MatrixType;
+
+    typedef typename BaseType::ZeroMatrixType ZeroMatrixType;
+
+    typedef typename BaseType::GeometryType GeometryType;
+
+    typedef typename BaseType::PropertiesType PropertiesType;
+
     /// Counted pointer of PointForce3D
-    KRATOS_CLASS_POINTER_DEFINITION(PointForce3D);
+    KRATOS_CLASS_POINTER_DEFINITION(PointForce);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    PointForce3D(IndexType NewId, GeometryType::Pointer pGeometry);
-    PointForce3D(IndexType NewId, GeometryType::Pointer pGeometry,
-                 PropertiesType::Pointer pProperties);
+    PointForce(IndexType NewId, typename GeometryType::Pointer pGeometry);
+    PointForce(IndexType NewId, typename GeometryType::Pointer pGeometry,
+                     typename PropertiesType::Pointer pProperties);
 
-    PointForce3D( IndexType NewId, GeometryType::PointType::Pointer const& pNode, PropertiesType::Pointer pProperties );
+    PointForce( IndexType NewId, typename GeometryType::PointType::Pointer const& pNode, typename PropertiesType::Pointer pProperties );
 
     /// Destructor.
-    virtual ~PointForce3D();
-
+    ~PointForce() override;
 
     ///@}
     ///@name Operators
@@ -84,11 +113,11 @@ public:
     ///@name Operations
     ///@{
 
-    Condition::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,
-                                PropertiesType::Pointer pProperties) const final;
+    typename BaseType::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,
+                                      typename PropertiesType::Pointer pProperties) const final;
 
-    Condition::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom,
-                                PropertiesType::Pointer pProperties) const final;
+    typename BaseType::Pointer Create(IndexType NewId, typename GeometryType::Pointer pGeom,
+                                      typename PropertiesType::Pointer pProperties) const final;
 
     void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType&
                               rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) final;
@@ -125,19 +154,19 @@ public:
     /// Turn back information as a string.
     std::string Info() const final
     {
-        return "PointForce";
+        return "PointForce3D";
     }
 
     /// Print information about this object.
     void PrintInfo(std::ostream& rOStream) const final
     {
-        rOStream << "PointForce3D #" << Id();
+        rOStream << "PointForce3D #" << this->Id();
     }
 
     /// Print object's data.
     void PrintData(std::ostream& rOStream) const final
     {
-        Condition::PrintData(rOStream);
+        BaseType::PrintData(rOStream);
     }
 
     ///@}
@@ -169,16 +198,16 @@ protected:
     friend class Serializer;
 
     // A private default constructor necessary for serialization
-    PointForce3D() {};
+    PointForce() {};
 
     void save(Serializer& rSerializer) const override
     {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Condition );
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseType );
     }
 
     void load(Serializer& rSerializer) override
     {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Condition );
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseType );
     }
 
     ///@}
@@ -208,10 +237,10 @@ private:
     ///@{
 
 
-
     ///@}
     ///@name Private Operators
     ///@{
+
 
     ///@}
     ///@name Private Operations
@@ -233,46 +262,34 @@ private:
     ///@{
 
     /// Assignment operator.
-    //PointForce3D& operator=(const PointForce3D& rOther);
+    //PointForce& operator=(const PointForce& rOther);
 
     /// Copy constructor.
-    //PointForce3D(const PointForce3D& rOther);
-
+    //PointForce(const PointForce& rOther);
 
     ///@}
 
-}; // Class PointForce3D
+}; // Class PointForce
 
 ///@}
 
 ///@name Type Definitions
 ///@{
 
+typedef PointForce<2, RealNode> PointForce2D;
+typedef PointForce<2, ComplexNode> ComplexPointForce2D;
+typedef PointForce<2, GComplexNode> GComplexPointForce2D;
+typedef PointForce<3, RealNode> PointForce3D;
+typedef PointForce<3, ComplexNode> ComplexPointForce3D;
+typedef PointForce<3, GComplexNode> GComplexPointForce3D;
 
 ///@}
 ///@name Input and output
 ///@{
 
 
-/// input stream function
-/*  inline std::istream& operator >> (std::istream& rIStream,
-				    PointForce3D& rThis);
-*/
-/// output stream function
-/*  inline std::ostream& operator << (std::ostream& rOStream,
-				    const PointForce3D& rThis)
-    {
-      rThis.PrintInfo(rOStream);
-      rOStream << std::endl;
-      rThis.PrintData(rOStream);
-
-      return rOStream;
-    }*/
 ///@}
 
 }  // namespace Kratos.
 
-#endif // KRATOS_PointForce3D_CONDITION_H_INCLUDED  defined
-
-
-
+#endif // KRATOS_POINT_FORCE_CONDITION_H_INCLUDED  defined

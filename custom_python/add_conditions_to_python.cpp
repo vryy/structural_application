@@ -63,7 +63,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/define.h"
 #include "includes/condition.h"
 #include "custom_python/add_conditions_to_python.h"
-#include "custom_conditions/pointforce3D.h"
+#include "custom_conditions/point_force.h"
 #include "custom_conditions/faceforce3D.h"
 #include "custom_conditions/point_point_joint_condition.h"
 #include "custom_conditions/face_face_joint_condition.h"

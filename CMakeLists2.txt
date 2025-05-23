@@ -46,8 +46,7 @@ set( KRATOS_STRUCTURAL_APPLICATION_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/constitutive_laws/hypoelastic_finite_strain_bridging_constitutive_law.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/constitutive_laws/hypoelastic_finite_strain_bridging_constitutive_law_dc.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/dummy_condition.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/pointforce2D.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/pointforce3D.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/point_force.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/face2D.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/face3D.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/face_pressure3D.cpp
