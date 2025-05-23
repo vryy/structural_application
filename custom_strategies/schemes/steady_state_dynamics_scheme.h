@@ -298,6 +298,7 @@ protected:
     /*@} */
     /**@name Protected LifeCycle */
     /*@{ */
+    /*@} */
 
 private:
     /**@name Static Member Variables */
@@ -352,6 +353,7 @@ private:
     /*@} */
     /**@name Un accessible methods */
     /*@{ */
+    /*@} */
 }; /* class SteadyStateDynamicsScheme */
 
 }  /* namespace Kratos.*/
