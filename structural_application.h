@@ -470,6 +470,11 @@ private:
     const ElasticFaceSprings mElasticFaceSprings4N;
     const ElasticFaceSprings mElasticFaceSprings8N;
     const ElasticFaceSprings mElasticFaceSprings9N;
+    const ComplexElasticFaceSprings mComplexElasticFaceSprings3N;
+    const ComplexElasticFaceSprings mComplexElasticFaceSprings6N;
+    const ComplexElasticFaceSprings mComplexElasticFaceSprings4N;
+    const ComplexElasticFaceSprings mComplexElasticFaceSprings8N;
+    const ComplexElasticFaceSprings mComplexElasticFaceSprings9N;
     const PointPointJointCondition mPointPointJointCondition;
     const PointPointLagrangeCondition mPointPointLagrangeCondition;
     const NitscheIsotropicConstraint mNitscheIsotropicConstraint2D2N;
