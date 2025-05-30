@@ -65,43 +65,51 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace Kratos
 {
+
 //************************************************************************************
 //************************************************************************************
-ElasticLineSprings::ElasticLineSprings(IndexType NewId, GeometryType::Pointer pGeometry)
-    : Condition(NewId, pGeometry)
+template<typename TNodeType>
+BaseElasticLineSprings<TNodeType>::BaseElasticLineSprings(IndexType NewId, typename GeometryType::Pointer pGeometry)
+    : BaseType(NewId, pGeometry)
 {
     //DO NOT ADD DOFS HERE!!!
 }
 
-ElasticLineSprings::ElasticLineSprings(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
-    : Condition(NewId, pGeometry, pProperties)
+template<typename TNodeType>
+BaseElasticLineSprings<TNodeType>::BaseElasticLineSprings(IndexType NewId, typename GeometryType::Pointer pGeometry, typename PropertiesType::Pointer pProperties)
+    : BaseType(NewId, pGeometry, pProperties)
 {
 }
 
-ElasticLineSprings::ElasticLineSprings(IndexType NewId, Node<3>::Pointer const& pNode, PropertiesType::Pointer pProperties)
-    : Condition(NewId, GeometryType::Pointer( new Point3D<Node<3> >( pNode ) ), pProperties)
+template<typename TNodeType>
+BaseElasticLineSprings<TNodeType>::BaseElasticLineSprings(IndexType NewId, typename TNodeType::Pointer const& pNode, typename PropertiesType::Pointer pProperties)
+    : BaseType(NewId, typename GeometryType::Pointer( new Point3D<TNodeType>( pNode ) ), pProperties)
 {
 }
 
-ElasticLineSprings::~ElasticLineSprings()
+template<typename TNodeType>
+BaseElasticLineSprings<TNodeType>::~BaseElasticLineSprings()
 {
 }
 
 //************************************************************************************
 //************************************************************************************
-Condition::Pointer ElasticLineSprings::Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
+template<typename TNodeType>
+typename BaseElasticLineSprings<TNodeType>::BaseType::Pointer BaseElasticLineSprings<TNodeType>::Create(IndexType NewId, NodesArrayType const& ThisNodes, typename PropertiesType::Pointer pProperties) const
 {
-    return Condition::Pointer(new ElasticLineSprings(NewId, GetGeometry().Create(ThisNodes), pProperties));
+    return typename BaseType::Pointer(new BaseElasticLineSprings(NewId, this->GetGeometry().Create(ThisNodes), pProperties));
 }
 
-Condition::Pointer ElasticLineSprings::Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const
+template<typename TNodeType>
+typename BaseElasticLineSprings<TNodeType>::BaseType::Pointer BaseElasticLineSprings<TNodeType>::Create(IndexType NewId, typename GeometryType::Pointer pGeom, typename PropertiesType::Pointer pProperties) const
 {
-    return Condition::Pointer(new ElasticLineSprings(NewId, pGeom, pProperties));
+    return typename BaseType::Pointer(new BaseElasticLineSprings(NewId, pGeom, pProperties));
 }
 
 //************************************************************************************
 //************************************************************************************
-GeometryData::IntegrationMethod ElasticLineSprings::GetIntegrationMethod() const
+template<typename TNodeType>
+GeometryData::IntegrationMethod BaseElasticLineSprings<TNodeType>::GetIntegrationMethod() const
 {
     if(this->Has( INTEGRATION_ORDER ))
     {
@@ -128,38 +136,39 @@ GeometryData::IntegrationMethod ElasticLineSprings::GetIntegrationMethod() const
         else
             KRATOS_ERROR << Info() << " does not support for integration order " << this->GetValue(INTEGRATION_ORDER);
     }
-    else if(GetProperties().Has( INTEGRATION_ORDER ))
+    else if(this->GetProperties().Has( INTEGRATION_ORDER ))
     {
-        if(GetProperties()[INTEGRATION_ORDER] == 1)
+        if(this->GetProperties()[INTEGRATION_ORDER] == 1)
         {
             return GeometryData::IntegrationMethod::GI_GAUSS_1;
         }
-        else if(GetProperties()[INTEGRATION_ORDER] == 2)
+        else if(this->GetProperties()[INTEGRATION_ORDER] == 2)
         {
             return GeometryData::IntegrationMethod::GI_GAUSS_2;
         }
-        else if(GetProperties()[INTEGRATION_ORDER] == 3)
+        else if(this->GetProperties()[INTEGRATION_ORDER] == 3)
         {
             return GeometryData::IntegrationMethod::GI_GAUSS_3;
         }
-        else if(GetProperties()[INTEGRATION_ORDER] == 4)
+        else if(this->GetProperties()[INTEGRATION_ORDER] == 4)
         {
             return GeometryData::IntegrationMethod::GI_GAUSS_4;
         }
-        else if(GetProperties()[INTEGRATION_ORDER] == 5)
+        else if(this->GetProperties()[INTEGRATION_ORDER] == 5)
         {
             return GeometryData::IntegrationMethod::GI_GAUSS_5;
         }
         else
-            KRATOS_ERROR << Info() << " does not support for integration order " << GetProperties()[INTEGRATION_ORDER];
+            KRATOS_ERROR << Info() << " does not support for integration order " << this->GetProperties()[INTEGRATION_ORDER];
     }
     else
-        return GetGeometry().GetDefaultIntegrationMethod(); // default method
+        return this->GetGeometry().GetDefaultIntegrationMethod(); // default method
 }
 
 //************************************************************************************
 //************************************************************************************
-void ElasticLineSprings::CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
+template<typename TNodeType>
+void BaseElasticLineSprings<TNodeType>::CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -174,9 +183,10 @@ void ElasticLineSprings::CalculateRightHandSide(VectorType& rRightHandSideVector
     KRATOS_CATCH("")
 }
 
-void ElasticLineSprings::CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo )
+template<typename TNodeType>
+void BaseElasticLineSprings<TNodeType>::CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo )
 {
-    unsigned int number_of_nodes = GetGeometry().size();
+    unsigned int number_of_nodes = this->GetGeometry().size();
     unsigned int dim = 2;
 
     if(rMassMatrix.size1() != number_of_nodes*dim || rMassMatrix.size2() != number_of_nodes*dim)
@@ -184,9 +194,10 @@ void ElasticLineSprings::CalculateMassMatrix(MatrixType& rMassMatrix, const Proc
     noalias(rMassMatrix) = ZeroMatrix(number_of_nodes*dim, number_of_nodes*dim);
 }
 
-void ElasticLineSprings::CalculateDampingMatrix(MatrixType& rDampingMatrix, const ProcessInfo& rCurrentProcessInfo )
+template<typename TNodeType>
+void BaseElasticLineSprings<TNodeType>::CalculateDampingMatrix(MatrixType& rDampingMatrix, const ProcessInfo& rCurrentProcessInfo )
 {
-    unsigned int number_of_nodes = GetGeometry().size();
+    unsigned int number_of_nodes = this->GetGeometry().size();
     unsigned int dim = 2;
 
     if(rDampingMatrix.size1() != number_of_nodes*dim || rDampingMatrix.size2() != number_of_nodes*dim)
@@ -196,7 +207,8 @@ void ElasticLineSprings::CalculateDampingMatrix(MatrixType& rDampingMatrix, cons
 
 //************************************************************************************
 //************************************************************************************
-void ElasticLineSprings::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
+template<typename TNodeType>
+void BaseElasticLineSprings<TNodeType>::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -212,13 +224,14 @@ void ElasticLineSprings::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, V
 
 //************************************************************************************
 //************************************************************************************
-void ElasticLineSprings::CalculateAll( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector,
-                                       const ProcessInfo& rCurrentProcessInfo, bool CalculateStiffnessMatrixFlag,
-                                       bool CalculateResidualVectorFlag )
+template<typename TNodeType>
+void BaseElasticLineSprings<TNodeType>::CalculateAll( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector,
+                                                      const ProcessInfo& rCurrentProcessInfo, bool CalculateStiffnessMatrixFlag,
+                                                      bool CalculateResidualVectorFlag )
 {
     KRATOS_TRY
 
-    unsigned int number_of_nodes = GetGeometry().size();
+    unsigned int number_of_nodes = this->GetGeometry().size();
     unsigned int dim = 2;
 
     //resizing LHS and RHS where needed
@@ -226,20 +239,20 @@ void ElasticLineSprings::CalculateAll( MatrixType& rLeftHandSideMatrix, VectorTy
     {
         if(rLeftHandSideMatrix.size1() != number_of_nodes*dim || rLeftHandSideMatrix.size2() != number_of_nodes*dim)
             rLeftHandSideMatrix.resize(number_of_nodes*dim, number_of_nodes*dim, false);
-        noalias(rLeftHandSideMatrix) = ZeroMatrix(number_of_nodes*dim, number_of_nodes*dim);
+        noalias(rLeftHandSideMatrix) = ZeroMatrixType(number_of_nodes*dim, number_of_nodes*dim);
     }
 
     if (CalculateResidualVectorFlag)
     {
         if(rRightHandSideVector.size() != number_of_nodes*dim)
             rRightHandSideVector.resize(number_of_nodes*dim, false);
-        noalias(rRightHandSideVector) = ZeroVector(number_of_nodes*dim);
+        noalias(rRightHandSideVector) = ZeroVectorType(number_of_nodes*dim);
     }
 
     if( number_of_nodes == 1 )
     {
-        const array_1d<double, 3>& bedding = GetGeometry()[0].GetSolutionStepValue(ELASTIC_BEDDING_STIFFNESS);
-        const array_1d<double, 3>& displacement = GetGeometry()[0].GetSolutionStepValue(DISPLACEMENT);
+        const auto& bedding = this->GetGeometry()[0].GetSolutionStepValue(ELASTIC_BEDDING_STIFFNESS);
+        const auto& displacement = this->GetGeometry()[0].GetSolutionStepValue(VARSEL(DataType, DISPLACEMENT));
         for( unsigned int i = 0; i < 3; i++ )
         {
             rLeftHandSideMatrix(i, i) = bedding[i];
@@ -252,42 +265,42 @@ void ElasticLineSprings::CalculateAll( MatrixType& rLeftHandSideMatrix, VectorTy
 
         #ifdef ENABLE_BEZIER_GEOMETRY
         //initialize the geometry
-        GetGeometry().Initialize(ThisIntegrationMethod);
+        this->GetGeometry().Initialize(ThisIntegrationMethod);
         #endif
 
 //        std::cout << "Displacements:" << std::endl;
-//        for ( unsigned int node = 0; node < GetGeometry().size(); node++ )
-//            std::cout << " " << GetGeometry()[node].GetSolutionStepValue( DISPLACEMENT ) << std::endl;
+//        for ( unsigned int node = 0; node < this->GetGeometry().size(); node++ )
+//            std::cout << " " << this->GetGeometry()[node].GetSolutionStepValue( DISPLACEMENT ) << std::endl;
 
         //reading integration points and local gradients
-        const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( ThisIntegrationMethod );
-        const GeometryType::ShapeFunctionsGradientsType& DN_De = GetGeometry().ShapeFunctionsLocalGradients( ThisIntegrationMethod );
-        const Matrix& Ncontainer = GetGeometry().ShapeFunctionsValues( ThisIntegrationMethod );
+        const typename GeometryType::IntegrationPointsArrayType& integration_points = this->GetGeometry().IntegrationPoints( ThisIntegrationMethod );
+        const typename GeometryType::ShapeFunctionsGradientsType& DN_De = this->GetGeometry().ShapeFunctionsLocalGradients( ThisIntegrationMethod );
+        const Matrix& Ncontainer = this->GetGeometry().ShapeFunctionsValues( ThisIntegrationMethod );
 
         bool use_distributed_properties = false;
         if (this->Has(USE_DISTRIBUTED_PROPERTIES))
             use_distributed_properties = this->GetValue(USE_DISTRIBUTED_PROPERTIES);
 
-        array_1d<double, 3> bedding;
+        array_1d<DataType, 3> bedding;
         if (use_distributed_properties)
         {
             if (!this->Has(ELASTIC_BEDDING_STIFFNESS))
-                KRATOS_ERROR << "ELASTIC_BEDDING_STIFFNESS is not set, this is required since condition " << Id()
+                KRATOS_ERROR << "ELASTIC_BEDDING_STIFFNESS is not set, this is required since condition " << this->Id()
                              << " USE_DISTRIBUTED_PROPERTIES flag is set";
             noalias(bedding) = this->GetValue(ELASTIC_BEDDING_STIFFNESS);
         }
         else
         {
-            noalias(bedding) = GetProperties()[ELASTIC_BEDDING_STIFFNESS];
+            noalias(bedding) = this->GetProperties()[ELASTIC_BEDDING_STIFFNESS];
         }
 
         // bedding[0]: normal springs component
         // bedding[1]: tangent springs component
 
-        Vector tangent(dim), normal_vector(dim);
-        Vector displacement(dim);
-        double norm_t, dA;
-        double du_n, du_t;
+        VectorType tangent(dim), normal_vector(dim);
+        VectorType displacement(dim);
+        DataType norm_t, dA;
+        DataType du_n, du_t;
         Vector N(number_of_nodes);
 
 //        KRATOS_WATCH(ThisIntegrationMethod)
@@ -297,23 +310,23 @@ void ElasticLineSprings::CalculateAll( MatrixType& rLeftHandSideMatrix, VectorTy
         {
             noalias(N) = row(Ncontainer, PointNumber);
 
-            noalias(displacement) = ZeroVector(dim);
+            noalias(displacement) = ZeroVectorType(dim);
 
-            noalias(tangent) = ZeroVector(dim);
+            noalias(tangent) = ZeroVectorType(dim);
 
             for ( unsigned int node = 0; node < number_of_nodes; ++node )
             {
-                tangent += subrange(GetGeometry()[node].GetInitialPosition(), 0, dim) * DN_De[PointNumber]( node, 0 );
+                tangent += subrange(this->GetGeometry()[node].GetInitialPosition(), 0, dim) * DN_De[PointNumber]( node, 0 );
 
-                noalias( displacement ) += subrange(GetGeometry()[node].GetSolutionStepValue( DISPLACEMENT ), 0, dim) * N[node];
+                noalias( displacement ) += subrange(this->GetGeometry()[node].GetSolutionStepValue( VARSEL(DataType, DISPLACEMENT) ), 0, dim) * N[node];
             }
 
             normal_vector[0] = -tangent[1];
             normal_vector[1] = tangent[0];
 
-            double IntegrationWeight = integration_points[PointNumber].Weight();
+            DataType IntegrationWeight = integration_points[PointNumber].Weight();
             //modify integration weight in case of 2D
-            IntegrationWeight *= GetProperties()[THICKNESS];
+            IntegrationWeight *= this->GetProperties()[THICKNESS];
 
             // normalize
             norm_t = norm_2(tangent);
@@ -327,7 +340,7 @@ void ElasticLineSprings::CalculateAll( MatrixType& rLeftHandSideMatrix, VectorTy
                 du_n = inner_prod(displacement, normal_vector);
                 du_t = inner_prod(displacement, tangent);
 
-                for ( unsigned int prim = 0; prim < GetGeometry().size(); ++prim )
+                for ( unsigned int prim = 0; prim < this->GetGeometry().size(); ++prim )
                 {
                     subrange(rRightHandSideVector, prim*dim, (prim+1)*dim) -=
                         (du_n*bedding[0]*normal_vector + du_t*bedding[1]*tangent)
@@ -337,9 +350,9 @@ void ElasticLineSprings::CalculateAll( MatrixType& rLeftHandSideMatrix, VectorTy
 
             if( CalculateStiffnessMatrixFlag )
             {
-                for ( unsigned int prim = 0; prim < GetGeometry().size(); ++prim )
+                for ( unsigned int prim = 0; prim < this->GetGeometry().size(); ++prim )
                 {
-                    for ( unsigned int sec = 0; sec < GetGeometry().size(); ++sec )
+                    for ( unsigned int sec = 0; sec < this->GetGeometry().size(); ++sec )
                     {
                         subrange(rLeftHandSideMatrix, prim*dim, (prim+1)*dim, sec*dim, (sec+1)*dim) +=
                             (bedding[0]*outer_prod(normal_vector, normal_vector) + bedding[1]*outer_prod(tangent, tangent) )
@@ -351,7 +364,7 @@ void ElasticLineSprings::CalculateAll( MatrixType& rLeftHandSideMatrix, VectorTy
 
         #ifdef ENABLE_BEZIER_GEOMETRY
         //clean the internal data of the geometry
-        GetGeometry().Clean();
+        this->GetGeometry().Clean();
         #endif
 
        // if( CalculateResidualVectorFlag )
@@ -364,12 +377,12 @@ void ElasticLineSprings::CalculateAll( MatrixType& rLeftHandSideMatrix, VectorTy
     KRATOS_CATCH("")
 }
 
-
 //************************************************************************************
 //************************************************************************************
-void ElasticLineSprings::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& CurrentProcessInfo) const
+template<typename TNodeType>
+void BaseElasticLineSprings<TNodeType>::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& CurrentProcessInfo) const
 {
-    unsigned int number_of_nodes = GetGeometry().size();
+    unsigned int number_of_nodes = this->GetGeometry().size();
     unsigned int index;
     unsigned int dim = 2;
 
@@ -379,16 +392,17 @@ void ElasticLineSprings::EquationIdVector(EquationIdVectorType& rResult, const P
     for (unsigned int i = 0; i < number_of_nodes; i++)
     {
         index = i*dim;
-        rResult[index] = (GetGeometry()[i].GetDof(DISPLACEMENT_X).EquationId());
-        rResult[index+1] = (GetGeometry()[i].GetDof(DISPLACEMENT_Y).EquationId());
+        rResult[index] = (this->GetGeometry()[i].GetDof(VARSELC(DataType, DISPLACEMENT, X)).EquationId());
+        rResult[index+1] = (this->GetGeometry()[i].GetDof(VARSELC(DataType, DISPLACEMENT, Y)).EquationId());
     }
 }
 
 //************************************************************************************
 //************************************************************************************
-void ElasticLineSprings::GetDofList(DofsVectorType& rConditionalDofList, const ProcessInfo& rCurrentProcessInfo) const
+template<typename TNodeType>
+void BaseElasticLineSprings<TNodeType>::GetDofList(DofsVectorType& rConditionalDofList, const ProcessInfo& rCurrentProcessInfo) const
 {
-    unsigned int number_of_nodes = GetGeometry().size();
+    unsigned int number_of_nodes = this->GetGeometry().size();
     unsigned int index;
     unsigned int dim = 2;
 
@@ -398,9 +412,14 @@ void ElasticLineSprings::GetDofList(DofsVectorType& rConditionalDofList, const P
     for (unsigned int i = 0; i < number_of_nodes; i++)
     {
         index = i*dim;
-        rConditionalDofList[index] = (GetGeometry()[i].pGetDof(DISPLACEMENT_X));
-        rConditionalDofList[index+1] = (GetGeometry()[i].pGetDof(DISPLACEMENT_Y));
+        rConditionalDofList[index] = (this->GetGeometry()[i].pGetDof(VARSELC(DataType, DISPLACEMENT, X)));
+        rConditionalDofList[index+1] = (this->GetGeometry()[i].pGetDof(VARSELC(DataType, DISPLACEMENT, Y)));
     }
 }
+
+//************************************************************************************
+//************************************************************************************
+template class BaseElasticLineSprings<RealNode>;
+template class BaseElasticLineSprings<ComplexNode>;
 
 } // Namespace Kratos

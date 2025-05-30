@@ -463,6 +463,8 @@ private:
     const ElasticConstraint mElasticFaceConstraint9N;
     const ElasticLineSprings mElasticLineSprings2N;
     const ElasticLineSprings mElasticLineSprings3N;
+    const ComplexElasticLineSprings mComplexElasticLineSprings2N;
+    const ComplexElasticLineSprings mComplexElasticLineSprings3N;
     const ElasticFaceSprings mElasticFaceSprings3N;
     const ElasticFaceSprings mElasticFaceSprings6N;
     const ElasticFaceSprings mElasticFaceSprings4N;
