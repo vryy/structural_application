@@ -296,7 +296,92 @@ public:
 //            KRATOS_WATCH(eigprj2)
         }
     }
+    /*
+    * Compute principal stresses and direction using for plane strain case
+    * Remarks: sigma_1, sigma_2, sigma_3 are sorted
+    */
+    static void calculate_principle_stresses(
+        double sigma_xx,
+        double sigma_yy,
+        double sigma_zz,
+        double sigma_xy,
+        double& sigma_1, double& sigma_2, double& sigma_3,
+        array_1d<double, 3>& dir1, array_1d<double, 3>& dir2, array_1d<double, 3>& dir3
+    )
+    {
+        // eigen values initialization
+        double x1 = 0.0;
+        double x2 = 0.0;
+        double x3 = sigma_zz;
 
+        // compute the eigen vectors and eigen values
+        Matrix aux(2, 2);
+        aux(0, 0) = sigma_xx;
+        aux(1, 1) = sigma_yy;
+        aux(0, 1) = sigma_xy;
+        aux(1, 0) = sigma_xy;
+        Vector eig(2);
+        Matrix eigvec(2, 2);
+        unsigned int nrot;
+        jacobi(aux, eig, eigvec, nrot);
+
+        unsigned int ii, jj;
+        if(eig(0) >= eig(1))
+        {
+            ii = 0;
+            jj = 1;
+        }
+        else
+        {
+            ii = 1;
+            jj = 0;
+        }
+
+        x1 = eig(ii); 
+        x2 = eig(jj);
+
+        dir1(2) = 0.0; dir2(2) = 0.0;
+        for(unsigned int i = 0; i < 2; ++i)
+        {
+            dir1(i) = eigvec(i, ii);
+            dir2(i) = eigvec(i, jj);
+            dir3(i) = 0.0;
+        }
+
+        dir3(2) = 1.0;
+
+        // sort the eigenvalues and eigenvectors
+        if(x1 >= x3)
+        {
+            sigma_1 = x1;
+            if(x2 >= x3)
+            {
+                sigma_2 = x2;
+                sigma_3 = x3;
+            }
+            else
+            {
+                sigma_2 = x3;
+                sigma_3 = x2;
+                array_1d<double, 3> tmp = dir2;
+                dir2 = dir3;
+                dir3 = tmp;
+            }
+        }
+        else
+        {
+            sigma_1 = x3;
+            sigma_2 = x1;
+            sigma_3 = x2;
+
+            array_1d<double, 3> tmp1 = dir1;
+            array_1d<double, 3> tmp2 = dir2;
+            array_1d<double, 3> tmp3 = dir3;
+            dir1 = tmp3;
+            dir2 = tmp1;
+            dir3 = tmp2;
+        }
+    }
     /*
     * Compute principal stresses and direction using for plane strain case
     * REF: Souza de Neto, Computational Plasticity, box A.2
