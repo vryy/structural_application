@@ -1924,31 +1924,6 @@ public:
     }
 
     /**
-     * Computes outer product of a matrix and a vector, resulting in a third order tensor
-     * @param alpha
-     * @param A the third order tensor
-     * @param B the second order tensor (matrix)
-     */
-    template<typename Third_Order_Tensor_Type>
-    static void OuterProductThirdOrderTensor(TDataType alpha, const MatrixType& A, const VectorType& B, TDataType beta, Third_Order_Tensor_Type& Result)
-    {
-        if (beta == 0.0)
-        {
-            for(unsigned int i = 0; i < Result.size(); ++i)
-                for(unsigned int j = 0; j < Result[i].size(); ++j)
-                    for(unsigned int k = 0; k < Result[i][j].size(); ++k)
-                        Result[i][j][k] = alpha * A(i, j) * B(k);
-        }
-        else
-        {
-            for(unsigned int i = 0; i < Result.size(); ++i)
-                for(unsigned int j = 0; j < Result[i].size(); ++j)
-                    for(unsigned int k = 0; k < Result[i][j].size(); ++k)
-                        Result[i][j][k] = alpha * A(i, j) * B(k) + beta * Result[i][j][k];
-        }
-    }
-
-    /**
      * Computes fourth order deviatoric tensor (also resizing)
      * @param C the fourth order tensor
      */
@@ -2139,40 +2114,13 @@ public:
      * @param AA the fourth order tensor
      * @param B the second order tensor
      */
-    static void ContractFourthOrderTensor(TDataType alpha, const Fourth_Order_Tensor& AA, const MatrixType& B, MatrixType& Result)
+    static void ContractFourthOrderTensor(TDataType alpha, const Fourth_Order_Tensor& A, const MatrixType& B, MatrixType& Result)
     {
         for(unsigned int i = 0; i < 3; ++i)
             for(unsigned int j = 0; j < 3; ++j)
                 for(unsigned int k = 0; k < 3; ++k)
                     for(unsigned int l = 0; l < 3; ++l)
-                        Result(i, j) += alpha * AA[i][j][k][l] * B(k, l);
-    }
-
-    /**
-     * Computes contraction of a fourth order tensor and matrix and add to a second order tensor (Result = alpha * (AA : B) + beta * Result)
-     * @param alpha
-     * @param AA the fourth order tensor
-     * @param B the second order tensor
-     */
-    static void ContractFourthOrderTensor(TDataType alpha, const Fourth_Order_Tensor& AA, const MatrixType& B, TDataType beta, MatrixType& Result)
-    {
-        if (beta == 0.0)
-        {
-            for(unsigned int i = 0; i < 3; ++i)
-                for(unsigned int j = 0; j < 3; ++j)
-                    Result(i, j) = 0.0;
-        }
-        else
-        {
-            for(unsigned int i = 0; i < 3; ++i)
-                for(unsigned int j = 0; j < 3; ++j)
-                    Result(i, j) *= beta;
-        }
-        for(unsigned int i = 0; i < 3; ++i)
-            for(unsigned int j = 0; j < 3; ++j)
-                for(unsigned int k = 0; k < 3; ++k)
-                    for(unsigned int l = 0; l < 3; ++l)
-                        Result(i, j) += alpha * AA[i][j][k][l] * B(k, l);
+                        Result(i, j) += alpha * A[i][j][k][l] * B(k, l);
     }
 
     /**
@@ -2181,44 +2129,17 @@ public:
      * @param AA the fourth order tensor
      * @param B the second order tensor
      */
-    static void ContractFourthOrderTensor(TDataType alpha, const Fourth_Order_Tensor& AA, const SymmetricMatrixType& B, SymmetricMatrixType& Result)
+    static void ContractFourthOrderTensor(TDataType alpha, const Fourth_Order_Tensor& A, const SymmetricMatrixType& B, SymmetricMatrixType& Result)
     {
         for(unsigned int i = 0; i < 3; ++i)
             for(unsigned int j = i; j < 3; ++j)
                 for(unsigned int k = 0; k < 3; ++k)
                     for(unsigned int l = 0; l < 3; ++l)
-                        Result(i, j) += alpha * AA[i][j][k][l] * B(k, l);
+                        Result(i, j) += alpha * A[i][j][k][l] * B(k, l);
     }
 
     /**
-     * Computes contraction of a fourth order tensor and matrix and add to a second order tensor (Result = alpha * (AA : B) + beta * Result)
-     * @param alpha
-     * @param AA the fourth order tensor
-     * @param B the second order tensor
-     */
-    static void ContractFourthOrderTensor(TDataType alpha, const Fourth_Order_Tensor& AA, const SymmetricMatrixType& B, TDataType beta, SymmetricMatrixType& Result)
-    {
-        if (beta == 0.0)
-        {
-            for(unsigned int i = 0; i < 3; ++i)
-                for(unsigned int j = i; j < 3; ++j)
-                    Result(i, j) = 0.0;
-        }
-        else
-        {
-            for(unsigned int i = 0; i < 3; ++i)
-                for(unsigned int j = i; j < 3; ++j)
-                    Result(i, j) *= beta;
-        }
-        for(unsigned int i = 0; i < 3; ++i)
-            for(unsigned int j = i; j < 3; ++j)
-                for(unsigned int k = 0; k < 3; ++k)
-                    for(unsigned int l = 0; l < 3; ++l)
-                        Result(i, j) += alpha * AA[i][j][k][l] * B(k, l);
-    }
-
-    /**
-     * Computes contraction of a fourth order tensor and matrix and add to a second order tensor (Result += alpha * (A : BB))
+     * Computes contraction of a fourth order tensor and matrix and add to a second order tensor (Result += alpha * (A : B))
      * @param alpha
      * @param A the second order tensor
      * @param BB the fourth order tensor
@@ -2233,67 +2154,13 @@ public:
     }
 
     /**
-     * Computes contraction of a fourth order tensor and matrix and add to a second order tensor (Result = alpha * (A : BB) + beta * Result)
-     * @param alpha
-     * @param A the second order tensor
-     * @param BB the fourth order tensor
-     */
-    static void ContractFourthOrderTensor(TDataType alpha, const MatrixType& A, const Fourth_Order_Tensor& BB, TDataType beta, MatrixType& Result)
-    {
-        if (beta == 0.0)
-        {
-            for(unsigned int i = 0; i < 3; ++i)
-                for(unsigned int j = 0; j < 3; ++j)
-                    Result(i, j) = 0.0;
-        }
-        else
-        {
-            for(unsigned int i = 0; i < 3; ++i)
-                for(unsigned int j = 0; j < 3; ++j)
-                    Result(i, j) *= beta;
-        }
-        for(unsigned int i = 0; i < 3; ++i)
-            for(unsigned int j = 0; j < 3; ++j)
-                for(unsigned int k = 0; k < 3; ++k)
-                    for(unsigned int l = 0; l < 3; ++l)
-                        Result(k, l) += alpha * A(i, j) * BB[i][j][k][l];
-    }
-
-    /**
-     * Computes contraction of a fourth order tensor and symmetric matrix and add to a second order tensor (Result += alpha * (A : BB))
+     * Computes contraction of a fourth order tensor and symmetric matrix and add to a second order tensor (Result += alpha * (A : B))
      * @param alpha
      * @param A the second order tensor
      * @param BB the fourth order tensor
      */
     static void ContractFourthOrderTensor(TDataType alpha, const SymmetricMatrixType& A, const Fourth_Order_Tensor& BB, SymmetricMatrixType& Result)
     {
-        for(unsigned int i = 0; i < 3; ++i)
-            for(unsigned int j = 0; j < 3; ++j)
-                for(unsigned int k = 0; k < 3; ++k)
-                    for(unsigned int l = k; l < 3; ++l)
-                        Result(k, l) += alpha * A(i, j) * BB[i][j][k][l];
-    }
-
-    /**
-     * Computes contraction of a fourth order tensor and symmetric matrix and add to a second order tensor (Result = alpha * (A : BB) + beta * Result)
-     * @param alpha
-     * @param A the second order tensor
-     * @param BB the fourth order tensor
-     */
-    static void ContractFourthOrderTensor(TDataType alpha, const SymmetricMatrixType& A, const Fourth_Order_Tensor& BB, TDataType beta, SymmetricMatrixType& Result)
-    {
-        if (beta == 0.0)
-        {
-            for(unsigned int i = 0; i < 3; ++i)
-                for(unsigned int j = 0; j < 3; ++j)
-                    Result(i, j) = 0.0;
-        }
-        else
-        {
-            for(unsigned int i = 0; i < 3; ++i)
-                for(unsigned int j = 0; j < 3; ++j)
-                    Result(i, j) *= beta;
-        }
         for(unsigned int i = 0; i < 3; ++i)
             for(unsigned int j = 0; j < 3; ++j)
                 for(unsigned int k = 0; k < 3; ++k)
@@ -2315,33 +2182,6 @@ public:
                 for(unsigned int k = 0; k < 3; ++k)
                     for(unsigned int l = 0; l < 3; ++l)
                         Result[i][j][k][l] += alpha * A(i, j) * B(k, l);
-    }
-
-    /**
-     * Computes outer product of two 2nd order tensors (matrix) and add to a given 4th order tensor (Result = alpha * (A \odot B) + beta * Result)
-     * In the indices notation: Result(i,j,k,l) += alpha * A(i, j) * B(k, l)
-     * @param C the given tensor
-     * @param alpha
-     */
-    template<typename TMatrixType1, typename TMatrixType2>
-    static void OuterProductFourthOrderTensor(TDataType alpha, const TMatrixType1& A, const TMatrixType2& B, TDataType beta, Fourth_Order_Tensor& Result)
-    {
-        if (beta == 0.0)
-        {
-            for(unsigned int i = 0; i < 3; ++i)
-                for(unsigned int j = 0; j < 3; ++j)
-                    for(unsigned int k = 0; k < 3; ++k)
-                        for(unsigned int l = 0; l < 3; ++l)
-                            Result[i][j][k][l] = alpha * A(i, j) * B(k, l);
-        }
-        else
-        {
-            for(unsigned int i = 0; i < 3; ++i)
-                for(unsigned int j = 0; j < 3; ++j)
-                    for(unsigned int k = 0; k < 3; ++k)
-                        for(unsigned int l = 0; l < 3; ++l)
-                            Result[i][j][k][l] = alpha * A(i, j) * B(k, l) + beta * Result[i][j][k][l];
-        }
     }
 
     /**
@@ -2385,27 +2225,6 @@ public:
                     noalias(Result[i][j][k]) += alpha * A[i][j][k];
     }
 
-    // C = alpha A + beta C
-    static inline void AddFourthOrderTensor(TDataType alpha, const Fourth_Order_Tensor& A, TDataType beta, Fourth_Order_Tensor& Result)
-    {
-        if (beta == 0.0)
-        {
-            for(unsigned int i = 0; i < 3; ++i)
-                for(unsigned int j = 0; j < 3; ++j)
-                    for(unsigned int k = 0; k < 3; ++k)
-                        for(unsigned int l = 0; l < 3; ++l)
-                            Result[i][j][k][l] = alpha * A[i][j][k][l];
-        }
-        else
-        {
-            for(unsigned int i = 0; i < 3; ++i)
-                for(unsigned int j = 0; j < 3; ++j)
-                    for(unsigned int k = 0; k < 3; ++k)
-                        for(unsigned int l = 0; l < 3; ++l)
-                            Result[i][j][k][l] = alpha * A[i][j][k][l] + beta * Result[i][j][k][l];
-        }
-    }
-
     // C += alpha A
     static inline void AddFourthOrderTensor(TDataType alpha, const General_Fourth_Order_Tensor& A, General_Fourth_Order_Tensor& Result)
     {
@@ -2415,59 +2234,9 @@ public:
                     noalias(Result[i][j][k]) += alpha * A[i][j][k];
     }
 
-    // C = alpha A + beta C
-    static inline void AddFourthOrderTensor(TDataType alpha, const General_Fourth_Order_Tensor& A, TDataType beta, General_Fourth_Order_Tensor& Result)
-    {
-        if (beta == 0.0)
-        {
-            for(unsigned int i = 0; i < A.size(); ++i)
-                for(unsigned int j = 0; j < A[i].size(); ++j)
-                    for(unsigned int k = 0; k < A[i][j].size(); ++k)
-                        for(unsigned int l = 0; l < A[i][j][k].size(); ++l)
-                            Result[i][j][k][l] = alpha * A[i][j][k][l];
-        }
-        else
-        {
-            for(unsigned int i = 0; i < A.size(); ++i)
-                for(unsigned int j = 0; j < A[i].size(); ++j)
-                    for(unsigned int k = 0; k < A[i][j].size(); ++k)
-                        for(unsigned int l = 0; l < A[i][j][k].size(); ++l)
-                            Result[i][j][k][l] = alpha * A[i][j][k][l] + beta * Result[i][j][k][l];
-        }
-    }
-
     // C_ijkl += alpha A_ijmn * B_mnkl
     static inline void ProductFourthOrderTensor(TDataType alpha, const Fourth_Order_Tensor& A, const Fourth_Order_Tensor& B, Fourth_Order_Tensor& Result)
     {
-        for(unsigned int i = 0; i < 3; ++i)
-            for(unsigned int j = 0; j < 3; ++j)
-                for(unsigned int k = 0; k < 3; ++k)
-                    for(unsigned int l = 0; l < 3; ++l)
-                        for(unsigned int m = 0; m < 3; ++m)
-                            for(unsigned int n = 0; n < 3; ++n)
-                                Result[i][j][k][l] += alpha * A[i][j][m][n] * B[m][n][k][l];
-    }
-
-    // C_ijkl = alpha A_ijmn * B_mnkl + beta C_ijkl
-    static inline void ProductFourthOrderTensor(TDataType alpha, const Fourth_Order_Tensor& A, const Fourth_Order_Tensor& B, TDataType beta, Fourth_Order_Tensor& Result)
-    {
-        if (beta == 0.0)
-        {
-            for(unsigned int i = 0; i < 3; ++i)
-                for(unsigned int j = 0; j < 3; ++j)
-                    for(unsigned int k = 0; k < 3; ++k)
-                        for(unsigned int l = 0; l < 3; ++l)
-                            Result[i][j][k][l] = 0.0;
-        }
-        else
-        {
-            for(unsigned int i = 0; i < 3; ++i)
-                for(unsigned int j = 0; j < 3; ++j)
-                    for(unsigned int k = 0; k < 3; ++k)
-                        for(unsigned int l = 0; l < 3; ++l)
-                            Result[i][j][k][l] *= beta;
-        }
-
         for(unsigned int i = 0; i < 3; ++i)
             for(unsigned int j = 0; j < 3; ++j)
                 for(unsigned int k = 0; k < 3; ++k)
@@ -3092,7 +2861,97 @@ public:
             }
         }
     }
+    /**
+    * Assemble the isotropic elastic or elasto-plastic stress-strain tensor in spectral form.
+    * Reference: Plastcity modeling and computation, Ronaldo I. Borja. 
+    * Remark: It is assumed the principal elastic trial strains pstrain are already sorted in descending order.
+    *         Also, pstress, dpstrs and E are already sorted  and follow the sorting of the principal elastic trial strains pstrain.
+    * @param use_perturbation is a flag that deals with the problem of repeated eigen values. When it is set to true a simple perturbation technique is applied.
+    *  When is set to false  the expression dpstrs_BB - dpstrs_AB is used. Reference: Ogden R. Nonlinear Elastic Deformations Chapter 6.
+    * @param pstress are the principal stresses.
+    * @param pstrain are the principal elastic trial strains.
+    * @param dpstrs is the linearization of the principal stresses with respect to the principal elastic trial strains.
+    * @param E is the eigenvectors stored in vector form. 
+    * @param Dep is the fourth order tensor to be assembled.
+    */
+    static inline void AssembleConstitutiveTensorInSpectralForm(
+        const bool use_perturbation,
+        const std::vector<double>& pstress,
+        const std::vector<double>& pstrain,
+        const MatrixType& dpstrs,
+        const std::vector<array_1d<double, 3>>& E,
+        Fourth_Order_Tensor& Dep
+    )
+    {
+        MatrixType M_a(3,3);
+        noalias(M_a) = ZeroMatrix(3,3);
+        MatrixType M_b(3,3);
+        noalias(M_b) = ZeroMatrix(3,3);
+        MatrixType M_ab(3,3);
+        noalias(M_ab) = ZeroMatrix(3,3);
+        MatrixType M_ba(3,3);
+        noalias(M_ba) = ZeroMatrix(3,3);
 
+        // in the case of repeated eigenvalues, a pertubation eta is added, when the perturbation technique is applied
+        // the perturbation will allow to use the three-dimensional expression for the constitutive operator in spectral form
+        const double eta = std::pow(2.0,-52.0);// machine tolerance 
+        std::vector<double> pstrain_perturbed(3);
+        pstrain_perturbed = pstrain;
+
+        if (use_perturbation){
+            // for the cases of repeated eigen values
+            if (fabs(pstrain[0] -pstrain[1]) < 1.0e-10){ 
+                pstrain_perturbed[0] = pstrain_perturbed[1]+eta;
+            }    
+            if (fabs(pstrain[1] -pstrain[2]) < 1.0e-10){ 
+                pstrain_perturbed[2] = pstrain_perturbed[1]-eta;
+            }     
+        }
+        double ratio_d_stress_d_strain_e_ab = 0.0;
+        // non-repeated indexes
+        std::array<int,2> bi = {0, 0};
+        // assemble fourth order tensor algorithmic tangent operator 
+        for (unsigned int a = 0; a < 3; ++a){
+            // add algorithmic tangent operator in principal stress axes
+            for (unsigned int b = 0; b < 3; ++b){
+                // compute the dyadic product of the eigenvectors
+                noalias(M_a) = outer_prod(E[a],E[a]);
+                noalias(M_b) = outer_prod(E[b],E[b]);
+                OuterProductFourthOrderTensor(dpstrs(a,b),  M_a, M_b, Dep);  
+            }
+            // add spins 
+            if (a == 0){
+                bi[0] = 1; bi[1] = 2;
+            }
+            else if (a == 1){
+                bi[0] = 0; bi[1] = 2;
+            }
+            else {
+                bi[0] = 0; bi[1] = 1;
+            }
+
+            for (unsigned int i = 0; i < 2; ++i){
+                // compute the dyadic product of the eigenvectors
+                noalias(M_ab) = outer_prod(E[a],E[bi[i]]);
+                noalias(M_ba) = outer_prod(E[bi[i]],E[a]);
+                // check the singularity in presence of repeated eigen values 
+                if (fabs(pstrain[bi[i]] -pstrain[a]) < 1.0e-10){
+                    if (use_perturbation){
+                        ratio_d_stress_d_strain_e_ab = 0.5*(pstress[bi[i]] -pstress[a])/(pstrain_perturbed[bi[i]] -pstrain_perturbed[a]);
+                    }
+                    else{
+                        ratio_d_stress_d_strain_e_ab = 0.5*(dpstrs(bi[i],bi[i])-dpstrs(a,bi[i]));
+                    }
+                }
+                else{
+                    ratio_d_stress_d_strain_e_ab = 0.5*(pstress[bi[i]] -pstress[a])/(pstrain[bi[i]] -pstrain[a]);
+                }
+
+                OuterProductFourthOrderTensor(ratio_d_stress_d_strain_e_ab, M_ab, M_ab, Dep); 
+                OuterProductFourthOrderTensor(ratio_d_stress_d_strain_e_ab, M_ab, M_ba, Dep);
+            }
+        }
+    }
     /**
     * Performs clipping on the two polygons clipping_points and subjected_points (the technique used i
     * Sutherland-Hodgman clipping) and returns the overlapping polygon result_points. The method works
