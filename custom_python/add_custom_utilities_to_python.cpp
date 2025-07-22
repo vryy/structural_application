@@ -60,7 +60,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <boost/foreach.hpp>
 
 // Project includes
-#include "includes/define.h"
+#include "python/python_utils.h"
 #include "custom_python/add_custom_utilities_to_python.h"
 #include "custom_utilities/deactivation_utility.h"
 #include "custom_utilities/variable_transfer_utility.h"
@@ -82,6 +82,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_utilities/pile_utility.h"
 #include "custom_utilities/foundation_utility.h"
 #include "custom_utilities/surface_utility.h"
+#include "custom_utilities/element_utility.h"
 
 #include "custom_utilities/embedded_node_tying_utility.h"
 #include "custom_conditions/embedded_node_lagrange_tying_condition.h"
@@ -567,6 +568,53 @@ void InitializeFoundationUtility( FoundationUtility& dummy, ModelPart& model_par
 }
 
 ///////////////////////////////////////////////////////////////////////
+
+template<typename TEntityType, typename TDataType>
+boost::python::list ElementUtility_Interpolate_Double(ElementUtility& rDummy, TEntityType& rElement, const Variable<TDataType>& rVariable)
+{
+    std::vector<TDataType> values;
+    const auto DefaultIntegrationMethod = rElement.GetGeometry().GetDefaultIntegrationMethod();
+    ElementUtility::Interpolate(values, rElement, rVariable, DefaultIntegrationMethod);
+    boost::python::list output;
+    PythonUtils::Extend(output, values);
+    return output;
+}
+
+template<typename TEntityType, typename TDataType>
+boost::python::list ElementUtility_Interpolate_Array1D(ElementUtility& rDummy, TEntityType& rElement, const Variable<array_1d<TDataType, 3> >& rVariable)
+{
+    std::vector<array_1d<TDataType, 3> > values;
+    const auto DefaultIntegrationMethod = rElement.GetGeometry().GetDefaultIntegrationMethod();
+    ElementUtility::Interpolate(values, rElement, rVariable, DefaultIntegrationMethod);
+    boost::python::list output;
+    PythonUtils::Extend(output, values);
+    return output;
+}
+
+template<typename TEntityType, typename TVectorType>
+boost::python::list ElementUtility_Interpolate_Vector(ElementUtility& rDummy, TEntityType& rElement, const Variable<TVectorType>& rVariable, const unsigned int ncomponents)
+{
+    std::vector<TVectorType> values;
+    const auto DefaultIntegrationMethod = rElement.GetGeometry().GetDefaultIntegrationMethod();
+    ElementUtility::Interpolate(values, rElement, rVariable, DefaultIntegrationMethod, ncomponents);
+    boost::python::list output;
+    PythonUtils::Extend(output, values);
+    return output;
+}
+
+template<typename TEntityType, typename TVectorType>
+boost::python::list ElementUtility_Interpolate_Vector2(ElementUtility& rDummy, TEntityType& rElement, const Variable<TVectorType>& rVariable, const unsigned int ncomponents,
+        const unsigned int integration_order)
+{
+    std::vector<TVectorType> values;
+    const auto ThisIntegrationMethod = static_cast<GeometryData::IntegrationMethod>(integration_order-1);
+    ElementUtility::Interpolate(values, rElement, rVariable, ThisIntegrationMethod, ncomponents);
+    boost::python::list output;
+    PythonUtils::Extend(output, values);
+    return output;
+}
+
+///////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////
 
 void  AddCustomUtilitiesToPython()
@@ -731,7 +779,6 @@ void  AddCustomUtilitiesToPython()
     ;
 #endif
 
-
     class_<OutputUtility, boost::noncopyable >
     ( "OutputUtility",
       init<>() )
@@ -809,6 +856,13 @@ void  AddCustomUtilitiesToPython()
     .def( "CalculateStrain3DInReferenceConfiguration", &SurfaceUtility::CalculateStrain<3, 0> )
     ;
 
+    class_<ElementUtility, boost::noncopyable >
+    ( "ElementUtility", init<>() )
+    .def("Interpolate", &ElementUtility_Interpolate_Double<Element, KRATOS_DOUBLE_TYPE>)
+    .def("Interpolate", &ElementUtility_Interpolate_Array1D<Element, KRATOS_DOUBLE_TYPE>)
+    .def("Interpolate", &ElementUtility_Interpolate_Vector<Element, Vector>)
+    .def("Interpolate", &ElementUtility_Interpolate_Vector2<Element, Vector>)
+    ;
 }
 
 }  // namespace Python.
