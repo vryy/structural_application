@@ -54,7 +54,7 @@ class NeoHookean2D : public ConstitutiveLaw
         /**
          * Destructor.
          */
-        virtual ~NeoHookean2D();
+        ~NeoHookean2D() override;
 
         /**
          * Operators

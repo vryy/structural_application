@@ -143,7 +143,7 @@ namespace Kratos
                 mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_5;
             }
             else
-                KRATOS_THROW_ERROR(std::logic_error, "FiniteStrain element does not support for integration rule", this->GetValue(INTEGRATION_ORDER))
+                KRATOS_ERROR << "FiniteStrain element does not support for integration order " << this->GetValue(INTEGRATION_ORDER);
         }
         else if(GetProperties().Has( INTEGRATION_ORDER ))
         {
@@ -168,7 +168,7 @@ namespace Kratos
                 mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_5;
             }
             else
-                KRATOS_THROW_ERROR(std::logic_error, "FiniteStrain element does not support for integration points", GetProperties()[INTEGRATION_ORDER])
+                KRATOS_ERROR << "FiniteStrain element does not support for integration order " << GetProperties()[INTEGRATION_ORDER];
         }
         else
             mThisIntegrationMethod = GetGeometry().GetDefaultIntegrationMethod(); // default method
@@ -212,10 +212,8 @@ namespace Kratos
 //        KRATOS_WATCH(mTotalDomainInitialSize)
         if ( mTotalDomainInitialSize < 0.0 )
         {
-            std::stringstream ss;
-            ss << "error on element -> " << this->Id() << std::endl;
-            ss << ". Domain size can not be less than 0, mTotalDomainInitialSize = " << mTotalDomainInitialSize;
-            KRATOS_THROW_ERROR( std::logic_error, ss.str(), "" );
+            KRATOS_ERROR << "error on element -> " << this->Id() << std::endl
+                         << ". Domain size can not be less than 0, mTotalDomainInitialSize = " << mTotalDomainInitialSize;
         }
         this->SetValue(GEOMETRICAL_DOMAIN_SIZE, mTotalDomainInitialSize);
 
@@ -2068,13 +2066,13 @@ namespace Kratos
         //verify that the constitutive law exists
         if ( this->GetProperties().Has( CONSTITUTIVE_LAW ) == false )
         {
-            KRATOS_THROW_ERROR( std::logic_error, "constitutive law not provided for property ", this->GetProperties().Id() );
+            KRATOS_ERROR << "constitutive law not provided for property " << this->GetProperties().Id();
         }
 
         //Verify that the body force is defined
         if ( this->GetProperties().Has( BODY_FORCE ) == false )
         {
-            KRATOS_THROW_ERROR( std::logic_error, "BODY_FORCE not provided for property ", this->GetProperties().Id() )
+            KRATOS_ERROR << "BODY_FORCE not provided for property " << this->GetProperties().Id();
         }
 
         //check constitutive law

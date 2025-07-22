@@ -190,7 +190,7 @@ void LineForce::CalculateRightHandSide( VectorType& rRightHandSideVector,
 
         for ( unsigned int n = 0; n < GetGeometry().size(); n++ )
         {
-            noalias( LoadOnNode ) = ( GetGeometry()[n] ).GetSolutionStepValue( FACE_LOAD );
+            noalias( LoadOnNode ) = subrange( GetGeometry()[n].GetSolutionStepValue( FACE_LOAD ), 0, dim );
             noalias( Load ) += Ncontainer( PointNumber, n ) * LoadOnNode;
             // noalias( LoadEins ) += Ncontainer( PointNumber, n ) * ( GetGeometry()[n] ).GetSolutionStepValue( FACE_LOAD_EINS );
         }

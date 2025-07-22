@@ -257,19 +257,19 @@ public:
     /*@{ */
 
     /// Enable integration of rotation d.o.f
-    void SetIntegrateRotation(const bool& value)
+    void SetIntegrateRotation(const bool value)
     {
         mIntegrateRotation = value;
     }
 
     /// Enable integration of multiplier d.o.f
-    void SetIntegrateMultiplier(const bool& value)
+    void SetIntegrateMultiplier(const bool value)
     {
         mIntegrateMultiplier = value;
     }
 
     /// Enable time values of load
-    void SetIntegrateLoad(const bool& value)
+    void SetIntegrateLoad(const bool value)
     {
         mIntegrateLoad = value;
     }
@@ -658,8 +658,8 @@ public:
                   +(1.0-mAlpha_f)*i->GetSolutionStepValue(DISPLACEMENT_EINS_DT_Y);
 
                 i->GetSolutionStepValue(DISPLACEMENT_Y)
-                = mAlpha_f*i->GetSolutionStepValue(DISPLACEMENT_NULL_Y)+(1.0-mAlpha_f)*
-                  i->GetSolutionStepValue(DISPLACEMENT_EINS_Y);
+                = mAlpha_f*i->GetSolutionStepValue(DISPLACEMENT_NULL_Y)
+                  +(1.0-mAlpha_f)*i->GetSolutionStepValue(DISPLACEMENT_EINS_Y);
             }
             if( i->HasDofFor(DISPLACEMENT_Z) )
             {

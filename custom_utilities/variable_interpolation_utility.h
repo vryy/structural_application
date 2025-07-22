@@ -268,7 +268,7 @@ protected:
     {
         for( ElementsContainerType::ptr_iterator it = pMasterElements.ptr_begin(); it != pMasterElements.ptr_end(); ++it )
         {
-            GeometryType& r_geom = (*it)->GetGeometry();
+            const GeometryType& r_geom = (*it)->GetGeometry();
 
             bool is_inside = r_geom.IsInside( rSourcePoint, rLocalTargetPoint );
             if( is_inside )

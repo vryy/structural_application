@@ -1485,8 +1485,8 @@ namespace Kratos
      * @param rCurrentProcessInfo
      */
     template<typename TNodeType>
-    void BaseKinematicLinear<TNodeType>::GetDofList( DofsVectorType& ElementalDofList, const ProcessInfo&
-            CurrentProcessInfo ) const
+    void BaseKinematicLinear<TNodeType>::GetDofList( DofsVectorType& ElementalDofList,
+            const ProcessInfo& CurrentProcessInfo ) const
     {
         unsigned int dim = this->WorkingSpaceDimension();
 

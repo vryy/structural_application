@@ -532,4 +532,4 @@ private:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_TOTAL_CRISFIELD_ELEMENT_H_INCLUDED  defined
+#endif // KRATOS_CRISFIELD_TRUSS_ELEMENT_H_INCLUDED  defined

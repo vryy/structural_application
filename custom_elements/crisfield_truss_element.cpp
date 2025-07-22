@@ -294,7 +294,6 @@ void CrisfieldTrussElement::GetValuesVector(Vector& values, int Step) const
         if(dimension == 3)
             values[index + 2] = GetGeometry()[i].GetSolutionStepValue(DISPLACEMENT_Z, Step);
     }
-    //KRATOS_WATCH( values );
 }
 
 /**

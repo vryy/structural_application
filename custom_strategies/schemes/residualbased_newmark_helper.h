@@ -271,7 +271,6 @@ struct ResidualBasedNewmarkHelper<0>
         const ProcessInfo& CurrentProcessInfo,
         const double alpha_f)
     {
-        const double Dt = CurrentProcessInfo[DELTA_TIME];
         double aux;
 
         // adding stiffness contribution to the dynamic stiffness
