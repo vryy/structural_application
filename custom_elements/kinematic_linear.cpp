@@ -2504,6 +2504,8 @@ namespace Kratos
     {
         KRATOS_TRY
 
+        const unsigned int dim = this->WorkingSpaceDimension();
+
         if ( this->Id() < 1 )
         {
             KRATOS_ERROR << "BaseType found with Id 0 or negative";
@@ -2537,6 +2539,15 @@ namespace Kratos
         if ( this->GetProperties().Has( BODY_FORCE ) == false )
         {
             KRATOS_ERROR << "BODY_FORCE not provided for property " << this->GetProperties().Id();
+        }
+
+        //Veriy if the thickness is set for 2D
+        if (dim == 2)
+        {
+            if ( this->GetProperties().Has( THICKNESS ) == false )
+            {
+                KRATOS_ERROR << "THICKNESS not provided for property " << this->GetProperties().Id() << " for 2D analysis";
+            }
         }
 
         return 0;
