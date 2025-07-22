@@ -108,6 +108,9 @@ class SolvingStrategyPython:
         if self.Parameters['log_strain_energy'] == True:
             self.log_energy.close()
 
+    def GetBuilderAndSolver(self):
+        return self.builder_and_solver
+
     #######################################################################
     def Initialize(self):
         if(self.time_scheme.SchemeIsInitialized() == False):

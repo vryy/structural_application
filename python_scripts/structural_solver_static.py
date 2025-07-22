@@ -99,6 +99,8 @@ class StaticStructuralSolver:
         self.ReformDofSetAtEachStep = False
         self.MoveMeshFlag = True
 
+        self.dof_util = DofUtility()
+
     #
     def Initialize(self):
         # creating the solution strategy
@@ -121,7 +123,8 @@ class StaticStructuralSolver:
 
     #
     def Solve(self):
-        return (self.solver).Solve()
+        converged = (self.solver).Solve()
+        return converged
 
     #
     def SetEchoLevel(self, level):
