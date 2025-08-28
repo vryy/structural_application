@@ -236,6 +236,9 @@ public:
         const double FTOL, const int max_iters,
         const int debug_level=0) const;
 
+    /// Compute the Q assuming the stress point on the yield surface
+    virtual void ComputeQ(const Matrix& stress, Vector& q, const double FTOL) const;
+
     ///////////////////////////////////////////////////////////
 
     virtual int Check( const Properties& props,

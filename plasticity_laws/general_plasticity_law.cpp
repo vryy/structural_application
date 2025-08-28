@@ -151,7 +151,33 @@ int GeneralPlasticityLaw::DriftCorrection(Matrix& stress, Vector& q, Vector& alp
     return 0;
 }
 
+void GeneralPlasticityLaw::ComputeQ(const Matrix& stress, Vector& q, const double FTOL) const
 {
+    if (q.size() > 1)
+        KRATOS_ERROR << "Using Newton-Raphson to compute Q on yield surface only works with single internal parameter";
+
+    Vector dfdq(1);
+    unsigned int it=0, max_iters=30;
+
+    do
+    {
+        double f = this->F(stress, q);
+
+        if (std::abs(f) < FTOL)
+            break;
+
+        this->dFdQ(dfdq, stress, q);
+
+        q(0) -= f / dfdq(0);
+        ++it;
+    }
+    while (it < max_iters);
+
+    if (it == max_iters)
+    {
+        KRATOS_ERROR << "Not converged in " << max_iters << " steps";
+    }
+}
 
 void GeneralPlasticityLaw::Num_dFdSigma(Matrix& n, const Matrix& stress, const Vector& q, const double epsilon) const
 {
