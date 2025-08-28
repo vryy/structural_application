@@ -74,8 +74,7 @@ public:
 
     /// Check which yield surfaces are active
     virtual std::vector<int> CheckActiveSurfaces(const Matrix& stress, const std::vector<Vector>& q,
-        const std::vector<Vector>& alpha, const double FTOL,
-        const ProcessInfo& CurrentProcessInfo, const Properties& props) const
+        const std::vector<Vector>& alpha, const double FTOL) const
     {
         KRATOS_ERROR << "Error calling base class function";
     }
@@ -109,6 +108,7 @@ private:
 
     ///@name Serialization
     ///@{
+
     friend class Serializer;
 
     virtual void save(Serializer& rSerializer) const

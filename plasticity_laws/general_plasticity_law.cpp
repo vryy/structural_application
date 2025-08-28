@@ -26,8 +26,7 @@ namespace Kratos
 {
 
 double GeneralPlasticityLaw::ComputeFirstYieldPoint(const Matrix& stress0, const Matrix& delta_stress,
-        const Vector& q, const int ndiv, const double NTOL, const double FTOL,
-        const ProcessInfo& CurrentProcessInfo, const Properties& props) const
+        const Vector& q, const int ndiv, const double NTOL, const double FTOL) const
 {
     double dx = 1.0/(double)ndiv;
 
@@ -38,8 +37,8 @@ double GeneralPlasticityLaw::ComputeFirstYieldPoint(const Matrix& stress0, const
     {
         xleft = i*dx;
         xright = (i+1)*dx;
-        fleft = this->F(stress0 + xleft*delta_stress, q, CurrentProcessInfo, props);
-        fright = this->F(stress0 + xright*delta_stress, q, CurrentProcessInfo, props);
+        fleft = this->F(stress0 + xleft*delta_stress, q);
+        fright = this->F(stress0 + xright*delta_stress, q);
 
         if (fleft*fright < 0.0)
         {
@@ -50,7 +49,7 @@ double GeneralPlasticityLaw::ComputeFirstYieldPoint(const Matrix& stress0, const
 
     if (!found)
     {
-        double f0 = this->F(stress0, q, CurrentProcessInfo, props);
+        double f0 = this->F(stress0, q);
         if (fabs(f0) < FTOL) return 0.0;
 
         KRATOS_WATCH("!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
@@ -58,8 +57,8 @@ double GeneralPlasticityLaw::ComputeFirstYieldPoint(const Matrix& stress0, const
         // KRATOS_WATCH(mGaussId)
         KRATOS_WATCH(f0)
         KRATOS_WATCH(FTOL)
-        KRATOS_WATCH(this->F(stress0, q, CurrentProcessInfo, props))
-        KRATOS_WATCH(this->F(stress0 + delta_stress, q, CurrentProcessInfo, props))
+        KRATOS_WATCH(this->F(stress0, q))
+        KRATOS_WATCH(this->F(stress0 + delta_stress, q))
         KRATOS_ERROR << "The subincrement to identify yield cut is not identifiable";
     }
 
@@ -67,7 +66,7 @@ double GeneralPlasticityLaw::ComputeFirstYieldPoint(const Matrix& stress0, const
     while(fabs(xleft - xright) > NTOL)
     {
         xmid = 0.5*(xleft + xright);
-        fmid = this->F(stress0 + xmid*delta_stress, q, CurrentProcessInfo, props);
+        fmid = this->F(stress0 + xmid*delta_stress, q);
         if (fleft*fmid > 0.0) xleft = xmid;
         else xright = xmid;
     }
@@ -77,7 +76,6 @@ double GeneralPlasticityLaw::ComputeFirstYieldPoint(const Matrix& stress0, const
 
 int GeneralPlasticityLaw::DriftCorrection(Matrix& stress, Vector& q, Vector& alpha, const Fourth_Order_Tensor& Ce,
         const double FTOL, const int max_iters,
-        const ProcessInfo& CurrentProcessInfo, const Properties& props,
         const int debug_level) const
 {
     const unsigned int nvars = this->NumberOfInternalVariables();
@@ -86,11 +84,11 @@ int GeneralPlasticityLaw::DriftCorrection(Matrix& stress, Vector& q, Vector& alp
     Vector q_old = q;
     Vector alpha_old = alpha;
 
-    double f = this->F(stress, q, CurrentProcessInfo, props);
+    double f = this->F(stress, q);
     #ifdef DEBUG_GENERAL_PLASTICITY_LAW
     if (debug_level > 0)
     {
-        OSTR << "  f = " << this->F(stress, q, CurrentProcessInfo, props) << ", FTOL = " << FTOL << std::endl;
+        OSTR << "  f = " << this->F(stress, q) << ", FTOL = " << FTOL << std::endl;
         OSTR << "  "; this->ReportStressState(OSTR, stress) << std::endl;
     }
     #endif
@@ -104,11 +102,11 @@ int GeneralPlasticityLaw::DriftCorrection(Matrix& stress, Vector& q, Vector& alp
         OSTR << "  drift correction step " << it << ":" << std::endl;
         #endif
 
-        this->dFdSigma(A, stress, q, CurrentProcessInfo, props);
-        this->dGdSigma(B, stress, q, CurrentProcessInfo, props);
-        this->dFdQ(c, stress, q, CurrentProcessInfo, props);
-        this->dGdQ(b, stress, q, CurrentProcessInfo, props);
-        this->dQdPhi(d, stress, q, alpha, CurrentProcessInfo, props);
+        this->dFdSigma(A, stress, q);
+        this->dGdSigma(B, stress, q);
+        this->dFdQ(c, stress, q);
+        this->dGdQ(b, stress, q);
+        this->dQdPhi(d, stress, q, alpha);
         CexB.clear();
         SD_MathUtils<double>::ContractFourthOrderTensor(1.0, Ce, B, CexB);
         dgamma = f / (SD_MathUtils<double>::mat_inner_prod(A, CexB) - inner_prod(c, d));
@@ -123,7 +121,7 @@ int GeneralPlasticityLaw::DriftCorrection(Matrix& stress, Vector& q, Vector& alp
         noalias(stress) -= dgamma*CexB;
         noalias(q) += dgamma*d;
         noalias(alpha) -= dgamma*b;
-        fnew = this->F(stress, q, CurrentProcessInfo, props);
+        fnew = this->F(stress, q);
 
         if (fabs(fnew) > fabs(f))
         {
@@ -131,7 +129,7 @@ int GeneralPlasticityLaw::DriftCorrection(Matrix& stress, Vector& q, Vector& alp
             noalias(stress) = stress_old - dgamma*A;
             noalias(q) = q_old;
             noalias(alpha) = alpha_old;
-            fnew = this->F(stress, q, CurrentProcessInfo, props);
+            fnew = this->F(stress, q);
         }
 
         f = fnew;
@@ -153,10 +151,11 @@ int GeneralPlasticityLaw::DriftCorrection(Matrix& stress, Vector& q, Vector& alp
     return 0;
 }
 
-void GeneralPlasticityLaw::Num_dFdSigma(Matrix& n, const Matrix& stress, const Vector& q, const double epsilon,
-        const ProcessInfo& CurrentProcessInfo, const Properties& props) const
 {
-    const double F = this->F(stress, q, CurrentProcessInfo, props);
+
+void GeneralPlasticityLaw::Num_dFdSigma(Matrix& n, const Matrix& stress, const Vector& q, const double epsilon) const
+{
+    const double F = this->F(stress, q);
 
     Matrix new_stress(3, 3);
     for (unsigned int i = 0; i < 3; ++i)
@@ -166,7 +165,7 @@ void GeneralPlasticityLaw::Num_dFdSigma(Matrix& n, const Matrix& stress, const V
             noalias(new_stress) = stress;
             new_stress(i, j) += 0.5*epsilon;
             new_stress(j, i) += 0.5*epsilon;
-            double new_F = this->F(new_stress, q, CurrentProcessInfo, props);
+            double new_F = this->F(new_stress, q);
 
             n(i, j) = (new_F - F) / epsilon;
             n(j, i) = n(i, j);
@@ -174,11 +173,10 @@ void GeneralPlasticityLaw::Num_dFdSigma(Matrix& n, const Matrix& stress, const V
     }
 }
 
-void GeneralPlasticityLaw::Num_d2FdSigma2(Fourth_Order_Tensor& dn_dsigma, const Matrix& stress, const Vector& q, const double epsilon,
-            const ProcessInfo& CurrentProcessInfo, const Properties& props) const
+void GeneralPlasticityLaw::Num_d2FdSigma2(Fourth_Order_Tensor& dn_dsigma, const Matrix& stress, const Vector& q, const double epsilon) const
 {
     Matrix n(3, 3), new_n(3, 3);
-    this->dFdSigma(n, stress, q, CurrentProcessInfo, props);
+    this->dFdSigma(n, stress, q);
 
     Matrix new_stress(3, 3);
     for (unsigned int k = 0; k < 3; ++k)
@@ -188,7 +186,7 @@ void GeneralPlasticityLaw::Num_d2FdSigma2(Fourth_Order_Tensor& dn_dsigma, const 
             noalias(new_stress) = stress;
             new_stress(k, l) += 0.5*epsilon;
             new_stress(l, k) += 0.5*epsilon;
-            this->dFdSigma(new_n, new_stress, q, CurrentProcessInfo, props);
+            this->dFdSigma(new_n, new_stress, q);
 
             for (unsigned int i = 0; i < 3; ++i)
             {
@@ -201,10 +199,9 @@ void GeneralPlasticityLaw::Num_d2FdSigma2(Fourth_Order_Tensor& dn_dsigma, const 
     }
 }
 
-void GeneralPlasticityLaw::Num_dGdSigma(Matrix& m, const Matrix& stress, const Vector& q, const double epsilon,
-        const ProcessInfo& CurrentProcessInfo, const Properties& props) const
+void GeneralPlasticityLaw::Num_dGdSigma(Matrix& m, const Matrix& stress, const Vector& q, const double epsilon) const
 {
-    const double G = this->G(stress, q, CurrentProcessInfo, props);
+    const double G = this->G(stress, q);
 
     Matrix new_stress(3, 3);
     for (unsigned int i = 0; i < 3; ++i)
@@ -214,7 +211,7 @@ void GeneralPlasticityLaw::Num_dGdSigma(Matrix& m, const Matrix& stress, const V
             noalias(new_stress) = stress;
             new_stress(i, j) += 0.5*epsilon;
             new_stress(j, i) += 0.5*epsilon;
-            double new_G = this->G(new_stress, q, CurrentProcessInfo, props);
+            double new_G = this->G(new_stress, q);
 
             m(i, j) = (new_G - G) / epsilon;
             m(j, i) = m(i, j);
@@ -222,11 +219,10 @@ void GeneralPlasticityLaw::Num_dGdSigma(Matrix& m, const Matrix& stress, const V
     }
 }
 
-void GeneralPlasticityLaw::Num_d2GdSigma2(Fourth_Order_Tensor& dm_dsigma, const Matrix& stress, const Vector& q, const double epsilon,
-            const ProcessInfo& CurrentProcessInfo, const Properties& props) const
+void GeneralPlasticityLaw::Num_d2GdSigma2(Fourth_Order_Tensor& dm_dsigma, const Matrix& stress, const Vector& q, const double epsilon) const
 {
     Matrix m(3, 3), new_m(3, 3);
-    this->dGdSigma(m, stress, q, CurrentProcessInfo, props);
+    this->dGdSigma(m, stress, q);
 
     Matrix new_stress(3, 3);
     for (unsigned int k = 0; k < 3; ++k)
@@ -236,7 +232,7 @@ void GeneralPlasticityLaw::Num_d2GdSigma2(Fourth_Order_Tensor& dm_dsigma, const 
             noalias(new_stress) = stress;
             new_stress(k, l) += 0.5*epsilon;
             new_stress(l, k) += 0.5*epsilon;
-            this->dGdSigma(new_m, new_stress, q, CurrentProcessInfo, props);
+            this->dGdSigma(new_m, new_stress, q);
 
             for (unsigned int i = 0; i < 3; ++i)
             {
@@ -249,34 +245,32 @@ void GeneralPlasticityLaw::Num_d2GdSigma2(Fourth_Order_Tensor& dm_dsigma, const 
     }
 }
 
-void GeneralPlasticityLaw::Num_dFdQ(Vector& dfdq, const Matrix& stress, const Vector& q, const double epsilon,
-            const ProcessInfo& CurrentProcessInfo, const Properties& props) const
+void GeneralPlasticityLaw::Num_dFdQ(Vector& dfdq, const Matrix& stress, const Vector& q, const double epsilon) const
 {
-    const double F = this->F(stress, q, CurrentProcessInfo, props);
+    const double F = this->F(stress, q);
 
     Vector new_q(q.size());
     for (unsigned int i = 0; i < q.size(); ++i)
     {
         noalias(new_q) = q;
         new_q(i) += epsilon;
-        double new_F = this->F(stress, new_q, CurrentProcessInfo, props);
+        double new_F = this->F(stress, new_q);
 
         dfdq(i) = (new_F - F) / epsilon;
     }
 }
 
-void GeneralPlasticityLaw::Num_d2GdSigmadQ(Third_Order_Tensor& dmdq, const Matrix& stress, const Vector& q, const double epsilon,
-            const ProcessInfo& CurrentProcessInfo, const Properties& props) const
+void GeneralPlasticityLaw::Num_d2GdSigmadQ(Third_Order_Tensor& dmdq, const Matrix& stress, const Vector& q, const double epsilon) const
 {
     Matrix m(3, 3), new_m(3, 3);
-    this->dGdSigma(m, stress, q, CurrentProcessInfo, props);
+    this->dGdSigma(m, stress, q);
 
     Vector new_q(q.size());
     for (unsigned int k = 0; k < q.size(); ++k)
     {
         noalias(new_q) = q;
         new_q(k) += epsilon;
-        this->dGdSigma(new_m, stress, new_q, CurrentProcessInfo, props);
+        this->dGdSigma(new_m, stress, new_q);
 
         for (unsigned int i = 0; i < 3; ++i)
         {

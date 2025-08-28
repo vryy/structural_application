@@ -25,19 +25,18 @@ namespace Kratos
 {
 
 void GeneralElastoplasticityLaw::ComputeContinuumPlasticTangent(Fourth_Order_Tensor& Cep,
-        const Fourth_Order_Tensor& Ce, const Matrix& stress, const Vector& q, const Vector& alpha,
-        const ProcessInfo& CurrentProcessInfo, const Properties& props) const
+        const Fourth_Order_Tensor& Ce, const Matrix& stress, const Vector& q, const Vector& alpha) const
 {
     const unsigned int stress_size = stress.size1();
     const unsigned int q_size = q.size();
 
     Matrix A(stress_size, stress_size), B(stress_size, stress_size);
     Vector c(q_size), b(q_size), d(q_size);
-    this->dFdSigma(A, stress, q, CurrentProcessInfo, props);
-    this->dGdSigma(B, stress, q, CurrentProcessInfo, props);
-    this->dFdQ(c, stress, q, CurrentProcessInfo, props);
-    this->dGdQ(b, stress, q, CurrentProcessInfo, props);
-    this->dQdPhi(d, stress, q, alpha, CurrentProcessInfo, props);
+    this->dFdSigma(A, stress, q);
+    this->dGdSigma(B, stress, q);
+    this->dFdQ(c, stress, q);
+    this->dGdQ(b, stress, q);
+    this->dQdPhi(d, stress, q, alpha);
     // #ifdef DEBUG_GENERAL_PLASTICITY_LAW
     // KRATOS_WATCH(A)
     // KRATOS_WATCH(B)
@@ -66,7 +65,6 @@ void GeneralElastoplasticityLaw::ComputeContinuumPlasticTangent(Fourth_Order_Ten
 std::vector<double> GeneralElastoplasticityLaw::PlasticIntegration_Substepping(Matrix& stress, Vector& q, Vector& alpha,
         const Matrix& incremental_strain, const Fourth_Order_Tensor& Ce,
         const double FTOL, const int max_iters,
-        const ProcessInfo& CurrentProcessInfo, const Properties& props,
         const int debug_level) const
 {
     Matrix stress_trial = stress, stress_last = stress;
@@ -93,7 +91,7 @@ std::vector<double> GeneralElastoplasticityLaw::PlasticIntegration_Substepping(M
         // plastic integration
         noalias(stress_trial) = stress;
         error_code = PlasticIntegration(stress, q, alpha, dlambda, stress_trial, Ce,
-                FTOL, max_iters, CurrentProcessInfo, props, debug_level);
+                FTOL, max_iters, debug_level);
 
         // adjust step
         if (error_code == 0)
@@ -147,7 +145,6 @@ std::vector<double> GeneralElastoplasticityLaw::PlasticIntegration_Substepping(M
 int GeneralElastoplasticityLaw::PlasticIntegration_Substepping(Matrix& stress, Vector& q, Vector& alpha,
         const std::vector<double>& loads, const Matrix& incremental_strain, const Fourth_Order_Tensor& Ce,
         const double FTOL, const int max_iters,
-        const ProcessInfo& CurrentProcessInfo, const Properties& props,
         const int debug_level) const
 {
     Matrix stress_trial(3, 3);
@@ -166,7 +163,7 @@ int GeneralElastoplasticityLaw::PlasticIntegration_Substepping(Matrix& stress, V
         SD_MathUtils<double>::ContractFourthOrderTensor(dfactor, Ce, incremental_strain, stress);
 
         // determine if this is elastic or plastic step
-        double f = this->F(stress, q, CurrentProcessInfo, props);
+        double f = this->F(stress, q);
         if (f < FTOL)
         {
             // elastic step, nothing to do
@@ -184,7 +181,7 @@ int GeneralElastoplasticityLaw::PlasticIntegration_Substepping(Matrix& stress, V
             // plastic step, plastic integration
             noalias(stress_trial) = stress;
             error_code = PlasticIntegration(stress, q, alpha, dlambda, stress_trial, Ce,
-                    FTOL, max_iters, CurrentProcessInfo, props, debug_level);
+                    FTOL, max_iters, debug_level);
 
             #ifdef DEBUG_GENERAL_PLASTICITY_LAW
             if (debug_level > 1)
@@ -214,7 +211,6 @@ int GeneralElastoplasticityLaw::PlasticIntegration_Substepping(Matrix& stress, V
 int GeneralElastoplasticityLaw::PlasticIntegration(Matrix& stress, Vector& q, Vector& alpha, double& dlambda,
         const Matrix& stress_trial, const Fourth_Order_Tensor& Ce,
         const double FTOL, const int max_iters,
-        const ProcessInfo& CurrentProcessInfo, const Properties& props,
         const int debug_level) const
 {
     const unsigned int nvars = this->NumberOfInternalVariables();
@@ -260,10 +256,10 @@ int GeneralElastoplasticityLaw::PlasticIntegration(Matrix& stress, Vector& q, Ve
         #endif
 
         // compute f
-        f = this->F(stress, q, CurrentProcessInfo, props);
+        f = this->F(stress, q);
 
         // compute gradient m
-        this->dGdSigma(m, stress, q, CurrentProcessInfo, props);
+        this->dGdSigma(m, stress, q);
 
         #ifdef DEBUG_GENERAL_PLASTICITY_LAW
         if (debug_level > 2)
@@ -293,7 +289,7 @@ int GeneralElastoplasticityLaw::PlasticIntegration(Matrix& stress, Vector& q, Ve
         }
 
         // compute A
-        this->d2GdSigma2(dm_dsigma, stress, q, CurrentProcessInfo, props);
+        this->d2GdSigma2(dm_dsigma, stress, q);
         SD_MathUtils<double>::ZeroFourthOrderTensor(A); // A = 0
         SD_MathUtils<double>::SpecialProduct1FourthOrderTensor(1.0, eye, eye, A); // A += delta_ik delta_jl
         SD_MathUtils<double>::ProductFourthOrderTensor(dlambda, Ce, dm_dsigma, A); // A += lambda*Ce:dm_dsigma
@@ -318,20 +314,20 @@ int GeneralElastoplasticityLaw::PlasticIntegration(Matrix& stress, Vector& q, Ve
         #endif
 
         // compute gradient n
-        this->dFdSigma(n, stress, q, CurrentProcessInfo, props);
+        this->dFdSigma(n, stress, q);
 
         #if defined(DEBUG_GENERAL_PLASTICITY_LAW) && defined(CHECK_DERIVATIVES)
         if (debug_level > 2)
         {
-            this->Num_dFdSigma(num_n, stress, q, 1e-6, CurrentProcessInfo, props);
+            this->Num_dFdSigma(num_n, stress, q, 1e-6);
             KRATOS_WATCH(n)
             KRATOS_WATCH(num_n)
             std::cout << "diff_n: " << norm_frobenius(n-num_n) << std::endl;
-            this->Num_dGdSigma(num_m, stress, q, 1e-6, CurrentProcessInfo, props);
+            this->Num_dGdSigma(num_m, stress, q, 1e-6);
             // KRATOS_WATCH(m)
             // KRATOS_WATCH(num_m)
             std::cout << "diff_m: " << norm_frobenius(m-num_m) << std::endl;
-            this->Num_d2GdSigma2(num_dm_dsigma, stress, q, 1e-6, CurrentProcessInfo, props);
+            this->Num_d2GdSigma2(num_dm_dsigma, stress, q, 1e-6);
             // KRATOS_WATCH(dm_dsigma)
             // KRATOS_WATCH(num_dm_dsigma)
             SD_MathUtils<double>::AddFourthOrderTensor(-1.0, dm_dsigma, num_dm_dsigma);
@@ -341,14 +337,14 @@ int GeneralElastoplasticityLaw::PlasticIntegration(Matrix& stress, Vector& q, Ve
         #endif
 
         // compute b
-        this->dQdPhi(dqdphi, stress, q, alpha, CurrentProcessInfo, props);
-        this->d2GdSigmadQ(dmdq, stress, q, CurrentProcessInfo, props);
+        this->dQdPhi(dqdphi, stress, q, alpha);
+        this->d2GdSigmadQ(dmdq, stress, q);
         dm_dlambda.clear();
         SD_MathUtils<double>::ContractThirdOrderTensor(1.0, dmdq, dqdphi, dm_dlambda);
         noalias(b) = m + dlambda*dm_dlambda;
 
         // compute l
-        this->dFdQ(dfdq, stress, q, CurrentProcessInfo, props);
+        this->dFdQ(dfdq, stress, q);
         l = inner_prod(dfdq, dqdphi);
 
         #if defined(DEBUG_GENERAL_PLASTICITY_LAW) && defined(CHECK_DERIVATIVES)
@@ -374,7 +370,7 @@ int GeneralElastoplasticityLaw::PlasticIntegration(Matrix& stress, Vector& q, Ve
         if (debug_level > 2)
         {
             const double num_lhs = PlasticIntegration_ComputeNumLHS(stress, q, alpha,
-                    dlambda, 1e-8, stress_trial, Ce, FTOL, max_iters, CurrentProcessInfo, props);
+                    dlambda, 1e-8, stress_trial, Ce, FTOL, max_iters);
 
             KRATOS_WATCH(dqdphi)
             KRATOS_WATCH(l)
@@ -403,7 +399,7 @@ int GeneralElastoplasticityLaw::PlasticIntegration(Matrix& stress, Vector& q, Ve
 
         // update lambda
         dlambda += ddlambda;
-        this->dAlphadPhi(dalphadphi, alpha, CurrentProcessInfo, props);
+        this->dAlphadPhi(dalphadphi, alpha);
         noalias(alpha) += dalphadphi*ddlambda;
 
         #ifdef DEBUG_GENERAL_PLASTICITY_LAW
@@ -456,7 +452,6 @@ int GeneralElastoplasticityLaw::PlasticIntegration(Matrix& stress, Vector& q, Ve
 int GeneralElastoplasticityLaw::PlasticIntegration_CuttingPlane(Matrix& stress, Vector& q, Vector& alpha, double& dlambda,
         const Matrix& stress_trial, const Fourth_Order_Tensor& Ce,
         const double FTOL, const int max_iters,
-        const ProcessInfo& CurrentProcessInfo, const Properties& props,
         const int debug_level) const
 {
     const unsigned int nvars = this->NumberOfInternalVariables();
@@ -486,10 +481,10 @@ int GeneralElastoplasticityLaw::PlasticIntegration_CuttingPlane(Matrix& stress, 
         #endif
 
         // compute f
-        f = this->F(stress, q, CurrentProcessInfo, props);
+        f = this->F(stress, q);
 
         // compute gradient m
-        this->dGdSigma(m, stress, q, CurrentProcessInfo, props);
+        this->dGdSigma(m, stress, q);
 
         #ifdef DEBUG_GENERAL_PLASTICITY_LAW
         if (debug_level > 2)
@@ -519,16 +514,16 @@ int GeneralElastoplasticityLaw::PlasticIntegration_CuttingPlane(Matrix& stress, 
         }
 
         // compute gradient n
-        this->dFdSigma(n, stress, q, CurrentProcessInfo, props);
+        this->dFdSigma(n, stress, q);
 
         #if defined(DEBUG_GENERAL_PLASTICITY_LAW) && defined(CHECK_DERIVATIVES)
         if (debug_level > 2)
         {
-            this->Num_dFdSigma(num_n, stress, q, 1e-6, CurrentProcessInfo, props);
+            this->Num_dFdSigma(num_n, stress, q, 1e-6);
             // KRATOS_WATCH(n)
             // KRATOS_WATCH(num_n)
             std::cout << "diff_n: " << norm_frobenius(n-num_n) << std::endl;
-            this->Num_dGdSigma(num_m, stress, q, 1e-6, CurrentProcessInfo, props);
+            this->Num_dGdSigma(num_m, stress, q, 1e-6);
             // KRATOS_WATCH(m)
             // KRATOS_WATCH(num_m)
             std::cout << "diff_m: " << norm_frobenius(m-num_m) << std::endl;
@@ -536,8 +531,8 @@ int GeneralElastoplasticityLaw::PlasticIntegration_CuttingPlane(Matrix& stress, 
         #endif
 
         // compute l
-        this->dQdPhi(dqdphi, stress, q, alpha, CurrentProcessInfo, props);
-        this->dFdQ(dfdq, stress, q, CurrentProcessInfo, props);
+        this->dQdPhi(dqdphi, stress, q, alpha);
+        this->dFdQ(dfdq, stress, q);
         l = inner_prod(dfdq, dqdphi);
 
         #if defined(DEBUG_GENERAL_PLASTICITY_LAW) && defined(CHECK_DERIVATIVES)
@@ -577,7 +572,7 @@ int GeneralElastoplasticityLaw::PlasticIntegration_CuttingPlane(Matrix& stress, 
 
         // update lambda
         dlambda += ddlambda;
-        this->dAlphadPhi(dalphadphi, alpha, CurrentProcessInfo, props);
+        this->dAlphadPhi(dalphadphi, alpha);
         noalias(alpha) += dalphadphi*ddlambda;
 
         #ifdef DEBUG_GENERAL_PLASTICITY_LAW
@@ -630,8 +625,7 @@ int GeneralElastoplasticityLaw::PlasticIntegration_CuttingPlane(Matrix& stress, 
 int GeneralElastoplasticityLaw::PlasticIntegration_ComputeStress(Matrix& stress, const Vector& q, const Vector& alpha,
         const double dlambda,
         const Matrix& stress_trial, const Fourth_Order_Tensor& Ce,
-        const double FTOL, const int max_iters,
-        const ProcessInfo& CurrentProcessInfo, const Properties& props) const
+        const double FTOL, const int max_iters) const
 {
     Matrix n(3, 3), m(3, 3), r(3, 3), ninvA(3, 3);
     const Matrix eye = IdentityMatrix(3);
@@ -647,7 +641,7 @@ int GeneralElastoplasticityLaw::PlasticIntegration_ComputeStress(Matrix& stress,
     do
     {
         // compute gradient m
-        this->dGdSigma(m, stress, q, CurrentProcessInfo, props);
+        this->dGdSigma(m, stress, q);
 
         // compute r
         noalias(r) = stress - stress_trial;
@@ -657,7 +651,7 @@ int GeneralElastoplasticityLaw::PlasticIntegration_ComputeStress(Matrix& stress,
             break;
 
         // compute A
-        this->d2GdSigma2(dm_dsigma, stress, q, CurrentProcessInfo, props);
+        this->d2GdSigma2(dm_dsigma, stress, q);
         SD_MathUtils<double>::ZeroFourthOrderTensor(A); // A = 0
         SD_MathUtils<double>::SpecialProduct1FourthOrderTensor(1.0, eye, eye, A); // A += delta_ik delta_jl
         SD_MathUtils<double>::ProductFourthOrderTensor(dlambda, Ce, dm_dsigma, A); // A += lambda*Ce:dm_dsigma
@@ -680,21 +674,19 @@ int GeneralElastoplasticityLaw::PlasticIntegration_ComputeStress(Matrix& stress,
 
 // double GeneralElastoplasticityLaw::PlasticIntegration_ComputeRHS(const Matrix& stress, const Vector& q, const Vector& alpha,
 //         const double dlambda,
-//         const Matrix& stress_trial, const Fourth_Order_Tensor& Ce,
-//         const ProcessInfo& CurrentProcessInfo, const Properties& props) const
+//         const Matrix& stress_trial, const Fourth_Order_Tensor& Ce) const
 // {
 //     double f;
 
 //     // compute f
-//     f = this->F(stress, q, CurrentProcessInfo, props);
+//     f = this->F(stress, q);
 
 //     return f;
 // }
 
 double GeneralElastoplasticityLaw::PlasticIntegration_ComputeRHS(const Matrix& stress, const Vector& q, const Vector& alpha,
         const double dlambda,
-        const Matrix& stress_trial, const Fourth_Order_Tensor& Ce,
-        const ProcessInfo& CurrentProcessInfo, const Properties& props) const
+        const Matrix& stress_trial, const Fourth_Order_Tensor& Ce) const
 {
     double f;
     Matrix n(3, 3), m(3, 3), r(3, 3), ninvA(3, 3);
@@ -706,17 +698,17 @@ double GeneralElastoplasticityLaw::PlasticIntegration_ComputeRHS(const Matrix& s
     SD_MathUtils<double>::CalculateFourthOrderZeroTensor(dm_dsigma);
 
     // compute f
-    f = this->F(stress, q, CurrentProcessInfo, props);
+    f = this->F(stress, q);
 
     // compute gradient m
-    this->dGdSigma(m, stress, q, CurrentProcessInfo, props);
+    this->dGdSigma(m, stress, q);
 
     // compute r
     noalias(r) = stress - stress_trial;
     SD_MathUtils<double>::ContractFourthOrderTensor(dlambda, Ce, m, r);
 
     // compute A
-    this->d2GdSigma2(dm_dsigma, stress, q, CurrentProcessInfo, props);
+    this->d2GdSigma2(dm_dsigma, stress, q);
     SD_MathUtils<double>::ZeroFourthOrderTensor(A); // A = 0
     SD_MathUtils<double>::SpecialProduct1FourthOrderTensor(1.0, eye, eye, A); // A += delta_ik delta_jl
     SD_MathUtils<double>::ProductFourthOrderTensor(dlambda, Ce, dm_dsigma, A); // A += lambda*Ce:dm_dsigma
@@ -725,7 +717,7 @@ double GeneralElastoplasticityLaw::PlasticIntegration_ComputeRHS(const Matrix& s
     SD_MathUtils<double>::InvertFourthOrderTensor(A, invA);
 
     // compute gradient n
-    this->dFdSigma(n, stress, q, CurrentProcessInfo, props);
+    this->dFdSigma(n, stress, q);
 
     // compute right hand side
     ninvA.clear();
@@ -750,42 +742,41 @@ double GeneralElastoplasticityLaw::PlasticIntegration_ComputeRHS(const Matrix& s
 double GeneralElastoplasticityLaw::PlasticIntegration_ComputeNumLHS(const Matrix& stress, const Vector& q, const Vector& alpha,
         const double dlambda, const double ddlambda,
         const Matrix& stress_trial, const Fourth_Order_Tensor& Ce,
-        const double FTOL, const int max_iters,
-        const ProcessInfo& CurrentProcessInfo, const Properties& props) const
+        const double FTOL, const int max_iters) const
 {
     const unsigned int nvars = this->NumberOfInternalVariables();
 
-    double rref = PlasticIntegration_ComputeRHS(stress, q, alpha, dlambda, stress_trial, Ce, CurrentProcessInfo, props);
+    double rref = PlasticIntegration_ComputeRHS(stress, q, alpha, dlambda, stress_trial, Ce);
 
     Matrix m(3, 3);
-    this->dGdSigma(m, stress, q, CurrentProcessInfo, props);
+    this->dGdSigma(m, stress, q);
     Matrix new_stress = stress;
     SD_MathUtils<double>::ContractFourthOrderTensor(-ddlambda, Ce, m, new_stress);
 
     // Matrix new_stress = stress;
     // int error_code = PlasticIntegration_ComputeStress(new_stress, q, alpha,
     //     dlambda + ddlambda, stress_trial, Ce,
-    //     FTOL, max_iters, CurrentProcessInfo, props);
+    //     FTOL, max_iters);
     // if (error_code != 0)
     //     KRATOS_ERROR << "PlasticIntegration_ComputeStress does not converge";
 
     Vector new_q = q, new_alpha = alpha;
 
     Vector dqdphi(nvars), dalphadphi(nvars);
-    this->dQdPhi(dqdphi, stress, q, alpha, CurrentProcessInfo, props);
+    this->dQdPhi(dqdphi, stress, q, alpha);
     noalias(new_q) += ddlambda*dqdphi;
 
-    this->dAlphadPhi(dalphadphi, alpha, CurrentProcessInfo, props);
+    this->dAlphadPhi(dalphadphi, alpha);
     noalias(new_alpha) += ddlambda*dalphadphi;
 
     // Matrix new_stress = stress;
     // int error_code = PlasticIntegration_ComputeStress(new_stress, new_q, new_alpha,
     //     dlambda + ddlambda, stress_trial, Ce,
-    //     FTOL, max_iters, CurrentProcessInfo, props);
+    //     FTOL, max_iters);
     // if (error_code != 0)
     //     KRATOS_ERROR << "PlasticIntegration_ComputeStress does not converge";
 
-    double rnew = PlasticIntegration_ComputeRHS(new_stress, new_q, new_alpha, dlambda + ddlambda, stress_trial, Ce, CurrentProcessInfo, props);;
+    double rnew = PlasticIntegration_ComputeRHS(new_stress, new_q, new_alpha, dlambda + ddlambda, stress_trial, Ce);;
 
     return (rref - rnew) / ddlambda;
 }
@@ -795,8 +786,7 @@ double GeneralElastoplasticityLaw::PlasticIntegration_ComputeNumLHS(const Matrix
 void GeneralElastoplasticityLaw::ComputeConsistentPlasticTangent_Substepping(Fourth_Order_Tensor& Cep,
         const Fourth_Order_Tensor& Ce, const Matrix& stressn, const Vector& qn, const Vector& alphan,
         const std::vector<double>& loads, const Matrix& incremental_strain,
-        const double FTOL, const int max_iters,
-        const ProcessInfo& CurrentProcessInfo, const Properties& props) const
+        const double FTOL, const int max_iters) const
 {
     Matrix stress = stressn;
     Matrix stress_trial = stress;
@@ -833,7 +823,7 @@ void GeneralElastoplasticityLaw::ComputeConsistentPlasticTangent_Substepping(Fou
         SD_MathUtils<double>::ContractFourthOrderTensor(dfactor, Ce, incremental_strain, stress);
 
         // determine if this is elastic or plastic step
-        double f = this->F(stress, q, CurrentProcessInfo, props);
+        double f = this->F(stress, q);
         if (f < FTOL)
         {
             // elastic step
@@ -844,7 +834,7 @@ void GeneralElastoplasticityLaw::ComputeConsistentPlasticTangent_Substepping(Fou
             // plastic integration
             noalias(stress_trial) = stress;
             error_code = PlasticIntegration(stress, q, alpha, dlambda, stress_trial, Ce,
-                    FTOL, max_iters, CurrentProcessInfo, props, debug_level);
+                    FTOL, max_iters, debug_level);
 
             // check convergence
             if (error_code != 0)
@@ -853,7 +843,7 @@ void GeneralElastoplasticityLaw::ComputeConsistentPlasticTangent_Substepping(Fou
             if (i == 0)
             {
                 /* compute the first tangent */
-                ComputeConsistentPlasticTangent(Cep, Ce, stress, q, alpha, dlambda, CurrentProcessInfo, props);
+                ComputeConsistentPlasticTangent(Cep, Ce, stress, q, alpha, dlambda);
                 SD_MathUtils<double>::ScaleFourthOrderTensor(Cep, dfactor);
             }
             else
@@ -861,13 +851,13 @@ void GeneralElastoplasticityLaw::ComputeConsistentPlasticTangent_Substepping(Fou
                 /* update the tangent */
 
                 // compute gradient m
-                this->dGdSigma(m, stress, q, CurrentProcessInfo, props);
+                this->dGdSigma(m, stress, q);
 
                 // compute gradient n
-                this->dFdSigma(n, stress, q, CurrentProcessInfo, props);
+                this->dFdSigma(n, stress, q);
 
                 // compute A
-                this->d2GdSigma2(dm_dsigma, stress, q, CurrentProcessInfo, props);
+                this->d2GdSigma2(dm_dsigma, stress, q);
                 SD_MathUtils<double>::ZeroFourthOrderTensor(A); // A = 0
                 SD_MathUtils<double>::SpecialProduct1FourthOrderTensor(1.0, eye, eye, A); // A += delta_ik delta_jl
                 SD_MathUtils<double>::ProductFourthOrderTensor(dlambda, Ce, dm_dsigma, A); // A += lambda*Ce:dm_dsigma
@@ -876,14 +866,14 @@ void GeneralElastoplasticityLaw::ComputeConsistentPlasticTangent_Substepping(Fou
                 SD_MathUtils<double>::InvertFourthOrderTensor(A, invA);
 
                 // compute b
-                this->dQdPhi(dqdphi, stress, q, alpha, CurrentProcessInfo, props);
-                this->d2GdSigmadQ(dmdq, stress, q, CurrentProcessInfo, props);
+                this->dQdPhi(dqdphi, stress, q, alpha);
+                this->d2GdSigmadQ(dmdq, stress, q);
                 dm_dlambda.clear();
                 SD_MathUtils<double>::ContractThirdOrderTensor(1.0, dmdq, dqdphi, dm_dlambda);
                 noalias(b) = m + dlambda*dm_dlambda;
 
                 // compute l
-                this->dFdQ(dfdq, stress, q, CurrentProcessInfo, props);
+                this->dFdQ(dfdq, stress, q);
                 double l = inner_prod(dfdq, dqdphi);
 
                 // compute dlambda_dsigmatrial
@@ -913,14 +903,13 @@ void GeneralElastoplasticityLaw::ComputeConsistentPlasticTangent_Substepping(Fou
 void GeneralElastoplasticityLaw::ComputeNumericalPlasticTangent_Substepping(Fourth_Order_Tensor& Cep,
         const Fourth_Order_Tensor& Ce, const Matrix& stressn, const Vector& qn, const Vector& alphan,
         const std::vector<double>& loads, const Matrix& incremental_strain, const double epsilon,
-        const double FTOL, const int max_iters,
-        const ProcessInfo& CurrentProcessInfo, const Properties& props) const
+        const double FTOL, const int max_iters) const
 {
     Matrix stress = stressn, new_stress = stressn;
     Vector q = qn, alpha = alphan, new_q = qn, new_alpha = alphan;
 
     PlasticIntegration_Substepping(stress, q, alpha, loads, incremental_strain,
-            Ce, FTOL, max_iters, CurrentProcessInfo, props);
+            Ce, FTOL, max_iters);
 
     Matrix new_incremental_strain(3, 3);
     for (unsigned int k = 0; k < 3; ++k)
@@ -936,7 +925,7 @@ void GeneralElastoplasticityLaw::ComputeNumericalPlasticTangent_Substepping(Four
             noalias(new_alpha) = alphan;
 
             PlasticIntegration_Substepping(new_stress, new_q, new_alpha, loads, new_incremental_strain,
-                    Ce, FTOL, max_iters, CurrentProcessInfo, props);
+                    Ce, FTOL, max_iters);
 
             for (unsigned int i = 0; i < 3; ++i)
             {
@@ -951,8 +940,7 @@ void GeneralElastoplasticityLaw::ComputeNumericalPlasticTangent_Substepping(Four
 
 void GeneralElastoplasticityLaw::ComputeConsistentPlasticTangent(Fourth_Order_Tensor& Cep,
         const Fourth_Order_Tensor& Ce, const Matrix& stress, const Vector& q, const Vector& alpha,
-        const double dlambda,
-        const ProcessInfo& CurrentProcessInfo, const Properties& props) const
+        const double dlambda) const
 {
     const unsigned int nvars = this->NumberOfInternalVariables();
 
@@ -972,12 +960,12 @@ void GeneralElastoplasticityLaw::ComputeConsistentPlasticTangent(Fourth_Order_Te
     SD_MathUtils<double>::CalculateFourthOrderZeroTensor(Aux);
 
     // compute gradients n, m and dq_dphi
-    this->dQdPhi(dqdphi, stress, q, alpha, CurrentProcessInfo, props);
-    this->dGdSigma(m, stress, q, CurrentProcessInfo, props);
-    this->dFdSigma(n, stress, q, CurrentProcessInfo, props);
+    this->dQdPhi(dqdphi, stress, q, alpha);
+    this->dGdSigma(m, stress, q);
+    this->dFdSigma(n, stress, q);
 
     // compute A
-    this->d2GdSigma2(dm_dsigma, stress, q, CurrentProcessInfo, props);
+    this->d2GdSigma2(dm_dsigma, stress, q);
     SD_MathUtils<double>::ZeroFourthOrderTensor(A); // A = 0
     SD_MathUtils<double>::SpecialProduct1FourthOrderTensor(1.0, eye, eye, A); // A += delta_ik delta_jl
     SD_MathUtils<double>::ProductFourthOrderTensor(dlambda, Ce, dm_dsigma, A); // A += lambda*Ce:dm_dsigma
@@ -987,13 +975,13 @@ void GeneralElastoplasticityLaw::ComputeConsistentPlasticTangent(Fourth_Order_Te
     // KRATOS_WATCH(invA)
 
     // compute b
-    this->d2GdSigmadQ(dmdq, stress, q, CurrentProcessInfo, props);
+    this->d2GdSigmadQ(dmdq, stress, q);
     dm_dlambda.clear();
     SD_MathUtils<double>::ContractThirdOrderTensor(1.0, dmdq, dqdphi, dm_dlambda);
     noalias(b) = m + dlambda*dm_dlambda;
 
     // compute l
-    this->dFdQ(dfdq, stress, q, CurrentProcessInfo, props);
+    this->dFdQ(dfdq, stress, q);
     l = inner_prod(dfdq, dqdphi);
     ninvA.clear();
     SD_MathUtils<double>::ContractFourthOrderTensor(1.0, n, invA, ninvA);

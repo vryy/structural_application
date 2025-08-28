@@ -49,7 +49,7 @@ public:
     /**
      * Destructor.
      */
-    virtual ~MultiSurfaceElastoplasticityLaw()
+    ~MultiSurfaceElastoplasticityLaw() override
     {}
 
     /**
@@ -66,7 +66,6 @@ public:
         std::vector<double>& dlambda,
         const Matrix& stress_trial, const Fourth_Order_Tensor& Ce,
         const double FTOL, const int max_iters,
-        const ProcessInfo& CurrentProcessInfo, const Properties& props,
         const int debug_level = 0) const;
 
     /// Compute the (consistent) plastic tangent according to the procedure in plastic integration
@@ -74,7 +73,6 @@ public:
         Fourth_Order_Tensor& Cep, const Fourth_Order_Tensor& Ce,
         const Matrix& stress, const std::vector<Vector>& q,
         const std::vector<Vector>& alpha, const std::vector<double>& dlambda,
-        const ProcessInfo& CurrentProcessInfo, const Properties& props,
         const int debug_level = 0) const;
 
     ///////////////////////////////////////////////////////////
@@ -97,14 +95,12 @@ private:
     void PlasticIntegration_ComputeRHS(Vector& rhs, const std::vector<int>& active_surfaces,
         const Matrix& stress, const std::vector<Vector>& q, const std::vector<Vector>& alpha,
         const std::vector<double>& lambda,
-        const Matrix& stress_trial, const Fourth_Order_Tensor& Ce,
-        const ProcessInfo& CurrentProcessInfo, const Properties& props) const;
+        const Matrix& stress_trial, const Fourth_Order_Tensor& Ce) const;
 
     void PlasticIntegration_ComputeNumLHS(Matrix& lhs, const std::vector<int>& active_surfaces,
         const Matrix& stress, const std::vector<Vector>& q, const std::vector<Vector>& alpha,
         const std::vector<double> dlambda, const double ddlambda,
-        const Matrix& stress_trial, const Fourth_Order_Tensor& Ce,
-        const ProcessInfo& CurrentProcessInfo, const Properties& props) const;
+        const Matrix& stress_trial, const Fourth_Order_Tensor& Ce) const;
 
 }; /* Class MultiSurfaceElastoplasticityLaw */
 

@@ -28,7 +28,6 @@ int MultiSurfaceElastoplasticityLaw::PlasticIntegration(const std::vector<int>& 
         Matrix& stress, std::vector<Vector>& q, std::vector<Vector>& alpha, std::vector<double>& dlambda,
         const Matrix& stress_trial, const Fourth_Order_Tensor& Ce,
         const double FTOL, const int max_iters,
-        const ProcessInfo& CurrentProcessInfo, const Properties& props,
         const int debug_level) const
 {
     const unsigned int nsurfaces = mpPlasticityLaws.size();
@@ -85,7 +84,7 @@ int MultiSurfaceElastoplasticityLaw::PlasticIntegration(const std::vector<int>& 
         f_sum = 0.0;
         for (int ia : active_surfaces)
         {
-            f[ia] = mpPlasticityLaws[ia]->F(stress, q[ia], CurrentProcessInfo, props);
+            f[ia] = mpPlasticityLaws[ia]->F(stress, q[ia]);
             f_sum += std::abs(f[ia]);
         }
 
@@ -99,13 +98,14 @@ int MultiSurfaceElastoplasticityLaw::PlasticIntegration(const std::vector<int>& 
         for (int ia : active_surfaces)
         {
             // compute gradient m
-            mpPlasticityLaws[ia]->dGdSigma(m[ia], stress, q[ia], CurrentProcessInfo, props);
+            mpPlasticityLaws[ia]->dGdSigma(m[ia], stress, q[ia]);
 
             // update r
             SD_MathUtils<double>::ContractFourthOrderTensor(dlambda[ia], Ce, m[ia], r);
         }
         norm_r = norm_frobenius(r);
 
+        #ifdef DEBUG_GENERAL_PLASTICITY_LAW
         if (debug_level > 1)
         {
             std::cout << "At step " << it << ":" << std::endl;
@@ -113,6 +113,7 @@ int MultiSurfaceElastoplasticityLaw::PlasticIntegration(const std::vector<int>& 
             std::cout << " "; KRATOS_WATCH(f_sum)
             std::cout << " "; KRATOS_WATCH(f_sum_ref)
         }
+        #endif
 
         // check convergence
         if (f_sum/f_sum_ref + norm_r < FTOL)
@@ -126,7 +127,7 @@ int MultiSurfaceElastoplasticityLaw::PlasticIntegration(const std::vector<int>& 
         SD_MathUtils<double>::SpecialProduct1FourthOrderTensor(1.0, eye, eye, A); // A += delta_ik delta_jl
         for (int ia : active_surfaces)
         {
-            mpPlasticityLaws[ia]->d2GdSigma2(dm_dsigma, stress, q[ia], CurrentProcessInfo, props);
+            mpPlasticityLaws[ia]->d2GdSigma2(dm_dsigma, stress, q[ia]);
             SD_MathUtils<double>::ProductFourthOrderTensor(dlambda[ia], Ce, dm_dsigma, A); // A += lambda*Ce:dm_dsigma
         }
 
@@ -136,17 +137,17 @@ int MultiSurfaceElastoplasticityLaw::PlasticIntegration(const std::vector<int>& 
         // compute gradient n
         for (int ia : active_surfaces)
         {
-            mpPlasticityLaws[ia]->dFdSigma(n[ia], stress, q[ia], CurrentProcessInfo, props);
+            mpPlasticityLaws[ia]->dFdSigma(n[ia], stress, q[ia]);
         }
 
         // compute b
         for (int ia : active_surfaces)
         {
             // compute dqdphi
-            mpPlasticityLaws[ia]->dQdPhi(dqdphi[ia], stress, q[ia], alpha[ia], CurrentProcessInfo, props);
+            mpPlasticityLaws[ia]->dQdPhi(dqdphi[ia], stress, q[ia], alpha[ia]);
 
             // update b
-            mpPlasticityLaws[ia]->d2GdSigmadQ(dmdq[ia], stress, q[ia], CurrentProcessInfo, props);
+            mpPlasticityLaws[ia]->d2GdSigmadQ(dmdq[ia], stress, q[ia]);
             dm_dlambda.clear();
             SD_MathUtils<double>::ContractThirdOrderTensor(1.0, dmdq[ia], dqdphi[ia], dm_dlambda);
             noalias(b[ia]) = m[ia] + dlambda[ia]*dm_dlambda;
@@ -155,7 +156,7 @@ int MultiSurfaceElastoplasticityLaw::PlasticIntegration(const std::vector<int>& 
         // compute l
         for (int ia : active_surfaces)
         {
-            mpPlasticityLaws[ia]->dFdQ(dfdq[ia], stress, q[ia], CurrentProcessInfo, props);
+            mpPlasticityLaws[ia]->dFdQ(dfdq[ia], stress, q[ia]);
             l[ia] = inner_prod(dfdq[ia], dqdphi[ia]);
         }
 
@@ -207,7 +208,7 @@ int MultiSurfaceElastoplasticityLaw::PlasticIntegration(const std::vector<int>& 
         // update alpha
         for (int ia : active_surfaces)
         {
-            mpPlasticityLaws[ia]->dAlphadPhi(dalphadphi[ia], alpha[ia], CurrentProcessInfo, props);
+            mpPlasticityLaws[ia]->dAlphadPhi(dalphadphi[ia], alpha[ia]);
             noalias(alpha[ia]) += dalphadphi[ia]*dlambda[ia];
         }
 
@@ -240,7 +241,6 @@ void MultiSurfaceElastoplasticityLaw::ComputeConsistentPlasticTangent(const std:
         Fourth_Order_Tensor& Cep, const Fourth_Order_Tensor& Ce,
         const Matrix& stress, const std::vector<Vector>& q,
         const std::vector<Vector>& alpha, const std::vector<double>& dlambda,
-        const ProcessInfo& CurrentProcessInfo, const Properties& props,
         const int debug_level) const
 {
     const unsigned int nsurfaces = mpPlasticityLaws.size();
@@ -288,7 +288,7 @@ void MultiSurfaceElastoplasticityLaw::ComputeConsistentPlasticTangent(const std:
     SD_MathUtils<double>::SpecialProduct1FourthOrderTensor(1.0, eye, eye, A); // A += delta_ik delta_jl
     for (int ia : active_surfaces)
     {
-        mpPlasticityLaws[ia]->d2GdSigma2(dm_dsigma, stress, q[ia], CurrentProcessInfo, props);
+        mpPlasticityLaws[ia]->d2GdSigma2(dm_dsigma, stress, q[ia]);
         SD_MathUtils<double>::ProductFourthOrderTensor(dlambda[ia], Ce, dm_dsigma, A); // A += lambda*Ce:dm_dsigma
     }
 
@@ -298,23 +298,23 @@ void MultiSurfaceElastoplasticityLaw::ComputeConsistentPlasticTangent(const std:
     // compute dq_dphi
     for (int ia : active_surfaces)
     {
-        mpPlasticityLaws[ia]->dQdPhi(dqdphi[ia], stress, q[ia], alpha[ia], CurrentProcessInfo, props);
+        mpPlasticityLaws[ia]->dQdPhi(dqdphi[ia], stress, q[ia], alpha[ia]);
     }
 
     // compute gradient n
     for (int ia : active_surfaces)
     {
-        mpPlasticityLaws[ia]->dFdSigma(n[ia], stress, q[ia], CurrentProcessInfo, props);
+        mpPlasticityLaws[ia]->dFdSigma(n[ia], stress, q[ia]);
     }
 
     // compute b
     for (int ia : active_surfaces)
     {
         // compute gradient m
-        mpPlasticityLaws[ia]->dGdSigma(m, stress, q[ia], CurrentProcessInfo, props);
+        mpPlasticityLaws[ia]->dGdSigma(m, stress, q[ia]);
 
         // update b
-        mpPlasticityLaws[ia]->d2GdSigmadQ(dmdq[ia], stress, q[ia], CurrentProcessInfo, props);
+        mpPlasticityLaws[ia]->d2GdSigmadQ(dmdq[ia], stress, q[ia]);
         dm_dlambda.clear();
         SD_MathUtils<double>::ContractThirdOrderTensor(1.0, dmdq[ia], dqdphi[ia], dm_dlambda);
         noalias(b[ia]) = m + dlambda[ia]*dm_dlambda;
@@ -323,7 +323,7 @@ void MultiSurfaceElastoplasticityLaw::ComputeConsistentPlasticTangent(const std:
     // compute l
     for (int ia : active_surfaces)
     {
-        mpPlasticityLaws[ia]->dFdQ(dfdq[ia], stress, q[ia], CurrentProcessInfo, props);
+        mpPlasticityLaws[ia]->dFdQ(dfdq[ia], stress, q[ia]);
         l[ia] = inner_prod(dfdq[ia], dqdphi[ia]);
     }
 
@@ -399,8 +399,7 @@ void MultiSurfaceElastoplasticityLaw::ComputeConsistentPlasticTangent(const std:
 void MultiSurfaceElastoplasticityLaw::PlasticIntegration_ComputeRHS(Vector& rhs, const std::vector<int>& active_surfaces,
         const Matrix& stress, const std::vector<Vector>& q, const std::vector<Vector>& alpha,
         const std::vector<double>& dlambda,
-        const Matrix& stress_trial, const Fourth_Order_Tensor& Ce,
-        const ProcessInfo& CurrentProcessInfo, const Properties& props) const
+        const Matrix& stress_trial, const Fourth_Order_Tensor& Ce) const
 {
     const unsigned int nsurfaces = mpPlasticityLaws.size();
     const unsigned int nactive_surfaces = active_surfaces.size();
@@ -426,7 +425,7 @@ void MultiSurfaceElastoplasticityLaw::PlasticIntegration_ComputeRHS(Vector& rhs,
     // compute f
     for (int ia : active_surfaces)
     {
-        f[ia] = mpPlasticityLaws[ia]->F(stress, q[ia], CurrentProcessInfo, props);
+        f[ia] = mpPlasticityLaws[ia]->F(stress, q[ia]);
     }
 
     // compute r
@@ -434,7 +433,7 @@ void MultiSurfaceElastoplasticityLaw::PlasticIntegration_ComputeRHS(Vector& rhs,
     for (int ia : active_surfaces)
     {
         // compute gradient m
-        mpPlasticityLaws[ia]->dGdSigma(m, stress, q[ia], CurrentProcessInfo, props);
+        mpPlasticityLaws[ia]->dGdSigma(m, stress, q[ia]);
 
         // update r
         SD_MathUtils<double>::ContractFourthOrderTensor(dlambda[ia], Ce, m, r);
@@ -445,7 +444,7 @@ void MultiSurfaceElastoplasticityLaw::PlasticIntegration_ComputeRHS(Vector& rhs,
     SD_MathUtils<double>::SpecialProduct1FourthOrderTensor(1.0, eye, eye, A); // A += delta_ik delta_jl
     for (int ia : active_surfaces)
     {
-        mpPlasticityLaws[ia]->d2GdSigma2(dm_dsigma, stress, q[ia], CurrentProcessInfo, props);
+        mpPlasticityLaws[ia]->d2GdSigma2(dm_dsigma, stress, q[ia]);
         SD_MathUtils<double>::ProductFourthOrderTensor(dlambda[ia], Ce, dm_dsigma, A); // A += lambda*Ce:dm_dsigma
     }
 
@@ -461,7 +460,7 @@ void MultiSurfaceElastoplasticityLaw::PlasticIntegration_ComputeRHS(Vector& rhs,
     // compute gradient n
     for (int ia : active_surfaces)
     {
-        mpPlasticityLaws[ia]->dFdSigma(n[ia], stress, q[ia], CurrentProcessInfo, props);
+        mpPlasticityLaws[ia]->dFdSigma(n[ia], stress, q[ia]);
     }
 
     // compute the local linear system
@@ -477,8 +476,7 @@ void MultiSurfaceElastoplasticityLaw::PlasticIntegration_ComputeRHS(Vector& rhs,
 void MultiSurfaceElastoplasticityLaw::PlasticIntegration_ComputeNumLHS(Matrix& lhs, const std::vector<int>& active_surfaces,
         const Matrix& stress, const std::vector<Vector>& q, const std::vector<Vector>& alpha,
         const std::vector<double> dlambda, const double ddlambda,
-        const Matrix& stress_trial, const Fourth_Order_Tensor& Ce,
-        const ProcessInfo& CurrentProcessInfo, const Properties& props) const
+        const Matrix& stress_trial, const Fourth_Order_Tensor& Ce) const
 {
     const unsigned int nsurfaces = mpPlasticityLaws.size();
     const unsigned int nactive_surfaces = active_surfaces.size();
@@ -487,7 +485,7 @@ void MultiSurfaceElastoplasticityLaw::PlasticIntegration_ComputeNumLHS(Matrix& l
         lhs.resize(nactive_surfaces, nactive_surfaces, false);
 
     Vector ref_rhs(nactive_surfaces), new_rhs(nactive_surfaces);
-    PlasticIntegration_ComputeRHS(ref_rhs, active_surfaces, stress, q, alpha, dlambda, stress_trial, Ce, CurrentProcessInfo, props);
+    PlasticIntegration_ComputeRHS(ref_rhs, active_surfaces, stress, q, alpha, dlambda, stress_trial, Ce);
 
     Matrix m(3, 3), new_stress(3, 3);
     std::vector<Vector> new_q(nsurfaces), new_alpha(nsurfaces);
@@ -520,19 +518,19 @@ void MultiSurfaceElastoplasticityLaw::PlasticIntegration_ComputeNumLHS(Matrix& l
 
             const unsigned int nvars = mpPlasticityLaws[ja]->NumberOfInternalVariables();
 
-            mpPlasticityLaws[ja]->dGdSigma(m, stress, q[ja], CurrentProcessInfo, props);
+            mpPlasticityLaws[ja]->dGdSigma(m, stress, q[ja]);
             SD_MathUtils<double>::ContractFourthOrderTensor(dlambda[ja] - new_dlambda[ja], Ce, m, new_stress);
 
             Vector dqdphi(nvars);
-            mpPlasticityLaws[ja]->dQdPhi(dqdphi, stress, q[ja], alpha[ja], CurrentProcessInfo, props);
+            mpPlasticityLaws[ja]->dQdPhi(dqdphi, stress, q[ja], alpha[ja]);
             noalias(new_q[ja]) += (new_dlambda[ja] - dlambda[ja])*dqdphi;
 
             Vector dalphadphi(nvars);
-            mpPlasticityLaws[ja]->dAlphadPhi(dalphadphi, alpha[ja], CurrentProcessInfo, props);
+            mpPlasticityLaws[ja]->dAlphadPhi(dalphadphi, alpha[ja]);
             noalias(new_alpha[ja]) += (new_dlambda[ja] - dlambda[ja])*dalphadphi;
         }
 
-        PlasticIntegration_ComputeRHS(new_rhs, active_surfaces, new_stress, new_q, new_alpha, new_dlambda, stress_trial, Ce, CurrentProcessInfo, props);
+        PlasticIntegration_ComputeRHS(new_rhs, active_surfaces, new_stress, new_q, new_alpha, new_dlambda, stress_trial, Ce);
 
         noalias(column(lhs, i)) = (ref_rhs - new_rhs) / ddlambda;
     }

@@ -144,67 +144,67 @@ public:
     }
 
     /// Yield surface
-    virtual double F(const Matrix& stress, const Vector& q, const ProcessInfo& CurrentProcessInfo, const Properties& props) const
+    virtual double F(const Matrix& stress, const Vector& q) const
     {
         KRATOS_ERROR << "Error calling base class function";
     }
 
     /// Derivatives of yield surface w.r.t stress
-    virtual void dFdSigma(Matrix& n, const Matrix& stress, const Vector& q, const ProcessInfo& CurrentProcessInfo, const Properties& props) const
+    virtual void dFdSigma(Matrix& n, const Matrix& stress, const Vector& q) const
     {
         KRATOS_ERROR << "Error calling base class function";
     }
 
     /// Hessian of yield surface w.r.t stress
-    virtual void d2FdSigma2(Fourth_Order_Tensor& dn_dsigma, const Matrix& stress, const Vector& q, const ProcessInfo& CurrentProcessInfo, const Properties& props) const
+    virtual void d2FdSigma2(Fourth_Order_Tensor& dn_dsigma, const Matrix& stress, const Vector& q) const
     {
         KRATOS_ERROR << "Error calling base class function";
     }
 
     /// Derivatives of yield surface w.r.t internal variables
-    virtual void dFdQ(Vector& dfdq, const Matrix& stress, const Vector& q, const ProcessInfo& CurrentProcessInfo, const Properties& props) const
+    virtual void dFdQ(Vector& dfdq, const Matrix& stress, const Vector& q) const
     {
         KRATOS_ERROR << "Error calling base class function";
     }
 
     /// Plastic potential
-    virtual double G(const Matrix& stress, const Vector& q, const ProcessInfo& CurrentProcessInfo, const Properties& props) const
+    virtual double G(const Matrix& stress, const Vector& q) const
     {
         KRATOS_ERROR << "Error calling base class function";
     }
 
     /// Hessian of plastic potential w.r.t stress
-    virtual void d2GdSigma2(Fourth_Order_Tensor& dn_dsigma, const Matrix& stress, const Vector& q, const ProcessInfo& CurrentProcessInfo, const Properties& props) const
+    virtual void d2GdSigma2(Fourth_Order_Tensor& dn_dsigma, const Matrix& stress, const Vector& q) const
     {
         KRATOS_ERROR << "Error calling base class function";
     }
 
     /// Derivatives of plastic potential w.r.t stress
-    virtual void dGdSigma(Matrix& m, const Matrix& stress, const Vector& q, const ProcessInfo& CurrentProcessInfo, const Properties& props) const
+    virtual void dGdSigma(Matrix& m, const Matrix& stress, const Vector& q) const
     {
         KRATOS_ERROR << "Error calling base class function";
     }
 
     /// Derivatives of plastic potential w.r.t stress and thermodynamics forces
-    virtual void d2GdSigmadQ(Third_Order_Tensor& dmdq, const Matrix& stress, const Vector& q, const ProcessInfo& CurrentProcessInfo, const Properties& props) const
+    virtual void d2GdSigmadQ(Third_Order_Tensor& dmdq, const Matrix& stress, const Vector& q) const
     {
         KRATOS_ERROR << "Error calling base class function";
     }
 
     /// Derivatives of plastic potential w.r.t internal variables
-    virtual void dGdQ(Vector& dgdq, const Matrix& stress, const Vector& q, const ProcessInfo& CurrentProcessInfo, const Properties& props) const
+    virtual void dGdQ(Vector& dgdq, const Matrix& stress, const Vector& q) const
     {
         KRATOS_ERROR << "Error calling base class function";
     }
 
     /// Hardening matrix. It is the derivatives of q w.r.t alpha
-    virtual void dQdAlpha(Matrix& Hmat, const Matrix& stress, const Vector& q, const Vector& alpha, const ProcessInfo& CurrentProcessInfo, const Properties& props) const
+    virtual void dQdAlpha(Matrix& Hmat, const Matrix& stress, const Vector& q, const Vector& alpha) const
     {
         KRATOS_ERROR << "Error calling base class function";
     }
 
     /// Derivatives of strain-like parameter w.r.t plastic multiplier
-    virtual void dAlphadPhi(Vector& dalpha_dphi, const Vector& alpha, const ProcessInfo& CurrentProcessInfo, const Properties& props) const
+    virtual void dAlphadPhi(Vector& dalpha_dphi, const Vector& alpha) const
     {
         KRATOS_ERROR << "Error calling base class function";
     }
@@ -212,13 +212,13 @@ public:
     /// The hardening rule in stress space, i.e. derivatives of stress-like parameter w.r.t plastic multiplier
     /// In the technical note gen_plas.pdf, it is computed as (-d)
     /// This can also be computed as dQdAlpha * dAlphadPhi
-    virtual void dQdPhi(Vector& dq_dphi, const Matrix& stress, const Vector& q, const Vector& alpha, const ProcessInfo& CurrentProcessInfo, const Properties& props) const
+    virtual void dQdPhi(Vector& dq_dphi, const Matrix& stress, const Vector& q, const Vector& alpha) const
     {
         KRATOS_ERROR << "Error calling base class function";
     }
 
     /// Give/Compute a reference yield value. This value is used to check the yield condition during plastic integration.
-    virtual double ReferenceYieldValue(const Matrix& stress, const Vector& q, const Vector& alpha, const ProcessInfo& CurrentProcessInfo, const Properties& props) const
+    virtual double ReferenceYieldValue(const Matrix& stress, const Vector& q, const Vector& alpha) const
     {
         KRATOS_ERROR << "Error calling base class function";
     }
@@ -229,19 +229,17 @@ public:
 
     /// Compute the first yield point
     double ComputeFirstYieldPoint(const Matrix& stress0, const Matrix& delta_stress,
-        const Vector& q, const int ndiv, const double NTOL, const double FTOL,
-        const ProcessInfo& CurrentProcessInfo, const Properties& props) const;
+        const Vector& q, const int ndiv, const double NTOL, const double FTOL) const;
 
     /// Return the stress to the yield surface
     int DriftCorrection(Matrix& stress, Vector& q, Vector& alpha, const Fourth_Order_Tensor& Ce,
         const double FTOL, const int max_iters,
-        const ProcessInfo& CurrentProcessInfo, const Properties& props,
         const int debug_level=0) const;
 
     ///////////////////////////////////////////////////////////
 
     virtual int Check( const Properties& props,
-                       const ProcessInfo& CurrentProcessInfo) const
+                       const ProcessInfo& CurrentProcessInfo ) const
     {
         return 0;
     }
@@ -267,33 +265,28 @@ public:
     ///////////////////////////////////////////////////////////
 
     /// Compute dFdSigma numerically using finite difference scheme
-    void Num_dFdSigma(Matrix& n, const Matrix& stress, const Vector& q, const double epsilon,
-            const ProcessInfo& CurrentProcessInfo, const Properties& props) const;
+    void Num_dFdSigma(Matrix& n, const Matrix& stress, const Vector& q, const double epsilon) const;
 
     /// Compute d2FdSigma2 numerically using finite difference scheme
-    void Num_d2FdSigma2(Fourth_Order_Tensor& dn_dsigma, const Matrix& stress, const Vector& q, const double epsilon,
-            const ProcessInfo& CurrentProcessInfo, const Properties& props) const;
+    void Num_d2FdSigma2(Fourth_Order_Tensor& dn_dsigma, const Matrix& stress, const Vector& q, const double epsilon) const;
 
     /// Compute dGdSigma numerically using finite difference scheme
-    void Num_dGdSigma(Matrix& m, const Matrix& stress, const Vector& q, const double epsilon,
-            const ProcessInfo& CurrentProcessInfo, const Properties& props) const;
+    void Num_dGdSigma(Matrix& m, const Matrix& stress, const Vector& q, const double epsilon) const;
 
     /// Compute d2GdSigma2 numerically using finite difference scheme
-    void Num_d2GdSigma2(Fourth_Order_Tensor& dm_dsigma, const Matrix& stress, const Vector& q, const double epsilon,
-            const ProcessInfo& CurrentProcessInfo, const Properties& props) const;
+    void Num_d2GdSigma2(Fourth_Order_Tensor& dm_dsigma, const Matrix& stress, const Vector& q, const double epsilon) const;
 
     /// Compute dFdQ numerically using finite difference scheme
-    void Num_dFdQ(Vector& dfdq, const Matrix& stress, const Vector& q, const double epsilon,
-            const ProcessInfo& CurrentProcessInfo, const Properties& props) const;
+    void Num_dFdQ(Vector& dfdq, const Matrix& stress, const Vector& q, const double epsilon) const;
 
     /// Compute d2GdSigmadQ numerically using finite difference scheme
-    void Num_d2GdSigmadQ(Third_Order_Tensor& dmdq, const Matrix& stress, const Vector& q, const double epsilon,
-            const ProcessInfo& CurrentProcessInfo, const Properties& props) const;
+    void Num_d2GdSigmadQ(Third_Order_Tensor& dmdq, const Matrix& stress, const Vector& q, const double epsilon) const;
 
 private:
 
     ///@name Serialization
     ///@{
+
     friend class Serializer;
 
     virtual void save(Serializer& rSerializer) const

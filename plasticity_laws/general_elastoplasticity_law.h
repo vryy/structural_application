@@ -51,13 +51,12 @@ public:
     /**
      * Destructor.
      */
-    virtual ~GeneralElastoplasticityLaw()
+    ~GeneralElastoplasticityLaw() override
     {}
 
     /**
      * Operations
      */
-
 
     ///////////////////////////////////////////////////////////
     ///////////// PLASTIC CALCULATION SUBROUTINES /////////////
@@ -69,7 +68,6 @@ public:
     std::vector<double> PlasticIntegration_Substepping(Matrix& stress, Vector& q, Vector& alpha,
         const Matrix& incremental_strain, const Fourth_Order_Tensor& Ce,
         const double FTOL, const int max_iters,
-        const ProcessInfo& CurrentProcessInfo, const Properties& props,
         const int debug_level=0) const;
 
     /// Perform the plastic integration with sub-stepping on a specific loading profile for elastoplastic material law
@@ -78,7 +76,6 @@ public:
     int PlasticIntegration_Substepping(Matrix& stress, Vector& q, Vector& alpha,
         const std::vector<double>& loads, const Matrix& incremental_strain, const Fourth_Order_Tensor& Ce,
         const double FTOL, const int max_iters,
-        const ProcessInfo& CurrentProcessInfo, const Properties& props,
         const int debug_level=0) const;
 
     /// Perform the plastic integration for elastoplastic constitutive law
@@ -86,7 +83,6 @@ public:
     int PlasticIntegration(Matrix& stress, Vector& q, Vector& alpha, double& dlambda,
         const Matrix& stress_trial, const Fourth_Order_Tensor& Ce,
         const double FTOL, const int max_iters,
-        const ProcessInfo& CurrentProcessInfo, const Properties& props,
         const int debug_level=0) const;
 
     /// Perform the plastic integration for elastoplastic constitutive law using cutting plane algorithm
@@ -94,33 +90,28 @@ public:
     int PlasticIntegration_CuttingPlane(Matrix& stress, Vector& q, Vector& alpha, double& dlambda,
         const Matrix& stress_trial, const Fourth_Order_Tensor& Ce,
         const double FTOL, const int max_iters,
-        const ProcessInfo& CurrentProcessInfo, const Properties& props,
         const int debug_level=0) const;
 
     /// Compute the (continuum) plastic tangent
     void ComputeContinuumPlasticTangent(Fourth_Order_Tensor& Cep,
-        const Fourth_Order_Tensor& Ce, const Matrix& stress, const Vector& q, const Vector& alpha,
-        const ProcessInfo& CurrentProcessInfo, const Properties& props) const;
+        const Fourth_Order_Tensor& Ce, const Matrix& stress, const Vector& q, const Vector& alpha) const;
 
     /// Compute the (consistent) plastic tangent according to the procedure in plastic integration
     void ComputeConsistentPlasticTangent(Fourth_Order_Tensor& Cep,
         const Fourth_Order_Tensor& Ce, const Matrix& stress, const Vector& q, const Vector& alpha,
-        const double dlambda,
-        const ProcessInfo& CurrentProcessInfo, const Properties& props) const;
+        const double dlambda) const;
 
     /// Compute the (consistent) plastic tangent according to the procedure in plastic integration with sub-stepping
     void ComputeConsistentPlasticTangent_Substepping(Fourth_Order_Tensor& Cep,
         const Fourth_Order_Tensor& Ce, const Matrix& stressn, const Vector& qn, const Vector& alphan,
         const std::vector<double>& loads, const Matrix& incremental_strain,
-        const double FTOL, const int max_iters,
-        const ProcessInfo& CurrentProcessInfo, const Properties& props) const;
+        const double FTOL, const int max_iters) const;
 
     /// Compute the (numerical) plastic tangent according to the procedure in plastic integration with sub-stepping
     void ComputeNumericalPlasticTangent_Substepping(Fourth_Order_Tensor& Cep,
         const Fourth_Order_Tensor& Ce, const Matrix& stressn, const Vector& qn, const Vector& alphan,
         const std::vector<double>& loads, const Matrix& incremental_strain, const double epsilon,
-        const double FTOL, const int max_iters,
-        const ProcessInfo& CurrentProcessInfo, const Properties& props) const;
+        const double FTOL, const int max_iters) const;
 
     ///////////////////////////////////////////////////////////
 
@@ -137,19 +128,16 @@ private:
     /// Compute the stress providing dlambda
     int PlasticIntegration_ComputeStress(Matrix& stress, const Vector& q, const Vector& alpha,
         const double dlambda, const Matrix& stress_trial, const Fourth_Order_Tensor& Ce,
-        const double FTOL, const int max_iters,
-        const ProcessInfo& CurrentProcessInfo, const Properties& props) const;
+        const double FTOL, const int max_iters) const;
 
     double PlasticIntegration_ComputeRHS(const Matrix& stress, const Vector& q, const Vector& alpha,
         const double lambda,
-        const Matrix& stress_trial, const Fourth_Order_Tensor& Ce,
-        const ProcessInfo& CurrentProcessInfo, const Properties& props) const;
+        const Matrix& stress_trial, const Fourth_Order_Tensor& Ce) const;
 
     double PlasticIntegration_ComputeNumLHS(const Matrix& stress, const Vector& q, const Vector& alpha,
         const double dlambda, const double ddlambda,
         const Matrix& stress_trial, const Fourth_Order_Tensor& Ce,
-        const double FTOL, const int max_iters,
-        const ProcessInfo& CurrentProcessInfo, const Properties& props) const;
+        const double FTOL, const int max_iters) const;
 
 }; /* Class GeneralElastoplasticityLaw */
 
