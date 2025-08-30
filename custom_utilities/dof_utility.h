@@ -84,7 +84,7 @@ public:
     {}
 
     /// List all the dofs in the model_part
-    static void ListDofs(ModelPart::DofsArrayType& rDofSet, const std::size_t& EquationSystemSize)
+    static void ListDofs(ModelPart::DofsArrayType& rDofSet, const std::size_t EquationSystemSize)
     {
         KRATOS_WATCH(rDofSet.size())
         KRATOS_WATCH(EquationSystemSize)
@@ -136,9 +136,9 @@ public:
         std::size_t imax;
         for (std::size_t i = 0; i < forces.size(); ++i)
         {
-            if (fabs(forces[i]) > max_force)
+            if (std::abs(forces[i]) > max_force)
             {
-                max_force = fabs(forces[i]);
+                max_force = std::abs(forces[i]);
                 imax = i;
             }
         }
@@ -161,9 +161,10 @@ public:
         std::size_t imin;
         for (std::size_t i = 0; i < forces.size(); ++i)
         {
-            if (fabs(forces[i]) < min_force && fabs(forces[i]) > 0.0)
+            const auto force_abs = std::abs(forces[i]);
+            if (force_abs < min_force && force_abs > 0.0)
             {
-                min_force = fabs(forces[i]);
+                min_force = force_abs;
                 imin = i;
             }
         }
@@ -179,8 +180,8 @@ public:
         }
     }
 
-};//Class DofUtility
+}; // class DofUtility
 
-}//namespace Kratos.
+} //namespace Kratos.
 
 #endif /* KRATOS_DOF_UTILITY_H_INCLUDED defined */

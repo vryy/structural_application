@@ -48,10 +48,10 @@ public:
     static double sqrt(double x) {return std::sqrt(x);}
 
     /*
-    * Compute principal stresses and direction using eig3
-    * http://barnesc.blogspot.de/2007/02/eigenvectors-of-3x3-symmetric-matrix.html
-    * Remarks: sigma_1, sigma_2, sigma_3 is sorted; the eigen vector is sorted accordingly
-    */
+     * Compute principal stresses and direction using eig3
+     * http://barnesc.blogspot.de/2007/02/eigenvectors-of-3x3-symmetric-matrix.html
+     * Remarks: sigma_1, sigma_2, sigma_3 is sorted; the eigen vector is sorted accordingly
+     */
     static void calculate_principle_stresses(
         double sigma_xx,
         double sigma_yy,
@@ -99,10 +99,12 @@ public:
     }
 
     /*
-    * Compute principal stresses and direction using eig3
-    * http://barnesc.blogspot.de/2007/02/eigenvectors-of-3x3-symmetric-matrix.html
-    * Remarks: sigma_1, sigma_2, sigma_3 is sorted; the eigen projection tensor is sorted accordingly
-    */
+     * Compute principal stresses and direction using eig3
+     * http://barnesc.blogspot.de/2007/02/eigenvectors-of-3x3-symmetric-matrix.html
+     * Remarks: sigma_1, sigma_2, sigma_3 is sorted; the eigen projection tensor is sorted accordingly
+     * It is noted that eigprji is also the derivative of the principal stress w.r.t stress tensor, see
+     *      https://chatgpt.com/share/68b07782-4800-8006-8620-dba07de35a5b
+     */
     static void calculate_principle_stresses(
         double sigma_xx,
         double sigma_yy,
@@ -157,10 +159,10 @@ public:
     }
 
     /*
-    * Compute principal stresses and direction using eig3
-    * http://barnesc.blogspot.de/2007/02/eigenvectors-of-3x3-symmetric-matrix.html
-    * Remarks: sigma_1, sigma_2, sigma_3 is sorted descending except when the reversed flag is true
-    */
+     * Compute principal stresses and direction using eig3
+     * http://barnesc.blogspot.de/2007/02/eigenvectors-of-3x3-symmetric-matrix.html
+     * Remarks: sigma_1, sigma_2, sigma_3 is sorted descending except when the reversed flag is true
+     */
     static void calculate_principle_stresses(
         double sigma_xx,
         double sigma_yy,
@@ -205,10 +207,10 @@ public:
     }
 
     /*
-    * Compute principal strain and direction using for plane strain case
-    * REF: Souza de Neto, Computational Plasticity, box A.2
-    * Remarks: sigma_1, sigma_2, sigma_3 is sorted
-    */
+     * Compute principal strain and direction using for plane strain case
+     * REF: Souza de Neto, Computational Plasticity, box A.2
+     * Remarks: sigma_1, sigma_2, sigma_3 is sorted
+     */
     static void calculate_principle_strain(
         double epsilon_xx,
         double epsilon_yy,
@@ -296,10 +298,11 @@ public:
 //            KRATOS_WATCH(eigprj2)
         }
     }
+
     /*
-    * Compute principal stresses and direction using for plane strain case
-    * Remarks: sigma_1, sigma_2, sigma_3 are sorted
-    */
+     * Compute principal stresses and direction using for plane strain case
+     * Remarks: sigma_1, sigma_2, sigma_3 are sorted
+     */
     static void calculate_principle_stresses(
         double sigma_xx,
         double sigma_yy,
@@ -337,7 +340,7 @@ public:
             jj = 0;
         }
 
-        x1 = eig(ii); 
+        x1 = eig(ii);
         x2 = eig(jj);
 
         dir1(2) = 0.0; dir2(2) = 0.0;
@@ -382,11 +385,12 @@ public:
             dir3 = tmp2;
         }
     }
+
     /*
-    * Compute principal stresses and direction using for plane strain case
-    * REF: Souza de Neto, Computational Plasticity, box A.2
-    * Remarks: sigma_1, sigma_2, sigma_3 is sorted
-    */
+     * Compute principal stresses and direction using for plane strain case
+     * REF: Souza de Neto, Computational Plasticity, box A.2
+     * Remarks: sigma_1, sigma_2, sigma_3 is sorted
+     */
     static void calculate_principle_stresses(
         double sigma_xx,
         double sigma_yy,
