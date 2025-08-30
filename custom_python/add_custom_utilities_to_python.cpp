@@ -614,6 +614,12 @@ boost::python::list ElementUtility_Interpolate_Vector2(ElementUtility& rDummy, T
     return output;
 }
 
+template<typename TEntityType>
+void ElementUtility_ResetStrain(ElementUtility& rDummy, TEntityType& rElement, const ProcessInfo& rCurrentProcessInfo)
+{
+    rDummy.ResetStrain(rElement, rCurrentProcessInfo);
+}
+
 ///////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////
 
@@ -865,6 +871,7 @@ void  AddCustomUtilitiesToPython()
     .def("Interpolate", &ElementUtility_Interpolate_Array1D<Element, KRATOS_DOUBLE_TYPE>)
     .def("Interpolate", &ElementUtility_Interpolate_Vector<Element, Vector>)
     .def("Interpolate", &ElementUtility_Interpolate_Vector2<Element, Vector>)
+    .def("ResetStrain", &ElementUtility_ResetStrain<Element>)
     ;
 }
 

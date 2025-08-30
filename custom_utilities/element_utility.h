@@ -214,6 +214,34 @@ public:
         #endif
     }
 
+    /// Reset the strain at the integration points of the element to zero. This is used
+    /// after system displacement is set to zero. The main idea is to let the constitutive law
+    /// starts over but only the strain. The other values, such as stress and internal variables
+    /// shall be untouched. This procedure is often done in geotechnique, where the insitu stress
+    /// is transferred to the element. The initial state is non-zero stress, but we want to start
+    /// from zero displacement to see the true settlement induced by excavation.
+    template<typename TEntityType>
+    static void ResetStrain(TEntityType& rElement, const ProcessInfo& rCurrentProcessInfo)
+    {
+        typedef typename TEntityType::GeometryType GeometryType;
+
+        GeometryType& rGeometry = rElement.GetGeometry();
+
+        const IntegrationMethod ThisIntegrationMethod = rElement.GetIntegrationMethod();
+
+        const typename GeometryType::IntegrationPointsArrayType& integration_points =
+                rGeometry.IntegrationPoints( ThisIntegrationMethod );
+
+        std::vector<Vector> strain(integration_points.size());
+        for (std::size_t point = 0; point < integration_points.size(); ++point)
+        {
+            strain[point].resize(6, false);
+            noalias(strain[point]) = ZeroVector(6);
+        }
+
+        rElement.SetValuesOnIntegrationPoints(STRAIN, strain, rCurrentProcessInfo);
+    }
+
 }; // class ElementUtility
 
 }  /* namespace Kratos.*/
