@@ -256,7 +256,7 @@ public:
         {
             Result(i)= HelpA(i,i);
 
-            if(fabs(Result(i)) <zero)
+            if(std::abs(Result(i)) <zero)
                 Result(i)=0.0;
         }
 
@@ -423,12 +423,12 @@ public:
 
             normy= sqrt(normy);
 
-            TDataType l= sqrt((normy*(normy+fabs(y(iteration))))/2);
+            TDataType l= sqrt((normy*(normy+std::abs(y(iteration))))/2);
 
             TDataType k=0.0;
 
             if(y[iteration] !=0)
-                k= - y(iteration)/fabs(y(iteration))*normy;
+                k= - y(iteration)/std::abs(y(iteration))*normy;
             else
                 k= -normy;
 
@@ -530,9 +530,9 @@ public:
             {
                 for(unsigned int j=(i+1); j< Help.size2(); j++)
                 {
-                    if((fabs(Help(i,j)) > a ) && (fabs(Help(i,j)) > zero_tolerance))
+                    if((std::abs(Help(i,j)) > a ) && (std::abs(Help(i,j)) > zero_tolerance))
                     {
-                        a= fabs(Help(i,j));
+                        a= std::abs(Help(i,j));
 
                         index1= i;
                         index2= j;
@@ -553,13 +553,13 @@ public:
 
             TDataType u=1.0;
 
-            if(fabs(gamma) > zero_tolerance && fabs(gamma)< (1/zero_tolerance))
+            if(std::abs(gamma) > zero_tolerance && std::abs(gamma)< (1/zero_tolerance))
             {
-                u= gamma/fabs(gamma)*1.0/(fabs(gamma)+sqrt(1.0+gamma*gamma));
+                u= gamma/std::abs(gamma)*1.0/(std::abs(gamma)+sqrt(1.0+gamma*gamma));
             }
             else
             {
-                if  (fabs(gamma)>= (1.0/zero_tolerance))
+                if  (std::abs(gamma)>= (1.0/zero_tolerance))
                     u= 0.5/gamma;
             }
 
@@ -2519,7 +2519,7 @@ public:
      * X must be 3 x 3 matrix
      * Y will be resized accordingly
      * e must be sorted
-     * Rererence: Section A.5.2, Computational Plasticity, de Souza Neto.
+     * Reference: Section A.5.2, Computational Plasticity, de Souza Neto.
      */
     template<typename TMatrixType>
     static void ComputeIsotropicTensorFunction(
@@ -2546,7 +2546,7 @@ public:
      * X must be 3 x 3 matrix
      * Y will be resized accordingly
      * e must be sorted
-     * Rererence: Section A.5.2, Computational Plasticity, de Souza Neto.
+     * Reference: Section A.5.2, Computational Plasticity, de Souza Neto.
      */
     template<typename TMatrixType>
     static void ComputeIsotropicTensorFunction(
@@ -2561,7 +2561,7 @@ public:
             Y.resize(3, 3, false);
 
         Y.clear();
-        if (fabs(e[0] - e[1]) > TOL && fabs(e[1] - e[2]) > TOL && fabs(e[0] - e[2]) > TOL)
+        if (std::abs(e[0] - e[1]) > TOL && std::abs(e[1] - e[2]) > TOL && std::abs(e[0] - e[2]) > TOL)
         {
             for (int d = 0; d < 3; ++d)
                 noalias(Y) += func(e[d]) * eigprj[d];
@@ -2570,18 +2570,18 @@ public:
         {
             const Matrix eye = IdentityMatrix(3);
 
-            if (fabs(e[0] - e[1]) < TOL && fabs(e[1] - e[2]) < TOL)
+            if (std::abs(e[0] - e[1]) < TOL && std::abs(e[1] - e[2]) < TOL)
             {
                 noalias(Y) = func(e[0]) * eye;
             }
             else
             {
-                if (fabs(e[0] - e[1]) < TOL)
+                if (std::abs(e[0] - e[1]) < TOL)
                 {
                     noalias(Y) = func(e[2]) * eigprj[2]
                                + func(e[0]) * (eye - eigprj[0]);
                 }
-                else // (fabs(e[1] - e[2]) < TOL)
+                else // (std::abs(e[1] - e[2]) < TOL)
                 {
                     noalias(Y) = func(e[0]) * eigprj[0]
                                + func(e[2]) * (eye - eigprj[2]);
@@ -2594,12 +2594,12 @@ public:
      * Compute the derivative of the isotropic function of the type
      *       Y(X) = sum{ y(x_i) E_i }
      * WHERE Y AND X ARE SYMMETRIC TENSORS, x_i AND E_i ARE, RESPECTIVELY
-      * THE EIGENVALUES AND EIGENPROJECTIONS OF X, AND y(.) IS A SCALAR
+     * THE EIGENVALUES AND EIGENPROJECTIONS OF X, AND y(.) IS A SCALAR
      * FUNCTION.
      * X must be 3 x 3 matrix
      * e and eigprj are the principle values and eigenprojections of X
      * dYdX will be resized accordingly
-     * Rererence: Section A.5.2, Computational Plasticity, de Souza Neto.
+     * Reference: Section A.5.2, Computational Plasticity, de Souza Neto.
      */
     template<typename TMatrixType>
     static void ComputeDerivativeIsotropicTensorFunction(
@@ -2653,12 +2653,14 @@ public:
      * Compute the derivative of the isotropic function of the type
      *       Y(X) = sum{ y(x_i) E_i }
      * WHERE Y AND X ARE SYMMETRIC TENSORS, x_i AND E_i ARE, RESPECTIVELY
-      * THE EIGENVALUES AND EIGENPROJECTIONS OF X, AND y(.) IS A SCALAR
+     * THE EIGENVALUES AND EIGENPROJECTIONS OF X, AND y(.) IS A SCALAR
      * FUNCTION.
      * X must be 3 x 3 matrix
      * e and eigprj are the principle values and eigenprojections of X
      * dYdX will be resized accordingly
-     * Rererence: Section A.5.2, Computational Plasticity, de Souza Neto.
+     * Reference: Section A.5.2, Computational Plasticity, de Souza Neto.
+     * Note: in this version, a tolerance is needed to treat the case of
+     * equivalent eigenvalues
      */
     template<typename TMatrixType>
     static void ComputeDerivativeIsotropicTensorFunction(
@@ -2688,7 +2690,7 @@ public:
 
         CalculateFourthOrderZeroTensor(dYdX);
 
-        if (fabs(e[0] - e[1]) > TOL && fabs(e[1] - e[2]) > TOL && fabs(e[0] - e[2]) > TOL)
+        if (std::abs(e[0] - e[1]) > TOL && std::abs(e[1] - e[2]) > TOL && std::abs(e[0] - e[2]) > TOL)
         {
             int a, b, c;
             for (a = 0; a < 3; ++a)
@@ -2712,7 +2714,7 @@ public:
         }
         else
         {
-            if (fabs(e[0] - e[1]) < TOL && fabs(e[1] - e[2]) < TOL)
+            if (std::abs(e[0] - e[1]) < TOL && std::abs(e[1] - e[2]) < TOL)
             {
                 AddFourthOrderTensor(dfunc(e[0]), Is, dYdX);
             }
@@ -2721,12 +2723,12 @@ public:
                 const Matrix eye = IdentityMatrix(3);
                 int a, c;
 
-                if (fabs(e[0] - e[1]) < TOL)
+                if (std::abs(e[0] - e[1]) < TOL)
                 {
                     a = 2;
                     c = 0;
                 }
-                else // (fabs(e[1] - e[2]) < TOL)
+                else // (std::abs(e[1] - e[2]) < TOL)
                 {
                     a = 0;
                     c = 2;
@@ -2785,9 +2787,9 @@ public:
         Fourth_Order_Tensor Is;
         CalculateFourthOrderSymmetricTensor(Is);
         CalculateFourthOrderZeroTensor(Dep);
-        if( ( fabs(pstrain[ii] - pstrain[mm]) > TOL )
-         && ( fabs(pstrain[mm] - pstrain[jj]) > TOL )
-         && ( fabs(pstrain[ii] - pstrain[jj]) > TOL ) )
+        if( ( std::abs(pstrain[ii] - pstrain[mm]) > TOL )
+         && ( std::abs(pstrain[mm] - pstrain[jj]) > TOL )
+         && ( std::abs(pstrain[ii] - pstrain[jj]) > TOL ) )
         {
             #ifdef DEBUG_MOHR_COULOMB_WARNING_BOX_A6
             std::cout << "Box A.6 first case" << std::endl;
@@ -2825,11 +2827,11 @@ public:
         {
             int a, b, c;
             bool isSame = false;
-            if( ( fabs(pstrain[jj] - pstrain[mm]) < TOL ) && ( fabs(pstrain[ii] - pstrain[jj]) > TOL ))
+            if( ( std::abs(pstrain[jj] - pstrain[mm]) < TOL ) && ( std::abs(pstrain[ii] - pstrain[jj]) > TOL ))
             { a = ii; b = mm; c = jj; }
-            else if( ( fabs(pstrain[jj] - pstrain[ii]) < TOL ) && ( fabs(pstrain[ii] - pstrain[mm]) > TOL ))
+            else if( ( std::abs(pstrain[jj] - pstrain[ii]) < TOL ) && ( std::abs(pstrain[ii] - pstrain[mm]) > TOL ))
             { a = mm; b = ii; c = jj; }
-            else if( ( fabs(pstrain[ii] - pstrain[mm]) < TOL ) && ( fabs(pstrain[jj] - pstrain[mm]) > TOL ))
+            else if( ( std::abs(pstrain[ii] - pstrain[mm]) < TOL ) && ( std::abs(pstrain[jj] - pstrain[mm]) > TOL ))
             { a = jj; b = ii; c = mm; }
             else isSame = true;
 
@@ -2863,7 +2865,7 @@ public:
     }
     /**
     * Assemble the isotropic elastic or elasto-plastic stress-strain tensor in spectral form.
-    * Reference: Plastcity modeling and computation, Ronaldo I. Borja. 
+    * Reference: Plastcity modeling and computation, Ronaldo I. Borja.
     * Remark: It is assumed the principal elastic trial strains pstrain are already sorted in descending order.
     *         Also, pstress, dpstrs and E are already sorted  and follow the sorting of the principal elastic trial strains pstrain.
     * @param use_perturbation is a flag that deals with the problem of repeated eigen values. When it is set to true a simple perturbation technique is applied.
@@ -2871,7 +2873,7 @@ public:
     * @param pstress are the principal stresses.
     * @param pstrain are the principal elastic trial strains.
     * @param dpstrs is the linearization of the principal stresses with respect to the principal elastic trial strains.
-    * @param E is the eigenvectors stored in vector form. 
+    * @param E is the eigenvectors stored in vector form.
     * @param Dep is the fourth order tensor to be assembled.
     */
     static inline void AssembleConstitutiveTensorInSpectralForm(
@@ -2894,32 +2896,32 @@ public:
 
         // in the case of repeated eigenvalues, a pertubation eta is added, when the perturbation technique is applied
         // the perturbation will allow to use the three-dimensional expression for the constitutive operator in spectral form
-        const double eta = std::pow(2.0,-52.0);// machine tolerance 
+        const double eta = std::pow(2.0,-52.0);// machine tolerance
         std::vector<double> pstrain_perturbed(3);
         pstrain_perturbed = pstrain;
 
         if (use_perturbation){
             // for the cases of repeated eigen values
-            if (fabs(pstrain[0] -pstrain[1]) < 1.0e-10){ 
+            if (std::abs(pstrain[0] -pstrain[1]) < 1.0e-10){
                 pstrain_perturbed[0] = pstrain_perturbed[1]+eta;
-            }    
-            if (fabs(pstrain[1] -pstrain[2]) < 1.0e-10){ 
+            }
+            if (std::abs(pstrain[1] -pstrain[2]) < 1.0e-10){
                 pstrain_perturbed[2] = pstrain_perturbed[1]-eta;
-            }     
+            }
         }
         double ratio_d_stress_d_strain_e_ab = 0.0;
         // non-repeated indexes
         std::array<int,2> bi = {0, 0};
-        // assemble fourth order tensor algorithmic tangent operator 
+        // assemble fourth order tensor algorithmic tangent operator
         for (unsigned int a = 0; a < 3; ++a){
             // add algorithmic tangent operator in principal stress axes
             for (unsigned int b = 0; b < 3; ++b){
                 // compute the dyadic product of the eigenvectors
                 noalias(M_a) = outer_prod(E[a],E[a]);
                 noalias(M_b) = outer_prod(E[b],E[b]);
-                OuterProductFourthOrderTensor(dpstrs(a,b),  M_a, M_b, Dep);  
+                OuterProductFourthOrderTensor(dpstrs(a,b),  M_a, M_b, Dep);
             }
-            // add spins 
+            // add spins
             if (a == 0){
                 bi[0] = 1; bi[1] = 2;
             }
@@ -2934,8 +2936,8 @@ public:
                 // compute the dyadic product of the eigenvectors
                 noalias(M_ab) = outer_prod(E[a],E[bi[i]]);
                 noalias(M_ba) = outer_prod(E[bi[i]],E[a]);
-                // check the singularity in presence of repeated eigen values 
-                if (fabs(pstrain[bi[i]] -pstrain[a]) < 1.0e-10){
+                // check the singularity in presence of repeated eigen values
+                if (std::abs(pstrain[bi[i]] -pstrain[a]) < 1.0e-10){
                     if (use_perturbation){
                         ratio_d_stress_d_strain_e_ab = 0.5*(pstress[bi[i]] -pstress[a])/(pstrain_perturbed[bi[i]] -pstrain_perturbed[a]);
                     }
@@ -2947,11 +2949,12 @@ public:
                     ratio_d_stress_d_strain_e_ab = 0.5*(pstress[bi[i]] -pstress[a])/(pstrain[bi[i]] -pstrain[a]);
                 }
 
-                OuterProductFourthOrderTensor(ratio_d_stress_d_strain_e_ab, M_ab, M_ab, Dep); 
+                OuterProductFourthOrderTensor(ratio_d_stress_d_strain_e_ab, M_ab, M_ab, Dep);
                 OuterProductFourthOrderTensor(ratio_d_stress_d_strain_e_ab, M_ab, M_ba, Dep);
             }
         }
     }
+
     /**
     * Performs clipping on the two polygons clipping_points and subjected_points (the technique used i
     * Sutherland-Hodgman clipping) and returns the overlapping polygon result_points. The method works
@@ -3004,13 +3007,13 @@ public:
 
             for(unsigned int subj_edge=0; subj_edge< result_points.size(); subj_edge++)
             {
-                unsigned int    index_subj_2=0;
+                unsigned int index_subj_2=0;
 
                 if(subj_edge< (result_points.size()-1))
                     index_subj_2= subj_edge+1;
 
                 //Test whether the points of the actual subj_edge lay on clipp_edge
-                if(fabs(inner_prod((*(result_points[subj_edge])-(*(clipping_points[clipp_edge]))), actual_normal))<= tolerance)
+                if(std::abs(inner_prod((*(result_points[subj_edge])-(*(clipping_points[clipp_edge]))), actual_normal))<= tolerance)
                 {
                     temp_results.push_back(result_points[subj_edge]);
                     if( inner_prod((*(result_points[index_subj_2])-*(clipping_points[clipp_edge])), actual_normal)> tolerance)
@@ -3336,10 +3339,10 @@ public:
      *    [1 1.1 1.2 0 0 2 2.1 2.2 0 0 ....]
      */
     static void AssembleVectorFromSubVector( VectorType& rRightHandSideVector,
-            const unsigned int& dim,
-            const unsigned int& num,
-            const unsigned int& stride,
-            const unsigned int& begin,
+            const unsigned int dim,
+            const unsigned int num,
+            const unsigned int stride,
+            const unsigned int begin,
             const Vector& R_P )
     {
         for ( unsigned int prim = 0; prim < num; ++prim )
@@ -3356,14 +3359,14 @@ public:
      * The index notation in each dimension is similar to AssembleVectorFromSubVector
      */
     static void AssembleMatrixFromSubMatrix( MatrixType& rLeftHandSideMatrix,
-            const unsigned int& dim1,
-            const unsigned int& num1,
-            const unsigned int& stride1,
-            const unsigned int& begin1,
-            const unsigned int& dim2,
-            const unsigned int& num2,
-            const unsigned int& stride2,
-            const unsigned int& begin2,
+            const unsigned int dim1,
+            const unsigned int num1,
+            const unsigned int stride1,
+            const unsigned int begin1,
+            const unsigned int dim2,
+            const unsigned int num2,
+            const unsigned int stride2,
+            const unsigned int begin2,
             const MatrixType& K_PQ)
     {
         for ( unsigned int prim = 0; prim < num1; ++prim )
