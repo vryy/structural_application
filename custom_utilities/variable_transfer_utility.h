@@ -366,6 +366,30 @@ public:
     }
 
     /**
+     * Transfer of Variable.
+     * This transfers the variable from rSource to rTarget.
+     * rSource and rTarget must be identical. Otherwise it will generate errors.
+     * @param rSource the source model part
+     * @param rTarget the target model part
+     */
+    template<typename TVariableType>
+    void TransferVariableIdentically( const TVariableType& rVariable, ModelPart& rSource, ModelPart& rTarget )
+    {
+        std::vector<typename TVariableType::Type> Values;
+        for( ModelPart::ElementIterator it = rSource.ElementsBegin(); it != rSource.ElementsEnd(); ++it )
+        {
+            it->CalculateOnIntegrationPoints(rVariable, Values, rSource.GetProcessInfo());
+            auto it_elem = rTarget.Elements().find(it->Id());
+            if (it_elem == rTarget.Elements().end())
+            {
+                KRATOS_ERROR << "Element " << it->Id() << " does not exist in the target model_part " << rTarget.Name();
+            }
+            it_elem->SetValuesOnIntegrationPoints(rVariable, Values, rTarget.GetProcessInfo());
+        }
+        std::cout << __FUNCTION__ << " for " << rVariable << " from " << rSource.Name() << " to " << rTarget.Name() << " completed" << std::endl;
+    }
+
+    /**
      * Transfer of PRESTRESS.
      * This transfers the in-situ stress from rSource to rTarget.
      * rSource and rTarget must be identical. Otherwise it will generate errors.
@@ -374,19 +398,34 @@ public:
      */
     void TransferPrestressIdentically( ModelPart& rSource, ModelPart& rTarget )
     {
-        std::vector<Vector> PreStresses;
-        for( ModelPart::ElementIterator it = rSource.ElementsBegin();
-                it != rSource.ElementsEnd(); ++it )
+        TransferVariableIdentically(PRESTRESS, rSource, rTarget);
+    }
+
+    /**
+     * Transfer of Variable.
+     * This transfers the variable from rSource to rTarget.
+     * If the element does not exist in target, a warning will be thrown
+     * @param rSource the source model part
+     * @param rTarget the target model part
+     */
+    template<typename TVariableType>
+    void TransferVariableIdenticallyWithCheck( const TVariableType& rVariable, ModelPart& rSource, ModelPart& rTarget )
+    {
+        std::vector<typename TVariableType::Type> Values;
+        for( ModelPart::ElementIterator it = rSource.ElementsBegin(); it != rSource.ElementsEnd(); ++it )
         {
-            it->CalculateOnIntegrationPoints(PRESTRESS, PreStresses, rSource.GetProcessInfo());
             auto it_elem = rTarget.Elements().find(it->Id());
-            if (it_elem == rTarget.Elements().end())
+            if (it_elem != rTarget.Elements().end())
             {
-                KRATOS_ERROR << "Element " << it->Id() << " does not exist in the target model_part " << rTarget.Name();
+                it->CalculateOnIntegrationPoints(rVariable, Values, rSource.GetProcessInfo());
+                it_elem->SetValuesOnIntegrationPoints(rVariable, Values, rTarget.GetProcessInfo());
             }
-            it_elem->SetValuesOnIntegrationPoints(PRESTRESS, PreStresses, rTarget.GetProcessInfo());
+            else
+            {
+                std::cout << "WARNING!!! Target element " << it->Id() << " is not found in the target model_part " << rTarget.Name() << std::endl;
+            }
         }
-        std::cout << __FUNCTION__ << " from " << rSource.Name() << " to " << rTarget.Name() << " completed" << std::endl;
+        std::cout << __FUNCTION__ << " for " << rVariable << " from " << rSource.Name() << " to " << rTarget.Name() << " completed" << std::endl;
     }
 
     /**
@@ -398,22 +437,30 @@ public:
      */
     void TransferPrestressIdenticallyWithCheck( ModelPart& rSource, ModelPart& rTarget )
     {
-        std::vector<Vector> PreStresses;
-        for( ModelPart::ElementIterator it = rSource.ElementsBegin();
-                it != rSource.ElementsEnd(); ++it )
+        TransferVariableIdenticallyWithCheck(PRESTRESS, rSource, rTarget);
+    }
+
+    /**
+     * Transfer of Variable.
+     * This transfers the variable from rSource to rTarget.
+     * If the element does not exist in target, nothing will be alerted. USE THIS WITH CARE.
+     * @param rSource the source model part
+     * @param rTarget the target model part
+     */
+    template<typename TVariableType>
+    void TransferVariableIdenticallyNoCheck( const TVariableType& rVariable, ModelPart& rSource, ModelPart& rTarget )
+    {
+        std::vector<typename TVariableType::Type> Values;
+        for( ModelPart::ElementIterator it = rSource.ElementsBegin(); it != rSource.ElementsEnd(); ++it )
         {
             auto it_elem = rTarget.Elements().find(it->Id());
             if (it_elem != rTarget.Elements().end())
             {
-                it->CalculateOnIntegrationPoints(PRESTRESS, PreStresses, rSource.GetProcessInfo());
-                it_elem->SetValuesOnIntegrationPoints(PRESTRESS, PreStresses, rTarget.GetProcessInfo());
-            }
-            else
-            {
-                std::cout << "WARNING!!! Target element " << it->Id() << " is not found in the target model_part " << rTarget.Name() << std::endl;
+                it->CalculateOnIntegrationPoints(rVariable, Values, rSource.GetProcessInfo());
+                it_elem->SetValuesOnIntegrationPoints(rVariable, Values, rTarget.GetProcessInfo());
             }
         }
-        std::cout << __FUNCTION__ << " from " << rSource.Name() << " to " << rTarget.Name() << " completed" << std::endl;
+        std::cout << __FUNCTION__ << " for " << rVariable << " from " << rSource.Name() << " to " << rTarget.Name() << " completed" << std::endl;
     }
 
     /**
@@ -425,18 +472,7 @@ public:
      */
     void TransferPrestressIdenticallyNoCheck( ModelPart& rSource, ModelPart& rTarget )
     {
-        std::vector<Vector> PreStresses;
-        for( ModelPart::ElementIterator it = rSource.ElementsBegin();
-                it != rSource.ElementsEnd(); ++it )
-        {
-            auto it_elem = rTarget.Elements().find(it->Id());
-            if (it_elem != rTarget.Elements().end())
-            {
-                it->CalculateOnIntegrationPoints(PRESTRESS, PreStresses, rSource.GetProcessInfo());
-                it_elem->SetValuesOnIntegrationPoints(PRESTRESS, PreStresses, rTarget.GetProcessInfo());
-            }
-        }
-        std::cout << __FUNCTION__ << " from " << rSource.Name() << " to " << rTarget.Name() << " completed" << std::endl;
+        TransferVariableIdenticallyNoCheck(PRESTRESS, rSource, rTarget);
     }
 
     /**
@@ -1236,6 +1272,8 @@ public:
 #endif
     }
 
+    /// Perform the local L2 projection from integration point values to nodes.
+    /// This method does not work with single integration point Tetrahedra element. The projection matrix becomes singular.
     void ComputeExtrapolatedNodalValues(std::vector<double>& rValues, Element& rSource,
             const Variable<double>& rThisVariable, const ProcessInfo& CurrentProcessInfo)
     {
@@ -1285,7 +1323,7 @@ public:
                 std::cout << " " << ValuesOnIntPoint[i] << std::endl;
             KRATOS_WATCH(b)
             KRATOS_WATCH(M)
-            KRATOS_THROW_ERROR(std::logic_error, "Error computing extrapolated nodal values at element", rSource.Id())
+            KRATOS_ERROR << "Error computing extrapolated nodal values at element " << rSource.Id();
         }
 
         if (rValues.size() != num_of_nodes)
@@ -1339,6 +1377,8 @@ public:
         this->TransferVariablesToGaussPoints(values, rTarget, rThisVariable, CurrentProcessInfo);
     }
 
+    /// Perform the local L2 projection from integration point values to nodes.
+    /// This method does not work with single integration point Tetrahedra element. The projection matrix becomes singular.
     void ComputeExtrapolatedNodalValues(std::vector<array_1d<double, 3> >& rValues, Element& rSource,
         const Variable<array_1d<double, 3> >& rThisVariable, const ProcessInfo& CurrentProcessInfo)
     {
@@ -1397,7 +1437,7 @@ public:
                 for (std::size_t j = 0; j < 3; ++j)
                     KRATOS_WATCH(b[j])
                 KRATOS_WATCH(M)
-                KRATOS_THROW_ERROR(std::logic_error, "Error computing extrapolated nodal values at element", rSource.Id())
+                KRATOS_ERROR << "Error computing extrapolated nodal values at element " << rSource.Id();
             }
         }
 
@@ -1457,6 +1497,8 @@ public:
         this->TransferVariablesToGaussPoints(values, rTarget, rThisVariable, CurrentProcessInfo);
     }
 
+    /// Perform the local L2 projection from integration point values to nodes.
+    /// This method does not work with single integration point Tetrahedra element. The projection matrix becomes singular.
     void ComputeExtrapolatedNodalValues(std::vector<Vector>& rValues, Element& rSource,
         const Variable<Vector>& rThisVariable, const ProcessInfo& CurrentProcessInfo,
         const std::size_t ncomponents)
@@ -1519,7 +1561,7 @@ public:
                 for (std::size_t j = 0; j < ncomponents; ++j)
                     KRATOS_WATCH(b[j])
                 KRATOS_WATCH(M)
-                KRATOS_THROW_ERROR(std::logic_error, "Error computing extrapolated nodal values at element", rSource.Id())
+                KRATOS_ERROR << "Error computing extrapolated nodal values at element " << rSource.Id();
             }
         }
 
