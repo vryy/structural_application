@@ -160,8 +160,7 @@ public:
 
     /** Destructor.
     */
-    virtual ~ResidualBasedIncrementalUpdateStaticDeactivationScheme() {}
-
+    ~ResidualBasedIncrementalUpdateStaticDeactivationScheme() override {}
 
     /*@} */
     /**@name Operators
@@ -178,10 +177,6 @@ public:
     /**@name Operations */
     /*@{ */
 
-    /**
-    Performing the update of the solution.
-    */
-    //***************************************************************************
     void Update(
         ModelPart& r_model_part,
         DofsArrayType& rDofSet,
@@ -203,12 +198,6 @@ public:
         KRATOS_CATCH("")
     }
 
-    /**
-    Function called once at the beginning of each solution step.
-    The basic operations to be carried in there are the following:
-    - managing variables to be kept constant over the time step
-    (for example time-Scheme constants depending on the actual time step)
-     */
     void InitializeSolutionStep(
         ModelPart& r_model_part,
         TSystemMatrixType& A,
@@ -248,13 +237,6 @@ public:
         KRATOS_CATCH("")
     }
 
-    /**
-    function to be called when it is needed to initialize an iteration.
-    it is designed to be called at the beginning of each non linear iteration
-
-      take care: the elemental function with the same name is NOT called here.
-      The function is called in the builder for memory efficiency
-     */
     void InitializeNonLinIteration(
         ModelPart& r_model_part,
         TSystemMatrixType& A,
@@ -263,6 +245,7 @@ public:
     ) override
     {
         KRATOS_TRY
+
         ElementsArrayType& pElements = r_model_part.Elements();
         const ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
 
@@ -292,10 +275,6 @@ public:
         KRATOS_CATCH("")
     }
 
-    /**
-    function to be called when it is needed to finalize an iteration.
-    it is designed to be called at the end of each non linear iteration
-     */
     void FinalizeNonLinIteration(
         ModelPart& r_model_part,
         TSystemMatrixType& A,
@@ -365,10 +344,6 @@ public:
         KRATOS_CATCH("")
     }
 
-    /**
-    function called once at the end of a solution step, after convergence is reached if
-    an iterative process is needed
-     */
     void FinalizeSolutionStep(
         ModelPart& rModelPart,
         TSystemMatrixType& A,
@@ -431,13 +406,6 @@ public:
         KRATOS_CATCH("")
     }
 
-    /** this function is designed to be called in the builder and solver to introduce
-    the selected time integration scheme. It "asks" the matrix needed to the element and
-    performs the operations needed to introduce the seected time integration scheme.
-
-    this function calculates at the same time the contribution to the LHS and to the RHS
-    of the system
-    */
     void CalculateSystemContributions(
         Element& rCurrentElement,
         LocalSystemMatrixType& LHS_Contribution,
@@ -465,8 +433,6 @@ public:
     }
 
 
-    //***************************************************************************
-    //***************************************************************************
     void CalculateRHSContribution(
         Element& rCurrentElement,
         LocalSystemVectorType& RHS_Contribution,
@@ -482,8 +448,6 @@ public:
         KRATOS_CATCH("")
     }
 
-    //***************************************************************************
-    //***************************************************************************
     void CalculateLHSContribution(
         Element& rCurrentElement,
         LocalSystemMatrixType& LHS_Contribution,
@@ -500,9 +464,6 @@ public:
     }
 
 
-    /** functions totally analogous to the precedent but applied to
-    the "condition" objects
-    */
     void CalculateSystemContributions(
         Condition& rCurrentCondition,
         LocalSystemMatrixType& LHS_Contribution,
@@ -645,4 +606,3 @@ private:
 }  /* namespace Kratos.*/
 
 #endif /* KRATOS_RESIDUALBASED_INCREMENTAL_STATIC_DEACTIVATION_SCHEME  defined */
-
