@@ -339,6 +339,31 @@ namespace Kratos
         KRATOS_CATCH( "" )
     }
 
+    template<typename TNodeType>
+    void BaseKinematicLinear<TNodeType>::RewindConstitutiveLaw()
+    {
+        KRATOS_TRY
+
+        const IntegrationMethod ThisIntegrationMethod = this->GetIntegrationMethod();
+
+        #ifdef ENABLE_BEZIER_GEOMETRY
+        this->GetGeometry().Initialize(ThisIntegrationMethod);
+        #endif
+
+        // ProcessInfo DummyProcessInfo;
+
+        for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); ++i )
+        {
+            mConstitutiveLawVector[i]->RewindMaterial( this->GetProperties(), this->GetGeometry(), row( this->GetGeometry().ShapeFunctionsValues( ThisIntegrationMethod ), i ) );
+        }
+
+        #ifdef ENABLE_BEZIER_GEOMETRY
+        this->GetGeometry().Clean();
+        #endif
+
+        KRATOS_CATCH( "" )
+    }
+
     /**
      * THIS is the main method here the integration in space (loop over the integration points) is done,
      * the algorithmic tangent and the (inner and outer) load vector is computed

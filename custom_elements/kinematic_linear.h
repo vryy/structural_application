@@ -177,6 +177,8 @@ public:
 
     void ResetConstitutiveLaw() override;
 
+    void RewindConstitutiveLaw() override;
+
     void CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo ) override;
 
     void ApplyPrescribedDofs(const MatrixType& LHS_Contribution, VectorType& RHS_Constribution, const ProcessInfo& CurrentProcessInfo) const override;
