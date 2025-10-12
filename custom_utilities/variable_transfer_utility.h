@@ -707,7 +707,7 @@ public:
     Variable<double>& rThisVariable)
                  */
     void TransferVariablesToGaussPoints(ModelPart& model_part,
-                                        const Variable<Kratos::Matrix>& rThisVariable)
+                                        const Variable<Matrix>& rThisVariable)
     {
 
         ElementsArrayType& ElementsArray= model_part.Elements();
@@ -750,7 +750,7 @@ public:
      * @param model_part model_part on which the transfer should be done
      * @param rThisVariable Vector-Variable which should be transferred
      * @see TransferVariablesToGaussPoints(ModelPart& model_part,
-    Variable<Kratos::Matrix>& rThisVariable)
+    Variable<Matrix>& rThisVariable)
      * @see TransferVariablesToGaussPoints(ModelPart& model_part,
     Variable<double>& rThisVariable)
                  */
@@ -803,7 +803,7 @@ public:
      * @param model_part model_part on which the transfer should be done
      * @param rThisVariable double-Variable which should be transferred
      * @see TransferVariablesToGaussPoints(ModelPart& model_part,
-    Variable<Kratos::Matrix>& rThisVariable)
+    Variable<Matrix>& rThisVariable)
      * @see TransferVariablesToGaussPoints(ModelPart& model_part,
     Variable<Vector>& rThisVariable)
                  */
@@ -854,7 +854,7 @@ public:
      *      ModelPart& source_model_part, Variable<double>& rThisVariable)
      */
     void TransferVariablesToGaussPoints(ModelPart& rSource, ModelPart& rTarget,
-                                        const Variable<Kratos::Matrix>& rThisVariable)
+                                        const Variable<Matrix>& rThisVariable)
     {
         ElementsArrayType& SourceMeshElementsArray= rSource.Elements();
         ElementsArrayType& TargetMeshElementsArray= rTarget.Elements();
@@ -898,7 +898,7 @@ public:
      * @param rTarget
      * @param rThisVariable Vector-Variable which should be transferred
      * @see TransferVariablesToGaussPoints(ModelPart& source_model_part, ModelPart&
-    source_model_part, Variable<Kratos::Matrix>& rThisVariable)
+    source_model_part, Variable<Matrix>& rThisVariable)
      * @see TransferVariablesToGaussPoints(ModelPart& source_model_part, ModelPart&
     source_model_part, Variable<double>& rThisVariable)
      */
@@ -993,7 +993,7 @@ public:
      * @param rTarget
      * @param rThisVariable Vector-Variable which should be transferred
      * @see TransferVariablesToGaussPoints(ModelPart& source_model_part, ModelPart&
-    source_model_part, Variable<Kratos::Matrix>& rThisVariable)
+    source_model_part, Variable<Matrix>& rThisVariable)
      * @see TransferVariablesToGaussPoints(ModelPart& source_model_part, ModelPart&
     source_model_part, Variable<double>& rThisVariable)
      */
@@ -1070,7 +1070,7 @@ public:
      * @param rTarget
      * @param rThisVariable Vector-Variable which should be transferred
      * @see TransferVariablesToGaussPoints(ModelPart& source_model_part, ModelPart&
-    source_model_part, Variable<Kratos::Matrix>& rThisVariable)
+    source_model_part, Variable<Matrix>& rThisVariable)
      * @see TransferVariablesToGaussPoints(ModelPart& source_model_part, ModelPart&
     source_model_part, Variable<double>& rThisVariable)
      */
@@ -1114,7 +1114,7 @@ public:
      * @param rTarget
      * @param rThisVariable double-Variable which should be transferred
      * @see TransferVariablesToGaussPoints(ModelPart& source_model_part, ModelPart&
-    source_model_part, Variable<Kratos::Matrix>& rThisVariable)
+    source_model_part, Variable<Matrix>& rThisVariable)
      * @see TransferVariablesToGaussPoints(ModelPart& source_model_part, ModelPart&
     source_model_part, Variable<Vector>& rThisVariable)
      */
@@ -1188,7 +1188,7 @@ public:
      * @param rTarget
      * @param rThisVariable double-Variable which should be transferred
      * @see TransferVariablesToGaussPoints(ModelPart& source_model_part, ModelPart&
-    source_model_part, Variable<Kratos::Matrix>& rThisVariable)
+    source_model_part, Variable<Matrix>& rThisVariable)
      * @see TransferVariablesToGaussPoints(ModelPart& source_model_part, ModelPart&
     source_model_part, Variable<Vector>& rThisVariable)
      */
@@ -1208,7 +1208,7 @@ public:
      * @param rTarget
      * @param rThisVariable double-Variable which should be transferred
      * @see TransferVariablesToGaussPoints(ModelPart& source_model_part, ModelPart&
-    source_model_part, Variable<Kratos::Matrix>& rThisVariable)
+    source_model_part, Variable<Matrix>& rThisVariable)
      * @see TransferVariablesToGaussPoints(ModelPart& source_model_part, ModelPart&
     source_model_part, Variable<Vector>& rThisVariable)
      */
@@ -1639,7 +1639,7 @@ public:
      * will be created on nodal level while they are originally intended to be
      * stored on integration points!
                  */
-    void TransferVariablesToNodes(ModelPart& model_part, const Variable<Kratos::Matrix>& rThisVariable)
+    void TransferVariablesToNodes(ModelPart& model_part, const Variable<Matrix>& rThisVariable)
     {
         ElementsArrayType& ElementsArray= model_part.Elements();
 
@@ -1747,7 +1747,7 @@ public:
      * f(x)= /sum{shape_func_i*rThisVariable_i}
      * @param model_part model_part on which the transfer should be done
      * @param rThisVariable Matrix-Variable which should be transferred
-     * @see TransferVariablesToNodes(ModelPart& model_part, Variable<Kratos::Matrix>& rThisVariable)
+     * @see TransferVariablesToNodes(ModelPart& model_part, Variable<Matrix>& rThisVariable)
      * @see TransferVariablesToNodes(ModelPart& model_part, Variable<double>& rThisVariable)
      * @ref Jiao&Heath: "Common-refinement-based data transfer...", Int.
      * Journal for numer. meth. in eng. 61 (2004) 2402--2427
@@ -2233,7 +2233,7 @@ public:
      * f(x)= /sum{shape_func_i*rThisVariable_i}
      * @param model_part model_part on which the transfer should be done
      * @param rThisVariable Matrix-Variable which should be transferred
-     * @see TransferVariablesToNodes(ModelPart& model_part, Variable<Kratos::Matrix>& rThisVariable)
+     * @see TransferVariablesToNodes(ModelPart& model_part, Variable<Matrix>& rThisVariable)
      * @see TransferVariablesToNodes(ModelPart& model_part, Variable<Vector>& rThisVariable)
      * @ref Jiao&Heath: "Common-refinement-based data transfer...", Int.
      * Journal for numer. meth. in eng. 61 (2004) 2402--2427
@@ -2947,7 +2947,7 @@ public:
      * Journal for numer. meth. in eng. 61 (2004) 2402--2427
                  */
     void TransferVariablesBetweenMeshes(ModelPart& rSource, ModelPart& rTarget,
-                                        const Variable<Kratos::Matrix>& rThisVariable)
+                                        const Variable<Matrix>& rThisVariable)
     {
         ElementsArrayType& SourceMeshElementsArray= rSource.Elements();
 
@@ -3076,7 +3076,7 @@ public:
      * @param rTarget target model_part
      * @param rThisVariable Vector-Variable which should be transferred
      * @see TransferVariablesBetweenMeshes(ModelPart& rSource, ModelPart& rTarget,
-    Variable<Kratos::Matrix>& rThisVariable)
+    Variable<Matrix>& rThisVariable)
      * @see TransferVariablesBetweenMeshes(ModelPart& rSource, ModelPart& rTargetw,
     Variable<double>& rThisVariable)
      * @ref Jiao&Heath: "Common-refinement-based data transfer...", Int.
@@ -3258,7 +3258,7 @@ public:
      * @param rTarget target model_part
      * @param rThisVariable double-Variable which should be transferred
      * @see TransferVariablesBetweenMeshes(ModelPart& rSource, ModelPart& rTarget,
-    Variable<Kratos::Matrix>& rThisVariable)
+    Variable<Matrix>& rThisVariable)
      * @see TransferVariablesBetweenMeshes(ModelPart& rSource, ModelPart& rTarget,
     Variable<Vector>& rThisVariable)
      * @ref Jiao&Heath: "Common-refinement-based data transfer...", Int.
@@ -3366,7 +3366,7 @@ public:
     const Variable<double>& rThisVariable)
                  */
     Matrix ValueMatrixInOldMesh(const Element& oldElement, PointType& localPoint,
-                                const Variable<Kratos::Matrix>& rThisVariable )
+                                const Variable<Matrix>& rThisVariable )
     {
         Matrix newValue(3,3);
         noalias(newValue) = ZeroMatrix(3,3);
@@ -3397,7 +3397,7 @@ public:
      * @param localPoint given target point to map the variable to
      * @param rThisVariable given variable to be transferred
      * @see ValueMatrixInOldMesh(Element& oldElement, PointType&  localPoint,
-    const Variable<Kratos::Matrix>& rThisVariable )
+    const Variable<Matrix>& rThisVariable )
      * @see MappedValue( Element& sourceElement, PointType& targetPoint,
     const Variable<double>& rThisVariable)
                  */
@@ -3458,7 +3458,7 @@ public:
      * @param targetPoint given target point to map the variable to
      * @param rThisVariable given variable to be transferred
      * @see ValueMatrixInOldMesh(Element& oldElement, PointType&  localPoint,
-    const Variable<Kratos::Matrix>& rThisVariable )
+    const Variable<Matrix>& rThisVariable )
      * @see ValueVectorInOldMesh(Element& oldElement, PointType&  localPoint,
     const Variable<Vector>& rThisVariable )
                  */
@@ -3501,7 +3501,7 @@ public:
      * @param targetPoint given target point to map the variable to
      * @param rThisVariable given variable to be transferred
      * @see ValueMatrixInOldMesh(Element& oldElement, PointType&  localPoint,
-    const Variable<Kratos::Matrix>& rThisVariable )
+    const Variable<Matrix>& rThisVariable )
      * @see ValueVectorInOldMesh(Element& oldElement, PointType&  localPoint,
     const Variable<Vector>& rThisVariable )
                  */
@@ -3678,7 +3678,7 @@ public:
     const Variable<Vector>& rThisVariable, unsigned int firstvalue)
                  */
     double ValueMatrixInOldMesh(Element& oldElement, PointType&  localPoint,
-                                const Variable<Kratos::Matrix>& rThisVariable, unsigned int firstvalue, unsigned int secondvalue )
+                                const Variable<Matrix>& rThisVariable, unsigned int firstvalue, unsigned int secondvalue )
     {
         double newValue = 0.0;
         Vector shape_functions_values;

@@ -130,7 +130,6 @@ public:
 
 private:
 
-    ///@}
     ///@name Serialization
     ///@{
 

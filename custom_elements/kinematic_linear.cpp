@@ -570,30 +570,9 @@ namespace Kratos
                 //contribution of internal forces
                 AddInternalForcesToRHS( rRightHandSideVector, B, StressVector, IntToReferenceWeight, DetJ0 );
             }
-        }//loop over integration points
+        } //loop over integration points
 
-        // if (Id() == DEBUG_ELEMENT_ID)
         // {
-        //     Vector rExternalForces = rRightHandSideVector;
-        //     rExternalForces.clear();
-        //     for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); ++PointNumber )
-        //     {
-        //         MathUtils<DataType>::InvertMatrix( J0[PointNumber], InvJ0, DetJ0 );
-        //         noalias( DN_DX ) = prod( DN_De[PointNumber], InvJ0 );
-
-        //         //calculating weights for integration on the reference configuration
-        //         IntToReferenceWeight = this->GetIntegrationWeight(integration_points, PointNumber, Ncontainer);
-
-        //         //modify integration weight in case of 2D
-        //         if ( dim == 2 ) IntToReferenceWeight *= this->GetProperties()[THICKNESS];
-
-        //         CalculateAndAdd_ExtForceContribution( N, rCurrentProcessInfo, BodyForce, rExternalForces, IntToReferenceWeight, DetJ0);
-        //         AddBodyForcesToRHS( rExternalForces, N, IntToReferenceWeight, DetJ0 );
-        //     }
-
-        //     KRATOS_WATCH(rExternalForces)
-            // KRATOS_WATCH(rRightHandSideVector)
-            // KRATOS_WATCH(rLeftHandSideMatrix)
         // }
 
         #ifdef ENABLE_BEZIER_GEOMETRY

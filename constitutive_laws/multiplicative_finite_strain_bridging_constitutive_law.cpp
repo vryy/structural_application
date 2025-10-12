@@ -53,7 +53,7 @@ void MultiplicativeFiniteStrainBridgingConstitutiveLaw<TStressType>::InitializeS
     Matrix elastic_strain_tensor(3, 3), Be_n(3, 3);
 
     if (!mpConstitutiveLaw->Has(ELASTIC_STRAIN_TENSOR))
-        KRATOS_ERROR << "Constitutive law is not able to return ELASTIC_STRAIN_TENSOR";
+        KRATOS_ERROR << "Constitutive law " << mpConstitutiveLaw->Info() << " is not able to return ELASTIC_STRAIN_TENSOR";
     mpConstitutiveLaw->GetValue(ELASTIC_STRAIN_TENSOR, elastic_strain_tensor);
 
     EigenUtility::ComputeIsotropicTensorFunction(EigenUtility::exp2, Be_n, elastic_strain_tensor);
@@ -227,7 +227,7 @@ void MultiplicativeFiniteStrainBridgingConstitutiveLaw<TStressType>::StressInteg
 
     // obtain the stress (1:Cauchy stress; 2: Kirchhoff stress)
     if (!mpConstitutiveLaw->Has(CAUCHY_STRESS_TENSOR))
-        KRATOS_ERROR << "Constitutive law is not able to return CAUCHY_STRESS_TENSOR";
+        KRATOS_ERROR << "Constitutive law " << mpConstitutiveLaw->Info() << " is not able to return CAUCHY_STRESS_TENSOR";
     mpConstitutiveLaw->GetValue(CAUCHY_STRESS_TENSOR, stress_tensor);
 }
 
@@ -363,7 +363,7 @@ template<int TStressType>
 void MultiplicativeFiniteStrainBridgingConstitutiveLaw<TStressType>::ComputeTangentTerms(Fourth_Order_Tensor& D, Fourth_Order_Tensor& L, Fourth_Order_Tensor& B) const
 {
     if (!mpConstitutiveLaw->Has(THREED_ALGORITHMIC_TANGENT))
-        KRATOS_ERROR << "Constitutive law is not able to return THREED_ALGORITHMIC_TANGENT";
+        KRATOS_ERROR << "Constitutive law " << mpConstitutiveLaw->Info() << " is not able to return THREED_ALGORITHMIC_TANGENT";
 
     // obtain the tangent from the small strain constitutive law. It must be from
     // a fourth order tensor to not missing the out-of-plane component in plane strain
