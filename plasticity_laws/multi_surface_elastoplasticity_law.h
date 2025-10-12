@@ -68,6 +68,24 @@ public:
         const double FTOL, const int max_iters,
         const int debug_level = 0) const;
 
+    /// Perform the adaptive plastic integration with sub-stepping
+    std::pair<int, std::vector<double> > PlasticIntegration_Substepping(const std::vector<int>& active_surfaces,
+        Matrix& stress, std::vector<Vector>& q, std::vector<Vector>& alpha,
+        std::vector<double>& dlambda,
+        const Matrix& incremental_strain,
+        const Fourth_Order_Tensor& Ce,
+        const double FTOL, const int max_iters, const unsigned int max_level = 5,
+        const int debug_level = 0) const;
+
+    /// Perform the plastic integration with sub-stepping on a specific loading profile
+    int PlasticIntegration_Substepping(const std::vector<int>& active_surfaces,
+        Matrix& stress, std::vector<Vector>& q, std::vector<Vector>& alpha,
+        std::vector<double>& dlambda,
+        const std::vector<double>& loads, const Matrix& incremental_strain,
+        const Fourth_Order_Tensor& Ce,
+        const double FTOL, const int max_iters,
+        const int debug_level = 0) const;
+
     /// Compute the (consistent) plastic tangent according to the procedure in plastic integration
     void ComputeConsistentPlasticTangent(const std::vector<int>& active_surfaces,
         Fourth_Order_Tensor& Cep, const Fourth_Order_Tensor& Ce,

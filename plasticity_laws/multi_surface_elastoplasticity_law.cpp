@@ -18,7 +18,6 @@ LICENSE: see soil_mechanics_application/LICENSE.txt
 // Project includes
 #include "plasticity_laws/multi_surface_elastoplasticity_law.h"
 
-// #define DEBUG_MULTI_SURFACE_PLASTICITY_LAW
 #define OSTR std::cout
 
 namespace Kratos
@@ -80,6 +79,13 @@ int MultiSurfaceElastoplasticityLaw::PlasticIntegration(const std::vector<int>& 
     double norm_r, f_sum, f_sum_ref = 1.0;
     do
     {
+        #ifdef DEBUG_MULTI_SURFACE_PLASTICITY_LAW
+        if (debug_level > 2)
+        {
+            KRATOS_WATCH(it)
+        }
+        #endif
+
         // compute f
         f_sum = 0.0;
         for (int ia : active_surfaces)
@@ -105,7 +111,7 @@ int MultiSurfaceElastoplasticityLaw::PlasticIntegration(const std::vector<int>& 
         }
         norm_r = norm_frobenius(r);
 
-        #ifdef DEBUG_GENERAL_PLASTICITY_LAW
+        #ifdef DEBUG_MULTI_SURFACE_PLASTICITY_LAW
         if (debug_level > 1)
         {
             std::cout << "At step " << it << ":" << std::endl;
@@ -227,12 +233,172 @@ int MultiSurfaceElastoplasticityLaw::PlasticIntegration(const std::vector<int>& 
             noalias(q[ia]) += ddlambda[i]*dqdphi[ia];
         }
 
+        #ifdef DEBUG_MULTI_SURFACE_PLASTICITY_LAW
+        if (debug_level > 2)
+        {
+            KRATOS_WATCH(stress)
+            std::cout << "------------" << std::endl;
+        }
+        #endif
+
         ++it;
     }
     while (!converged && it < max_iters);
 
     if (it >= max_iters && !converged)
         return 1;
+
+    return 0;
+}
+
+std::pair<int, std::vector<double> > MultiSurfaceElastoplasticityLaw::PlasticIntegration_Substepping(const std::vector<int>& active_surfaces,
+        Matrix& stress, std::vector<Vector>& q, std::vector<Vector>& alpha,
+        std::vector<double>& dlambda,
+        const Matrix& incremental_strain,
+        const Fourth_Order_Tensor& Ce,
+        const double FTOL, const int max_iters, const unsigned int max_level,
+        const int debug_level) const
+{
+    const unsigned int nsurfaces = mpPlasticityLaws.size();
+
+    Matrix stress_trial = stress, stress_last = stress;
+    std::vector<Vector> q_last = q, alpha_last = alpha;
+
+    int error_code;
+    double factor = 0.0, dfactor = 1.0, factor_last = 0.0;
+    std::vector<double> ddlambda(nsurfaces);
+    std::vector<double> cfact;
+    unsigned int level = 0;
+
+    if (dlambda.size() != nsurfaces)
+        dlambda.resize(nsurfaces);
+    std::fill(dlambda.begin(), dlambda.end(), 0.0);
+
+    while (factor < 1.0)
+    {
+        // update the factor
+        factor = factor_last + dfactor;
+        if (factor > 1.0)
+            factor = 1.0;
+
+        // compute stress
+        noalias(stress) = stress_last;
+        SD_MathUtils<double>::ContractFourthOrderTensor(dfactor, Ce, incremental_strain, stress);
+
+        for (std::size_t i = 0; i < q_last.size(); ++i)
+            noalias(q[i]) = q_last[i];
+        for (std::size_t i = 0; i < alpha_last.size(); ++i)
+            noalias(alpha[i]) = alpha_last[i];
+
+        // plastic integration
+        noalias(stress_trial) = stress;
+        error_code = PlasticIntegration(active_surfaces, stress, q, alpha, ddlambda,
+                stress_trial, Ce, FTOL, max_iters, debug_level);
+
+        // adjust step
+        if (error_code == 0)
+        {
+            #ifdef DEBUG_GENERAL_PLASTICITY_LAW
+            if (debug_level > 2)
+            {
+                std::cout << "PlasticIntegration converges at load step " << factor << std::endl;
+                KRATOS_WATCH(stress)
+                KRATOS_WATCH(q)
+                KRATOS_WATCH(alpha)
+            }
+            #endif
+
+            // save
+            cfact.push_back(factor);
+            factor_last = factor;
+            noalias(stress_last) = stress;
+            for (std::size_t i = 0; i < q_last.size(); ++i)
+                noalias(q_last[i]) = q[i];
+            for (std::size_t i = 0; i < alpha_last.size(); ++i)
+                noalias(alpha_last[i]) = alpha[i];
+            for (unsigned int i = 0; i < nsurfaces; ++i)
+                dlambda[i] += ddlambda[i];
+
+            // restore
+            dfactor *= 2;
+            if (dfactor > 1.0 - factor)
+                dfactor = 1.0 - factor;
+            level = 0;
+        }
+        else
+        {
+            // reduce step size
+            dfactor *= 0.5;
+            ++level;
+            if (level >= max_level)
+            {
+                return std::make_pair(1, cfact);
+                // KRATOS_ERROR << "The internal calculation hits maximum number of allowed levels";
+            }
+        }
+    }
+
+    #ifdef DEBUG_GENERAL_PLASTICITY_LAW
+    if (debug_level > 0)
+    {
+        std::cout << "PlasticIntegration with sub-stepping converges after " << cfact.size() << " steps" << std::endl;
+        std::cout << "cfact:";
+        for (std::size_t i = 0; i < cfact.size(); ++i)
+            std::cout << " " << cfact[i];
+        std::cout << std::endl;
+    }
+    #endif
+
+    return std::make_pair(0, cfact);
+}
+
+int MultiSurfaceElastoplasticityLaw::PlasticIntegration_Substepping(const std::vector<int>& active_surfaces,
+        Matrix& stress, std::vector<Vector>& q, std::vector<Vector>& alpha, std::vector<double>& dlambda,
+        const std::vector<double>& loads, const Matrix& incremental_strain,
+        const Fourth_Order_Tensor& Ce,
+        const double FTOL, const int max_iters,
+        const int debug_level) const
+{
+    const unsigned int nsurfaces = mpPlasticityLaws.size();
+
+    Matrix stress_trial(3, 3);
+
+    int error_code;
+    double factor, dfactor, factor_last = 0.0;
+    std::vector<double> ddlambda(nsurfaces);
+
+    if (dlambda.size() != nsurfaces)
+        dlambda.resize(nsurfaces);
+    std::fill(dlambda.begin(), dlambda.end(), 0.0);
+
+    for (std::size_t i = 0; i < loads.size(); ++i)
+    {
+        // update the factor
+        factor = loads[i];
+        dfactor = factor - factor_last;
+        factor_last = factor;
+
+        // compute stress (trial)
+        noalias(stress_trial) = stress;
+        SD_MathUtils<double>::ContractFourthOrderTensor(dfactor, Ce, incremental_strain, stress_trial);
+
+        // integrate the sub-step
+        noalias(stress) = stress_trial;
+        error_code = PlasticIntegration(active_surfaces, stress, q, alpha, ddlambda,
+                stress_trial, Ce, FTOL, max_iters, debug_level);
+
+        // check convergence
+        if (error_code != 0)
+        {
+            KRATOS_WATCH_STD_CON(loads)
+            // KRATOS_ERROR << "The plastic integration does not converge at load step " << factor;
+            std::cout << "The plastic integration does not converge at load step " << factor << std::endl;
+            return error_code;
+        }
+
+        for (unsigned int i = 0; i < nsurfaces; ++i)
+            dlambda[i] += ddlambda[i];
+    }
 
     return 0;
 }
