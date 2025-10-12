@@ -173,6 +173,8 @@ public:
 
     typename BaseType::Pointer Create( IndexType NewId, typename GeometryType::Pointer pGeom, typename PropertiesType::Pointer pProperties ) const override;
 
+    typename BaseType::Pointer Create( IndexType NewId, std::vector<typename GeometryType::Pointer> pGeom, typename PropertiesType::Pointer pProperties ) const override;
+
     void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
     void ResetConstitutiveLaw() override;

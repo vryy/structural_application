@@ -106,6 +106,14 @@ namespace Kratos
     }
 
     template<typename TNodeType>
+    typename BaseKinematicLinear<TNodeType>::BaseType::Pointer BaseKinematicLinear<TNodeType>::Create( IndexType NewId, std::vector<typename GeometryType::Pointer> pGeom, typename PropertiesType::Pointer pProperties ) const
+    {
+        if (pGeom.size() != 1)
+            KRATOS_ERROR << "Vector of geometry must be of size 1 to create the element";
+        return typename BaseType::Pointer( new BaseKinematicLinear( NewId, pGeom[0], pProperties ) );
+    }
+
+    template<typename TNodeType>
     BaseKinematicLinear<TNodeType>::~BaseKinematicLinear()
     {
     }
