@@ -67,7 +67,7 @@ public:
     /// On return, the vector of converged delta factor is returned
     std::vector<double> PlasticIntegration_Substepping(Matrix& stress, Vector& q, Vector& alpha,
         const Matrix& incremental_strain, const Fourth_Order_Tensor& Ce,
-        const double FTOL, const int max_iters,
+        const double FTOL, const int max_iters, const unsigned int max_level = 5,
         const int debug_level=0) const;
 
     /// Perform the plastic integration with sub-stepping on a specific loading profile for elastoplastic material law

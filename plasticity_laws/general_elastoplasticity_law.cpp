@@ -64,7 +64,7 @@ void GeneralElastoplasticityLaw::ComputeContinuumPlasticTangent(Fourth_Order_Ten
 
 std::vector<double> GeneralElastoplasticityLaw::PlasticIntegration_Substepping(Matrix& stress, Vector& q, Vector& alpha,
         const Matrix& incremental_strain, const Fourth_Order_Tensor& Ce,
-        const double FTOL, const int max_iters,
+        const double FTOL, const int max_iters, const unsigned int max_level,
         const int debug_level) const
 {
     Matrix stress_trial = stress, stress_last = stress;
@@ -73,7 +73,6 @@ std::vector<double> GeneralElastoplasticityLaw::PlasticIntegration_Substepping(M
     int error_code;
     double factor = 0.0, dfactor = 1.0, factor_last = 0.0, dlambda;
     std::vector<double> cfact;
-    const unsigned int max_level = 5;
     int level = 0;
 
     while (factor_last < 1.0)
@@ -246,6 +245,8 @@ int GeneralElastoplasticityLaw::PlasticIntegration(Matrix& stress, Vector& q, Ve
     dlambda = ddlambda = 0.0;
     double norm_r;
     const Vector alphan = alpha;
+    double norm_stress_trial = norm_frobenius(stress_trial);
+    if (norm_stress_trial < 1.0) norm_stress_trial = 1.0;
     do
     {
         #ifdef DEBUG_GENERAL_PLASTICITY_LAW
@@ -282,7 +283,7 @@ int GeneralElastoplasticityLaw::PlasticIntegration(Matrix& stress, Vector& q, Ve
         #endif
 
         // check convergence
-        if (std::abs(f) + norm_r < FTOL)
+        if (std::abs(f) + norm_r/norm_stress_trial < FTOL)
         {
             converged = true;
             break;
@@ -776,7 +777,7 @@ double GeneralElastoplasticityLaw::PlasticIntegration_ComputeNumLHS(const Matrix
     // if (error_code != 0)
     //     KRATOS_ERROR << "PlasticIntegration_ComputeStress does not converge";
 
-    double rnew = PlasticIntegration_ComputeRHS(new_stress, new_q, new_alpha, dlambda + ddlambda, stress_trial, Ce);;
+    double rnew = PlasticIntegration_ComputeRHS(new_stress, new_q, new_alpha, dlambda + ddlambda, stress_trial, Ce);
 
     return (rref - rnew) / ddlambda;
 }
