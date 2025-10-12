@@ -432,6 +432,35 @@ public:
         KRATOS_CATCH("")
     }
 
+#ifdef KRATOS_NONSQUARE_SUPPORT
+    void CalculateSystemContributions(
+        Element& rCurrentElement,
+        LocalSystemMatrixType& LHS_Contribution,
+        LocalSystemVectorType& RHS_Contribution,
+        Element::EquationIdVectorType& RowEquationId,
+        Element::EquationIdVectorType& ColEquationId,
+        const ProcessInfo& CurrentProcessInfo
+    ) override
+    {
+        KRATOS_TRY
+
+        rCurrentElement.CalculateLocalSystem(LHS_Contribution,RHS_Contribution,CurrentProcessInfo);
+        rCurrentElement.RowEquationIdVector(RowEquationId,CurrentProcessInfo);
+        rCurrentElement.ColumnEquationIdVector(ColEquationId,CurrentProcessInfo);
+
+        try
+        {
+            const PrescribedObject& rObject = dynamic_cast<PrescribedObject&>(rCurrentElement);
+            rObject.ApplyPrescribedDofs(LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
+        }
+        catch (std::bad_cast& bc)
+        {
+            // DO NOTHING
+        }
+
+        KRATOS_CATCH("")
+    }
+#endif
 
     void CalculateRHSContribution(
         Element& rCurrentElement,
@@ -463,6 +492,24 @@ public:
         KRATOS_CATCH("")
     }
 
+#ifdef DKRATOS_NONSQUARE_SUPPORT
+    void CalculateLHSContribution(
+        Element& rCurrentElement,
+        LocalSystemMatrixType& LHS_Contribution,
+        Element::EquationIdVectorType& RowEquationId,
+        Element::EquationIdVectorType& ColEquationId,
+        const ProcessInfo& CurrentProcessInfo
+    ) override
+    {
+        KRATOS_TRY
+
+        rCurrentElement.CalculateLeftHandSide(LHS_Contribution,CurrentProcessInfo);
+        rCurrentElement.RowEquationIdVector(RowEquationId,CurrentProcessInfo);
+        rCurrentElement.ColumnEquationIdVector(ColEquationId,CurrentProcessInfo);
+
+        KRATOS_CATCH("")
+    }
+#endif
 
     void CalculateSystemContributions(
         Condition& rCurrentCondition,
@@ -479,6 +526,26 @@ public:
 
         KRATOS_CATCH("")
     }
+
+#ifdef DKRATOS_NONSQUARE_SUPPORT
+    void CalculateSystemContributions(
+        Condition& rCurrentCondition,
+        LocalSystemMatrixType& LHS_Contribution,
+        LocalSystemVectorType& RHS_Contribution,
+        Element::EquationIdVectorType& RowEquationId,
+        Element::EquationIdVectorType& ColEquationId,
+        const ProcessInfo& CurrentProcessInfo
+    ) override
+    {
+        KRATOS_TRY
+
+        rCurrentCondition.CalculateLocalSystem(LHS_Contribution,RHS_Contribution,CurrentProcessInfo);
+        rCurrentCondition.RowEquationIdVector(RowEquationId,CurrentProcessInfo);
+        rCurrentCondition.ColumnEquationIdVector(ColEquationId,CurrentProcessInfo);
+
+        KRATOS_CATCH("")
+    }
+#endif
 
     void CalculateRHSContribution(
         Condition& rCurrentCondition,
