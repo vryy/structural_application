@@ -229,6 +229,10 @@ public:
     ///@}
     ///@name Inquiry
     ///@{
+
+    /// A size map for vector variable which can be used for visualization
+    static std::map<Variable<Vector>, std::size_t> StandardVectorVariableSizeMap();
+
     ///@}
     ///@name Input and output
     ///@{

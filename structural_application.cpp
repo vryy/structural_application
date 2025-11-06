@@ -1139,4 +1139,13 @@ void KratosStructuralApplication::RegisterVariables()
     #endif
 }
 
+std::map<Variable<Vector>, std::size_t> KratosStructuralApplication::StandardVectorVariableSizeMap()
+{
+    std::map<Variable<Vector>, std::size_t> stdMap;
+
+    stdMap[STRESSES] = 6;
+
+    return stdMap;
+}
+
 }  // namespace Kratos.
