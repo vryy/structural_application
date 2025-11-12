@@ -73,8 +73,7 @@ namespace Kratos
 {
 
 /// Define a distributed load condition on face in 3D. The load is computed by pressure multiplying with the normal vector.
-class FacePressure3D
-    : public Condition
+class FacePressure3D : public Condition
 {
 public:
 
@@ -92,7 +91,7 @@ public:
     FacePressure3D( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties );
 
     // Destructor
-    virtual ~FacePressure3D();
+    ~FacePressure3D() override;
 
 
     // Name Operations

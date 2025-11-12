@@ -112,6 +112,64 @@ FaceForce3D::~FaceForce3D()
 
 //***********************************************************************************
 //***********************************************************************************
+typename FaceForce3D::IntegrationMethod FaceForce3D::GetIntegrationMethod() const
+{
+    if(this->Has( INTEGRATION_ORDER ))
+    {
+        if(this->GetValue(INTEGRATION_ORDER) == 1)
+        {
+            return GeometryData::IntegrationMethod::GI_GAUSS_1;
+        }
+        else if(this->GetValue(INTEGRATION_ORDER) == 2)
+        {
+            return GeometryData::IntegrationMethod::GI_GAUSS_2;
+        }
+        else if(this->GetValue(INTEGRATION_ORDER) == 3)
+        {
+            return GeometryData::IntegrationMethod::GI_GAUSS_3;
+        }
+        else if(this->GetValue(INTEGRATION_ORDER) == 4)
+        {
+            return GeometryData::IntegrationMethod::GI_GAUSS_4;
+        }
+        else if(this->GetValue(INTEGRATION_ORDER) == 5)
+        {
+            return GeometryData::IntegrationMethod::GI_GAUSS_5;
+        }
+        else
+            KRATOS_ERROR << Info() << " does not support for integration order " << this->GetValue(INTEGRATION_ORDER);
+    }
+    else if(this->GetProperties().Has( INTEGRATION_ORDER ))
+    {
+        if(this->GetProperties()[INTEGRATION_ORDER] == 1)
+        {
+            return GeometryData::IntegrationMethod::GI_GAUSS_1;
+        }
+        else if(this->GetProperties()[INTEGRATION_ORDER] == 2)
+        {
+            return GeometryData::IntegrationMethod::GI_GAUSS_2;
+        }
+        else if(this->GetProperties()[INTEGRATION_ORDER] == 3)
+        {
+            return GeometryData::IntegrationMethod::GI_GAUSS_3;
+        }
+        else if(this->GetProperties()[INTEGRATION_ORDER] == 4)
+        {
+            return GeometryData::IntegrationMethod::GI_GAUSS_4;
+        }
+        else if(this->GetProperties()[INTEGRATION_ORDER] == 5)
+        {
+            return GeometryData::IntegrationMethod::GI_GAUSS_5;
+        }
+        else
+            KRATOS_ERROR << Info() << " does not support for integration order " << this->GetProperties()[INTEGRATION_ORDER];
+    }
+    else
+        return this->GetGeometry().GetDefaultIntegrationMethod(); // default method
+}
+
+//***********************************************************************************
+//***********************************************************************************
 void FaceForce3D::EquationIdVector( EquationIdVectorType& rResult,
                                     const ProcessInfo& rCurrentProcessInfo ) const
 {
@@ -439,37 +497,28 @@ void FaceForce3D::CalculateAll( MatrixType& rLeftHandSideMatrix,
         rRightHandSideVector = ZeroVector( MatSize ); //resetting RHS
     }
 
+    const IntegrationMethod ThisIntegrationMethod = this->GetIntegrationMethod();
+
+    #ifdef ENABLE_BEZIER_GEOMETRY
+    this->GetGeometry().Initialize(ThisIntegrationMethod);
+    #endif
+
     //reading integration points and local gradients
     const GeometryType::IntegrationPointsArrayType& integration_points =
-        GetGeometry().IntegrationPoints();
+            GetGeometry().IntegrationPoints(ThisIntegrationMethod);
 
     const GeometryType::ShapeFunctionsGradientsType& DN_DeContainer =
-        GetGeometry().ShapeFunctionsLocalGradients();
+            GetGeometry().ShapeFunctionsLocalGradients(ThisIntegrationMethod);
 
-    const Matrix& Ncontainer = GetGeometry().ShapeFunctionsValues();
-
-    //calculating actual jacobian
-    GeometryType::JacobiansType J;
-
-    J = GetGeometry().Jacobian( J );
+    const Matrix& Ncontainer = GetGeometry().ShapeFunctionsValues(ThisIntegrationMethod);
 
     //auxiliary terms
-    array_1d<double, 3> BodyForce;
-
-    //this should be used once the implementation of the Jacobian is correct in all geometries
-//         array_1d<double,3> ge;
-//         array_1d<double,3> gn;
-//         array_1d<double,3> v3;
-
-    // if (this->Is(ACTIVE) && (GetProperties().Id() == 3))
-    //     KRATOS_WATCH(Id())
+    Vector Load(3), temp(3), t1(3), t2(3), v3(3);
 
     //loop over integration points
     for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
     {
-        Vector Load( 3 );
         noalias( Load ) = ZeroVector( 3 );
-        Vector temp( 3 );
 
         for ( unsigned int n = 0; n < GetGeometry().size(); n++ )
         {
@@ -480,11 +529,10 @@ void FaceForce3D::CalculateAll( MatrixType& rLeftHandSideMatrix,
             }
         }
 
-        double IntegrationWeight = GetGeometry().IntegrationPoints()[PointNumber].Weight();
+        double IntegrationWeight = integration_points[PointNumber].Weight();
 
-        //to be replaced by the formulation in Face3D
-        Vector t1 = ZeroVector( 3 );//first tangential vector
-        Vector t2 = ZeroVector( 3 );//second tangential vector
+        noalias(t1) = ZeroVector( 3 ); // first tangential vector
+        noalias(t2) = ZeroVector( 3 ); // second tangential vector
 
         for ( unsigned int n = 0; n < GetGeometry().size(); n++ )
         {
@@ -497,16 +545,13 @@ void FaceForce3D::CalculateAll( MatrixType& rLeftHandSideMatrix,
         }
 
         //calculating normal
-        Vector v3 = ZeroVector( 3 );
+        noalias(v3) = ZeroVector( 3 );
 
         v3[0] = t1[1] * t2[2] - t1[2] * t2[1];
 
         v3[1] = t1[2] * t2[0] - t1[0] * t2[2];
 
         v3[2] = t1[0] * t2[1] - t1[1] * t2[0];
-
-        // if (this->Is(ACTIVE) && (GetProperties().Id() == 3))
-        //     KRATOS_WATCH(v3)
 
         double dA = sqrt( v3[0] * v3[0] + v3[1] * v3[1] + v3[2] * v3[2] );
 
@@ -520,8 +565,9 @@ void FaceForce3D::CalculateAll( MatrixType& rLeftHandSideMatrix,
         }
     }
 
-    // if (this->Is(ACTIVE) && (GetProperties().Id() == 3))
-    //     KRATOS_WATCH(rRightHandSideVector)
+    #ifdef ENABLE_BEZIER_GEOMETRY
+    this->GetGeometry().Clean();
+    #endif
 
     KRATOS_CATCH( "" )
 }

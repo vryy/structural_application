@@ -1205,10 +1205,6 @@ public:
         KRATOS_TRY
 
         rCurrentElement.CalculateLocalSystem(LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
-Vector u;
-rCurrentElement.GetValuesVector(u, 0);
-std::cout << "Disp vector of element " << rCurrentElement.Id() << ": " << u << std::endl;
-std::cout << "Internal forces vector of element " << rCurrentElement.Id() << ": " << RHS_Contribution << std::endl;
         rCurrentElement.EquationIdVector(EquationId,CurrentProcessInfo);
 
         Matrix DampingMatrix;
@@ -1270,7 +1266,7 @@ std::cout << "Internal forces vector of element " << rCurrentElement.Id() << ": 
         {
             // DO NOTHING
         }
-KRATOS_WATCH("------------------")
+
         KRATOS_CATCH("")
     }
 

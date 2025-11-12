@@ -73,8 +73,7 @@ namespace Kratos
 {
 
 /// Define a distributed load condition on face in 3D. The load will be interpolated by nodal load, defined via FACE_LOAD.
-class FaceForce3D
-    : public Condition
+class FaceForce3D : public Condition
 {
 public:
 
@@ -92,8 +91,7 @@ public:
     FaceForce3D( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties );
 
     // Destructor
-    virtual ~FaceForce3D();
-
+    ~FaceForce3D() override;
 
     // Name Operations
 
@@ -106,6 +104,8 @@ public:
         IndexType NewId,
         GeometryType::Pointer pGeom,
         PropertiesType::Pointer pProperties ) const final;
+
+    IntegrationMethod GetIntegrationMethod() const final;
 
     void EquationIdVector(
         EquationIdVectorType& rResult,
