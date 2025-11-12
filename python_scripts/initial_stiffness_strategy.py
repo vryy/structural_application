@@ -205,8 +205,8 @@ class SolvingStrategyPython:
         er_n = er_0
         if self.log_residuum != None:
             self.log_residuum.write('time: ' + str(self.model_part.ProcessInfo[TIME]) + '\n')
-            self.log_residuum.write('it\tresidual\tratio\treduction\tremaining\n')
-            self.log_residuum.write('0\t' + str(er_0) + '\n')
+            self.log_residuum.write('%-*s%-*s%-*s%-*s%s\n' % (10, "it", 20, "residual", 20, "ratio", 20, "reduction", "remaining"))
+            self.log_residuum.write('%-*d%.6e\n' % (10, 0, er_0))
             self.log_residuum.flush()
 
         #non linear loop
@@ -269,7 +269,7 @@ class SolvingStrategyPython:
                 print("initial_stiffness_strategy.PerformNewtonRaphsonIteration it " + str(it) + " ratio (" + str(er_ratio) + ") > tolerance " + str(self.erbar))
 
             if self.log_residuum != None:
-                self.log_residuum.write(str(it) + '\t' + str(er) + '\t' + str(er_ratio) + '\t' + str(er_reduction) + '\t' + str(n) + '\n')
+                self.log_residuum.write("%-*d%-*.6e%-*.6e%-*.6e%d\n" % (10, it, 20, er, 20, er_ratio, 20, er_reduction, n))
                 self.log_residuum.flush()
 
         if self.log_residuum != None:

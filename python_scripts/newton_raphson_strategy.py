@@ -216,8 +216,8 @@ class SolvingStrategyPython:
             er_0 = self.space_utils.TwoNorm(self.b)
             er_n = er_0
             self.log_residuum.write('time: ' + str(self.model_part.ProcessInfo[TIME]) + '\n')
-            self.log_residuum.write('it\tresidual\tratio\treduction\n')
-            self.log_residuum.write('0\t' + str(er_0) + '\n')
+            self.log_residuum.write('%-*s%-*s%-*s%s\n' % (10, "it", 20, "residual", 20, "ratio", "reduction"))
+            self.log_residuum.write('%-*d%.6e\n' % (10, 0, er_0))
             self.log_residuum.flush()
 
         #non linear loop
@@ -261,8 +261,7 @@ class SolvingStrategyPython:
                         er_reduction = 1.0e99
                 er_n = er
 
-                # self.log_residuum.write(str(it) + '\t' + str(er) + '\t' + str(er_ratio) + '\t' + str(er_reduction) + '\n')
-                self.log_residuum.write('%d\t%.6e\t%.6e\t%.6e\n' % (it, er, er_ratio, er_reduction))
+                self.log_residuum.write("%-*d%-*.6e%-*.6e%.6e\n" % (10, it, 20, er, 20, er_ratio, er_reduction))
                 self.log_residuum.flush()
 
             if self.Parameters['include_plastic_check_in_convergence_check']:
