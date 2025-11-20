@@ -582,6 +582,7 @@ void KratosStructuralApplication::Register()
     KRATOS_REGISTER_CONDITION( "FaceForce3D4N", mFaceForce3D4N )
     KRATOS_REGISTER_CONDITION( "FaceForce3D8N", mFaceForce3D8N )
     KRATOS_REGISTER_CONDITION( "FaceForce3D9N", mFaceForce3D9N )
+    KRATOS_REGISTER_CONDITION( "PointForce2D", mPointForce2D )
     KRATOS_REGISTER_CONDITION( "PointForce3D", mPointForce3D )
     KRATOS_REGISTER_ENTITY( ComplexCondition, "ComplexPointForce3D", mComplexPointForce3D )
     KRATOS_REGISTER_ENTITY( ComplexCondition, "ComplexPointForce2D", mComplexPointForce2D )
@@ -632,8 +633,6 @@ void KratosStructuralApplication::Register()
 
     KRATOS_REGISTER_CONDITION( "PointPointJointCondition", mPointPointJointCondition )
     KRATOS_REGISTER_CONDITION( "PointPointLagrangeCondition", mPointPointLagrangeCondition )
-
-    KRATOS_REGISTER_CONDITION( "PointForce2D", mPointForce2D )
 
     KRATOS_REGISTER_CONDITION( "DummyConditionPoint2D", mDummyConditionPoint2D)
     KRATOS_REGISTER_CONDITION( "DummyConditionPoint3D", mDummyConditionPoint3D)
