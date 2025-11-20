@@ -492,7 +492,7 @@ public:
         KRATOS_CATCH("")
     }
 
-#ifdef DKRATOS_NONSQUARE_SUPPORT
+#ifdef KRATOS_NONSQUARE_SUPPORT
     void CalculateLHSContribution(
         Element& rCurrentElement,
         LocalSystemMatrixType& LHS_Contribution,
@@ -527,7 +527,7 @@ public:
         KRATOS_CATCH("")
     }
 
-#ifdef DKRATOS_NONSQUARE_SUPPORT
+#ifdef KRATOS_NONSQUARE_SUPPORT
     void CalculateSystemContributions(
         Condition& rCurrentCondition,
         LocalSystemMatrixType& LHS_Contribution,
