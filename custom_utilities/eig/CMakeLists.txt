@@ -1,5 +1,3 @@
-CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
-
 include_directories(${CMAKE_SOURCE_DIR}/kratos)
 
 add_library(eig STATIC eig3.cpp)
