@@ -206,7 +206,8 @@ class SolverAdvanced(structural_solver_static.StaticStructuralSolver):
             ResidualBasedNewmarkSchemeType = ResidualBasedNonlinearMassDampingNewmarkScheme
 
         ## selection for time integration scheme
-        if self.analysis_parameters['solution_strategy'] == "implicit_Newton_Raphson":
+        if (self.analysis_parameters['solution_strategy'] == "implicit_Newton_Raphson") \
+                or (self.analysis_parameters['solution_strategy'] == "initial_stiffness"):
             #definition of time integration scheme
             if( self.analysis_parameters['analysis_type'] == 0 ):
                 print("using static scheme")
@@ -299,7 +300,7 @@ class SolverAdvanced(structural_solver_static.StaticStructuralSolver):
                 print("analysis type is not defined or unknown! Define in analysis_parameters['analysis_type']:")
                 sys.exit(0)
         else:
-            self.time_scheme = ResidualBasedIncrementalUpdateStaticDeactivationScheme()
+            raise Exception("Unknown solution_strategy %s" % (self.analysis_parameters['solution_strategy']))
 
         # definition of the convergence criteria
         if(self.analysis_parameters['convergence_criteria'] == "multiphase"):
