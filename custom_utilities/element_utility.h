@@ -242,6 +242,77 @@ public:
         rElement.SetValuesOnIntegrationPoints(STRAIN, strain, rCurrentProcessInfo);
     }
 
+    template<typename TEntityType>
+    static void GetIntegrationPoints( TEntityType& rElement,
+            const Variable<array_1d<typename TEntityType::DataType, 3> >& rVariable,
+            std::vector<array_1d<typename TEntityType::DataType, 3> >& rValues)
+    {
+        typedef typename TEntityType::DataType DataType;
+
+        typedef typename TEntityType::ValueType ValueType;
+
+        typedef typename TEntityType::GeometryType GeometryType;
+
+        GeometryType& rGeometry = rElement.GetGeometry();
+
+        const IntegrationMethod ThisIntegrationMethod = rElement.GetIntegrationMethod();
+
+        #ifdef ENABLE_BEZIER_GEOMETRY
+        rGeometry.Initialize(ThisIntegrationMethod);
+        #endif
+
+        const typename GeometryType::IntegrationPointsArrayType& integration_points =
+                    rGeometry.IntegrationPoints( ThisIntegrationMethod );
+
+        if (rValues.size() != integration_points.size())
+            rValues.resize(integration_points.size());
+
+        if( rVariable == VARSEL(DataType, INTEGRATION_POINT_GLOBAL) || rVariable == VARSEL(DataType, INTEGRATION_POINT_GLOBAL_IN_CURRENT_CONFIGURATION) )
+        {
+
+            if constexpr (std::is_same<DataType, ValueType>::value)
+            {
+                for(std::size_t point = 0; point < integration_points.size(); ++point)
+                {
+                    rValues[point] = rGeometry.GlobalCoordinates(rValues[point], integration_points[point]);
+                }
+            }
+            else
+            {
+                typename GeometryType::CoordinatesArrayType tmp;
+                for(std::size_t point = 0; point < integration_points.size(); ++point)
+                {
+                    tmp = rGeometry.GlobalCoordinates(tmp, integration_points[point]);
+                    rValues[point] = tmp;
+                }
+            }
+        }
+        else if( rVariable == VARSEL(DataType, INTEGRATION_POINT_GLOBAL_IN_REFERENCE_CONFIGURATION) )
+        {
+            Vector N( rGeometry.size() );
+
+            for(std::size_t point = 0; point < integration_points.size(); ++point)
+            {
+                rGeometry.ShapeFunctionsValues( N, integration_points[point] );
+
+                rValues[point].clear();
+                for(std::size_t i = 0 ; i < rGeometry.size() ; ++i)
+                    noalias( rValues[point] ) += N[i] * rGeometry[i].GetInitialPosition();
+            }
+        }
+        else if( rVariable == VARSEL(DataType, INTEGRATION_POINT_LOCAL) )
+        {
+            for(std::size_t point = 0; point < integration_points.size(); ++point)
+            {
+                noalias(rValues[point]) = integration_points[point];
+            }
+        }
+
+        #ifdef ENABLE_BEZIER_GEOMETRY
+        rGeometry.Clean();
+        #endif
+    }
+
 }; // class ElementUtility
 
 }  /* namespace Kratos.*/

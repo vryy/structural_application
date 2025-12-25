@@ -634,6 +634,15 @@ void ElementUtility_ResetStrain(ElementUtility& rDummy, TEntityType& rElement, c
     rDummy.ResetStrain(rElement, rCurrentProcessInfo);
 }
 
+template<typename TEntityType>
+boost::python::list ElementUtility_GetIntegrationPoints(ElementUtility& rDummy, TEntityType& rElement,
+        const Variable<array_1d<typename TEntityType::DataType, 3> >& rVariable)
+{
+    std::vector<array_1d<typename TEntityType::DataType, 3> > values;
+    rDummy.GetIntegrationPoints(rElement, rVariable, values);
+    return PythonUtils::Pack(values);
+}
+
 ///////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////
 
@@ -914,6 +923,8 @@ void AddCustomUtilitiesToPython()
     .def("Interpolate", &ElementUtility_Interpolate_Vector<Element, Vector>)
     .def("Interpolate", &ElementUtility_Interpolate_Vector2<Element, Vector>)
     .def("ResetStrain", &ElementUtility_ResetStrain<Element>)
+    .def("GetIntegrationPoints", &ElementUtility_GetIntegrationPoints<Element>)
+    .def("GetIntegrationPoints", &ElementUtility_GetIntegrationPoints<Condition>)
     ;
 }
 
