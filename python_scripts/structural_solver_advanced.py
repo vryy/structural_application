@@ -206,8 +206,10 @@ class SolverAdvanced(structural_solver_static.StaticStructuralSolver):
             ResidualBasedNewmarkSchemeType = ResidualBasedNonlinearMassDampingNewmarkScheme
 
         ## selection for time integration scheme
-        if (self.analysis_parameters['solution_strategy'] == "implicit_Newton_Raphson") \
-                or (self.analysis_parameters['solution_strategy'] == "initial_stiffness"):
+        if (self.analysis_parameters['solution_strategy'] == "implicit_Newton_Raphson")     \
+                or (self.analysis_parameters['solution_strategy'] == "initial_stiffness")   \
+                or (self.analysis_parameters['solution_strategy'] == "modified_thomas")     \
+                or (self.analysis_parameters['solution_strategy'] == "modified_sloan" ):
             #definition of time integration scheme
             if( self.analysis_parameters['analysis_type'] == 0 ):
                 print("using static scheme")
@@ -299,6 +301,18 @@ class SolverAdvanced(structural_solver_static.StaticStructuralSolver):
             else:
                 print("analysis type is not defined or unknown! Define in analysis_parameters['analysis_type']:")
                 sys.exit(0)
+        elif self.analysis_parameters['solution_strategy'] == "arc_length_load_control":
+            if( self.analysis_parameters['analysis_type'] == 0 ):
+                print("using static scheme")
+                self.time_scheme = ResidualBasedIncrementalUpdateStaticDeactivationScheme()
+            else:
+                raise Exception("analysis_type > 0 is not yet supported for arc-length load control")
+        elif self.analysis_parameters['solution_strategy'] == "arc_length_displacement_control":
+            if( self.analysis_parameters['analysis_type'] == 0 ):
+                print("using static scheme")
+                self.time_scheme = ArcLengthDisplacementControlResidualBasedIncrementalUpdateStaticDeactivationScheme(ResidualBasedIncrementalUpdateStaticDeactivationScheme())
+            else:
+                raise Exception("analysis_type > 0 is not yet supported for arc-length displacement control")
         else:
             raise Exception("Unknown solution_strategy %s" % (self.analysis_parameters['solution_strategy']))
 
@@ -368,10 +382,6 @@ class SolverAdvanced(structural_solver_static.StaticStructuralSolver):
                     import arc_length_load_control_strategy
                     self.solver = arc_length_load_control_strategy.SolvingStrategyPython( self.model_part, self.time_scheme, self.structure_linear_solver, self.conv_criteria, self.CalculateReactionFlag, self.ReformDofSetAtEachStep, self.MoveMeshFlag, self.analysis_parameters, self.space_utils, builder_and_solver )
                 elif self.analysis_parameters['solution_strategy'] == "arc_length_displacement_control":
-                    if( self.analysis_parameters['analysis_type'] == 0 ):
-                        self.time_scheme = ArcLengthDisplacementControlResidualBasedIncrementalUpdateStaticDeactivationScheme(self.time_scheme)
-                    else:
-                        raise Exception("analysis_type > 0 is not yet supported for arc-length displacement control")
                     import arc_length_displacement_control_strategy
                     self.solver = arc_length_displacement_control_strategy.SolvingStrategyPython( self.model_part, self.time_scheme, self.structure_linear_solver, self.conv_criteria, self.CalculateReactionFlag, self.ReformDofSetAtEachStep, self.MoveMeshFlag, self.analysis_parameters, self.space_utils, builder_and_solver )
                 elif self.analysis_parameters['solution_strategy'] == "explicit":
