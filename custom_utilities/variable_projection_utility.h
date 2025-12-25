@@ -80,37 +80,39 @@ namespace Kratos
 // see Jiao + Heath "Common-refinement-based data tranfer ..."
 // International Journal for numerical methods in engineering 61 (2004) 2402--2427
 // for general description of L_2-Minimization
-class VariableProjectionUtility : public VariableUtility
+template<class TEntitiesContainerType>
+class VariableProjectionUtility : public VariableUtility<TEntitiesContainerType>
 {
 public:
 
     KRATOS_CLASS_POINTER_DEFINITION( VariableProjectionUtility );
 
-    typedef VariableUtility BaseType;
-    typedef BaseType::SparseSpaceType SparseSpaceType;
-    typedef BaseType::DenseSpaceType DenseSpaceType;
-    typedef BaseType::LinearSolverType LinearSolverType;
-    typedef Element::GeometryType GeometryType;
-    typedef GeometryType::IntegrationPointsArrayType IntegrationPointsArrayType;
-    typedef GeometryType::JacobiansType JacobiansType;
-    typedef BaseType::NodesContainerType NodesContainerType;
-    typedef BaseType::ElementsContainerType ElementsContainerType;
+    typedef VariableUtility<TEntitiesContainerType> BaseType;
+    typedef typename BaseType::IndexType IndexType;
+    typedef typename BaseType::EntityType EntityType;
+    typedef typename BaseType::SparseSpaceType SparseSpaceType;
+    typedef typename BaseType::DenseSpaceType DenseSpaceType;
+    typedef typename BaseType::LinearSolverType LinearSolverType;
+    typedef typename EntityType::GeometryType GeometryType;
+    typedef typename GeometryType::IntegrationPointsArrayType IntegrationPointsArrayType;
+    typedef typename GeometryType::JacobiansType JacobiansType;
+    typedef ModelPart::NodesContainerType NodesContainerType;
 
     /**
      * Constructor.
      */
-    VariableProjectionUtility(ElementsContainerType& pElements, LinearSolverType::Pointer pLinearSolver)
+    VariableProjectionUtility(const TEntitiesContainerType& pElements, LinearSolverType::Pointer pLinearSolver)
     : BaseType(pElements), mpLinearSolver(pLinearSolver)
     {
         this->Initialize(pElements);
         std::cout << "VariableProjectionUtility created" << std::endl;
     }
 
-    VariableProjectionUtility(ElementsContainerType& pElements, LinearSolverType::Pointer pLinearSolver, const int EchoLevel)
+    VariableProjectionUtility(const TEntitiesContainerType& pElements, LinearSolverType::Pointer pLinearSolver, const int EchoLevel)
     : BaseType(pElements, EchoLevel), mpLinearSolver(pLinearSolver)
     {
         this->Initialize(pElements);
-        if (GetEchoLevel() > 0)
+        if (this->GetEchoLevel() > 0)
             std::cout << "VariableProjectionUtility created" << std::endl;
     }
 
@@ -125,32 +127,22 @@ public:
      */
 
     /**
-     * Transfer the double variable from Gauss point to nodes
-     * Here a different element set is allowed to compute the right hand side. This element set shall have the same connectivities as the element set used in Initialize.
+     * Compute the projected nodal values, based on the integration point values
      */
-    void TransferVariablesToNodes( const Variable<double>& rThisVariable, const ProcessInfo& rProcessInfo )
-    {
-        this->TransferVariablesToNodes( rThisVariable, rThisVariable, rProcessInfo );
-    }
-
-    /**
-     * Transfer the double variable from Gauss point to nodes
-     * Here a different element set is allowed to compute the right hand side. This element set shall have the same connectivities as the element set used in Initialize.
-     */
-    void TransferVariablesToNodes( const Variable<double>& rIntegrationPointVariable, const Variable<double>& rNodalVariable, const ProcessInfo& rProcessInfo )
+    std::map<IndexType, double> ComputeNodalValues(const std::map<IndexType, std::vector<double> >& rElementalValues)
     {
         NodesContainerType pActiveNodes;
         std::map<std::size_t, std::size_t> NodeRowId;
         this->ExtractActiveNodes(BaseType::mpElements, pActiveNodes, NodeRowId);
-        KRATOS_WATCH(pActiveNodes.size())
+        // KRATOS_WATCH(pActiveNodes.size())
 
         if (pActiveNodes.size() == 0)
         {
             std::cout << "Number of active nodes is null. There is nothing to transfer" << std::endl;
         }
 
-        SparseSpaceType::VectorType g(pActiveNodes.size());
-        SparseSpaceType::VectorType b(pActiveNodes.size());
+        typename SparseSpaceType::VectorType g(pActiveNodes.size());
+        typename SparseSpaceType::VectorType b(pActiveNodes.size());
 
         int number_of_threads = 1;
 #ifdef _OPENMP
@@ -176,40 +168,54 @@ public:
 #endif
         for (int k = 0; k < number_of_threads; ++k)
         {
-            ElementsContainerType::const_iterator it_begin = BaseType::mpElements.begin() + element_partition[k];
-            ElementsContainerType::const_iterator it_end = BaseType::mpElements.begin() + element_partition[k+1];
+            auto it_begin = BaseType::mpElements.begin() + element_partition[k];
+            auto it_end = BaseType::mpElements.begin() + element_partition[k+1];
             std::map<std::size_t, std::size_t>::const_iterator it_id;
 
-            for( ElementsContainerType::const_iterator it = it_begin; it != it_end; ++it )
+            for( auto it = it_begin; it != it_end; ++it )
             {
                 if ( ! ( ( it->GetValue(IS_INACTIVE) == false ) || it->Is(ACTIVE) ) )
                     continue;
 
+                auto& rGeometry = it->GetGeometry();
+
                 #ifdef ENABLE_BEZIER_GEOMETRY
-                it->GetGeometry().Initialize(it->GetIntegrationMethod());
+                rGeometry.Initialize(it->GetIntegrationMethod());
                 #endif
 
                 const IntegrationPointsArrayType& integration_points
-                    = it->GetGeometry().IntegrationPoints( it->GetIntegrationMethod());
+                    = rGeometry.IntegrationPoints( it->GetIntegrationMethod());
 
                 JacobiansType J(integration_points.size());
-                J = it->GetGeometry().Jacobian(J, it->GetIntegrationMethod());
+                J = rGeometry.Jacobian(J, it->GetIntegrationMethod());
 
-                std::vector<double> ValuesOnIntPoint(integration_points.size());
-                it->CalculateOnIntegrationPoints(rIntegrationPointVariable, ValuesOnIntPoint, rProcessInfo);
+                auto itv = rElementalValues.find(it->Id());
+                if (itv == rElementalValues.end())
+                    KRATOS_ERROR << "Elemental values for element " << it->Id() << " is not provided";
 
-                const Matrix& Ncontainer = it->GetGeometry().ShapeFunctionsValues(it->GetIntegrationMethod());
+                const std::vector<double>& ValuesOnIntPoint = itv->second;
+                // KRATOS_WATCH_STD_CON(ValuesOnIntPoint)
+
+                if (ValuesOnIntPoint.size() != integration_points.size())
+                    KRATOS_ERROR << "The size of provided input "
+                                 << "(" << itv->second.size() << ")"
+                                 << " for element " << it->Id() << " is not sufficient";
+
+                const Matrix& Ncontainer = rGeometry.ShapeFunctionsValues(it->GetIntegrationMethod());
 
                 double DetJ;
                 for (unsigned int point = 0; point < integration_points.size(); ++point)
                 {
-                    DetJ = MathUtils<double>::Det(J[point]);
+                    if (rGeometry.WorkingSpaceDimension() == rGeometry.LocalSpaceDimension())
+                        DetJ = MathUtils<double>::Det(J[point]);
+                    else
+                        DetJ = std::sqrt(MathUtils<double>::Det(Matrix(prod(trans(J[point]), J[point]))));
 
                     double dV = DetJ*integration_points[point].Weight();
 
-                    for (unsigned int prim = 0; prim < it->GetGeometry().size(); ++prim)
+                    for (unsigned int prim = 0; prim < rGeometry.size(); ++prim)
                     {
-                        unsigned int row = NodeRowId[it->GetGeometry()[prim].Id()];
+                        unsigned int row = NodeRowId[rGeometry[prim].Id()];
 #ifdef _OPENMP
                         omp_set_lock(&lock_array[row]);
 #endif
@@ -221,22 +227,146 @@ public:
                 }
 
                 #ifdef ENABLE_BEZIER_GEOMETRY
-                it->GetGeometry().Clean();
+                rGeometry.Clean();
                 #endif
             }
-        }
-
-        mpLinearSolver->Solve(mProjectionMatrix, g, b);
-
-        for(NodesContainerType::iterator it = pActiveNodes.begin() ; it != pActiveNodes.end() ; it++)
-        {
-            it->GetSolutionStepValue(rNodalVariable) = g(NodeRowId[it->Id()]);
         }
 
 #ifdef _OPENMP
         for(unsigned int i = 0; i < M_size; ++i)
             omp_destroy_lock(&lock_array[i]);
 #endif
+
+        mpLinearSolver->Solve(mProjectionMatrix, g, b);
+
+        std::map<IndexType, double> results;
+        for(auto it = pActiveNodes.begin() ; it != pActiveNodes.end() ; it++)
+        {
+            results[it->Id()] = g(NodeRowId[it->Id()]);
+        }
+
+        return results;
+    }
+
+    /**
+     * Transfer the double variable from Gauss point to nodes
+     * Here a different element set is allowed to compute the right hand side. This element set shall have the same connectivities as the element set used in Initialize.
+     */
+    void TransferVariablesToNodes( const Variable<double>& rThisVariable, const ProcessInfo& rProcessInfo )
+    {
+        this->TransferVariablesToNodes( rThisVariable, rThisVariable, rProcessInfo );
+    }
+
+    /**
+     * Transfer the double variable from Gauss point to nodes
+     * Here a different element set is allowed to compute the right hand side. This element set shall have the same connectivities as the element set used in Initialize.
+     */
+    void TransferVariablesToNodes( const Variable<double>& rIntegrationPointVariable, const Variable<double>& rNodalVariable, const ProcessInfo& rProcessInfo )
+    {
+        NodesContainerType pActiveNodes;
+        std::map<std::size_t, std::size_t> NodeRowId;
+        this->ExtractActiveNodes(BaseType::mpElements, pActiveNodes, NodeRowId);
+        // KRATOS_WATCH(pActiveNodes.size())
+
+        if (pActiveNodes.size() == 0)
+        {
+            std::cout << "Number of active nodes is null. There is nothing to transfer" << std::endl;
+        }
+
+        typename SparseSpaceType::VectorType g(pActiveNodes.size());
+        typename SparseSpaceType::VectorType b(pActiveNodes.size());
+
+        int number_of_threads = 1;
+#ifdef _OPENMP
+        number_of_threads = omp_get_max_threads();
+#endif
+
+#ifdef _OPENMP
+        //create the array of lock
+        unsigned int M_size = pActiveNodes.size();
+        std::vector<omp_lock_t> lock_array(M_size);
+        for (unsigned int i = 0; i < M_size; ++i)
+            omp_init_lock(&lock_array[i]);
+#endif
+
+        noalias(g) = ZeroVector(M_size);
+        noalias(b) = ZeroVector(M_size);
+
+        std::vector<unsigned int> element_partition;
+        OpenMPUtils::CreatePartition(number_of_threads, BaseType::mpElements.size(), element_partition);
+
+#ifdef _OPENMP
+        #pragma omp parallel for
+#endif
+        for (int k = 0; k < number_of_threads; ++k)
+        {
+            auto it_begin = BaseType::mpElements.begin() + element_partition[k];
+            auto it_end = BaseType::mpElements.begin() + element_partition[k+1];
+            std::map<std::size_t, std::size_t>::const_iterator it_id;
+
+            for( auto it = it_begin; it != it_end; ++it )
+            {
+                if ( ! ( ( it->GetValue(IS_INACTIVE) == false ) || it->Is(ACTIVE) ) )
+                    continue;
+
+                auto& rGeometry = it->GetGeometry();
+
+                #ifdef ENABLE_BEZIER_GEOMETRY
+                rGeometry.Initialize(it->GetIntegrationMethod());
+                #endif
+
+                const IntegrationPointsArrayType& integration_points
+                    = rGeometry.IntegrationPoints( it->GetIntegrationMethod());
+
+                JacobiansType J(integration_points.size());
+                J = rGeometry.Jacobian(J, it->GetIntegrationMethod());
+
+                std::vector<double> ValuesOnIntPoint(integration_points.size());
+                it->CalculateOnIntegrationPoints(rIntegrationPointVariable, ValuesOnIntPoint, rProcessInfo);
+
+                const Matrix& Ncontainer = rGeometry.ShapeFunctionsValues(it->GetIntegrationMethod());
+
+                double DetJ;
+                for (unsigned int point = 0; point < integration_points.size(); ++point)
+                {
+                    if (rGeometry.WorkingSpaceDimension() == rGeometry.LocalSpaceDimension())
+                        DetJ = MathUtils<double>::Det(J[point]);
+                    else
+                        DetJ = sqrt(MathUtils<double>::Det(Matrix(prod(trans(J[point]), J[point]))));
+
+                    double dV = DetJ*integration_points[point].Weight();
+
+                    for (unsigned int prim = 0; prim < rGeometry.size(); ++prim)
+                    {
+                        unsigned int row = NodeRowId[rGeometry[prim].Id()];
+#ifdef _OPENMP
+                        omp_set_lock(&lock_array[row]);
+#endif
+                        b(row) += ValuesOnIntPoint[point] * Ncontainer(point, prim) * dV;
+#ifdef _OPENMP
+                        omp_unset_lock(&lock_array[row]);
+#endif
+                    }
+                }
+
+                #ifdef ENABLE_BEZIER_GEOMETRY
+                rGeometry.Clean();
+                #endif
+            }
+        }
+
+#ifdef _OPENMP
+        for(unsigned int i = 0; i < M_size; ++i)
+            omp_destroy_lock(&lock_array[i]);
+#endif
+
+        mpLinearSolver->Solve(mProjectionMatrix, g, b);
+
+        for(auto it = pActiveNodes.begin() ; it != pActiveNodes.end() ; it++)
+        {
+            it->GetSolutionStepValue(rNodalVariable) = g(NodeRowId[it->Id()]);
+        }
+
         std::cout << "TransferVariablesToNodes from " << rIntegrationPointVariable.Name()
                   << " to " << rNodalVariable.Name()
                   << " completed" << std::endl;
@@ -245,7 +375,7 @@ public:
 protected:
 
     /// Initialize the projection matrix
-    void Initialize( const ElementsContainerType& pElements ) final
+    void Initialize( const TEntitiesContainerType& pElements ) final
     {
         NodesContainerType pActiveNodes;
         std::map<std::size_t, std::size_t> NodeRowId;
@@ -261,12 +391,11 @@ private:
     //**********AUXILIARY FUNCTION**************************************************************
     //******************************************************************************************
     /// Extract the active nodes and construct the nodal id row map
-    void ExtractActiveNodes(const ElementsContainerType& pElements,
+    void ExtractActiveNodes(const TEntitiesContainerType& pElements,
         NodesContainerType& pActiveNodes, std::map<std::size_t, std::size_t>& NodeRowId) const
     {
         // extract the active nodes
-        for(ElementsContainerType::const_iterator it = pElements.begin();
-                it != pElements.end(); ++it)
+        for(auto it = pElements.begin(); it != pElements.end(); ++it)
         {
             if( it->GetValue(IS_INACTIVE) == false || it->Is(ACTIVE) )
             {
@@ -278,11 +407,11 @@ private:
         }
 
         pActiveNodes.Unique();
-        KRATOS_WATCH(pActiveNodes.size())
+        // KRATOS_WATCH(pActiveNodes.size())
 
         // assign each node an id. That id is the row of this node in the global L2 projection matrix*/
         std::size_t cnt = 0;
-        for(NodesContainerType::iterator it = pActiveNodes.begin(); it != pActiveNodes.end(); ++it )
+        for(auto it = pActiveNodes.begin(); it != pActiveNodes.end(); ++it )
         {
             NodeRowId[it->Id()] = cnt++;
         }
@@ -291,7 +420,7 @@ private:
     //**********AUXILIARY FUNCTION**************************************************************
     //******************************************************************************************
     /// Construct the L2 projection matrix
-    void ConstructLHSMatrix(SparseSpaceType::MatrixType& rA, const ElementsContainerType& pElements,
+    void ConstructLHSMatrix(SparseSpaceType::MatrixType& rA, const TEntitiesContainerType& pElements,
             const std::map<std::size_t, std::size_t>& NodeRowId) const
     {
         // set up system
@@ -323,46 +452,51 @@ private:
 #endif
         for(int k = 0; k < number_of_threads; ++k)
         {
-            ElementsContainerType::const_iterator it_begin = pElements.begin() + element_partition[k];
-            ElementsContainerType::const_iterator it_end = pElements.begin() + element_partition[k+1];
+            auto it_begin = pElements.begin() + element_partition[k];
+            auto it_end = pElements.begin() + element_partition[k+1];
             std::map<std::size_t, std::size_t>::const_iterator it_id;
 
-            for( ElementsContainerType::const_iterator it = it_begin; it != it_end; ++it )
+            for( auto it = it_begin; it != it_end; ++it )
             {
                 if( it->GetValue(IS_INACTIVE) == true && !it->Is(ACTIVE) )
                     continue;
 
+                auto& rGeometry = it->GetGeometry();
+
                 #ifdef ENABLE_BEZIER_GEOMETRY
-                it->GetGeometry().Initialize(it->GetIntegrationMethod());
+                rGeometry.Initialize(it->GetIntegrationMethod());
                 #endif
 
-                unsigned int dim = it->GetGeometry().WorkingSpaceDimension();
+                unsigned int dim = rGeometry.WorkingSpaceDimension();
 
                 const IntegrationPointsArrayType& integration_points
-                    = it->GetGeometry().IntegrationPoints(it->GetIntegrationMethod());
+                    = rGeometry.IntegrationPoints(it->GetIntegrationMethod());
 
                 JacobiansType J(integration_points.size());
-                J = it->GetGeometry().Jacobian(J, it->GetIntegrationMethod());
+                J = rGeometry.Jacobian(J, it->GetIntegrationMethod());
 
-                const Matrix& Ncontainer = it->GetGeometry().ShapeFunctionsValues(it->GetIntegrationMethod());
+                const Matrix& Ncontainer = rGeometry.ShapeFunctionsValues(it->GetIntegrationMethod());
 
                 double DetJ;
                 for(unsigned int point = 0; point < integration_points.size(); ++point)
                 {
-                    DetJ = MathUtils<double>::Det(J[point]);
+                    if (rGeometry.WorkingSpaceDimension() == rGeometry.LocalSpaceDimension())
+                        DetJ = MathUtils<double>::Det(J[point]);
+                    else
+                        DetJ = std::sqrt(MathUtils<double>::Det(Matrix(prod(trans(J[point]), J[point]))));
 
                     double dV = DetJ*integration_points[point].Weight();
 
-                    for(unsigned int prim = 0 ; prim < it->GetGeometry().size(); ++prim)
+                    for(unsigned int prim = 0 ; prim < rGeometry.size(); ++prim)
                     {
-                        it_id = NodeRowId.find(it->GetGeometry()[prim].Id());
+                        it_id = NodeRowId.find(rGeometry[prim].Id());
                         std::size_t row = it_id->second;
 #ifdef _OPENMP
                         omp_set_lock(&lock_array[row]);
 #endif
-                        for(unsigned int sec = 0 ; sec < it->GetGeometry().size(); ++sec)
+                        for(unsigned int sec = 0 ; sec < rGeometry.size(); ++sec)
                         {
-                            it_id = NodeRowId.find(it->GetGeometry()[sec].Id());
+                            it_id = NodeRowId.find(rGeometry[sec].Id());
                             std::size_t col = it_id->second;
                             rA(row, col) += Ncontainer(point, prim)*Ncontainer(point, sec) * dV;
                         }
@@ -373,7 +507,7 @@ private:
                 }
 
                 #ifdef ENABLE_BEZIER_GEOMETRY
-                it->GetGeometry().Clean();
+                rGeometry.Clean();
                 #endif
 //                ++show_progress;
             }
@@ -383,15 +517,14 @@ private:
     //**********AUXILIARY FUNCTION**************************************************************
     //******************************************************************************************
     void ConstructMatrixStructure(SparseSpaceType::MatrixType& A,
-            const ElementsContainerType& pElements, const std::map<std::size_t, std::size_t>& NodeRowId) const
+            const TEntitiesContainerType& pElements, const std::map<std::size_t, std::size_t>& NodeRowId) const
     {
         std::size_t equation_size = A.size1();
         std::vector<std::vector<std::size_t> > indices(equation_size);
 
-        Element::EquationIdVectorType ids;
+        typename EntityType::EquationIdVectorType ids;
         std::map<std::size_t, std::size_t>::const_iterator it;
-        for(ElementsContainerType::const_iterator i_element = pElements.begin();
-                i_element != pElements.end() ; ++i_element)
+        for(auto i_element = pElements.begin(); i_element != pElements.end() ; ++i_element)
         {
             if( !(i_element)->GetValue( IS_INACTIVE ) || (i_element)->Is(ACTIVE) )
             {

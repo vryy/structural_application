@@ -403,17 +403,30 @@ void VectorTransferVariablesBetweenMeshes(VariableTransferUtility& dummy,
     dummy.TransferVariablesBetweenMeshes(rSource, rTarget, rThisVariable);
 }
 
-void VariableProjectionUtility_TransferVariablesToNodes1(VariableProjectionUtility& rDummy,
+template<class TEntitiesContainerType>
+void VariableProjectionUtility_TransferVariablesToNodes1(VariableProjectionUtility<TEntitiesContainerType>& rDummy,
         const Variable<double>& rThisVariable, const ProcessInfo& rCurrentProcessInfo)
 {
     rDummy.TransferVariablesToNodes(rThisVariable, rCurrentProcessInfo);
 }
 
-void VariableProjectionUtility_TransferVariablesToNodes2(VariableProjectionUtility& rDummy,
+template<class TEntitiesContainerType>
+void VariableProjectionUtility_TransferVariablesToNodes2(VariableProjectionUtility<TEntitiesContainerType>& rDummy,
         const Variable<double>& rIntegrationPointVariable, const Variable<double>& rNodalVariable,
         const ProcessInfo& rCurrentProcessInfo)
 {
     rDummy.TransferVariablesToNodes(rIntegrationPointVariable, rNodalVariable, rCurrentProcessInfo);
+}
+
+template<class TEntitiesContainerType>
+boost::python::dict VariableProjectionUtility_ComputeNodalValues(VariableProjectionUtility<TEntitiesContainerType>& rDummy,
+        const boost::python::dict& dict_values)
+{
+    typedef typename VariableProjectionUtility<TEntitiesContainerType>::IndexType IndexType;
+    std::map<IndexType, std::vector<double> > elemental_values;
+    PythonUtils::Unpack<IndexType, std::vector<double> >(dict_values, elemental_values);
+    auto nodal_values = rDummy.ComputeNodalValues(elemental_values);
+    return PythonUtils::Pack<IndexType, double>(nodal_values);
 }
 
 void ListDofs(DofUtility& dummy, ModelPart::DofsArrayType& rDofSet, std::size_t EquationSystemSize)
@@ -448,17 +461,18 @@ void SetAssociatedElement(DeactivationUtility& rDummy, Condition::Pointer pCond,
     pCond->SetValue(ASSOCIATED_ELEMENT, pElem);
 }
 
-void VariableUtility_GetSolutionVector1(VariableUtility& rDummy,
-    VariableUtility::SparseSpaceType::VectorType& X,
-    const VariableUtility::DofsArrayType& rDofSet,
-    const VariableUtility::IndexType& EquationSystemSize)
+template<class TEntitiesContainerType>
+void VariableUtility_GetSolutionVector1(VariableUtility<TEntitiesContainerType>& rDummy,
+    typename VariableUtility<TEntitiesContainerType>::SparseSpaceType::VectorType& X,
+    const typename VariableUtility<TEntitiesContainerType>::DofsArrayType& rDofSet,
+    const typename VariableUtility<TEntitiesContainerType>::IndexType& EquationSystemSize)
 {
     rDummy.GetSolutionVector(X, rDofSet, EquationSystemSize);
 }
 
-template<typename TDataType>
-void VariableUtility_GetSolutionVector2(VariableUtility& rDummy,
-    VariableUtility::SparseSpaceType::VectorType& X,
+template<class TEntitiesContainerType, typename TDataType>
+void VariableUtility_GetSolutionVector2(VariableUtility<TEntitiesContainerType>& rDummy,
+    typename VariableUtility<TEntitiesContainerType>::SparseSpaceType::VectorType& X,
     const Variable<TDataType>& rThisVariable,
     const ModelPart& r_model_part)
 {
@@ -623,7 +637,88 @@ void ElementUtility_ResetStrain(ElementUtility& rDummy, TEntityType& rElement, c
 ///////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////
 
-void  AddCustomUtilitiesToPython()
+template<class TEntitiesContainerType>
+void AddVariableUtilitiesToPython(const std::string& Prefix)
+{
+    typedef VariableUtility<TEntitiesContainerType> VariableUtilityType;
+    typedef VariableProjectionUtility<TEntitiesContainerType> VariableProjectionUtilityType;
+    typedef VariableInterpolationUtility<TEntitiesContainerType> VariableInterpolationUtilityType;
+    typedef VariableBinningInterpolationUtility<TEntitiesContainerType, 0> VariableBinningInterpolationUtilityType;
+    typedef VariableBVHInterpolationUtility<TEntitiesContainerType> VariableBVHInterpolationUtilityType;
+
+    typedef typename VariableUtilityType::EntityType EntityType;
+
+    std::stringstream ss;
+
+    ss << Prefix << "VariableUtility";
+    class_<VariableUtilityType, boost::noncopyable >
+    ( ss.str().c_str(), init<>() )
+    .def(init<const TEntitiesContainerType&>())
+    .add_property("EchoLevel", &VariableUtilityType::GetEchoLevel, &VariableUtilityType::SetEchoLevel)
+    .def("GetSolutionVector", &VariableUtility_GetSolutionVector1<TEntitiesContainerType>)
+    .def("GetSolutionVector", &VariableUtility_GetSolutionVector2<TEntitiesContainerType, double>)
+    .def("GetSolutionVector", &VariableUtility_GetSolutionVector2<TEntitiesContainerType, array_1d<double, 3> >)
+    ;
+
+    ss.str(std::string());
+    ss << Prefix << "VariableProjectionUtility";
+    class_<VariableProjectionUtilityType, bases<VariableUtilityType>, boost::noncopyable >
+    ( ss.str().c_str(), init<const TEntitiesContainerType&, typename VariableProjectionUtilityType::LinearSolverType::Pointer>() )
+    .def("TransferVariablesToNodes", &VariableProjectionUtility_TransferVariablesToNodes1<TEntitiesContainerType>)
+    .def("TransferVariablesToNodes", &VariableProjectionUtility_TransferVariablesToNodes2<TEntitiesContainerType>)
+    .def("ComputeNodalValues", &VariableProjectionUtility_ComputeNodalValues<TEntitiesContainerType>)
+    ;
+
+    void(VariableInterpolationUtilityType::*pointer_to_TransferVariablesToNodesDouble1)(ModelPart&, const Variable<double>&) = &VariableInterpolationUtilityType::TransferVariablesToNodes;
+    void(VariableInterpolationUtilityType::*pointer_to_TransferVariablesToNodesDouble2)(ModelPart::NodesContainerType&, const Variable<double>&) = &VariableInterpolationUtilityType::TransferVariablesToNodes;
+    void(VariableInterpolationUtilityType::*pointer_to_TransferVariablesToNodesArray1D1)(ModelPart&, const Variable<array_1d<double, 3> >&) = &VariableInterpolationUtilityType::TransferVariablesToNodes;
+    void(VariableInterpolationUtilityType::*pointer_to_TransferVariablesToNodesArray1D2)(ModelPart::NodesContainerType&, const Variable<array_1d<double, 3> >&) = &VariableInterpolationUtilityType::TransferVariablesToNodes;
+    void(VariableInterpolationUtilityType::*pointer_to_TransferVariablesToNodesVector1)(ModelPart&, const Variable<Vector>&, const std::size_t&) = &VariableInterpolationUtilityType::TransferVariablesToNodes;
+    void(VariableInterpolationUtilityType::*pointer_to_TransferVariablesToNodesVector2)(ModelPart::NodesContainerType&, const Variable<Vector>&, const std::size_t&) = &VariableInterpolationUtilityType::TransferVariablesToNodes;
+    void(VariableInterpolationUtilityType::*pointer_to_TransferVariablesToGaussPointsDouble1)(ModelPart&, const Variable<double>&) = &VariableInterpolationUtilityType::TransferVariablesToGaussPoints;
+    void(VariableInterpolationUtilityType::*pointer_to_TransferVariablesToGaussPointsDouble2)(TEntitiesContainerType&, const Variable<double>&, const ProcessInfo&) = &VariableInterpolationUtilityType::TransferVariablesToGaussPoints;
+    void(VariableInterpolationUtilityType::*pointer_to_TransferVariablesToGaussPointsArray1D1)(ModelPart&, const Variable<array_1d<double, 3> >&) = &VariableInterpolationUtilityType::TransferVariablesToGaussPoints;
+    void(VariableInterpolationUtilityType::*pointer_to_TransferVariablesToGaussPointsArray1D2)(TEntitiesContainerType&, const Variable<array_1d<double, 3> >&, const ProcessInfo&) = &VariableInterpolationUtilityType::TransferVariablesToGaussPoints;
+    void(VariableInterpolationUtilityType::*pointer_to_TransferVariablesToGaussPointsVector1)(ModelPart&, const Variable<Vector>&, std::size_t) = &VariableInterpolationUtilityType::TransferVariablesToGaussPoints;
+    void(VariableInterpolationUtilityType::*pointer_to_TransferVariablesToGaussPointsVector2)(TEntitiesContainerType&, const Variable<Vector>&, const ProcessInfo&, std::size_t) = &VariableInterpolationUtilityType::TransferVariablesToGaussPoints;
+    TEntitiesContainerType(VariableInterpolationUtilityType::*pointer_to_FindPotentialPartners)(const typename EntityType::GeometryType::PointType::PointType&) const = &VariableInterpolationUtilityType::FindPotentialPartners;
+    typename EntityType::Pointer(VariableInterpolationUtilityType::*pointer_to_SearchPartner)(const typename EntityType::GeometryType::PointType::PointType&, TEntitiesContainerType&) const = &VariableInterpolationUtilityType::SearchPartner;
+
+    ss.str(std::string());
+    ss << Prefix << "VariableInterpolationUtility";
+    class_<VariableInterpolationUtilityType, bases<VariableUtilityType>, boost::noncopyable >
+    ( ss.str().c_str(), init<const TEntitiesContainerType&>() )
+    .def("FindPotentialPartners", pointer_to_FindPotentialPartners)
+    .def("SearchPartner", pointer_to_SearchPartner)
+    .def("TransferVariablesToNodes", pointer_to_TransferVariablesToNodesDouble1)
+    .def("TransferVariablesToNodes", pointer_to_TransferVariablesToNodesDouble2)
+    .def("TransferVariablesToNodes", pointer_to_TransferVariablesToNodesArray1D1)
+    .def("TransferVariablesToNodes", pointer_to_TransferVariablesToNodesArray1D2)
+    .def("TransferVariablesToNodes", pointer_to_TransferVariablesToNodesVector1)
+    .def("TransferVariablesToNodes", pointer_to_TransferVariablesToNodesVector2)
+    .def("TransferVariablesToGaussPoints", pointer_to_TransferVariablesToGaussPointsDouble1)
+    .def("TransferVariablesToGaussPoints", pointer_to_TransferVariablesToGaussPointsDouble2)
+    .def("TransferVariablesToGaussPoints", pointer_to_TransferVariablesToGaussPointsArray1D1)
+    .def("TransferVariablesToGaussPoints", pointer_to_TransferVariablesToGaussPointsArray1D2)
+    .def("TransferVariablesToGaussPoints", pointer_to_TransferVariablesToGaussPointsVector1)
+    .def("TransferVariablesToGaussPoints", pointer_to_TransferVariablesToGaussPointsVector2)
+    ;
+
+    ss.str(std::string());
+    ss << Prefix << "VariableBinningInterpolationUtility";
+    class_<VariableBinningInterpolationUtilityType, bases<VariableInterpolationUtilityType>, boost::noncopyable >
+    ( ss.str().c_str(), init<const TEntitiesContainerType&, const double, const double, const double>() )
+    .def(init<const TEntitiesContainerType&, const double, const double, const double, const int>())
+    ;
+
+    ss.str(std::string());
+    ss << Prefix << "VariableBVHInterpolationUtility";
+    class_<VariableBVHInterpolationUtilityType, bases<VariableInterpolationUtilityType>, boost::noncopyable >
+    ( ss.str().c_str(), init<const TEntitiesContainerType&, const int>() )
+    ;
+}
+
+void AddCustomUtilitiesToPython()
 {
     class_<DeactivationUtility, boost::noncopyable >
     ( "DeactivationUtility", init<>() )
@@ -720,62 +815,9 @@ void  AddCustomUtilitiesToPython()
     .def("TransferVariablesToNode", &Array1DTransferVariablesToNode)
     ;
 
-    class_<VariableUtility, boost::noncopyable >
-    ( "VariableUtility", init<>() )
-    .def(init<ModelPart::ElementsContainerType&>())
-    .add_property("EchoLevel", &VariableUtility::GetEchoLevel, &VariableUtility::SetEchoLevel)
-    .def("GetSolutionVector", &VariableUtility_GetSolutionVector1)
-    .def("GetSolutionVector", &VariableUtility_GetSolutionVector2<double>)
-    .def("GetSolutionVector", &VariableUtility_GetSolutionVector2<array_1d<double, 3> >)
-    ;
-
-    class_<VariableProjectionUtility, bases<VariableUtility>, boost::noncopyable >
-    ( "VariableProjectionUtility", init<ModelPart::ElementsContainerType&, VariableProjectionUtility::LinearSolverType::Pointer>() )
-    .def("TransferVariablesToNodes", &VariableProjectionUtility_TransferVariablesToNodes1)
-    .def("TransferVariablesToNodes", &VariableProjectionUtility_TransferVariablesToNodes2)
-    ;
-
-    void(VariableInterpolationUtility::*pointer_to_TransferVariablesToNodesDouble1)(ModelPart&, const Variable<double>&) = &VariableInterpolationUtility::TransferVariablesToNodes;
-    void(VariableInterpolationUtility::*pointer_to_TransferVariablesToNodesDouble2)(ModelPart::NodesContainerType&, const Variable<double>&) = &VariableInterpolationUtility::TransferVariablesToNodes;
-    void(VariableInterpolationUtility::*pointer_to_TransferVariablesToNodesArray1D1)(ModelPart&, const Variable<array_1d<double, 3> >&) = &VariableInterpolationUtility::TransferVariablesToNodes;
-    void(VariableInterpolationUtility::*pointer_to_TransferVariablesToNodesArray1D2)(ModelPart::NodesContainerType&, const Variable<array_1d<double, 3> >&) = &VariableInterpolationUtility::TransferVariablesToNodes;
-    void(VariableInterpolationUtility::*pointer_to_TransferVariablesToNodesVector1)(ModelPart&, const Variable<Vector>&, const std::size_t&) = &VariableInterpolationUtility::TransferVariablesToNodes;
-    void(VariableInterpolationUtility::*pointer_to_TransferVariablesToNodesVector2)(ModelPart::NodesContainerType&, const Variable<Vector>&, const std::size_t&) = &VariableInterpolationUtility::TransferVariablesToNodes;
-    void(VariableInterpolationUtility::*pointer_to_TransferVariablesToGaussPointsDouble1)(ModelPart&, const Variable<double>&) = &VariableInterpolationUtility::TransferVariablesToGaussPoints;
-    void(VariableInterpolationUtility::*pointer_to_TransferVariablesToGaussPointsDouble2)(ModelPart::ElementsContainerType&, const Variable<double>&, const ProcessInfo&) = &VariableInterpolationUtility::TransferVariablesToGaussPoints;
-    void(VariableInterpolationUtility::*pointer_to_TransferVariablesToGaussPointsArray1D1)(ModelPart&, const Variable<array_1d<double, 3> >&) = &VariableInterpolationUtility::TransferVariablesToGaussPoints;
-    void(VariableInterpolationUtility::*pointer_to_TransferVariablesToGaussPointsArray1D2)(ModelPart::ElementsContainerType&, const Variable<array_1d<double, 3> >&, const ProcessInfo&) = &VariableInterpolationUtility::TransferVariablesToGaussPoints;
-    void(VariableInterpolationUtility::*pointer_to_TransferVariablesToGaussPointsVector1)(ModelPart&, const Variable<Vector>&, std::size_t) = &VariableInterpolationUtility::TransferVariablesToGaussPoints;
-    void(VariableInterpolationUtility::*pointer_to_TransferVariablesToGaussPointsVector2)(ModelPart::ElementsContainerType&, const Variable<Vector>&, const ProcessInfo&, std::size_t) = &VariableInterpolationUtility::TransferVariablesToGaussPoints;
-    ModelPart::ElementsContainerType(VariableInterpolationUtility::*pointer_to_FindPotentialPartners)(const Element::GeometryType::PointType::PointType&) const = &VariableInterpolationUtility::FindPotentialPartners;
-    Element::Pointer(VariableInterpolationUtility::*pointer_to_SearchPartner)(const Element::GeometryType::PointType::PointType&, ModelPart::ElementsContainerType&) const = &VariableInterpolationUtility::SearchPartner;
-
-    class_<VariableInterpolationUtility, bases<VariableUtility>, boost::noncopyable >
-    ( "VariableInterpolationUtility", init<ModelPart::ElementsContainerType&>() )
-    .def("FindPotentialPartners", pointer_to_FindPotentialPartners)
-    .def("SearchPartner", pointer_to_SearchPartner)
-    .def("TransferVariablesToNodes", pointer_to_TransferVariablesToNodesDouble1)
-    .def("TransferVariablesToNodes", pointer_to_TransferVariablesToNodesDouble2)
-    .def("TransferVariablesToNodes", pointer_to_TransferVariablesToNodesArray1D1)
-    .def("TransferVariablesToNodes", pointer_to_TransferVariablesToNodesArray1D2)
-    .def("TransferVariablesToNodes", pointer_to_TransferVariablesToNodesVector1)
-    .def("TransferVariablesToNodes", pointer_to_TransferVariablesToNodesVector2)
-    .def("TransferVariablesToGaussPoints", pointer_to_TransferVariablesToGaussPointsDouble1)
-    .def("TransferVariablesToGaussPoints", pointer_to_TransferVariablesToGaussPointsDouble2)
-    .def("TransferVariablesToGaussPoints", pointer_to_TransferVariablesToGaussPointsArray1D1)
-    .def("TransferVariablesToGaussPoints", pointer_to_TransferVariablesToGaussPointsArray1D2)
-    .def("TransferVariablesToGaussPoints", pointer_to_TransferVariablesToGaussPointsVector1)
-    .def("TransferVariablesToGaussPoints", pointer_to_TransferVariablesToGaussPointsVector2)
-    ;
-
-    class_<VariableBinningInterpolationUtility<0>, bases<VariableInterpolationUtility>, boost::noncopyable >
-    ( "VariableBinningInterpolationUtility", init<ModelPart::ElementsContainerType&, const double, const double, const double>() )
-    .def(init<ModelPart::ElementsContainerType&, const double, const double, const double, const int>())
-    ;
-
-    class_<VariableBVHInterpolationUtility, bases<VariableInterpolationUtility>, boost::noncopyable >
-    ( "VariableBVHInterpolationUtility", init<ModelPart::ElementsContainerType&, const int>() )
-    ;
+    AddVariableUtilitiesToPython<ModelPart::ElementsContainerType>(""); // for backward compatibility
+    AddVariableUtilitiesToPython<ModelPart::ElementsContainerType>("Elemental");
+    AddVariableUtilitiesToPython<ModelPart::ConditionsContainerType>("Conditional");
 
 #ifdef _OPENMP
     class_<ParallelVariableTransferUtility, boost::noncopyable >

@@ -74,24 +74,23 @@ namespace Kratos
  * Utility to transfer the variables by interpolation.
  * It uses spatial binning to quickly search for corresponding element
  */
-template<int TFrame = 0>
-class VariableBinningInterpolationUtility : public VariableInterpolationUtility
+template<class TEntitiesContainerType, int TFrame = 0>
+class VariableBinningInterpolationUtility : public VariableInterpolationUtility<TEntitiesContainerType>
 {
 public:
 
     KRATOS_CLASS_POINTER_DEFINITION( VariableBinningInterpolationUtility );
 
-    typedef VariableInterpolationUtility BaseType;
-    typedef BaseType::GeometryType GeometryType;
-    typedef BaseType::IntegrationPointsArrayType IntegrationPointsArrayType;
-    typedef BaseType::PointType PointType;
-    typedef BaseType::NodesContainerType NodesContainerType;
-    typedef BaseType::ElementsContainerType ElementsContainerType;
+    typedef VariableInterpolationUtility<TEntitiesContainerType> BaseType;
+    typedef typename BaseType::GeometryType GeometryType;
+    typedef typename BaseType::IntegrationPointsArrayType IntegrationPointsArrayType;
+    typedef typename BaseType::PointType PointType;
+    typedef typename BaseType::NodesContainerType NodesContainerType;
 
     /**
      * Constructor.
      */
-    VariableBinningInterpolationUtility(const ElementsContainerType& pElements,
+    VariableBinningInterpolationUtility(const TEntitiesContainerType& pElements,
             const double Dx, const double Dy, const double Dz)
     : BaseType(pElements), mDx(Dx), mDy(Dy), mDz(Dz)
     {
@@ -99,12 +98,12 @@ public:
         std::cout << "VariableBinningInterpolationUtility created" << std::endl;
     }
 
-    VariableBinningInterpolationUtility(const ElementsContainerType& pElements,
+    VariableBinningInterpolationUtility(const TEntitiesContainerType& pElements,
             const double Dx, const double Dy, const double Dz, const int EchoLevel)
     : BaseType(pElements, EchoLevel), mDx(Dx), mDy(Dy), mDz(Dz)
     {
         this->Initialize(pElements);
-        if (GetEchoLevel() > 0)
+        if (this->GetEchoLevel() > 0)
             std::cout << "VariableBinningInterpolationUtility created" << std::endl;
     }
 
@@ -122,9 +121,9 @@ public:
 protected:
 
     /// Initialize the elements binning
-    void Initialize( const ElementsContainerType& pElements ) final
+    void Initialize( const TEntitiesContainerType& pElements ) final
     {
-        if (GetEchoLevel() > 0)
+        if (this->GetEchoLevel() > 0)
             std::cout << "Initialize the spatial binning" << std::endl;
 
 #ifdef _OPENMP
@@ -133,16 +132,16 @@ protected:
 
         Kratos::progress_display* show_progress = nullptr;
 
-        if (GetEchoLevel() > 0)
+        if (this->GetEchoLevel() > 0)
             show_progress = new Kratos::progress_display( pElements.size() );
 
         std::vector<double> vmin(3);
         std::vector<double> vmax(3);
-        for ( ElementsContainerType::const_iterator it = pElements.begin(); it != pElements.end(); ++it )
+        for ( auto it = pElements.begin(); it != pElements.end(); ++it )
         {
             this->FindBoundingBox(vmin, vmax, it->GetGeometry());
 
-            if (GetEchoLevel() > 4)
+            if (this->GetEchoLevel() > 4)
             {
                 std::cout << "vmin: " << vmin[0] << " " << vmin[1] << " " << vmin[2] << std::endl;
                 std::cout << "vmax: " << vmax[0] << " " << vmax[1] << " " << vmax[2] << std::endl;
@@ -152,7 +151,7 @@ protected:
             int j_min = (int) std::floor(vmin[1] / mDy), j_max = (int) std::floor(vmax[1] / mDy);
             int k_min = (int) std::floor(vmin[2] / mDz), k_max = (int) std::floor(vmax[2] / mDz);
 
-            if (GetEchoLevel() > 4)
+            if (this->GetEchoLevel() > 4)
             {
                 std::cout << " [" << i_min << "," << i_max << "]";
                 std::cout << " [" << j_min << "," << j_max << "]";
@@ -169,7 +168,7 @@ protected:
                         SpatialKey key(i, j, k);
                         mBinElements[key].insert(it->Id());
 
-                        if (GetEchoLevel() > 4)
+                        if (this->GetEchoLevel() > 4)
                             std::cout << "element " << it->Id() << " is added to the bin with key (" << i << "," << j << "," << k << ")" << std::endl;
                     }
                 }
@@ -179,7 +178,7 @@ protected:
                 ++(*show_progress);
         }
 
-        if (GetEchoLevel() > 1)
+        if (this->GetEchoLevel() > 1)
             KRATOS_WATCH(mBinElements.size())
 
         if (show_progress != nullptr)
@@ -187,7 +186,7 @@ protected:
 
 #ifdef _OPENMP
         double stop_init = omp_get_wtime();
-        if (GetEchoLevel() > 0)
+        if (this->GetEchoLevel() > 0)
             std::cout << "Initialize binning completed, time = " << (stop_init-start_init) << "s" << std::endl;
 #endif
     }
@@ -195,14 +194,14 @@ protected:
     //**********AUXILIARY FUNCTION**************************************************************
     //******************************************************************************************
 
-    void FindPotentialPartners( const PointType& rSourcePoint, ElementsContainerType& pMasterElements ) const final
+    void FindPotentialPartners( const PointType& rSourcePoint, TEntitiesContainerType& pMasterElements ) const final
     {
         // get the containing elements from the bin
         int ix = (int) std::floor(rSourcePoint.X() / mDx);
         int iy = (int) std::floor(rSourcePoint.Y() / mDy);
         int iz = (int) std::floor(rSourcePoint.Z() / mDz);
 
-        if (GetEchoLevel() > 4)
+        if (this->GetEchoLevel() > 4)
             std::cout << "point " << rSourcePoint << " has key (" << ix << "," << iy << "," << iz << ")" << std::endl;
 
         SpatialKey key(ix, iy, iz);

@@ -68,6 +68,7 @@ namespace Kratos
 /**
  * Abstract class for all utility for all variable transfer utilities
  */
+template<class TEntitiesContainerType = ModelPart::ElementsContainerType>
 class VariableUtility
 {
 public:
@@ -75,9 +76,8 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION( VariableUtility );
 
     typedef ModelPart::IndexType IndexType;
-    typedef ModelPart::NodesContainerType NodesContainerType;
-    typedef ModelPart::ElementsContainerType ElementsContainerType;
     typedef ModelPart::DofsArrayType DofsArrayType;
+    typedef typename TEntitiesContainerType::value_type EntityType;
 
     typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
     typedef UblasSpace<double, Matrix, Vector> DenseSpaceType;
@@ -163,13 +163,13 @@ public:
         std::cout << "VariableUtility created" << std::endl;
     }
 
-    VariableUtility(const ElementsContainerType& pElements)
+    VariableUtility(const TEntitiesContainerType& pElements)
     : mEchoLevel(0), mpElements(pElements)
     {
         std::cout << "VariableUtility created, number of elements = " << mpElements.size() << std::endl;
     }
 
-    VariableUtility(const ElementsContainerType& pElements, const int EchoLevel)
+    VariableUtility(const TEntitiesContainerType& pElements, const int EchoLevel)
     : mEchoLevel(EchoLevel), mpElements(pElements)
     {
         std::cout << "VariableUtility created, number of elements = " << mpElements.size() << std::endl;
@@ -198,10 +198,10 @@ public:
         const ModelPart& r_model_part, const IndexType SolutionStepIndex = 0) const
     {
         // collect the number of nodes and assign unique row number
-        const NodesContainerType& nodes = r_model_part.Nodes();
+        const auto& nodes = r_model_part.Nodes();
         std::map<IndexType, IndexType> row_indices;
         IndexType cnt = 0;
-        for (NodesContainerType::const_iterator i_node = nodes.begin(); i_node != nodes.end(); ++i_node)
+        for (auto i_node = nodes.begin(); i_node != nodes.end(); ++i_node)
             row_indices[i_node->Id()] = cnt++;
 
         // extract the solution vector
@@ -210,7 +210,7 @@ public:
         SparseSpaceType::SetToZero(X);
 
         std::size_t row;
-        for (NodesContainerType::const_iterator i_node = nodes.begin(); i_node != nodes.end(); ++i_node)
+        for (auto i_node = nodes.begin(); i_node != nodes.end(); ++i_node)
         {
             row = row_indices[i_node->Id()];
             SparseSpaceType::SetValue(X, row, i_node->GetSolutionStepValue(rVariable, SolutionStepIndex));
@@ -223,10 +223,10 @@ public:
         const ModelPart& r_model_part, const IndexType SolutionStepIndex = 0) const
     {
         // collect the number of nodes and assign unique row number
-        const NodesContainerType& nodes = r_model_part.Nodes();
+        const auto& nodes = r_model_part.Nodes();
         std::map<IndexType, IndexType> row_indices;
         IndexType cnt = 0;
-        for (NodesContainerType::const_iterator i_node = nodes.begin(); i_node != nodes.end(); ++i_node)
+        for (auto i_node = nodes.begin(); i_node != nodes.end(); ++i_node)
             row_indices[i_node->Id()] = cnt++;
 
         // extract the solution vector
@@ -235,7 +235,7 @@ public:
         SparseSpaceType::SetToZero(X);
 
         std::size_t row;
-        for (NodesContainerType::const_iterator i_node = nodes.begin(); i_node != nodes.end(); ++i_node)
+        for (auto i_node = nodes.begin(); i_node != nodes.end(); ++i_node)
         {
             row = row_indices[i_node->Id()];
             const array_1d<double, 3>& values = i_node->GetSolutionStepValue(rVariable, SolutionStepIndex);
@@ -266,10 +266,10 @@ public:
 
 protected:
 
-    ElementsContainerType mpElements;
+    TEntitiesContainerType mpElements;
 
     /// Initialize the utilitey
-    virtual void Initialize( const ElementsContainerType& pElements )
+    virtual void Initialize( const TEntitiesContainerType& pElements )
     {
         KRATOS_ERROR << "Error calling base class function";
     }

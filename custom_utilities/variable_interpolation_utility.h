@@ -62,7 +62,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 //Project includes
 #include "includes/define.h"
-#include "includes/model_part.h"
 #include "includes/variables.h"
 #include "utilities/openmp_utils.h"
 #include "utilities/progress.h"
@@ -74,33 +73,40 @@ namespace Kratos
 /**
  * Utility to transfer the variables with the efficient search functionality
  */
-class VariableInterpolationUtility : public VariableUtility
+template<class TEntitiesContainerType>
+class VariableInterpolationUtility : public VariableUtility<TEntitiesContainerType>
 {
 public:
 
     KRATOS_CLASS_POINTER_DEFINITION(VariableInterpolationUtility);
 
-    typedef VariableUtility BaseType;
-    typedef Element::GeometryType GeometryType;
-    typedef GeometryType::PointType NodeType;
-    typedef NodeType::PointType PointType;
-    typedef GeometryType::IntegrationPointsArrayType IntegrationPointsArrayType;
-    typedef BaseType::NodesContainerType NodesContainerType;
-    typedef BaseType::ElementsContainerType ElementsContainerType;
+    typedef VariableUtility<TEntitiesContainerType> BaseType;
+    typedef typename BaseType::EntityType EntityType;
+    typedef typename EntityType::GeometryType GeometryType;
+    typedef typename GeometryType::PointType NodeType;
+    typedef typename NodeType::PointType PointType;
+    typedef typename GeometryType::IntegrationPointsArrayType IntegrationPointsArrayType;
+    typedef ModelPart::NodesContainerType NodesContainerType;
+
+    using DoubleVariableInitializer = typename BaseType::DoubleVariableInitializer;
+    using Array1DVariableInitializer = typename BaseType::Array1DVariableInitializer;
+
+    template<int TSize>
+    using VectorVariableInitializer = typename BaseType::template VectorVariableInitializer<TSize>;
 
     /**
      * Constructor.
      */
-    VariableInterpolationUtility(const ElementsContainerType& pElements)
+    VariableInterpolationUtility(const TEntitiesContainerType& pElements)
     : BaseType(pElements)
     {
         std::cout << "VariableInterpolationUtility created" << std::endl;
     }
 
-    VariableInterpolationUtility(const ElementsContainerType& pElements, const int EchoLevel)
+    VariableInterpolationUtility(const TEntitiesContainerType& pElements, const int EchoLevel)
     : BaseType(pElements, EchoLevel)
     {
-        if (GetEchoLevel() > 0)
+        if (this->GetEchoLevel() > 0)
             std::cout << "VariableInterpolationUtility created" << std::endl;
     }
 
@@ -116,17 +122,17 @@ public:
      */
 
     /// Get the elements of which the BV contains the point
-    ElementsContainerType FindPotentialPartners( const PointType& rSourcePoint ) const
+    TEntitiesContainerType FindPotentialPartners( const PointType& rSourcePoint ) const
     {
-        ElementsContainerType pMasterElements;
+        TEntitiesContainerType pMasterElements;
         this->FindPotentialPartners( rSourcePoint, pMasterElements );
         return pMasterElements;
     }
 
     /// Get the element containing the point
-    Element::Pointer SearchPartner( const PointType& rSourcePoint, ElementsContainerType& pMasterElements ) const
+    typename EntityType::Pointer SearchPartner( const PointType& rSourcePoint, TEntitiesContainerType& pMasterElements ) const
     {
-        Element::Pointer pElement;
+        typename EntityType::Pointer pElement;
 
         PointType localPoint;
         this->SearchPartner( rSourcePoint, pMasterElements, pElement, localPoint);
@@ -137,7 +143,7 @@ public:
     /// Transfer the double variable to node of the target model_part
     void TransferVariablesToNodes(ModelPart& rTarget, const Variable<double>& rThisVariable)
     {
-        if (GetEchoLevel() > 0)
+        if (this->GetEchoLevel() > 0)
             std::cout << __LINE__ << " : At TransferVariablesToNodes(" << rTarget.Name() << ", Variable<double> " << rThisVariable.Name() << std::endl;
 
         TransferVariablesToNodes(rTarget.Nodes(), rThisVariable);
@@ -146,7 +152,7 @@ public:
     /// Transfer the double variable to node of the target node mesh
     void TransferVariablesToNodes(NodesContainerType& rTargetNodes, const Variable<double>& rThisVariable)
     {
-        if (GetEchoLevel() > 0)
+        if (this->GetEchoLevel() > 0)
             std::cout << __LINE__ << " : At TransferVariablesToNodes(" << " Variable<double> " << rThisVariable.Name() << std::endl;
 
         TransferVariablesToNodesImpl<DoubleVariableInitializer>(rTargetNodes, rThisVariable);
@@ -155,7 +161,7 @@ public:
     /// Transfer the double variable to node of the target model_part
     void TransferVariablesToNodes(ModelPart& rTarget, const Variable<array_1d<double, 3> >& rThisVariable)
     {
-        if (GetEchoLevel() > 0)
+        if (this->GetEchoLevel() > 0)
             std::cout << __LINE__ << " : At TransferVariablesToNodes(" << rTarget.Name() << ", Variable<array_1d<double, 3> > " << rThisVariable.Name() << std::endl;
 
         TransferVariablesToNodes(rTarget.Nodes(), rThisVariable);
@@ -164,7 +170,7 @@ public:
     /// Transfer the double variable to node of the target node mesh
     void TransferVariablesToNodes(NodesContainerType& rTargetNodes, const Variable<array_1d<double, 3> >& rThisVariable)
     {
-        if (GetEchoLevel() > 0)
+        if (this->GetEchoLevel() > 0)
             std::cout << __LINE__ << " : At TransferVariablesToNodes(" << " Variable<array_1d<double, 3> > " << rThisVariable.Name() << std::endl;
 
         TransferVariablesToNodesImpl<Array1DVariableInitializer>(rTargetNodes, rThisVariable);
@@ -173,7 +179,7 @@ public:
     /// Transfer the double variable to node of the target model_part
     void TransferVariablesToNodes(ModelPart& rTarget, const Variable<Vector>& rThisVariable, const std::size_t& ncomponents)
     {
-        if (GetEchoLevel() > 0)
+        if (this->GetEchoLevel() > 0)
             std::cout << __LINE__ << " : At TransferVariablesToNodes(" << rTarget.Name() << ", Variable<Vector> " << rThisVariable.Name() << std::endl;
 
         TransferVariablesToNodes(rTarget.Nodes(), rThisVariable, ncomponents);
@@ -182,7 +188,7 @@ public:
     /// Transfer the double variable to node of the target node mesh
     void TransferVariablesToNodes(NodesContainerType& rTargetNodes, const Variable<Vector>& rThisVariable, const std::size_t& ncomponents)
     {
-        if (GetEchoLevel() > 0)
+        if (this->GetEchoLevel() > 0)
             std::cout << __LINE__ << " : At TransferVariablesToNodes(" << " Variable<Vector> " << rThisVariable.Name() << std::endl;
 
         if (ncomponents == 3)
@@ -194,16 +200,19 @@ public:
     /// Transfer the double variable to Gauss points of the target model_part
     void TransferVariablesToGaussPoints(ModelPart& rTarget, const Variable<double>& rThisVariable)
     {
-        if (GetEchoLevel() > 0)
+        if (this->GetEchoLevel() > 0)
             std::cout << __LINE__ << " : At TransferVariablesToGaussPoints(" << rTarget.Name() << ", Variable<double> " << rThisVariable.Name() << std::endl;
 
-        TransferVariablesToGaussPoints(rTarget.Elements(), rThisVariable, rTarget.GetProcessInfo());
+        if constexpr (std::is_same<TEntitiesContainerType, ModelPart::ElementsContainerType>::value)
+            TransferVariablesToGaussPoints(rTarget.Elements(), rThisVariable, rTarget.GetProcessInfo());
+        else if constexpr (std::is_same<TEntitiesContainerType, ModelPart::ConditionsContainerType>::value)
+            TransferVariablesToGaussPoints(rTarget.Conditions(), rThisVariable, rTarget.GetProcessInfo());
     }
 
     /// Transfer the double variable to Gauss points of the target model_part
-    void TransferVariablesToGaussPoints(ElementsContainerType& TargetMeshElementsArray, const Variable<double>& rThisVariable, const ProcessInfo& CurrentProcessInfo)
+    void TransferVariablesToGaussPoints(TEntitiesContainerType& TargetMeshElementsArray, const Variable<double>& rThisVariable, const ProcessInfo& CurrentProcessInfo)
     {
-        if (GetEchoLevel() > 0)
+        if (this->GetEchoLevel() > 0)
             std::cout << __LINE__ << " : At TransferVariablesToGaussPoints(" << " Variable<double> " << rThisVariable.Name() << std::endl;
 
         TransferVariablesToGaussPointsImpl<DoubleVariableInitializer>(TargetMeshElementsArray, CurrentProcessInfo, rThisVariable);
@@ -212,16 +221,19 @@ public:
     /// Transfer the array_1d variable to Gauss points of the target model_part
     void TransferVariablesToGaussPoints(ModelPart& rTarget, const Variable<array_1d<double, 3> >& rThisVariable)
     {
-        if (GetEchoLevel() > 0)
+        if (this->GetEchoLevel() > 0)
             std::cout << __LINE__ << " : At TransferVariablesToGaussPoints(" << rTarget.Name() << ", Variable<array_1d<double, 3> > " << rThisVariable.Name() << std::endl;
 
-        TransferVariablesToGaussPoints(rTarget.Elements(), rThisVariable, rTarget.GetProcessInfo());
+        if constexpr (std::is_same<TEntitiesContainerType, ModelPart::ElementsContainerType>::value)
+            TransferVariablesToGaussPoints(rTarget.Elements(), rThisVariable, rTarget.GetProcessInfo());
+        else if constexpr (std::is_same<TEntitiesContainerType, ModelPart::ConditionsContainerType>::value)
+            TransferVariablesToGaussPoints(rTarget.Conditions(), rThisVariable, rTarget.GetProcessInfo());
     }
 
     /// Transfer the double variable to Gauss points of the target model_part
-    void TransferVariablesToGaussPoints(ElementsContainerType& TargetMeshElementsArray, const Variable<array_1d<double, 3> >& rThisVariable, const ProcessInfo& CurrentProcessInfo)
+    void TransferVariablesToGaussPoints(TEntitiesContainerType& TargetMeshElementsArray, const Variable<array_1d<double, 3> >& rThisVariable, const ProcessInfo& CurrentProcessInfo)
     {
-        if (GetEchoLevel() > 0)
+        if (this->GetEchoLevel() > 0)
             std::cout << __LINE__ << " : At TransferVariablesToGaussPoints(" << " Variable<array_1d<double, 3> > " << rThisVariable.Name() << std::endl;
 
         TransferVariablesToGaussPointsImpl<Array1DVariableInitializer>(TargetMeshElementsArray, CurrentProcessInfo, rThisVariable);
@@ -230,16 +242,19 @@ public:
     /// Transfer the vector variable to Gauss points of the target model_part
     void TransferVariablesToGaussPoints(ModelPart& rTarget, const Variable<Vector>& rThisVariable, std::size_t ncomponents = 6)
     {
-        if (GetEchoLevel() > 0)
+        if (this->GetEchoLevel() > 0)
             std::cout << __LINE__ << " : At TransferVariablesToGaussPoints(" << rTarget.Name() << ", Variable<Vector> " << rThisVariable.Name() << std::endl;
 
-        TransferVariablesToGaussPoints(rTarget.Elements(), rThisVariable, rTarget.GetProcessInfo(), ncomponents);
+        if constexpr (std::is_same<TEntitiesContainerType, ModelPart::ElementsContainerType>::value)
+            TransferVariablesToGaussPoints(rTarget.Elements(), rThisVariable, rTarget.GetProcessInfo(), ncomponents);
+        else if constexpr (std::is_same<TEntitiesContainerType, ModelPart::ConditionsContainerType>::value)
+            TransferVariablesToGaussPoints(rTarget.Conditions(), rThisVariable, rTarget.GetProcessInfo(), ncomponents);
     }
 
     /// Transfer the vector variable to Gauss points of the target model_part
-    void TransferVariablesToGaussPoints(ElementsContainerType& TargetMeshElementsArray, const Variable<Vector>& rThisVariable, const ProcessInfo& CurrentProcessInfo, std::size_t ncomponents = 6)
+    void TransferVariablesToGaussPoints(TEntitiesContainerType& TargetMeshElementsArray, const Variable<Vector>& rThisVariable, const ProcessInfo& CurrentProcessInfo, std::size_t ncomponents = 6)
     {
-        if (GetEchoLevel() > 0)
+        if (this->GetEchoLevel() > 0)
             std::cout << __LINE__ << " : At TransferVariablesToGaussPoints(" << " Variable<Vector> " << rThisVariable.Name() << std::endl;
 
         if (ncomponents == 3)
@@ -255,7 +270,7 @@ protected:
 
     /// Find the master element candidates that contains the point.
     /// REMARK: we should disable the move mesh flag if we want to search in the reference configuration
-    virtual void FindPotentialPartners( const PointType& rSourcePoint, ElementsContainerType& pMasterElements ) const
+    virtual void FindPotentialPartners( const PointType& rSourcePoint, TEntitiesContainerType& pMasterElements ) const
     {
         KRATOS_ERROR << "Error calling base class function";
     }
@@ -263,10 +278,10 @@ protected:
     /// Find an element in pMasterElements contains rSourcePoint and assign it to pTargetElement.
     /// The rLocalTargetPoint is the local point in pTargetElement of rSourcePoint
     /// REMARK: we should disable the move mesh flag if we want to search in the reference configuration
-    bool SearchPartner( const PointType& rSourcePoint, ElementsContainerType& pMasterElements,
-            Element::Pointer& pTargetElement, PointType& rLocalTargetPoint ) const
+    bool SearchPartner( const PointType& rSourcePoint, TEntitiesContainerType& pMasterElements,
+            typename EntityType::Pointer& pTargetElement, PointType& rLocalTargetPoint ) const
     {
-        for( ElementsContainerType::ptr_iterator it = pMasterElements.ptr_begin(); it != pMasterElements.ptr_end(); ++it )
+        for( auto it = pMasterElements.ptr_begin(); it != pMasterElements.ptr_end(); ++it )
         {
             const GeometryType& r_geom = (*it)->GetGeometry();
 
@@ -278,14 +293,14 @@ protected:
             }
         }
 
-        if (GetEchoLevel() > 4)
+        if (this->GetEchoLevel() > 4)
             std::cout << " !!!! WARNING: NO ELEMENT FOUND TO CONTAIN " << rSourcePoint << " !!!! " << std::endl;
 
         return false;
     }
 
     /// Interpolate the double value in the element
-    void ValueVectorInOldMesh( double& newValue, const Element& oldElement, const PointType& localPoint,
+    void ValueVectorInOldMesh( double& newValue, const EntityType& oldElement, const PointType& localPoint,
                                const Variable<double>& rThisVariable )
     {
         Vector shape_functions_values;
@@ -300,7 +315,7 @@ protected:
     }
 
     /// Interpolate the array_1d value in the element
-    void ValueVectorInOldMesh( array_1d<double, 3>& newValue, const Element& oldElement, const PointType& localPoint,
+    void ValueVectorInOldMesh( array_1d<double, 3>& newValue, const EntityType& oldElement, const PointType& localPoint,
                                const Variable<array_1d<double, 3> >& rThisVariable )
     {
         Vector shape_functions_values;
@@ -316,7 +331,7 @@ protected:
     }
 
     /// Interpolate the vector value in the element
-    void ValueVectorInOldMesh( Vector& newValue, const Element& oldElement, const PointType& localPoint,
+    void ValueVectorInOldMesh( Vector& newValue, const EntityType& oldElement, const PointType& localPoint,
                                const Variable<Vector>& rThisVariable )
     {
         Vector shape_functions_values;
@@ -334,11 +349,11 @@ protected:
 
     /// Transfer the variable to Gauss points of the target mesh
     template<class TVariableInitializer>
-    void TransferVariablesToGaussPointsImpl( ElementsContainerType& TargetMeshElementsArray,
+    void TransferVariablesToGaussPointsImpl( TEntitiesContainerType& TargetMeshElementsArray,
                                              const ProcessInfo& CurrentProcessInfo,
                                              const typename TVariableInitializer::VariableType& rThisVariable)
     {
-        if (GetEchoLevel() > 0)
+        if (this->GetEchoLevel() > 0)
             std::cout << __LINE__ << " : At TransferVariablesToGaussPoints, Variable " << rThisVariable.Name() << std::endl;
 
         int number_of_threads = 1;
@@ -360,11 +375,9 @@ protected:
 #endif
         for(int k = 0; k < number_of_threads; ++k)
         {
-            ElementsContainerType::ptr_iterator it_begin =
-                TargetMeshElementsArray.ptr_begin() + element_partition[k];
-            ElementsContainerType::ptr_iterator it_end =
-                TargetMeshElementsArray.ptr_begin() + element_partition[k+1];
-            for (ElementsContainerType::ptr_iterator it = it_begin; it != it_end; ++it)
+            auto it_begin = TargetMeshElementsArray.ptr_begin() + element_partition[k];
+            auto it_end = TargetMeshElementsArray.ptr_begin() + element_partition[k+1];
+            for (auto it = it_begin; it != it_end; ++it)
             {
                 if( ((*it)->GetValue(IS_INACTIVE) == true) && !(*it)->Is(ACTIVE) )
                     continue;
@@ -384,9 +397,9 @@ protected:
                     PointType targetGlobalPoint;
                     (*it)->GetGeometry().GlobalCoordinates(targetGlobalPoint, targetLocalPoint);
 //                    KRATOS_WATCH(targetGlobalPoint)
-                    ElementsContainerType pMasterElements;
+                    TEntitiesContainerType pMasterElements;
                     this->FindPotentialPartners(targetGlobalPoint, pMasterElements);
-                    Element::Pointer sourceElement;
+                    typename EntityType::Pointer sourceElement;
                     //Calculate Value of rVariable(firstvalue, secondvalue) in OldMesh
                     bool found = this->SearchPartner( targetGlobalPoint, pMasterElements, sourceElement, sourceLocalPoint );
                     if(found)
@@ -422,7 +435,7 @@ protected:
     template<class TVariableInitializer>
     void TransferVariablesToNodesImpl(NodesContainerType& rTargetNodes, const typename TVariableInitializer::VariableType& rThisVariable)
     {
-        if (GetEchoLevel() > 0)
+        if (this->GetEchoLevel() > 0)
             std::cout << __LINE__ << " : At TransferVariablesToNodes, Variable " << rThisVariable.Name() << std::endl;
 
         int number_of_threads = 1;
@@ -437,7 +450,7 @@ protected:
         for (std::size_t i = 0; i < node_partition.size(); ++i)
             std::cout << " " << node_partition[i];
         std::cout << std::endl;
-Kratos::progress_display show_progress( rTargetNodes.size() );
+        Kratos::progress_display show_progress( rTargetNodes.size() );
 #ifdef _OPENMP
         #pragma omp parallel for
 #endif
@@ -453,9 +466,9 @@ Kratos::progress_display show_progress( rTargetNodes.size() );
             {
                 //Calculate Value of rVariable(firstvalue, secondvalue) in OldMesh
                 PointType sourceLocalPoint;
-                Element::Pointer sourceElement;
+                typename EntityType::Pointer sourceElement;
 
-                ElementsContainerType pMasterElements;
+                TEntitiesContainerType pMasterElements;
                 this->FindPotentialPartners(*(*it), pMasterElements);
                 bool found = this->SearchPartner(*(*it), pMasterElements, sourceElement, sourceLocalPoint);
 

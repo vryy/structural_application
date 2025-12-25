@@ -74,22 +74,22 @@ namespace Kratos
  * Utility to transfer the variables by interpolation.
  * It uses Bounding Volume Hierarchy to quickly search for corresponding element
  */
-class VariableBVHInterpolationUtility : public VariableInterpolationUtility
+template<class TEntitiesContainerType>
+class VariableBVHInterpolationUtility : public VariableInterpolationUtility<TEntitiesContainerType>
 {
 public:
 
-    typedef VariableInterpolationUtility BaseType;
-    typedef BaseType::GeometryType GeometryType;
-    typedef BaseType::IntegrationPointsArrayType IntegrationPointsArrayType;
-    typedef BaseType::PointType PointType;
-    typedef BaseType::NodesContainerType NodesContainerType;
-    typedef BaseType::ElementsContainerType ElementsContainerType;
-    typedef BoundingVolumeTree<0, ElementsContainerType> BoundingVolumeTreeType;
+    typedef VariableInterpolationUtility<TEntitiesContainerType> BaseType;
+    typedef typename BaseType::GeometryType GeometryType;
+    typedef typename BaseType::IntegrationPointsArrayType IntegrationPointsArrayType;
+    typedef typename BaseType::PointType PointType;
+    typedef typename BaseType::NodesContainerType NodesContainerType;
+    typedef BoundingVolumeTree<0, TEntitiesContainerType> BoundingVolumeTreeType;
 
     /**
      * Constructor.
      */
-    VariableBVHInterpolationUtility(const ElementsContainerType& pElements, const int bv_type)
+    VariableBVHInterpolationUtility(const TEntitiesContainerType& pElements, const int bv_type)
     : BaseType(pElements)
     {
         mpBVTree = typename BoundingVolumeTreeType::Pointer(new BoundingVolumeTreeType(bv_type));
@@ -111,21 +111,21 @@ public:
 protected:
 
     /// Initialize the elements binning
-    void Initialize( const ElementsContainerType& pElements ) final
+    void Initialize( const TEntitiesContainerType& pElements ) final
     {
-        if (GetEchoLevel() > 0)
+        if (this->GetEchoLevel() > 0)
             std::cout << "Initialize the Bounding Volume Hierarchy" << std::endl;
 
 #ifdef _OPENMP
         double start_init = omp_get_wtime();
 #endif
 
-        SimpleBoundingVolumePartitioner<0, ElementsContainerType> partitioner;
+        SimpleBoundingVolumePartitioner<0, TEntitiesContainerType> partitioner;
         mpBVTree->BuildTreeTopDown(pElements, partitioner);
 
 #ifdef _OPENMP
         double stop_init = omp_get_wtime();
-        if (GetEchoLevel() > 0)
+        if (this->GetEchoLevel() > 0)
             std::cout << "Initialize BVH completed, time = " << (stop_init-start_init) << "s" << std::endl;
 #endif
     }
@@ -133,7 +133,7 @@ protected:
     //**********AUXILIARY FUNCTION**************************************************************
     //******************************************************************************************
 
-    void FindPotentialPartners( const PointType& rSourcePoint, ElementsContainerType& pMasterElements ) const final
+    void FindPotentialPartners( const PointType& rSourcePoint, TEntitiesContainerType& pMasterElements ) const final
     {
         const double TOL = 1.0e-8;
         std::set<std::size_t> elem_ids;
