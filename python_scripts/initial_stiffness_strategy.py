@@ -383,6 +383,14 @@ class SolvingStrategyPython:
 #            self.space_utils.WriteMatrixMarketMatrix("matrix" + str(self.solveCounter) + "." + str(self.iterationCounter) + ".mm",self.A,False)
             #petsc_utils.DumpUblasCompressedMatrixVector("tempAb", self.A, self.b, False)
 
+        if echo_level > 1:
+            print('System matrix info: ', end='', flush=True)
+            self.space_utils.PrintMatrixInfo(self.A, 3)
+            print('System vector info (Dx): ', end='', flush=True)
+            self.space_utils.PrintVectorInfo(self.Dx, 3)
+            print('System vector info (b): ', end='', flush=True)
+            self.space_utils.PrintVectorInfo(self.b, 3)
+
         if(echo_level >= 3):
             print("SystemMatrix = " + str(self.A))
         #printA = []
