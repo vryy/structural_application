@@ -114,7 +114,7 @@ else()
     ## define library Kratos which defines the basic python interface
     add_library(KratosStructuralApplication SHARED ${KRATOS_STRUCTURAL_APPLICATION_SOURCES})
     if(MSVC)
-        target_compile_options(KratosStructuralApplication PRIVATE $<$<CONFIG:Debug>:/bigobj>)
+        target_compile_options(KratosStructuralApplication PRIVATE /bigobj)
     endif()
 
     target_link_libraries(KratosStructuralApplication PUBLIC KratosCore)
