@@ -70,7 +70,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace Kratos
 {
-
     template<typename TNodeType>
     BaseKinematicLinear<TNodeType>::BaseKinematicLinear( IndexType NewId, typename GeometryType::Pointer pGeometry )
         : BaseType( NewId, pGeometry )
@@ -632,6 +631,8 @@ namespace Kratos
     template<typename TNodeType>
     void BaseKinematicLinear<TNodeType>::ComputePrescribedForces(const MatrixType& LHS_Contribution, VectorType& Force, const ProcessInfo& CurrentProcessInfo) const
     {
+        // compute the force induced by the prescribed displacement.
+        // Basically this function is identical to ApplyPrescribedDofs, but use PRESCRIBED_DISPLACEMENT instead of PRESCRIBED_DELTA_DISPLACEMENT
         unsigned int dim = this->WorkingSpaceDimension();
         unsigned int mat_size = dim * this->GetGeometry().size();
         for ( unsigned int node = 0; node < this->GetGeometry().size(); ++node )

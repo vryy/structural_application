@@ -35,17 +35,16 @@ public:
     ///@{
 
     /// Modify the RHS to account for prescribed values at nodes
-    virtual void ApplyPrescribedDofs(const MatrixType& LHS_Contribution, VectorType& RHS_Constribution, const ProcessInfo& CurrentProcessInfo) const
-    {
-        KRATOS_ERROR << "Error calling base class function";
-    }
+    virtual void ApplyPrescribedDofs(const MatrixType& LHS_Contribution,
+        VectorType& RHS_Constribution,
+        const ProcessInfo& CurrentProcessInfo) const = 0;
 
     /// Compute the forces induces by prescribed dofs
-    virtual void ComputePrescribedForces(const MatrixType& LHS_Contribution, VectorType& Force, const ProcessInfo& CurrentProcessInfo) const
-    {
-        KRATOS_ERROR << "Error calling base class function";
-    }
+    virtual void ComputePrescribedForces(const MatrixType& LHS_Contribution,
+        VectorType& Force,
+        const ProcessInfo& CurrentProcessInfo) const = 0;
 
+    ///@}
 }; // Class BasePrescribedObject
 
 typedef BasePrescribedObject<RealNode> PrescribedObject;
