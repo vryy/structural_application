@@ -31,7 +31,7 @@ namespace Kratos
  *  +   tr20_finite_strain.pdf
  */
 template<int TStressType = 2> // 1: Cauchy stress, 2: Kirchhoff stress
-class MultiplicativeFiniteStrainBridgingConstitutiveLaw : public FiniteStrainBridgingConstitutiveLaw
+class KRATOS_API(STRUCTURAL_APPLICATION) MultiplicativeFiniteStrainBridgingConstitutiveLaw : public FiniteStrainBridgingConstitutiveLaw
 {
 public:
     /**
