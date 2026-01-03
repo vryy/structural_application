@@ -104,13 +104,13 @@ double& NeoHookean2D::GetValue( const Variable<double>& rThisVariable, double& r
         return rValue;
     }
 
-    if(rThisVariable==DAMAGE)
+    if(rThisVariable == DAMAGE)
     {
         rValue = 0.00;
         return rValue;
     }
 
-    if (rThisVariable==DELTA_TIME)
+    if (rThisVariable == DELTA_TIME)
     {
         rValue = sqrt(mE/mDE);
         return rValue;
@@ -280,7 +280,7 @@ void NeoHookean2D::CalculateMaterialResponsePK2(Parameters& rValues)
     Vector& StressVector = rValues.GetStressVector();
     Matrix& AlgorithmicTangent = rValues.GetConstitutiveMatrix();
 
-    const int cmap[] = {0, 1, 3};
+    constexpr int cmap[] = {0, 1, 3};
 
     Vector StrainVector3D(6);
     noalias(StrainVector3D) = ZeroVector(6);
@@ -296,6 +296,7 @@ void NeoHookean2D::CalculateMaterialResponsePK2(Parameters& rValues)
 
         for (int i = 0; i < 3; ++i)
             StressVector(i) = StressVector3D(cmap[i]);
+        noalias(StressVector) -= mPrestressFactor * mPrestress;
     }
 
     if (rValues.IsSetConstitutiveMatrix())
@@ -340,8 +341,9 @@ void  NeoHookean2D::CalculateMaterialResponse( const Vector& StrainVector,
     StressVector(0) = StressVector3D(0);
     StressVector(1) = StressVector3D(1);
     StressVector(2) = StressVector3D(3);
+    noalias(StressVector) -= mPrestressFactor * mPrestress;
 
-    std::vector<int> cmap = {0, 1, 3};
+    constexpr int cmap[] = { 0, 1, 3 };
     for (int i = 0; i < 3; ++i)
     {
         for (int j = 0; j < 3; ++j)
@@ -441,7 +443,7 @@ void NeoHookean2D::CalculateStress( Vector& StressVector, const Vector& StrainVe
         KRATOS_WATCH(mNU)
         KRATOS_WATCH(StrainVector)
         KRATOS_WATCH(aux)
-        KRATOS_THROW_ERROR(std::logic_error, "Error encounting NaN values", "")
+        KRATOS_ERROR << "Error encounting NaN values";
     }
 
     StressVector(0) = (lambda*(2*e_22 + 2*e_33 + 1)*log(aux)/2 - mu*(2*e_22 + 2*e_33 + 1) + mu*aux) / aux;
@@ -455,8 +457,6 @@ void NeoHookean2D::CalculateStress( Vector& StressVector, const Vector& StrainVe
     StressVector(4) = e_23*(-lambda*log(aux) + 2*mu) / (2*aux);
 
     StressVector(5) = e_13*(-lambda*log(aux) + 2*mu) / (2*aux);
-
-    noalias( StressVector ) -= mPrestressFactor * mPrestress;
 
     noalias(mCurrentStress) = StressVector;
 }
