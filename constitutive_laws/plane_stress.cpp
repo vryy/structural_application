@@ -194,8 +194,8 @@ void PlaneStress::SetValue( const Variable<Vector>& rThisVariable, const Vector&
 {
     if ( rThisVariable == STRESSES || rThisVariable == INITIAL_STRESS )
     {
-        if(mCurrentStress.size() != rValue.size())
-            mCurrentStress.resize(rValue.size(), false);
+        if (rValue.size() != 3)
+            KRATOS_ERROR << "Invalid size of stress vector. Expected size is 3, while provided size is " << rValue.size() << std::endl;
         noalias(mCurrentStress) = rValue;
     }
     if ( rThisVariable == THREED_STRESSES )
