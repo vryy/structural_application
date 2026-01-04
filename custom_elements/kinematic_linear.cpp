@@ -579,9 +579,6 @@ namespace Kratos
             }
         } //loop over integration points
 
-        // {
-        // }
-
         #ifdef ENABLE_BEZIER_GEOMETRY
         //clean the internal data of the geometry
         this->GetGeometry().Clean();
