@@ -122,7 +122,7 @@ class SolvingStrategyPython:
         for proc in self.attached_processes:
             proc.ExecuteInitialize()
         self.InitializeWasPerformed = True
-        print("newton_raphson_strategy.Initialize is called")
+        print("newton_raphson_strategy.Initialize is called", flush=True)
 
     #######################################################################
     def SolveOneStep(self):
@@ -183,8 +183,8 @@ class SolvingStrategyPython:
         self.iterationCounter = self.iterationCounter + 1
         normDx = self.ExecuteIteration(self.echo_level,self.MoveMeshFlag,calculate_norm)
         self.FinalizeNonLinIteration(False,self.MoveMeshFlag)
-        print("normDx: " + str(normDx))
-        print("newton_raphson_strategy.PerformOneIteration completed at time = " + str(self.model_part.ProcessInfo[TIME]))
+        print("normDx: " + str(normDx), flush=True)
+        print("newton_raphson_strategy.PerformOneIteration completed at time = " + str(self.model_part.ProcessInfo[TIME]), flush=True)
 
     #######################################################################
     def PerformNewtonRaphsonIteration( self ):
@@ -286,7 +286,7 @@ class SolvingStrategyPython:
                     return False, it
             else:
                 raise Exception("Sorry, my boss does not allow me to continue. The time step did not converge at time step " + str(self.model_part.ProcessInfo[TIME]) + ", it = " + str(it) + ", max_iter = " + str(self.max_iter))
-        print("newton_raphson_strategy.PerformNewtonRaphsonIteration converged after " + str(it) + " steps")
+        print("newton_raphson_strategy.PerformNewtonRaphsonIteration converged after " + str(it) + " steps", flush=True)
         return True, it
 
     #######################################################################
@@ -304,7 +304,7 @@ class SolvingStrategyPython:
 
     #######################################################################
     def InitializeSolutionStep(self):
-        print("newton_raphson_strategy.ExecuteIteration:InitializeSolutionStep is called")
+        print("newton_raphson_strategy.ExecuteIteration:InitializeSolutionStep is called", flush=True)
         if(self.builder_and_solver.GetDofSetIsInitializedFlag() == False or self.ReformDofSetAtEachStep == True):
             #initialize the list of degrees of freedom to be used
             self.builder_and_solver.SetUpDofSet(self.time_scheme,self.model_part)
@@ -332,7 +332,7 @@ class SolvingStrategyPython:
         self.space_utils.SetToZeroVector(self.b)
 
         self.time_scheme.InitializeNonLinIteration(self.model_part,self.A,self.Dx,self.b)
-        print("newton_raphson_strategy.ExecuteIteration:InitializeNonLinIteration is called")
+        print("newton_raphson_strategy.ExecuteIteration:InitializeNonLinIteration is called", flush=True)
 
         #build and solve the problem
         if(self.Parameters['decouple_build_and_solve'] == False):
@@ -400,7 +400,7 @@ class SolvingStrategyPython:
         if not ConvergedFlag:
             #perform update
             self.time_scheme.Update(self.model_part,self.builder_and_solver.GetDofSet(),self.A,self.Dx,self.b)
-            print("newton_raphson_strategy.FinalizeNonLinIteration:Update is called")
+            print("newton_raphson_strategy.FinalizeNonLinIteration:Update is called", flush=True)
 
             #move the mesh as needed
             if(MoveMeshFlag == True):
@@ -410,7 +410,7 @@ class SolvingStrategyPython:
     #        print("A:" + str(self.A))
 
         self.time_scheme.FinalizeNonLinIteration(self.model_part,self.A,self.Dx,self.b)
-        print("newton_raphson_strategy.FinalizeNonLinIteration:FinalizeNonLinIteration is called")
+        print("newton_raphson_strategy.FinalizeNonLinIteration:FinalizeNonLinIteration is called", flush=True)
 
     #######################################################################
     def FinalizeSolutionStep(self,CalculateReactionsFlag):
@@ -437,7 +437,7 @@ class SolvingStrategyPython:
             self.log_residuum.write("----------------------------------------------------\n")
             self.log_residuum.flush()
 
-        print("newton_raphson_strategy.FinalizeSolutionStep is called")
+        print("newton_raphson_strategy.FinalizeSolutionStep is called", flush=True)
 
     #######################################################################
     def Clear(self):
