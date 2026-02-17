@@ -190,11 +190,8 @@ class SolverAdvanced(structural_solver_static.StaticStructuralSolver):
         self.absolute_tol = abs_tol
         #definition of the solvers
         self.structure_linear_solver =  SkylineLUFactorizationSolver()
-        #pDiagPrecond = ParallelDiagonalPreconditioner()
-        #self.structure_linear_solver =  ParallelCGSolver(1e-8, 5000,pDiagPrecond)
         #definition of the convergence criteria
-        self.conv_criteria = DisplacementCriteria(0.000001,1e-9)
-        #self.conv_criteria = ParallelDisplacementCriteria(0.000001,1e-9)
+        self.conv_criteria = DisplacementCriteria(1e-6, 1e-9)
         self.CalculateReactionFlag = False
 
     #######################################################################
