@@ -58,7 +58,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // Project includes
 #include "custom_elements/kinematic_linear.h"
 
-#include "includes/fnv_1a_hash.h"
 #include "includes/kratos_flags.h"
 #include "utilities/math_utils.h"
 #include "custom_utilities/bathe_recover_stress_utility.h"
@@ -1226,9 +1225,6 @@ namespace Kratos
             noalias( rDampMatrix ) += beta * StiffnessMatrix;
         }
 
-        // KRATOS_WATCH(Id())
-        // KRATOS_WATCH(rDampMatrix)
-
         KRATOS_CATCH( "" )
     }
 
@@ -1263,76 +1259,27 @@ namespace Kratos
     }
 
     template<typename TNodeType>
-    void BaseKinematicLinear<TNodeType>::CalculateLocalAccelerationContribution(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
+    void BaseKinematicLinear<TNodeType>::CalculateLocalAccelerationContribution(MatrixType& rMassMatrix, MatrixType& rMassInducedStiffnessMatrix,
+            VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
     {
         VectorType Acceleration;
         this->GetSecondDerivativesVector(Acceleration, 0);
 
-        if (rCurrentProcessInfo[TIME_INTEGRATION_SCHEME] == 0) // default behavior for linear structural dynamics
-        {
-            MatrixType& rMassMatrix = rLeftHandSideMatrix;
-            this->CalculateMassMatrix(rMassMatrix, rCurrentProcessInfo);
+        this->CalculateMassMatrix(rMassMatrix, rCurrentProcessInfo);
 
-            noalias(rRightHandSideVector) -= prod(rMassMatrix, Acceleration);
-        }
-        else if (rCurrentProcessInfo[TIME_INTEGRATION_SCHEME] == FNV1a32Hash::CalculateHash("ResidualBasedNewmarkScheme<1>"))
-        {
-            const ValueType alpha_m = rCurrentProcessInfo[NEWMARK_ALPHAM];
-            const ValueType beta = rCurrentProcessInfo[NEWMARK_BETA];
-            const ValueType Dt = rCurrentProcessInfo[DELTA_TIME];
-
-            ///
-
-            MatrixType MassMatrix;
-            this->CalculateMassMatrix(MassMatrix, rCurrentProcessInfo);
-
-            noalias(rRightHandSideVector) -= prod(MassMatrix, Acceleration);
-
-            const ValueType aux = (1 - alpha_m) / (beta*pow(Dt, 2));
-            noalias(rLeftHandSideMatrix) += aux * MassMatrix;
-        }
-        else
-        {
-            KRATOS_ERROR << "BaseKinematicLinear::" << __FUNCTION__ << " is not yet implemented for time integration scheme "
-                         << rCurrentProcessInfo[TIME_INTEGRATION_SCHEME];
-        }
+        noalias(rRightHandSideVector) -= prod(rMassMatrix, Acceleration);
     }
 
     template<typename TNodeType>
-    void BaseKinematicLinear<TNodeType>::CalculateLocalVelocityContribution(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
+    void BaseKinematicLinear<TNodeType>::CalculateLocalVelocityContribution(MatrixType& rDampMatrix, MatrixType& rDampInducedStiffnessMatrix,
+            VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
     {
         VectorType Velocity;
         this->GetFirstDerivativesVector(Velocity, 0);
 
-        if (rCurrentProcessInfo[TIME_INTEGRATION_SCHEME] == 0) // default behavior for linear structural dynamics
-        {
-            MatrixType& rDampMatrix = rLeftHandSideMatrix;
-            this->CalculateDampingMatrix(rDampMatrix, rCurrentProcessInfo);
+        this->CalculateDampingMatrix(rDampMatrix, rCurrentProcessInfo);
 
-            noalias(rRightHandSideVector) -= prod(rDampMatrix, Velocity);
-        }
-        else if (rCurrentProcessInfo[TIME_INTEGRATION_SCHEME] == FNV1a32Hash::CalculateHash("ResidualBasedNewmarkScheme<1>"))
-        {
-            const ValueType alpha_f = rCurrentProcessInfo[NEWMARK_ALPHAF];
-            const ValueType gamma = rCurrentProcessInfo[NEWMARK_GAMMA];
-            const ValueType beta = rCurrentProcessInfo[NEWMARK_BETA];
-            const ValueType Dt = rCurrentProcessInfo[DELTA_TIME];
-
-            ///
-
-            MatrixType DampMatrix;
-            this->CalculateDampingMatrix(DampMatrix, rCurrentProcessInfo);
-
-            noalias(rRightHandSideVector) -= prod(DampMatrix, Velocity);
-
-            const ValueType aux = (1 - alpha_f) * gamma/(beta*Dt);
-            noalias(rLeftHandSideMatrix) += aux * DampMatrix;
-        }
-        else
-        {
-            KRATOS_ERROR << "BaseKinematicLinear::" << __FUNCTION__ << " is not yet implemented for time integration scheme "
-                         << rCurrentProcessInfo[TIME_INTEGRATION_SCHEME];
-        }
+        noalias(rRightHandSideVector) -= prod(rDampMatrix, Velocity);
     }
 
     //************************************************************************************

@@ -210,9 +210,9 @@ public:
 
     void AddDampingForces(VectorType& rRightHandSideVector, DataType coeff, const ProcessInfo& rCurrentProcessInfo) override;
 
-    void CalculateLocalAccelerationContribution(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateLocalAccelerationContribution(MatrixType& rMassMatrix, MatrixType& rMassInducedStiffnessMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
 
-    void CalculateLocalVelocityContribution(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateLocalVelocityContribution(MatrixType& rDampMatrix, MatrixType& rDampInducedStiffnessMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
 
     ///@}
 
