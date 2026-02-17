@@ -369,13 +369,63 @@ struct ResidualBasedNewmarkHelper<1>
 
         if (CurrentProcessInfo[QUASI_STATIC_ANALYSIS])
         {
-            rCurrentElement.CalculateLocalVelocityContribution(LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
+            LocalSystemMatrixType DampingMatrix;
+            LocalSystemMatrixType DampingInducedStiffnessMatrix;
+
+            rCurrentElement.CalculateLocalVelocityContribution(DampingMatrix, DampingInducedStiffnessMatrix, RHS_Contribution, CurrentProcessInfo);
+
+            if (norm_frobenius(DampingMatrix) > 0.0)
+            {
+                const double gamma = CurrentProcessInfo[NEWMARK_GAMMA];
+                const double beta = CurrentProcessInfo[NEWMARK_BETA];
+                const double Dt = CurrentProcessInfo[DELTA_TIME];
+
+                const double aux = (1 - alpha_f) * gamma/(beta*Dt);
+                noalias(LHS_Contribution) += aux * DampingMatrix;
+            }
+
+            if (norm_frobenius(DampingInducedStiffnessMatrix) > 0.0)
+                noalias(LHS_Contribution) += DampingInducedStiffnessMatrix;
         }
         else
         {
-            rCurrentElement.CalculateLocalVelocityContribution(LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
+            LocalSystemMatrixType DampingMatrix;
+            LocalSystemMatrixType DampingInducedStiffnessMatrix;
 
-            rCurrentElement.CalculateLocalAccelerationContribution(LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
+            rCurrentElement.CalculateLocalVelocityContribution(DampingMatrix, DampingInducedStiffnessMatrix, RHS_Contribution, CurrentProcessInfo);
+
+            if (norm_frobenius(DampingMatrix) > 0.0)
+            {
+                const double gamma = CurrentProcessInfo[NEWMARK_GAMMA];
+                const double beta = CurrentProcessInfo[NEWMARK_BETA];
+                const double Dt = CurrentProcessInfo[DELTA_TIME];
+
+                const double aux = (1 - alpha_f) * gamma/(beta*Dt);
+                noalias(LHS_Contribution) += aux * DampingMatrix;
+            }
+
+            if (norm_frobenius(DampingInducedStiffnessMatrix) > 0.0)
+                noalias(LHS_Contribution) += DampingInducedStiffnessMatrix;
+
+            //
+
+            LocalSystemMatrixType MassMatrix;
+            LocalSystemMatrixType MassInducedStiffnessMatrix;
+
+            rCurrentElement.CalculateLocalAccelerationContribution(MassMatrix, MassInducedStiffnessMatrix, RHS_Contribution, CurrentProcessInfo);
+
+            if (norm_frobenius(MassMatrix) > 0.0)
+            {
+                const double alpha_m = CurrentProcessInfo[NEWMARK_ALPHAM];
+                const double beta = CurrentProcessInfo[NEWMARK_BETA];
+                const double Dt = CurrentProcessInfo[DELTA_TIME];
+
+                const double aux = (1 - alpha_m) / (beta*pow(Dt, 2));
+                noalias(LHS_Contribution) += aux * MassMatrix;
+            }
+
+            if (norm_frobenius(MassInducedStiffnessMatrix) > 0.0)
+                noalias(LHS_Contribution) += MassInducedStiffnessMatrix;
         }
     }
 
