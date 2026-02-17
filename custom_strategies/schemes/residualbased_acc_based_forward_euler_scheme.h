@@ -172,7 +172,7 @@ public:
     }
 
     /** Destructor.*/
-    virtual ~ResidualBasedAccBasedForwardEulerScheme()
+    ~ResidualBasedAccBasedForwardEulerScheme() override
     {}
 
     /**@name Operators */
@@ -192,19 +192,19 @@ public:
     /*@{ */
 
     /// Enable integration of rotation d.o.f
-    void SetIntegrateRotation(const bool& value)
+    void SetIntegrateRotation(const bool value)
     {
         mIntegrateRotation = value;
     }
 
     /// Enable integration of multiplier d.o.f
-    void SetIntegrateMultiplier(const bool& value)
+    void SetIntegrateMultiplier(const bool value)
     {
         mIntegrateMultiplier = value;
     }
 
     /// Enable time values of load
-    void SetIntegrateLoad(const bool& value)
+    void SetIntegrateLoad(const bool value)
     {
         mIntegrateLoad = value;
     }
@@ -1450,8 +1450,8 @@ protected:
     void AddDampingToRHS(
         Element& rCurrentElement,
         LocalSystemVectorType& RHS_Contribution,
-        LocalSystemMatrixType& D,
-        const ProcessInfo& CurrentProcessInfo)
+        const LocalSystemMatrixType& D,
+        const ProcessInfo& CurrentProcessInfo) const
     {
         const double Dt = CurrentProcessInfo[DELTA_TIME];
 
@@ -1463,9 +1463,9 @@ protected:
 
     void AssembleTimeSpaceLHS_Dynamics(
         LocalSystemMatrixType& LHS_Contribution,
-        LocalSystemMatrixType& DampingMatrix,
-        LocalSystemMatrixType& MassMatrix,
-        const ProcessInfo& CurrentProcessInfo)
+        const LocalSystemMatrixType& DampingMatrix,
+        const LocalSystemMatrixType& MassMatrix,
+        const ProcessInfo& CurrentProcessInfo) const
     {
         // set LHS as mass matrix
         noalias(LHS_Contribution) = MassMatrix;

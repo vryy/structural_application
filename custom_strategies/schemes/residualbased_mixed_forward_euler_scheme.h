@@ -1266,42 +1266,24 @@ public:
     {
         KRATOS_TRY
 
-        LHS_Contribution.clear();
         rCurrentElement.CalculateRightHandSide(RHS_Contribution, CurrentProcessInfo);
 
-        rCurrentElement.EquationIdVector(EquationId,CurrentProcessInfo);
+        rCurrentElement.EquationIdVector(EquationId, CurrentProcessInfo);
 
         if (CurrentProcessInfo[QUASI_STATIC_ANALYSIS])
         {
-            rCurrentElement.CalculateLocalVelocityContribution(LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
+            LocalSystemMatrixType Dummy;
+
+            rCurrentElement.CalculateLocalVelocityContribution(LHS_Contribution, Dummy, RHS_Contribution, CurrentProcessInfo);
         }
         else
         {
-            rCurrentElement.CalculateLocalVelocityContribution(LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
+            LocalSystemMatrixType Dummy1, Dummy2;
 
-            rCurrentElement.CalculateLocalAccelerationContribution(LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
+            rCurrentElement.CalculateLocalVelocityContribution(Dummy1, Dummy2, RHS_Contribution, CurrentProcessInfo);
+
+            rCurrentElement.CalculateLocalAccelerationContribution(LHS_Contribution, Dummy2, RHS_Contribution, CurrentProcessInfo);
         }
-
-        // if (rCurrentElement.Id() == 1)
-        // {
-        //     Matrix LHS;
-        //     Vector RHS;
-        //     if (RHS_Contribution.size() > 24)
-        //     {
-        //         RHS = subrange(RHS_Contribution, 24, 48);
-        //         LHS = subrange(LHS_Contribution, 24, 48, 24, 48);
-        //     }
-        //     else
-        //     {
-        //         RHS = RHS_Contribution;
-        //         LHS = LHS_Contribution;
-        //     }
-        //     std::cout << std::fixed << std::setprecision(10);
-        //     KRATOS_WATCH(rCurrentElement.Id())
-        //     // KRATOS_WATCH(RHS)
-        //     KRATOS_WATCH(LHS)
-        //     // KRATOS_ERROR << "stop here";
-        // }
 
         // account for prescription of dofs
         try
@@ -1373,13 +1355,16 @@ public:
 
         if (CurrentProcessInfo[QUASI_STATIC_ANALYSIS])
         {
-            rCurrentCondition.CalculateLocalVelocityContribution(LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
+            LocalSystemMatrixType Dummy;
+            rCurrentCondition.CalculateLocalVelocityContribution(LHS_Contribution, Dummy, RHS_Contribution, CurrentProcessInfo);
         }
         else
         {
-            rCurrentCondition.CalculateLocalVelocityContribution(LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
+            LocalSystemMatrixType Dummy1, Dummy2;
 
-            rCurrentCondition.CalculateLocalAccelerationContribution(LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
+            rCurrentCondition.CalculateLocalVelocityContribution(Dummy1, Dummy2, RHS_Contribution, CurrentProcessInfo);
+
+            rCurrentCondition.CalculateLocalAccelerationContribution(LHS_Contribution, Dummy2, RHS_Contribution, CurrentProcessInfo);
         }
 
         KRATOS_CATCH("")
