@@ -86,7 +86,7 @@ Overview of the interpolation:
     ud = (u_(n+1) - u_n) / dt
     udd = (u_(n+1) - u_n)/dt^2 - ud_n/dt
  */
-template<class TSparseSpace, class TDenseSpace>
+template<class TSparseSpace, class TDenseSpace, int TMassDampingType = 0>
 class ResidualBasedThetaScheme : public Scheme<TSparseSpace,TDenseSpace>
 {
 public:
@@ -938,8 +938,6 @@ public:
     {
         const ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
 
-        // KRATOS_WATCH(CurrentProcessInfo[FIRST_TIME_STEP])
-
         // we manually FinalizeSolutionStep for each entities because the parent function is multithreaded
         ElementsArrayType& pElements = r_model_part.Elements();
         for (typename ElementsArrayType::ptr_iterator it = pElements.ptr_begin(); it != pElements.ptr_end(); ++it)
@@ -1215,18 +1213,19 @@ public:
         }
     }
 
-    void CalculateSystemContributions(
-        Element& rCurrentElement,
+    template<typename TEntityType>
+    void CalculateSystemContributionsLinearMassDamping(
+        TEntityType& rCurrentElement,
         LocalSystemMatrixType& LHS_Contribution,
         LocalSystemVectorType& RHS_Contribution,
-        Element::EquationIdVectorType& EquationId,
-        const ProcessInfo& CurrentProcessInfo) override
+        typename TEntityType::EquationIdVectorType& EquationId,
+        const ProcessInfo& CurrentProcessInfo) const
     {
         KRATOS_TRY
 
         rCurrentElement.CalculateLocalSystem(LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
 
-        rCurrentElement.EquationIdVector(EquationId,CurrentProcessInfo);
+        rCurrentElement.EquationIdVector(EquationId, CurrentProcessInfo);
 
         if (CurrentProcessInfo[QUASI_STATIC_ANALYSIS])
         {
@@ -1246,11 +1245,6 @@ public:
             rCurrentElement.CalculateDampingMatrix(DampingMatrix, CurrentProcessInfo);
 
             rCurrentElement.CalculateMassMatrix(MassMatrix, CurrentProcessInfo);
-
-            // KRATOS_WATCH(rCurrentElement.Id())
-            // // KRATOS_WATCH(MassMatrix)
-            // KRATOS_WATCH(DampingMatrix)
-            // KRATOS_WATCH(LHS_Contribution)
 
             if ((norm_frobenius(DampingMatrix) == 0.0) && (norm_frobenius(MassMatrix) > 0.0))
             {
@@ -1281,6 +1275,74 @@ public:
         KRATOS_CATCH("")
     }
 
+    template<typename TEntityType>
+    void CalculateSystemContributionsNonlinearMassDamping(
+        TEntityType& rCurrentElement,
+        LocalSystemMatrixType& LHS_Contribution,
+        LocalSystemVectorType& RHS_Contribution,
+        typename TEntityType::EquationIdVectorType& EquationId,
+        const ProcessInfo& CurrentProcessInfo) const
+    {
+        KRATOS_TRY
+
+        rCurrentElement.CalculateLocalSystem(LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
+
+        rCurrentElement.EquationIdVector(EquationId, CurrentProcessInfo);
+
+        if (CurrentProcessInfo[QUASI_STATIC_ANALYSIS])
+        {
+            LocalSystemMatrixType DampingMatrix;
+            LocalSystemMatrixType DampingInducedStiffnessMatrix;
+
+            rCurrentElement.CalculateLocalVelocityContribution(DampingMatrix, DampingInducedStiffnessMatrix, RHS_Contribution, CurrentProcessInfo);
+
+            if (norm_frobenius(DampingMatrix) > 0.0)
+            {
+                AssembleTimeSpaceLHS_QuasiStatic(LHS_Contribution, DampingMatrix, CurrentProcessInfo);
+            }
+
+            if (norm_frobenius(DampingInducedStiffnessMatrix) > 0.0)
+                noalias(LHS_Contribution) += DampingInducedStiffnessMatrix;
+        }
+        else
+        {
+            LocalSystemMatrixType DampingMatrix;
+            LocalSystemMatrixType DampingInducedStiffnessMatrix;
+
+            rCurrentElement.CalculateLocalVelocityContribution(DampingMatrix, DampingInducedStiffnessMatrix, RHS_Contribution, CurrentProcessInfo);
+
+            LocalSystemMatrixType MassMatrix;
+            LocalSystemMatrixType MassInducedStiffnessMatrix;
+
+            rCurrentElement.CalculateLocalAccelerationContribution(MassMatrix, MassInducedStiffnessMatrix, RHS_Contribution, CurrentProcessInfo);
+
+            if ((norm_frobenius(DampingMatrix) == 0.0) && (norm_frobenius(MassMatrix) > 0.0))
+            {
+                if ((DampingMatrix.size1() != MassMatrix.size1()) || (DampingMatrix.size2() != MassMatrix.size2()))
+                    DampingMatrix.resize(MassMatrix.size1(), MassMatrix.size2(), false);
+                noalias(DampingMatrix) = ZeroMatrix(MassMatrix.size1(), MassMatrix.size2());
+
+                AssembleTimeSpaceLHS_Dynamics(LHS_Contribution, DampingMatrix, MassMatrix, CurrentProcessInfo);
+            }
+            else if ((norm_frobenius(DampingMatrix) > 0.0) && (norm_frobenius(MassMatrix) == 0.0))
+            {
+                AssembleTimeSpaceLHS_QuasiStatic(LHS_Contribution, DampingMatrix, CurrentProcessInfo);
+            }
+            else if ((norm_frobenius(DampingMatrix) > 0.0) && (norm_frobenius(MassMatrix) > 0.0))
+            {
+                AssembleTimeSpaceLHS_Dynamics(LHS_Contribution, DampingMatrix, MassMatrix, CurrentProcessInfo);
+            }
+
+            if (norm_frobenius(DampingInducedStiffnessMatrix) > 0.0)
+                noalias(LHS_Contribution) += DampingInducedStiffnessMatrix;
+
+            if (norm_frobenius(MassInducedStiffnessMatrix) > 0.0)
+                noalias(LHS_Contribution) += MassInducedStiffnessMatrix;
+        }
+
+        KRATOS_CATCH("")
+    }
+
     void CalculateRHSContribution(
         Element& rCurrentElement,
         LocalSystemVectorType& RHS_Contribution,
@@ -1289,14 +1351,31 @@ public:
     {
         KRATOS_TRY
 
-        rCurrentElement.CalculateRightHandSide(RHS_Contribution,CurrentProcessInfo);
-        rCurrentElement.EquationIdVector(EquationId,CurrentProcessInfo);
+        rCurrentElement.CalculateRightHandSide(RHS_Contribution, CurrentProcessInfo);
+        rCurrentElement.EquationIdVector(EquationId, CurrentProcessInfo);
 
         KRATOS_CATCH("")
     }
 
-    /**
-    */
+    void CalculateSystemContributions(
+        Element& rCurrentElement,
+        LocalSystemMatrixType& LHS_Contribution,
+        LocalSystemVectorType& RHS_Contribution,
+        Element::EquationIdVectorType& EquationId,
+        const ProcessInfo& CurrentProcessInfo) override
+    {
+        if constexpr (TMassDampingType == 0)
+        {
+            CalculateSystemContributionsLinearMassDamping(rCurrentElement, LHS_Contribution,
+                    RHS_Contribution, EquationId, CurrentProcessInfo);
+        }
+        else if constexpr (TMassDampingType == 1)
+        {
+            CalculateSystemContributionsNonlinearMassDamping(rCurrentElement, LHS_Contribution,
+                    RHS_Contribution, EquationId, CurrentProcessInfo);
+        }
+    }
+
     void CalculateSystemContributions(
         Condition& rCurrentCondition,
         LocalSystemMatrixType& LHS_Contribution,
@@ -1306,16 +1385,16 @@ public:
     {
         KRATOS_TRY
 
-        Matrix DampingMatrix;
-
-        rCurrentCondition.CalculateLocalSystem(LHS_Contribution,RHS_Contribution,CurrentProcessInfo);
-
-        rCurrentCondition.EquationIdVector(EquationId, CurrentProcessInfo);
-
-        rCurrentCondition.CalculateDampingMatrix(DampingMatrix, CurrentProcessInfo);
-
-        if (norm_frobenius(DampingMatrix) > 0.0) // filter out the condition that did not calculate damping and then set it to a zero matrix
-            AssembleTimeSpaceLHS_QuasiStatic(LHS_Contribution, DampingMatrix, CurrentProcessInfo);
+        if constexpr (TMassDampingType == 0)
+        {
+            CalculateSystemContributionsLinearMassDamping(rCurrentCondition, LHS_Contribution,
+                    RHS_Contribution, EquationId, CurrentProcessInfo);
+        }
+        else if constexpr (TMassDampingType == 1)
+        {
+            CalculateSystemContributionsNonlinearMassDamping(rCurrentCondition, LHS_Contribution,
+                    RHS_Contribution, EquationId, CurrentProcessInfo);
+        }
 
         KRATOS_CATCH("")
     }
@@ -1383,11 +1462,12 @@ public:
 
 protected:
 
+    template<typename TEntityType>
     void AddInertiaToRHS(
-        const Element& rCurrentElement,
+        const TEntityType& rCurrentElement,
         LocalSystemVectorType& RHS_Contribution,
         const LocalSystemMatrixType& MassMatrix,
-        const ProcessInfo& CurrentProcessInfo)
+        const ProcessInfo& CurrentProcessInfo) const
     {
         // adding inertia contribution
         Vector acceleration;
@@ -1395,11 +1475,12 @@ protected:
         noalias(RHS_Contribution) -= prod(MassMatrix, acceleration );
     }
 
+    template<typename TEntityType>
     void AddDampingToRHS(
-        const Element& rCurrentElement,
+        const TEntityType& rCurrentElement,
         LocalSystemVectorType& RHS_Contribution,
         const LocalSystemMatrixType& DampingMatrix,
-        const ProcessInfo& CurrentProcessInfo)
+        const ProcessInfo& CurrentProcessInfo) const
     {
         // adding damping contribution
         Vector velocity;
@@ -1410,7 +1491,7 @@ protected:
     void AssembleTimeSpaceLHS_QuasiStatic(
         LocalSystemMatrixType& LHS_Contribution,
         const LocalSystemMatrixType& DampingMatrix,
-        const ProcessInfo& CurrentProcessInfo)
+        const ProcessInfo& CurrentProcessInfo) const
     {
         const double Dt = CurrentProcessInfo[DELTA_TIME];
         double aux;
@@ -1428,7 +1509,7 @@ protected:
         LocalSystemMatrixType& LHS_Contribution,
         const LocalSystemMatrixType& DampingMatrix,
         const LocalSystemMatrixType& MassMatrix,
-        const ProcessInfo& CurrentProcessInfo)
+        const ProcessInfo& CurrentProcessInfo) const
     {
         const double Dt = CurrentProcessInfo[DELTA_TIME];
         double aux;

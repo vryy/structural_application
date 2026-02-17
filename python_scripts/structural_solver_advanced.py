@@ -202,8 +202,10 @@ class SolverAdvanced(structural_solver_static.StaticStructuralSolver):
         ## selector for Newmark scheme
         if not self.analysis_parameters['nonlinear_mass_damping']:
             ResidualBasedNewmarkSchemeType = ResidualBasedNewmarkScheme
+            ResidualBasedThetaSchemeType = ResidualBasedThetaScheme
         else:
             ResidualBasedNewmarkSchemeType = ResidualBasedNonlinearMassDampingNewmarkScheme
+            ResidualBasedThetaSchemeType = ResidualBasedNonlinearMassDampingThetaScheme
 
         ## selection for time integration scheme
         if (self.analysis_parameters['solution_strategy'] == "implicit_Newton_Raphson")     \
@@ -244,11 +246,11 @@ class SolverAdvanced(structural_solver_static.StaticStructuralSolver):
             elif( self.analysis_parameters['analysis_type'] == 3 ):
                 self.model_part.ProcessInfo.SetValue( QUASI_STATIC_ANALYSIS, True )
                 print("using theta quasi-static scheme, theta=" + str(self.dissipation_radius))
-                self.time_scheme = ResidualBasedThetaScheme(self.dissipation_radius)
+                self.time_scheme = ResidualBasedThetaSchemeType(self.dissipation_radius)
             elif( self.analysis_parameters['analysis_type'] == 4 ):
                 self.model_part.ProcessInfo.SetValue( QUASI_STATIC_ANALYSIS, False )
                 print("using theta dynamics scheme, theta=" + str(self.dissipation_radius))
-                self.time_scheme = ResidualBasedThetaScheme(self.dissipation_radius)
+                self.time_scheme = ResidualBasedThetaSchemeType(self.dissipation_radius)
             elif( self.analysis_parameters['analysis_type'] == -1 ):
                 print("using custom time scheme given in 'time_scheme' analysis parameters")
                 if not "time_scheme" in self.analysis_parameters:
