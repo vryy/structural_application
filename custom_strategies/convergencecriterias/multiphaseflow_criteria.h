@@ -294,26 +294,26 @@ public:
             if (norm_Dx_AIR == 0.0)
                 ratioAir = 0.0;
 
-            std::cout << "********************************************CONVERGENCE CRITERIA FOR MULTIPHASE PROBLEMS********************************************" << std::endl;
+            std::cout << "***********************************************CONVERGENCE CRITERIA FOR MULTIPHASE PROBLEMS***********************************************" << std::endl;
             std::cout.precision(6);
             std::cout.setf(std::ios::scientific);
-            std::cout << "** expected values: \t\t\t\t\t\tabs_tol = " << mAbsoluteTolerance << "\t\t\t\trel_tol = " << mRelativeTolerance << " **" << std::endl;
-            std::cout << "** obtained values displacement:\tratio = " << ratioDisp << "\t||Dx|| = " << norm_Dx << "\t||x|| = " << norm_x << "\t||b|| = " << norm_b << " **" << std::endl;
+            std::cout << "** expected values: \t\t\t\t\t\tabs_tol = " << mAbsoluteTolerance << "\t\t\t\trel_tol = " << mRelativeTolerance << "\t**" << std::endl;
+            std::cout << "** obtained values displacement:\tratio = " << ratioDisp << "\t||Dx|| = " << norm_Dx << "\t||x|| = " << norm_x << "\t||b|| = " << norm_b << "\t**" << std::endl;
             if (HasWaterPres)
             {
-                std::cout << "** obtained values water pressure:\tratio = " << ratioWater << "\t||Dx|| = " << norm_Dx_WATER << "\t||x|| = " << norm_x_WATER << " \t||b|| = " << norm_b_WATER << " **" << std::endl;
+                std::cout << "** obtained values water pressure:\tratio = " << ratioWater << "\t||Dx|| = " << norm_Dx_WATER << "\t||x|| = " << norm_x_WATER << " \t||b|| = " << norm_b_WATER << "\t**" << std::endl;
                 if (HasAirPres)
                 {
-                    std::cout << "** obtained values air pressure:\tratio = " << ratioAir << "\t||Dx|| = " << norm_Dx_AIR << "\t||x|| = " << norm_x_AIR << "\t||b|| = " << norm_b_AIR << " **" << std::endl;
+                    std::cout << "** obtained values air pressure:\tratio = " << ratioAir << "\t||Dx|| = " << norm_Dx_AIR << "\t||x|| = " << norm_x_AIR << "\t||b|| = " << norm_b_AIR << "\t**" << std::endl;
 
-                    std::cout << "** obtained values total:\t\tratio = " << ratioAir + ratioWater + ratioDisp << "\tchange = " << norm_Dx + norm_Dx_WATER + norm_Dx_AIR << "\tabsolute = " << norm_x_AIR + norm_x_WATER + norm_x << "\tenergy = " << norm_b_AIR + norm_b_WATER + norm_b << " **" << std::endl;
+                    std::cout << "** obtained values total:\t\tratio = " << ratioAir + ratioWater + ratioDisp << "\tchange = " << norm_Dx + norm_Dx_WATER + norm_Dx_AIR << "\tabsolute = " << norm_x_AIR + norm_x_WATER + norm_x << "\tenergy = " << norm_b_AIR + norm_b_WATER + norm_b << "\t**" << std::endl;
                 }
                 else
                 {
-                    std::cout << "** obtained values total:\t\tratio = " << ratioWater + ratioDisp << "\tchange = " << norm_Dx + norm_Dx_WATER << "\tabsolute = " << norm_x_WATER + norm_x << "\tenergy = " << norm_b_WATER + norm_b << " **" << std::endl;
+                    std::cout << "** obtained values total:\t\tratio = " << ratioWater + ratioDisp << "\tchange = " << norm_Dx + norm_Dx_WATER << "\tabsolute = " << norm_x_WATER + norm_x << "\tenergy = " << norm_b_WATER + norm_b << "\t**" << std::endl;
                 }
             }
-            std::cout << "************************************************************************************************************************************" << std::endl;
+            std::cout << "******************************************************************************************************************************************" << std::endl;
 
             bool disp_reason_1 = (norm_b <= mAbsoluteTolerance);
             bool disp_reason_2 = false;
