@@ -40,7 +40,6 @@
 #include "spaces/ublas_space.h"
 #include "linear_solvers/linear_solver.h"
 #include "solving_strategies/builder_and_solvers/builder_and_solver.h"
-#include "custom_processes/topology_update_process.h"
 #include "custom_processes/calculate_reaction_process.h"
 #include "custom_processes/calculate_reaction_on_boundary_process.h"
 #include "custom_processes/calculate_strain_energy_process.h"
@@ -87,13 +86,6 @@ void AddCustomProcessesToPython()
 
     typedef typename SparseSpaceType::MatrixType SparseMatrixType;
     typedef typename SparseSpaceType::VectorType SparseVectorType;
-
-    class_<TopologyUpdateProcess, bases<Process>, boost::noncopyable>
-    ("TopologyUpdateProcess", init<ModelPart&, double, double, double>())
-    .def("SetBinSize", &TopologyUpdateProcess::SetBinSize)
-    .def("GetTopologyChange", &TopologyUpdateProcess::GetTopologyChange)
-    .def("GetObjective", &TopologyUpdateProcess::GetObjective)
-    ;
 
     class_<CalculateReactionProcess, bases<Process>, boost::noncopyable>
     ("CalculateReactionProcess", init<ModelPart&, CalculateReactionProcess::SchemeType&>())
