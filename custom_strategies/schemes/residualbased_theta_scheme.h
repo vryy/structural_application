@@ -179,6 +179,20 @@ public:
         mIntegrateLoad = value;
     }
 
+    /// Initialize the scheme
+    void Initialize(ModelPart& r_model_part) override
+    {
+        BaseType::Initialize(r_model_part);
+
+        ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
+
+        CurrentProcessInfo[TIME_INTEGRATION_SCHEME] = FNV1a32Hash::CalculateHash(Info().c_str());
+        CurrentProcessInfo[TIME_INTEGRATION_THETA] = mTheta;
+
+        std::cout << "ModelPart " << r_model_part.Name() << " is initialized by " << Info() << std::endl;
+        KRATOS_WATCH(CurrentProcessInfo[TIME_INTEGRATION_SCHEME])
+    }
+
     /** Performing the update of the solution.*/
     /**
      * incremental update within newton iteration. It updates the state variables at the end of the time step: u_{n+1}^{k+1}= u_{n+1}^{k}+ \Delta u
