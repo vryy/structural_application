@@ -227,7 +227,7 @@ public:
         }
         else
         {
-            KRATOS_THROW_ERROR(std::logic_error, "Invalid Time integration option", option)
+            KRATOS_ERROR << "Invalid Time integration option " << option;
         }
 
         std::cout << "Nonlinear mass damping: " << TMassDampingType << std::endl;
@@ -1695,7 +1695,6 @@ public:
     /*@{ */
 
 
-    ///@}
     ///@name Input and output
     ///@{
 
@@ -1715,6 +1714,8 @@ public:
                  << " beta: " << mBeta
                  << " gamma: " << mGamma;
     }
+
+    ///@}
 
     /*@} */
     /**@name Friends */

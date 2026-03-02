@@ -1364,6 +1364,8 @@ public:
         Element::EquationIdVectorType& EquationId,
         const ProcessInfo& CurrentProcessInfo) override
     {
+        KRATOS_TRY
+
         if constexpr (TMassDampingType == 0)
         {
             CalculateSystemContributionsLinearMassDamping(rCurrentElement, LHS_Contribution,
@@ -1374,6 +1376,8 @@ public:
             CalculateSystemContributionsNonlinearMassDamping(rCurrentElement, LHS_Contribution,
                     RHS_Contribution, EquationId, CurrentProcessInfo);
         }
+
+        KRATOS_CATCH("")
     }
 
     void CalculateSystemContributions(
@@ -1399,7 +1403,6 @@ public:
         KRATOS_CATCH("")
     }
 
-
     /**
      */
     void CalculateRHSContribution(
@@ -1415,7 +1418,6 @@ public:
 
         KRATOS_CATCH("")
     }
-
 
     void UpdateForces(ModelPart& r_model_part )
     {
@@ -1459,6 +1461,25 @@ public:
     /*@} */
     /**@name Friends */
     /*@{ */
+
+    ///@name Input and output
+    ///@{
+
+    /// Turn back information as a string.
+    std::string Info() const override
+    {
+        std::stringstream ss;
+        ss << "ResidualBasedThetaScheme<" << TMassDampingType << ">";
+        return ss.str();
+    }
+
+    /// Print object's data.
+    void PrintData(std::ostream& rOStream) const override
+    {
+        rOStream << " theta: " << mTheta;
+    }
+
+    ///@}
 
 protected:
 

@@ -381,9 +381,7 @@ public:
             it->CalculateOnIntegrationPoints(rVariable, Values, rSource.GetProcessInfo());
             auto it_elem = rTarget.Elements().find(it->Id());
             if (it_elem == rTarget.Elements().end())
-            {
                 KRATOS_ERROR << "Element " << it->Id() << " does not exist in the target model_part " << rTarget.Name();
-            }
             it_elem->SetValuesOnIntegrationPoints(rVariable, Values, rTarget.GetProcessInfo());
         }
         std::cout << __FUNCTION__ << " for " << rVariable << " from " << rSource.Name() << " to " << rTarget.Name() << " completed" << std::endl;
