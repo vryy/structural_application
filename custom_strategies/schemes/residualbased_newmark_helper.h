@@ -469,7 +469,13 @@ struct ResidualBasedNewmarkHelper<2>
             }
 
             if (norm_frobenius(DampingInducedStiffnessMatrix) > 0.0)
-                noalias(LHS_Contribution) += DampingInducedStiffnessMatrix;
+            {
+                // Here we have to multiply the damping induced stiffness matrix with (1-alpha_f) because
+                // it is the linearization of damping forces against time-interpolated primal term, i.e., displacement.
+                // And here the linearization of time-interpolated primal term against primal term (at n+1) has to be
+                // taken into account
+                noalias(LHS_Contribution) += DampingInducedStiffnessMatrix * aux;
+            }
         }
         else
         {
@@ -489,7 +495,13 @@ struct ResidualBasedNewmarkHelper<2>
             }
 
             if (norm_frobenius(DampingInducedStiffnessMatrix) > 0.0)
-                noalias(LHS_Contribution) += DampingInducedStiffnessMatrix;
+            {
+                // Here we have to multiply the damping induced stiffness matrix with (1-alpha_f) because
+                // it is the linearization of damping forces against time-interpolated primal term, i.e., displacement.
+                // And here the linearization of time-interpolated primal term against primal term (at n+1) has to be
+                // taken into account
+                noalias(LHS_Contribution) += DampingInducedStiffnessMatrix * aux;
+            }
 
             //
 
@@ -509,7 +521,13 @@ struct ResidualBasedNewmarkHelper<2>
             }
 
             if (norm_frobenius(MassInducedStiffnessMatrix) > 0.0)
-                noalias(LHS_Contribution) += MassInducedStiffnessMatrix;
+            {
+                // Here we have to multiply the mass induced stiffness matrix with (1-alpha_f) because
+                // it is the linearization of inertial forces against time-interpolated primal term, i.e., displacement.
+                // And here the linearization of time-interpolated primal term against primal term (at n+1) has to be
+                // taken into account
+                noalias(LHS_Contribution) += MassInducedStiffnessMatrix * aux;
+            }
         }
     }
 
