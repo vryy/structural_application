@@ -43,14 +43,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ==============================================================================
 */
 //
-//   Project Name:        Kratos
-//   Modified by:         $Author: janosch $
-//   Date:                $Date: 2009-01-14 09:30:38 $
-//   Modified by:         $Author: hbui $
-//   Date:                $Date: 2013-02-22 16:16:48 $
-//   Modified by:         $Author: hbui $
-//   Date:                $Date: 2023-07-24 16:16:48 $
-//
+//   Project Name:        KratosStructuralApplication
+//   Modified by:         $Author: janosch & hbui $
+//   Date:                $Date: 2009-01-14 $
 //
 
 

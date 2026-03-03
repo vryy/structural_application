@@ -80,7 +80,6 @@ public:
     // Counted pointer of FaceForce3D
     KRATOS_CLASS_POINTER_DEFINITION( FaceForce3D );
 
-
     // Constructor void
     FaceForce3D();
 

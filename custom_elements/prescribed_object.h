@@ -1,4 +1,4 @@
-//   Project Name:        Kratos
+//   Project Name:        KratosStructuralApplication
 //   Modified by:         $Author: hbui $
 //   Date:                $Date: 7/3/2022 $
 //

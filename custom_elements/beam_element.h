@@ -78,7 +78,7 @@ public:
         GeometryType::PointType::Pointer pNode2, PropertiesType::Pointer pProperties);
 
     /// Destructor.
-    virtual ~BeamElement();
+    ~BeamElement() override;
 
     Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const final;
 
@@ -172,14 +172,12 @@ public:
         Element::PrintData(rOStream);
     }
 
-    ///@}
     ///@name Serialization
     ///@{
     friend class Serializer;
 
     // A private default constructor necessary for serialization
     BeamElement() {};
-
 
     void save(Serializer& rSerializer) const override
     {
@@ -190,6 +188,8 @@ public:
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element );
     }
+
+    ///@}
 
 }; // Class BeamElement
 

@@ -45,9 +45,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 //
 //   Project Name:        Kratos
-//   Last Modified by:    $Author: hurga $
+//   Last Modified by:    $Author: hurga & hbui $
 //   Date:                $Date: 2007-10-18 16:23:41 $
-//   Revision:            $Revision: 1.3 $
 //
 //
 
@@ -452,22 +451,15 @@ private:
     ///@}
     ///@name Serialization
     ///@{
-    friend class Serializer;
 
     // A private default constructor necessary for serialization
+    friend class Serializer;
 
     void save(Serializer& rSerializer) const override;
-//        {
-//            rSerializer.save("Name", "TotalLagrangian");
-//            KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element);
-//        }
 
     void load(Serializer& rSerializer) override;
-//        {
-//            KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
-//        }
 
-
+    ///@}
 
     ///@name Private Inquiry
     ///@{
@@ -488,21 +480,8 @@ private:
 ///@}
 ///@name Input and output
 ///@{
-/// input stream function
-/*  inline std::istream& operator >> (std::istream& rIStream,
-TotalLagrangian& rThis);
- */
-/// output stream function
-/*  inline std::ostream& operator << (std::ostream& rOStream,
-const TotalLagrangian& rThis)
-{
-rThis.PrintInfo(rOStream);
-rOStream << std::endl;
-rThis.PrintData(rOStream);
-
-return rOStream;
-}*/
 ///@}
 
 } // namespace Kratos.
+
 #endif // KRATOS_TOTAL_LAGRANGIAN_ELEMENT_H_INCLUDED  defined

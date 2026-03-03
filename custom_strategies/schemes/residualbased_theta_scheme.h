@@ -45,7 +45,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 *
 *   Last Modified by:    $Author: hbui $
 *   Date:                $Date: 10/3/2020 $
-*   Revision:            $Revision: 1.0 $
 *
 * ***********************************************************/
 

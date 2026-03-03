@@ -320,7 +320,6 @@ private:
     /// Copy constructor.
     //TrussElement(const TrussElement& rOther);
 
-
     ///@}
 
 }; // Class TrussElement
