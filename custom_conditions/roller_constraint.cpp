@@ -395,31 +395,11 @@ void RollerConstraint::CalculateAll( MatrixType& rLeftHandSideMatrix,
     #endif
 }
 
-//***********************************************************************************
-//***********************************************************************************
-void RollerConstraint::CalculateMassMatrix( MatrixType& rMassMatrix,
-                              const ProcessInfo& rCurrentProcessInfo )
-{
-    KRATOS_TRY
-    rMassMatrix.resize( 0, 0, false );
-    KRATOS_CATCH( "" )
-}
-
-//***********************************************************************************
-//***********************************************************************************
-void RollerConstraint::CalculateDampingMatrix( MatrixType& rDampingMatrix,
-                              const ProcessInfo& rCurrentProcessInfo )
-{
-    KRATOS_TRY
-    rDampingMatrix.resize( 0, 0, false );
-    KRATOS_CATCH( "" )
-}
-
 //************************************************************************************
 //************************************************************************************
 
 void RollerConstraint::EquationIdVector( EquationIdVectorType& rResult,
-        const ProcessInfo& CurrentProcessInfo ) const
+                                         const ProcessInfo& CurrentProcessInfo ) const
 {
     KRATOS_TRY
 
@@ -451,7 +431,7 @@ void RollerConstraint::EquationIdVector( EquationIdVectorType& rResult,
 //************************************************************************************
 
 void RollerConstraint::GetDofList( DofsVectorType& ConditionalDofList,
-                                        const ProcessInfo& CurrentProcessInfo) const
+                                   const ProcessInfo& CurrentProcessInfo ) const
 {
     ConditionalDofList.resize( 0 );
 

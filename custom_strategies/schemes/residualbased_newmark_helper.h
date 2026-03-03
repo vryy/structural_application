@@ -23,25 +23,105 @@ namespace Kratos
 {
 
 /**
- * Helper for Time Integration scheme based on Generalized-Alpha Method
- * TMassDampingType = 0: inertial forces and damping forces are computed linearly, i.e.
- *          finert = Mass * acceleration
- *      and
- *          fdamp = Damp * velocity
+ * Helper for Time Integration scheme based on Generalized-Alpha Method.
  *
- * TMassDampingType = 1: inertial forces and damping forces are assumed nonlinear, the
- * contribution has to be taken into account at the element level
+ * In the typical dynamics system, the element equilibrium is represented by
+ *  rinert(u,udd) + rvis(u,ud) + rint(u) = rext
+ * where
+ *  -   rinert(u,udd) = M(u)*udd
+ *  -   rvist(u,ud) = D(u,ud)*ud
+ *  -   u,ud,udd are time-interpolated primal variables, e.g., displacement, velocity, acceleration.
+ *      And U is the primal unknown, e.g., u_{n+1}
+ * The linearization of the time integration scheme follows by:
+ *      LHS = d(rint)/d(u)*d(u)/d(U)
+ *          + d(rvis)/(du)*d(u)/d(U) + d(rvis)/(dud)*d(ud)/d(U)
+ *          + d(rinert)/(du)*d(u)/d(U) + d(rinert)/(dudd)*d(udd)/d(U)
+ *          = K*d(u)/d(U)
+ *          + [d(D)/(du)*ud]*d(u)/d(U) + [d(D)/d(ud)*ud + D]*d(ud)/d(U)
+ *          + [d(M)/(du)*udd]*d(u)/d(U) + M*d(udd)/d(U)
+ *
+ * The term d(D)/(du)*ud is called damping-induced stiffness matrix and
+ * d(M)/(du)*udd as mass-induced stiffness matrix. The handling of these two matrices
+ * defines the type of element which deals with nonlinear mass damping.
  */
 template<int TMassDampingType>
 struct ResidualBasedNewmarkHelper;
 
 /**
- * Local assembly assuming linear inertial and damping contribution
+ * In this instance of helper (TMassDampingType=0), following assumptions are made:
+ * -    CalculateLocalSystem: K
+ * -    CalculateDampingMatrix: D -> unused
+ * -    CalculateMassMatrix: M -> unused
+ * -    CalculateLocalVelocityContribution: -> unused
+ * -    CalculateLocalAccelerationContribution: -> unused
+ * The element is assumed as static only and computes the stiffness matrix using the
+ * time-interpolated primal variables.
  */
 template<>
 struct ResidualBasedNewmarkHelper<0>
 {
+    template<class TEntityType, typename LocalSystemMatrixType, typename LocalSystemVectorType>
+    static void CalculateSystemContributions(
+        TEntityType& rCurrentElement,
+        LocalSystemMatrixType& LHS_Contribution,
+        LocalSystemVectorType& RHS_Contribution,
+        typename TEntityType::EquationIdVectorType& EquationId,
+        const ProcessInfo& CurrentProcessInfo)
+    {
+        const double alpha_f = CurrentProcessInfo[NEWMARK_ALPHAF];
 
+        ///
+
+        rCurrentElement.CalculateLocalSystem(LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
+
+        rCurrentElement.EquationIdVector(EquationId, CurrentProcessInfo);
+
+        LHS_Contribution *= (1 - alpha_f);
+    }
+
+    template<class TEntityType, typename LocalSystemVectorType>
+    static void CalculateRHSContribution(
+        TEntityType& rCurrentElement,
+        LocalSystemVectorType& RHS_Contribution,
+        typename TEntityType::EquationIdVectorType& EquationId,
+        const ProcessInfo& CurrentProcessInfo)
+    {
+        rCurrentElement.CalculateRightHandSide(RHS_Contribution, CurrentProcessInfo);
+        rCurrentElement.EquationIdVector(EquationId, CurrentProcessInfo);
+    }
+
+    template<class TEntityType, typename LocalSystemMatrixType>
+    static void CalculateLHSContribution(
+        TEntityType& rCurrentElement,
+        LocalSystemMatrixType& LHS_Contribution,
+        typename TEntityType::EquationIdVectorType& EquationId,
+        const ProcessInfo& CurrentProcessInfo)
+    {
+        const double alpha_f = CurrentProcessInfo[NEWMARK_ALPHAF];
+
+        ///
+
+        rCurrentElement.CalculateLeftHandSide(LHS_Contribution, CurrentProcessInfo);
+
+        rCurrentElement.EquationIdVector(EquationId, CurrentProcessInfo);
+
+        LHS_Contribution *= (1 - alpha_f);
+    }
+}; /* struct ResidualBasedNewmarkHelper<0> */
+
+/**
+ * In this instance of helper (TMassDampingType=1), corresponding to linear mass damping case,
+ * following assumptions are made:
+ * -    CalculateLocalSystem: K + d(D)/(du)*ud + d(M)/(du)*udd
+ * -    CalculateDampingMatrix: D
+ * -    CalculateMassMatrix: M
+ * -    d(D)/d(ud)*ud must be zero. Hence D only depends on u: D = D(u)
+ * Since D=D(u), the element with velocity-dependent damping may not work and quadratic
+ * convergent will not be obtained.
+ */
+template<>
+struct ResidualBasedNewmarkHelper<1>
+{
     template<class TEntityType, typename LocalSystemMatrixType, typename LocalSystemVectorType>
     static void CalculateSystemContributions(
         TEntityType& rCurrentElement,
@@ -75,6 +155,7 @@ struct ResidualBasedNewmarkHelper<0>
             else
                 // the element that has no damping matrix shall not contribute the viscosity part to the system
                 AssembleTimeSpaceLHS_QuasiStatic_NoDamping(LHS_Contribution, CurrentProcessInfo, alpha_f);
+
         }
         else
         {
@@ -177,7 +258,7 @@ struct ResidualBasedNewmarkHelper<0>
 
         rCurrentElement.CalculateLeftHandSide(LHS_Contribution, CurrentProcessInfo);
 
-        rCurrentElement.EquationIdVector(EquationId,CurrentProcessInfo);
+        rCurrentElement.EquationIdVector(EquationId, CurrentProcessInfo);
 
         if (CurrentProcessInfo[QUASI_STATIC_ANALYSIS])
         {
@@ -330,25 +411,27 @@ struct ResidualBasedNewmarkHelper<0>
         // adding stiffness contribution to the dynamic stiffness
         LHS_Contribution *= (1 - alpha_f);
     }
-
-}; /* struct ResidualBasedNewmarkHelper<0> */
-
+}; /* struct ResidualBasedNewmarkHelper<1> */
 
 /******************************************************************************/
 /******************************************************************************/
 /******************************************************************************/
-
 
 /**
- * Local assembly assuming nonlinear inertial and damping contribution.
- * It is noted that, the element and condition shall add the contribution
- * to the inertia and damping terms with respect to the time integration scheme
- * manually.
+ * In this instance of helper (TMassDampingType=2), following assumptions are made:
+ * -    CalculateLocalSystem: K
+ * -    CalculateDampingMatrix: D -> unused
+ * -    CalculateMassMatrix: M -> unused
+ * -    CalculateLocalVelocityContribution: [d(D)/d(ud)*ud + D] as rDampingMatrix
+ *          and [d(D)/(du)*ud] as damping-induced stiffness matrix
+ * -    CalculateLocalAccelerationContribution: M as rMassMatrix
+ *          and [d(M)/(du)*udd] as mass-induced stiffness matrix
+ * It is noted that the damping matrix in CalculateLocalVelocityContribution is different
+ * to the damping matrix returned by CalculateDampingMatrix
  */
 template<>
-struct ResidualBasedNewmarkHelper<1>
+struct ResidualBasedNewmarkHelper<2>
 {
-
     template<class TEntityType, typename LocalSystemMatrixType, typename LocalSystemVectorType>
     static void CalculateSystemContributions(
         TEntityType& rCurrentElement,
@@ -363,9 +446,10 @@ struct ResidualBasedNewmarkHelper<1>
 
         rCurrentElement.CalculateLocalSystem(LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
 
-        rCurrentElement.EquationIdVector(EquationId,CurrentProcessInfo);
+        rCurrentElement.EquationIdVector(EquationId, CurrentProcessInfo);
 
-        LHS_Contribution *= (1 - alpha_f);
+        const double aux = (1 - alpha_f);
+        LHS_Contribution *= aux;
 
         if (CurrentProcessInfo[QUASI_STATIC_ANALYSIS])
         {
@@ -380,8 +464,8 @@ struct ResidualBasedNewmarkHelper<1>
                 const double beta = CurrentProcessInfo[NEWMARK_BETA];
                 const double Dt = CurrentProcessInfo[DELTA_TIME];
 
-                const double aux = (1 - alpha_f) * gamma/(beta*Dt);
-                noalias(LHS_Contribution) += aux * DampingMatrix;
+                const double aux1 = aux * gamma/(beta*Dt);
+                noalias(LHS_Contribution) += aux1 * DampingMatrix;
             }
 
             if (norm_frobenius(DampingInducedStiffnessMatrix) > 0.0)
@@ -400,8 +484,8 @@ struct ResidualBasedNewmarkHelper<1>
                 const double beta = CurrentProcessInfo[NEWMARK_BETA];
                 const double Dt = CurrentProcessInfo[DELTA_TIME];
 
-                const double aux = (1 - alpha_f) * gamma/(beta*Dt);
-                noalias(LHS_Contribution) += aux * DampingMatrix;
+                const double aux1 = aux * gamma/(beta*Dt);
+                noalias(LHS_Contribution) += aux1 * DampingMatrix;
             }
 
             if (norm_frobenius(DampingInducedStiffnessMatrix) > 0.0)
@@ -420,8 +504,8 @@ struct ResidualBasedNewmarkHelper<1>
                 const double beta = CurrentProcessInfo[NEWMARK_BETA];
                 const double Dt = CurrentProcessInfo[DELTA_TIME];
 
-                const double aux = (1 - alpha_m) / (beta*pow(Dt, 2));
-                noalias(LHS_Contribution) += aux * MassMatrix;
+                const double aux1 = (1 - alpha_m) / (beta*pow(Dt, 2));
+                noalias(LHS_Contribution) += aux1 * MassMatrix;
             }
 
             if (norm_frobenius(MassInducedStiffnessMatrix) > 0.0)
@@ -438,7 +522,7 @@ struct ResidualBasedNewmarkHelper<1>
     {
         rCurrentElement.CalculateRightHandSide(RHS_Contribution, CurrentProcessInfo);
 
-        rCurrentElement.EquationIdVector(EquationId,CurrentProcessInfo);
+        rCurrentElement.EquationIdVector(EquationId, CurrentProcessInfo);
 
         if (CurrentProcessInfo[QUASI_STATIC_ANALYSIS])
         {
@@ -459,10 +543,145 @@ struct ResidualBasedNewmarkHelper<1>
         typename TEntityType::EquationIdVectorType& EquationId,
         const ProcessInfo& CurrentProcessInfo)
     {
-        KRATOS_ERROR << __FUNCTION__ << " is not implemented. Call CalculateSystemContributions instead.";
+        KRATOS_ERROR << __FUNCTION__ << " is not supported. Call CalculateSystemContributions instead.";
+    }
+}; /* struct ResidualBasedNewmarkHelper<2> */
+
+/**
+ * In this instance of helper (TMassDampingType=3), following assumptions are made:
+ * -    CalculateLocalSystem: K
+ * -    CalculateDampingMatrix: D -> unused
+ * -    CalculateMassMatrix: M -> unused
+ * -    CalculateLocalVelocityContribution: [d(D)/(du)*ud]*d(u)/d(U) + [d(D)/d(ud)*ud + D]*d(ud)/d(U)
+ *              as the left hand side term
+ * -    CalculateLocalAccelerationContribution: [d(M)/(du)*udd]*d(u)/d(U) + M*d(udd)/d(U)
+                as the left hand side term
+ * The element has to deal with time integration, hence it has to access time integration parameters.
+ * An example of this type of element is AD element, then one is refrained to perform the linearization
+ * to obtain the damping- and mass-induced stiffness matrix.
+ */
+template<>
+struct ResidualBasedNewmarkHelper<3>
+{
+    template<class TEntityType, typename LocalSystemMatrixType, typename LocalSystemVectorType>
+    static void CalculateSystemContributions(
+        TEntityType& rCurrentElement,
+        LocalSystemMatrixType& LHS_Contribution,
+        LocalSystemVectorType& RHS_Contribution,
+        typename TEntityType::EquationIdVectorType& EquationId,
+        const ProcessInfo& CurrentProcessInfo)
+    {
+        const double alpha_f = CurrentProcessInfo[NEWMARK_ALPHAF];
+
+        ///
+
+        rCurrentElement.CalculateLocalSystem(LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
+
+        rCurrentElement.EquationIdVector(EquationId, CurrentProcessInfo);
+
+        LHS_Contribution *= (1 - alpha_f);
+
+        if (CurrentProcessInfo[QUASI_STATIC_ANALYSIS])
+        {
+            rCurrentElement.CalculateLocalVelocityContribution(LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
+        }
+        else
+        {
+            rCurrentElement.CalculateLocalVelocityContribution(LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
+
+            rCurrentElement.CalculateLocalAccelerationContribution(LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
+        }
     }
 
-}; /* struct ResidualBasedNewmarkHelper<1> */
+    template<class TEntityType, typename LocalSystemVectorType>
+    static void CalculateRHSContribution(
+        TEntityType& rCurrentElement,
+        LocalSystemVectorType& RHS_Contribution,
+        typename TEntityType::EquationIdVectorType& EquationId,
+        const ProcessInfo& CurrentProcessInfo)
+    {
+        rCurrentElement.CalculateRightHandSide(RHS_Contribution, CurrentProcessInfo);
+
+        rCurrentElement.EquationIdVector(EquationId, CurrentProcessInfo);
+
+        if (CurrentProcessInfo[QUASI_STATIC_ANALYSIS])
+        {
+            rCurrentElement.AddDampingForces(RHS_Contribution, 1.0, CurrentProcessInfo);
+        }
+        else
+        {
+            rCurrentElement.AddDampingForces(RHS_Contribution, 1.0, CurrentProcessInfo);
+
+            rCurrentElement.AddInertiaForces(RHS_Contribution, 1.0, CurrentProcessInfo);
+        }
+    }
+
+    template<class TEntityType, typename LocalSystemMatrixType>
+    static void CalculateLHSContribution(
+        TEntityType& rCurrentElement,
+        LocalSystemMatrixType& LHS_Contribution,
+        typename TEntityType::EquationIdVectorType& EquationId,
+        const ProcessInfo& CurrentProcessInfo)
+    {
+        const double alpha_f = CurrentProcessInfo[NEWMARK_ALPHAF];
+
+        ///
+
+        rCurrentElement.CalculateLeftHandSide(LHS_Contribution, CurrentProcessInfo);
+
+        rCurrentElement.EquationIdVector(EquationId, CurrentProcessInfo);
+
+        LHS_Contribution *= (1 - alpha_f);
+    }
+}; /* struct ResidualBasedNewmarkHelper<3> */
+
+/**
+ * In this instance of helper (TMassDampingType=3), following assumptions are made:
+ * -    CalculateLocalSystem: everything
+ * -    CalculateDampingMatrix: D -> unused
+ * -    CalculateMassMatrix: M -> unused
+ * -    CalculateLocalVelocityContribution: -> unused
+ * -    CalculateLocalAccelerationContribution: -> unused
+ * The element has to deal with time integration all at once in CalculateLocalSystem, hence it has to access time integration parameters.
+ * An example of this type of element is AD element, then one is refrained to perform the linearization to obtain any kind of matrices.
+ */
+template<>
+struct ResidualBasedNewmarkHelper<4>
+{
+    template<class TEntityType, typename LocalSystemMatrixType, typename LocalSystemVectorType>
+    static void CalculateSystemContributions(
+        TEntityType& rCurrentElement,
+        LocalSystemMatrixType& LHS_Contribution,
+        LocalSystemVectorType& RHS_Contribution,
+        typename TEntityType::EquationIdVectorType& EquationId,
+        const ProcessInfo& CurrentProcessInfo)
+    {
+        rCurrentElement.CalculateLocalSystem(LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
+        rCurrentElement.EquationIdVector(EquationId, CurrentProcessInfo);
+    }
+
+    template<class TEntityType, typename LocalSystemVectorType>
+    static void CalculateRHSContribution(
+        TEntityType& rCurrentElement,
+        LocalSystemVectorType& RHS_Contribution,
+        typename TEntityType::EquationIdVectorType& EquationId,
+        const ProcessInfo& CurrentProcessInfo)
+    {
+        rCurrentElement.CalculateRightHandSide(RHS_Contribution, CurrentProcessInfo);
+        rCurrentElement.EquationIdVector(EquationId, CurrentProcessInfo);
+    }
+
+    template<class TEntityType, typename LocalSystemMatrixType>
+    static void CalculateLHSContribution(
+        TEntityType& rCurrentElement,
+        LocalSystemMatrixType& LHS_Contribution,
+        typename TEntityType::EquationIdVectorType& EquationId,
+        const ProcessInfo& CurrentProcessInfo)
+    {
+        rCurrentElement.CalculateLeftHandSide(LHS_Contribution, CurrentProcessInfo);
+        rCurrentElement.EquationIdVector(EquationId, CurrentProcessInfo);
+    }
+}; /* struct ResidualBasedNewmarkHelper<4> */
 
 }  /* namespace Kratos.*/
 

@@ -72,6 +72,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "solving_strategies/schemes/scheme.h"
 #include "structural_application_variables.h"
 #include "custom_elements/prescribed_object.h"
+#include "custom_elements/time_integrable_object.h"
 #include "residualbased_newmark_helper.h"
 // #include "residualbased_scheme_variables_list.h"
 
@@ -94,7 +95,7 @@ namespace Kratos
 /**
  * Implementation of Time Integration scheme based on Generalized-Alpha Method
  */
-template<class TSparseSpace, class TDenseSpace, int TMassDampingType = 0>
+template<class TSparseSpace, class TDenseSpace>
 class ResidualBasedNewmarkScheme : public Scheme<TSparseSpace, TDenseSpace>
 {
 public:
@@ -122,8 +123,6 @@ public:
 
     typedef typename BaseType::LocalSystemMatrixType LocalSystemMatrixType;
 
-    typedef ResidualBasedNewmarkHelper<TMassDampingType> ResidualBasedNewmarkHelperType;
-
     /**
      * Constructor for PURE Newmark scheme
      * @ref Chung&Hulbert: "A time integration algorithm for structural dynamics with improved
@@ -143,7 +142,6 @@ public:
         mIntegrateLoad = false;
 
         std::cout << "PURE Newmark Time Integration Scheme!!!!!!!!!!!!!!!!!!!!!" << " alpha_f= " << mAlpha_f << " alpha_m= " << mAlpha_m << " beta= " << mBeta << " gamma= " << mGamma << std::endl;
-        std::cout << "Nonlinear mass damping: " << TMassDampingType << std::endl;
         //(...)_NULL DOF at the begin of time step, (...)_EINS DOF at the end of time step, (...)
         // DOF at the midpoint of time step, Please recognize that the name of the DOF is (...)
         // while the iteration is done towards the (...)_EINS DOF value at end of time step
@@ -171,7 +169,6 @@ public:
         mIntegrateLoad = false;
 
         std::cout << "Using the Generalized alpha Time Integration Scheme with radius= "<< mDissipationRadius << " alpha_f= " << mAlpha_f << " alpha_m= " << mAlpha_m << " beta= " << mBeta << " gamma= " << mGamma << std::endl;
-        std::cout << "Nonlinear mass damping: " << TMassDampingType << std::endl;
     }
 
     /**
@@ -229,8 +226,6 @@ public:
         {
             KRATOS_ERROR << "Invalid Time integration option " << option;
         }
-
-        std::cout << "Nonlinear mass damping: " << TMassDampingType << std::endl;
     }
 
     /** Destructor.*/
@@ -1563,8 +1558,47 @@ public:
     {
         KRATOS_TRY
 
-        ResidualBasedNewmarkHelperType::CalculateSystemContributions( rCurrentElement,
+        // account for nonlinear mass damping method
+        // here the element must inherit from TimeIntegrableObject in order to work with
+        // this time integration scheme
+        auto nonlinear_mass_damping = NonlinearMassDampingType::UNKNOWN;
+        try
+        {
+            const TimeIntegrableObject& rObject = dynamic_cast<TimeIntegrableObject&>(rCurrentElement);
+            nonlinear_mass_damping = rObject.GetNonlinearMassDampingApproach();
+        }
+        catch (std::bad_cast& bc)
+        {
+            KRATOS_ERROR << "Element " << rCurrentElement.Id() << " is not derived from TimeIntegrableObject";
+        }
+
+        switch(nonlinear_mass_damping)
+        {
+        case NonlinearMassDampingType::NO_MASS_DAMPING:
+            ResidualBasedNewmarkHelper<0>::CalculateSystemContributions( rCurrentElement,
                 LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo );
+            break;
+        case NonlinearMassDampingType::LINEAR_MASS_DAMPING:
+            ResidualBasedNewmarkHelper<1>::CalculateSystemContributions( rCurrentElement,
+                LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo );
+            break;
+        case NonlinearMassDampingType::NONLINEAR_MASS_DAMPING:
+            ResidualBasedNewmarkHelper<2>::CalculateSystemContributions( rCurrentElement,
+                LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo );
+            break;
+        case NonlinearMassDampingType::REDUCED_NONLINEAR_MASS_DAMPING:
+            ResidualBasedNewmarkHelper<3>::CalculateSystemContributions( rCurrentElement,
+                LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo );
+            break;
+        case NonlinearMassDampingType::TOTAL_NONLINEAR_MASS_DAMPING:
+            ResidualBasedNewmarkHelper<4>::CalculateSystemContributions( rCurrentElement,
+                LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo );
+            break;
+        default:
+            KRATOS_ERROR << "Nonlinear mass damping approach " << nonlinear_mass_damping
+                         << " of Element " << rCurrentElement.Id() << " is not supported";
+            break;
+        }
 
         // account for prescription of dofs
         try
@@ -1580,36 +1614,6 @@ public:
         KRATOS_CATCH("")
     }
 
-    void CalculateRHSContribution(
-        Element& rCurrentElement,
-        LocalSystemVectorType& RHS_Contribution,
-        Element::EquationIdVectorType& EquationId,
-        const ProcessInfo& CurrentProcessInfo) override
-    {
-        KRATOS_TRY
-
-        ResidualBasedNewmarkHelperType::CalculateRHSContribution( rCurrentElement,
-                RHS_Contribution, EquationId, CurrentProcessInfo );
-
-        KRATOS_CATCH("")
-    }
-
-
-    void CalculateLHSContribution(
-        Element& rCurrentElement,
-        LocalSystemMatrixType& LHS_Contribution,
-        Element::EquationIdVectorType& EquationId,
-        const ProcessInfo& CurrentProcessInfo) override
-    {
-        KRATOS_TRY
-
-        ResidualBasedNewmarkHelperType::CalculateLHSContribution( rCurrentElement,
-                LHS_Contribution, EquationId, CurrentProcessInfo );
-
-        KRATOS_CATCH("")
-    }
-
-
     void CalculateSystemContributions(
         Condition& rCurrentCondition,
         LocalSystemMatrixType& LHS_Contribution,
@@ -1619,42 +1623,49 @@ public:
     {
         KRATOS_TRY
 
-        ResidualBasedNewmarkHelperType::CalculateSystemContributions( rCurrentCondition,
+        // If the condition does not explicit return a nonlinear mass damping method, it will
+        // be assumed as static condition.
+        auto nonlinear_mass_damping = NonlinearMassDampingType::NO_MASS_DAMPING;
+        try
+        {
+            const TimeIntegrableObject& rObject = dynamic_cast<TimeIntegrableObject&>(rCurrentCondition);
+            nonlinear_mass_damping = rObject.GetNonlinearMassDampingApproach();
+        }
+        catch (std::bad_cast& bc)
+        {
+            // DO NOTHING
+        }
+
+        switch(nonlinear_mass_damping)
+        {
+        case NonlinearMassDampingType::NO_MASS_DAMPING:
+            ResidualBasedNewmarkHelper<0>::CalculateSystemContributions( rCurrentCondition,
                 LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo );
+            break;
+        case NonlinearMassDampingType::LINEAR_MASS_DAMPING:
+            ResidualBasedNewmarkHelper<1>::CalculateSystemContributions( rCurrentCondition,
+                LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo );
+            break;
+        case NonlinearMassDampingType::NONLINEAR_MASS_DAMPING:
+            ResidualBasedNewmarkHelper<2>::CalculateSystemContributions( rCurrentCondition,
+                LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo );
+            break;
+        case NonlinearMassDampingType::REDUCED_NONLINEAR_MASS_DAMPING:
+            ResidualBasedNewmarkHelper<3>::CalculateSystemContributions( rCurrentCondition,
+                LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo );
+            break;
+        case NonlinearMassDampingType::TOTAL_NONLINEAR_MASS_DAMPING:
+            ResidualBasedNewmarkHelper<4>::CalculateSystemContributions( rCurrentCondition,
+                LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo );
+            break;
+        default:
+            KRATOS_ERROR << "Nonlinear mass damping approach " << nonlinear_mass_damping
+                         << " of Condition " << rCurrentCondition.Id() << " is not supported";
+            break;
+        }
 
         KRATOS_CATCH("")
     }
-
-
-    void CalculateLHSContribution(
-        Condition& rCurrentCondition,
-        LocalSystemMatrixType& LHS_Contribution,
-        Condition::EquationIdVectorType& EquationId,
-        const ProcessInfo& CurrentProcessInfo) override
-    {
-        KRATOS_TRY
-
-        ResidualBasedNewmarkHelperType::CalculateLHSContribution( rCurrentCondition,
-                LHS_Contribution, EquationId, CurrentProcessInfo );
-
-        KRATOS_CATCH("")
-    }
-
-
-    void CalculateRHSContribution(
-        Condition& rCurrentCondition,
-        LocalSystemVectorType& RHS_Contribution,
-        Condition::EquationIdVectorType& EquationId,
-        const ProcessInfo& CurrentProcessInfo) override
-    {
-        KRATOS_TRY
-
-        ResidualBasedNewmarkHelperType::CalculateRHSContribution( rCurrentCondition,
-                RHS_Contribution, EquationId, CurrentProcessInfo );
-
-        KRATOS_CATCH("")
-    }
-
 
     void UpdateForces(ModelPart& r_model_part )
     {
@@ -1694,6 +1705,7 @@ public:
     /**@name Inquiry */
     /*@{ */
 
+    /*@} */
 
     ///@name Input and output
     ///@{
@@ -1702,7 +1714,7 @@ public:
     std::string Info() const override
     {
         std::stringstream ss;
-        ss << "ResidualBasedNewmarkScheme<" << TMassDampingType << ">";
+        ss << "ResidualBasedNewmarkScheme";
         return ss.str();
     }
 

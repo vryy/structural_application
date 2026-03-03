@@ -1228,60 +1228,6 @@ namespace Kratos
         KRATOS_CATCH( "" )
     }
 
-    template<typename TNodeType>
-    void BaseKinematicLinear<TNodeType>::AddInertiaForces(VectorType& rRightHandSideVector, DataType coeff, const ProcessInfo& rCurrentProcessInfo)
-    {
-        VectorType Acceleration;
-        this->GetSecondDerivativesVector(Acceleration, 0);
-
-        MatrixType MassMatrix;
-        this->CalculateMassMatrix(MassMatrix, rCurrentProcessInfo);
-
-        if (coeff == 1.0)
-            noalias(rRightHandSideVector) -= prod(MassMatrix, Acceleration);
-        else
-            noalias(rRightHandSideVector) -= coeff * prod(MassMatrix, Acceleration);
-    }
-
-    template<typename TNodeType>
-    void BaseKinematicLinear<TNodeType>::AddDampingForces(VectorType& rRightHandSideVector, DataType coeff, const ProcessInfo& rCurrentProcessInfo)
-    {
-        VectorType Velocity;
-        this->GetFirstDerivativesVector(Velocity, 0);
-
-        MatrixType DampMatrix;
-        this->CalculateDampingMatrix(DampMatrix, rCurrentProcessInfo);
-
-        if (coeff == 1.0)
-            noalias(rRightHandSideVector) -= prod(DampMatrix, Velocity);
-        else
-            noalias(rRightHandSideVector) -= coeff * prod(DampMatrix, Velocity);
-    }
-
-    template<typename TNodeType>
-    void BaseKinematicLinear<TNodeType>::CalculateLocalAccelerationContribution(MatrixType& rMassMatrix, MatrixType& rMassInducedStiffnessMatrix,
-            VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
-    {
-        VectorType Acceleration;
-        this->GetSecondDerivativesVector(Acceleration, 0);
-
-        this->CalculateMassMatrix(rMassMatrix, rCurrentProcessInfo);
-
-        noalias(rRightHandSideVector) -= prod(rMassMatrix, Acceleration);
-    }
-
-    template<typename TNodeType>
-    void BaseKinematicLinear<TNodeType>::CalculateLocalVelocityContribution(MatrixType& rDampMatrix, MatrixType& rDampInducedStiffnessMatrix,
-            VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
-    {
-        VectorType Velocity;
-        this->GetFirstDerivativesVector(Velocity, 0);
-
-        this->CalculateDampingMatrix(rDampMatrix, rCurrentProcessInfo);
-
-        noalias(rRightHandSideVector) -= prod(rDampMatrix, Velocity);
-    }
-
     //************************************************************************************
     //************************************************************************************
     template<typename TNodeType>

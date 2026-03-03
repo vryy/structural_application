@@ -69,6 +69,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/variables.h"
 #include "includes/constitutive_law.h"
 #include "custom_elements/prescribed_object.h"
+#include "custom_elements/time_integrable_object.h"
 
 
 namespace Kratos
@@ -103,7 +104,7 @@ namespace Kratos
  * It is noted that, this element is only compatible with symmetric constitutive law (i.e C_ijkl=C_jikl=C_ijlk=C_klij)
  * Reference: D. Kuhl, Computational Dynamics lecture note
  */
-class KRATOS_API(STRUCTURAL_APPLICATION) TotalLagrangian : public Element, public PrescribedObject
+class KRATOS_API(STRUCTURAL_APPLICATION) TotalLagrangian : public Element, public PrescribedObject, public TimeIntegrableObject
 {
 public:
     ///@name Type Definitions
@@ -264,6 +265,12 @@ public:
     ///@}
     ///@name Inquiry
     ///@{
+
+    NonlinearMassDampingType GetNonlinearMassDampingApproach() const override
+    {
+        return NonlinearMassDampingType::LINEAR_MASS_DAMPING;
+    }
+
     ///@}
     ///@name Input and output
     ///@{

@@ -60,6 +60,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/ublas_interface.h"
 #include "includes/variables.h"
 #include "custom_elements/prescribed_object.h"
+#include "custom_elements/time_integrable_object.h"
 
 namespace Kratos
 {
@@ -88,7 +89,7 @@ namespace Kratos
  * Reference:
  *  Kuhl and Crisfield, Energy-Conserving and Decaying Algorithms in Nonlinear Structural Dynamics, IJNME, 1999.
  */
-class CrisfieldTrussElement : public Element, public PrescribedObject
+class CrisfieldTrussElement : public Element, public PrescribedObject, public TimeIntegrableObject
 {
 public:
     ///@name Type Definitions
@@ -284,6 +285,10 @@ public:
     ///@name Inquiry
     ///@{
 
+    NonlinearMassDampingType GetNonlinearMassDampingApproach() const override
+    {
+        return NonlinearMassDampingType::LINEAR_MASS_DAMPING;
+    }
 
     ///@}
     ///@name Input and output

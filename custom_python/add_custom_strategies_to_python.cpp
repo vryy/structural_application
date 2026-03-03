@@ -131,9 +131,7 @@ void AddCustomStrategiesToPython()
     typedef Scheme< SparseSpaceType, LocalSpaceType > BaseSchemeType;
     typedef ResidualBasedIncrementalUpdateStaticDeactivationScheme< SparseSpaceType, LocalSpaceType > ResidualBasedIncrementalUpdateStaticDeactivationSchemeType;
     typedef ResidualBasedNewmarkScheme< SparseSpaceType, LocalSpaceType > ResidualBasedNewmarkSchemeType;
-    typedef ResidualBasedNewmarkScheme< SparseSpaceType, LocalSpaceType, 1 > ResidualBasedNonlinearMassDampingNewmarkSchemeType;
     typedef ResidualBasedThetaScheme< SparseSpaceType, LocalSpaceType > ResidualBasedThetaSchemeType;
-    typedef ResidualBasedThetaScheme< SparseSpaceType, LocalSpaceType, 1 > ResidualBasedNonlinearMassDampingThetaSchemeType;
     typedef ResidualBasedStateBasedThetaScheme< SparseSpaceType, LocalSpaceType > ResidualBasedStateBasedThetaSchemeType;
     typedef ResidualBasedCentralDifferenceScheme< SparseSpaceType, LocalSpaceType > ResidualBasedCentralDifferenceSchemeType;
     typedef ResidualBasedAccBasedForwardEulerScheme< SparseSpaceType, LocalSpaceType > ResidualBasedAccBasedForwardEulerSchemeType;
@@ -171,19 +169,6 @@ void AddCustomStrategiesToPython()
             .def("UpdateForces", &ResidualBasedNewmarkSchemeType::UpdateForces)
             ;
 
-    class_< ResidualBasedNonlinearMassDampingNewmarkSchemeType,
-            bases< BaseSchemeType >, boost::noncopyable >
-            (
-                "ResidualBasedNonlinearMassDampingNewmarkScheme", init< double >()
-            )
-            .def(init<>())
-            .def(init<int, double>())
-            .def("SetIntegrateRotation", &ResidualBasedNonlinearMassDampingNewmarkSchemeType::SetIntegrateRotation)
-            .def("SetIntegrateMultiplier", &ResidualBasedNonlinearMassDampingNewmarkSchemeType::SetIntegrateMultiplier)
-            .def("SetIntegrateLoad", &ResidualBasedNonlinearMassDampingNewmarkSchemeType::SetIntegrateLoad)
-            .def("UpdateForces", &ResidualBasedNonlinearMassDampingNewmarkSchemeType::UpdateForces)
-            ;
-
     class_< ResidualBasedThetaSchemeType,
             bases< BaseSchemeType >, boost::noncopyable >
             (
@@ -194,18 +179,6 @@ void AddCustomStrategiesToPython()
             .def("SetIntegrateMultiplier", &ResidualBasedThetaSchemeType::SetIntegrateMultiplier)
             .def("SetIntegrateLoad", &ResidualBasedThetaSchemeType::SetIntegrateLoad)
             .def("UpdateForces", &ResidualBasedThetaSchemeType::UpdateForces)
-            ;
-
-    class_< ResidualBasedNonlinearMassDampingThetaSchemeType,
-            bases< BaseSchemeType >, boost::noncopyable >
-            (
-                "ResidualBasedNonlinearMassDampingThetaScheme", init< double >()
-            )
-            .def(init<>())
-            .def("SetIntegrateRotation", &ResidualBasedNonlinearMassDampingThetaSchemeType::SetIntegrateRotation)
-            .def("SetIntegrateMultiplier", &ResidualBasedNonlinearMassDampingThetaSchemeType::SetIntegrateMultiplier)
-            .def("SetIntegrateLoad", &ResidualBasedNonlinearMassDampingThetaSchemeType::SetIntegrateLoad)
-            .def("UpdateForces", &ResidualBasedNonlinearMassDampingThetaSchemeType::UpdateForces)
             ;
 
     class_< ResidualBasedStateBasedThetaSchemeType,

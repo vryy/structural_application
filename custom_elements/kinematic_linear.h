@@ -67,6 +67,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/variables.h"
 #include "includes/constitutive_law.h"
 #include "custom_elements/prescribed_object.h"
+#include "custom_elements/time_integrable_object.h"
 
 
 namespace Kratos
@@ -99,7 +100,8 @@ namespace Kratos
  * by the MoveMeshFlag.
  */
 template<typename TNodeType>
-class KRATOS_API(STRUCTURAL_APPLICATION) BaseKinematicLinear : public BaseElement<TNodeType>, public BasePrescribedObject<TNodeType>
+class KRATOS_API(STRUCTURAL_APPLICATION) BaseKinematicLinear
+: public BaseElement<TNodeType>, public BasePrescribedObject<TNodeType>, public TimeIntegrableObject
 {
 
 public:
@@ -198,19 +200,6 @@ public:
 
     void CalculateDampingMatrix( MatrixType& rDampMatrix, const ProcessInfo& rCurrentProcessInfo ) override;
 
-    ///@brief Routines to enable the element to use with nonlinear mass damping time integration scheme
-    ///@{
-
-    void AddInertiaForces(VectorType& rRightHandSideVector, DataType coeff, const ProcessInfo& rCurrentProcessInfo) override;
-
-    void AddDampingForces(VectorType& rRightHandSideVector, DataType coeff, const ProcessInfo& rCurrentProcessInfo) override;
-
-    void CalculateLocalAccelerationContribution(MatrixType& rMassMatrix, MatrixType& rMassInducedStiffnessMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
-
-    void CalculateLocalVelocityContribution(MatrixType& rDampMatrix, MatrixType& rDampInducedStiffnessMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
-
-    ///@}
-
     void FinalizeSolutionStep( const ProcessInfo& CurrentProcessInfo ) override;
 
     void InitializeSolutionStep( const ProcessInfo& CurrentProcessInfo ) override;
@@ -266,6 +255,10 @@ public:
     ///@name Inquiry
     ///@{
 
+    NonlinearMassDampingType GetNonlinearMassDampingApproach() const override
+    {
+        return NonlinearMassDampingType::LINEAR_MASS_DAMPING;
+    }
 
     ///@}
     ///@name Input and output

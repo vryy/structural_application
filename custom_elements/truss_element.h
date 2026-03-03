@@ -67,6 +67,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/ublas_interface.h"
 #include "includes/variables.h"
 #include "custom_elements/prescribed_object.h"
+#include "custom_elements/time_integrable_object.h"
 
 
 namespace Kratos
@@ -94,7 +95,7 @@ namespace Kratos
 /// Short class definition.
 /** Detail class definition.
  */
-class TrussElement : public Element, public PrescribedObject
+class TrussElement : public Element, public PrescribedObject, public TimeIntegrableObject
 {
 public:
     ///@name Type Definitions
@@ -196,6 +197,10 @@ public:
     ///@name Inquiry
     ///@{
 
+    NonlinearMassDampingType GetNonlinearMassDampingApproach() const override
+    {
+        return NonlinearMassDampingType::LINEAR_MASS_DAMPING;
+    }
 
     ///@}
     ///@name Input and output

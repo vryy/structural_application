@@ -134,14 +134,6 @@ public:
     void CalculateRightHandSide( VectorType& rRightHandSideVector,
                                  const ProcessInfo& rCurrentProcessInfo) final;
 
-    void CalculateMassMatrix(
-        MatrixType& rMassMatrix,
-        const ProcessInfo& rCurrentProcessInfo ) final;
-
-    void CalculateDampingMatrix(
-        MatrixType& rDampingMatrix,
-        const ProcessInfo& rCurrentProcessInfo ) final;
-
     void EquationIdVector( EquationIdVectorType& rResult,
                            const ProcessInfo& rCurrentProcessInfo) const final;
 

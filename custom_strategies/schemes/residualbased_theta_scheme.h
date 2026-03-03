@@ -61,6 +61,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/kratos_flags.h"
 #include "solving_strategies/schemes/scheme.h"
 #include "includes/variables.h"
+#include "custom_elements/time_integrable_object.h"
 #include "structural_application_variables.h"
 
 namespace Kratos
@@ -85,7 +86,7 @@ Overview of the interpolation:
     ud = (u_(n+1) - u_n) / dt
     udd = (u_(n+1) - u_n)/dt^2 - ud_n/dt
  */
-template<class TSparseSpace, class TDenseSpace, int TMassDampingType = 0>
+template<class TSparseSpace, class TDenseSpace>
 class ResidualBasedThetaScheme : public Scheme<TSparseSpace,TDenseSpace>
 {
 public:
@@ -1226,6 +1227,318 @@ public:
         }
     }
 
+    void CalculateRHSContribution(
+        Element& rCurrentElement,
+        LocalSystemVectorType& RHS_Contribution,
+        Element::EquationIdVectorType& EquationId,
+        const ProcessInfo& CurrentProcessInfo) override
+    {
+        KRATOS_TRY
+
+        rCurrentElement.CalculateRightHandSide(RHS_Contribution, CurrentProcessInfo);
+        rCurrentElement.EquationIdVector(EquationId, CurrentProcessInfo);
+
+        KRATOS_CATCH("")
+    }
+
+    void CalculateSystemContributions(
+        Element& rCurrentElement,
+        LocalSystemMatrixType& LHS_Contribution,
+        LocalSystemVectorType& RHS_Contribution,
+        Element::EquationIdVectorType& EquationId,
+        const ProcessInfo& CurrentProcessInfo) override
+    {
+        KRATOS_TRY
+
+        // account for nonlinear mass damping method
+        auto nonlinear_mass_damping = NonlinearMassDampingType::UNKNOWN;
+        try
+        {
+            const TimeIntegrableObject& rObject = dynamic_cast<TimeIntegrableObject&>(rCurrentElement);
+            nonlinear_mass_damping = rObject.GetNonlinearMassDampingApproach();
+        }
+        catch (std::bad_cast& bc)
+        {
+            KRATOS_ERROR << "Element " << rCurrentElement.Id() << " is not derived from TimeIntegrableObject";
+        }
+
+        switch(nonlinear_mass_damping)
+        {
+        case NonlinearMassDampingType::NO_MASS_DAMPING:
+            CalculateSystemContributionsNoMassDamping( rCurrentElement,
+                LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo );
+            break;
+        case NonlinearMassDampingType::LINEAR_MASS_DAMPING:
+            CalculateSystemContributionsLinearMassDamping(rCurrentElement, LHS_Contribution,
+                    RHS_Contribution, EquationId, CurrentProcessInfo);
+            break;
+        case NonlinearMassDampingType::NONLINEAR_MASS_DAMPING:
+            CalculateSystemContributionsNonlinearMassDamping(rCurrentElement, LHS_Contribution,
+                    RHS_Contribution, EquationId, CurrentProcessInfo);
+            break;
+        case NonlinearMassDampingType::REDUCED_NONLINEAR_MASS_DAMPING:
+            CalculateSystemContributionsReducedNonlinearMassDamping( rCurrentElement,
+                LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo );
+            break;
+        case NonlinearMassDampingType::TOTAL_NONLINEAR_MASS_DAMPING:
+            CalculateSystemContributionsTotalNonlinearMassDamping( rCurrentElement,
+                LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo );
+            break;
+        default:
+            KRATOS_ERROR << "Nonlinear mass damping approach " << nonlinear_mass_damping
+                         << " of Element " << rCurrentElement.Id() << " is not supported";
+            break;
+        }
+
+        // account for prescription of dofs
+        try
+        {
+            const PrescribedObject& rObject = dynamic_cast<PrescribedObject&>(rCurrentElement);
+            rObject.ApplyPrescribedDofs(LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
+        }
+        catch (std::bad_cast& bc)
+        {
+            // DO NOTHING
+        }
+
+        KRATOS_CATCH("")
+    }
+
+    void CalculateSystemContributions(
+        Condition& rCurrentCondition,
+        LocalSystemMatrixType& LHS_Contribution,
+        LocalSystemVectorType& RHS_Contribution,
+        Condition::EquationIdVectorType& EquationId,
+        const ProcessInfo& CurrentProcessInfo) override
+    {
+        KRATOS_TRY
+
+        // account for nonlinear mass damping method
+        auto nonlinear_mass_damping = NonlinearMassDampingType::NO_MASS_DAMPING;
+        try
+        {
+            const TimeIntegrableObject& rObject = dynamic_cast<TimeIntegrableObject&>(rCurrentCondition);
+            nonlinear_mass_damping = rObject.GetNonlinearMassDampingApproach();
+        }
+        catch (std::bad_cast& bc)
+        {
+            // DO NOTHING
+        }
+
+        switch(nonlinear_mass_damping)
+        {
+        case NonlinearMassDampingType::NO_MASS_DAMPING:
+            CalculateSystemContributionsNoMassDamping( rCurrentCondition,
+                LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo );
+            break;
+        case NonlinearMassDampingType::LINEAR_MASS_DAMPING:
+            CalculateSystemContributionsLinearMassDamping(rCurrentCondition, LHS_Contribution,
+                    RHS_Contribution, EquationId, CurrentProcessInfo);
+            break;
+        case NonlinearMassDampingType::NONLINEAR_MASS_DAMPING:
+            CalculateSystemContributionsNonlinearMassDamping(rCurrentCondition, LHS_Contribution,
+                    RHS_Contribution, EquationId, CurrentProcessInfo);
+            break;
+        case NonlinearMassDampingType::REDUCED_NONLINEAR_MASS_DAMPING:
+            CalculateSystemContributionsReducedNonlinearMassDamping( rCurrentCondition,
+                LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo );
+            break;
+        case NonlinearMassDampingType::TOTAL_NONLINEAR_MASS_DAMPING:
+            CalculateSystemContributionsTotalNonlinearMassDamping( rCurrentCondition,
+                LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo );
+            break;
+        default:
+            KRATOS_ERROR << "Nonlinear mass damping approach " << nonlinear_mass_damping
+                         << " of Condition " << rCurrentCondition.Id() << " is not supported";
+            break;
+        }
+
+        KRATOS_CATCH("")
+    }
+
+    /**
+     */
+    void CalculateRHSContribution(
+        Condition& rCurrentCondition,
+        LocalSystemVectorType& RHS_Contribution,
+        Condition::EquationIdVectorType& EquationId,
+        const ProcessInfo& CurrentProcessInfo) override
+    {
+        KRATOS_TRY
+
+        rCurrentCondition.CalculateRightHandSide(RHS_Contribution,CurrentProcessInfo);
+        rCurrentCondition.EquationIdVector(EquationId,CurrentProcessInfo);
+
+        KRATOS_CATCH("")
+    }
+
+    void UpdateForces(ModelPart& r_model_part )
+    {
+        KRATOS_TRY
+
+        const ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
+
+        const double Dt = CurrentProcessInfo[DELTA_TIME];
+
+        //Update nodal values and nodal velocities at mAlpha_f
+        for(ModelPart::NodeIterator i = r_model_part.NodesBegin() ; i != r_model_part.NodesEnd() ; i++)
+        {
+            if( i->SolutionStepsDataHas(FACE_LOAD) )
+            {
+                noalias( i->GetSolutionStepValue(FACE_LOAD) )
+                = (1.0-mTheta)*i->GetSolutionStepValue(FACE_LOAD_NULL)
+                  + mTheta*i->GetSolutionStepValue(FACE_LOAD_EINS);
+            }
+
+            if( i->SolutionStepsDataHas(FORCE) )
+            {
+                noalias( i->GetSolutionStepValue(FORCE) )
+                = (1.0-mTheta)*i->GetSolutionStepValue(FORCE_NULL)
+                  + mTheta*i->GetSolutionStepValue(FORCE_EINS);
+            }
+        }
+
+        KRATOS_CATCH("")
+    }
+
+    /*@} */
+    /**@name Access */
+    /*@{ */
+
+
+    /*@} */
+    /**@name Inquiry */
+    /*@{ */
+
+
+    /*@} */
+    /**@name Friends */
+    /*@{ */
+
+    ///@name Input and output
+    ///@{
+
+    /// Turn back information as a string.
+    std::string Info() const override
+    {
+        std::stringstream ss;
+        ss << "ResidualBasedThetaScheme";
+        return ss.str();
+    }
+
+    /// Print object's data.
+    void PrintData(std::ostream& rOStream) const override
+    {
+        rOStream << " theta: " << mTheta;
+    }
+
+    ///@}
+
+protected:
+
+    template<typename TEntityType>
+    void AddInertiaToRHS(
+        const TEntityType& rCurrentElement,
+        LocalSystemVectorType& RHS_Contribution,
+        const LocalSystemMatrixType& MassMatrix,
+        const ProcessInfo& CurrentProcessInfo) const
+    {
+        // adding inertia contribution
+        Vector acceleration;
+        rCurrentElement.GetSecondDerivativesVector(acceleration, 0);
+        noalias(RHS_Contribution) -= prod(MassMatrix, acceleration );
+    }
+
+    template<typename TEntityType>
+    void AddDampingToRHS(
+        const TEntityType& rCurrentElement,
+        LocalSystemVectorType& RHS_Contribution,
+        const LocalSystemMatrixType& DampingMatrix,
+        const ProcessInfo& CurrentProcessInfo) const
+    {
+        // adding damping contribution
+        Vector velocity;
+        rCurrentElement.GetFirstDerivativesVector(velocity, 0);
+        noalias(RHS_Contribution) -= prod(DampingMatrix, velocity );
+    }
+
+    void AssembleTimeSpaceLHS_QuasiStatic(
+        LocalSystemMatrixType& LHS_Contribution,
+        const LocalSystemMatrixType& DampingMatrix,
+        const ProcessInfo& CurrentProcessInfo) const
+    {
+        const double Dt = CurrentProcessInfo[DELTA_TIME];
+        double aux;
+
+        // adding stiffness contribution to the dynamic stiffness
+        aux = mTheta;
+        LHS_Contribution *= aux;
+
+        // adding damping contribution to the dynamic stiffness
+        aux = 1.0/Dt;
+        noalias(LHS_Contribution) += aux * DampingMatrix;
+    }
+
+    void AssembleTimeSpaceLHS_Dynamics(
+        LocalSystemMatrixType& LHS_Contribution,
+        const LocalSystemMatrixType& DampingMatrix,
+        const LocalSystemMatrixType& MassMatrix,
+        const ProcessInfo& CurrentProcessInfo) const
+    {
+        const double Dt = CurrentProcessInfo[DELTA_TIME];
+        double aux;
+
+        // adding stiffness contribution to the dynamic stiffness
+        aux = mTheta;
+        LHS_Contribution *= aux;
+
+        // adding damping contribution to the dynamic stiffness
+        aux = 1.0/Dt;
+        noalias(LHS_Contribution) += aux * DampingMatrix;
+
+        // adding mass contribution to the dynamic stiffness
+        aux = 1.0/pow(Dt, 2);
+        noalias(LHS_Contribution) += aux * MassMatrix;
+    }
+
+    /*@} */
+    /**@name Protected member Variables */
+    /*@{ */
+    /*@} */
+    /**@name Protected Operators*/
+    /*@{ */
+    /*@} */
+    /**@name Protected Operations*/
+    /*@{ */
+    /*@} */
+    /**@name Protected  Access */
+    /*@{ */
+    /*@} */
+    /**@name Protected Inquiry */
+    /*@{ */
+    /*@} */
+    /**@name Protected LifeCycle */
+    /*@{ */
+private:
+    /**@name Static Member Variables */
+    /*@{ */
+    /*@} */
+    /**@name Member Variables */
+    /*@{ */
+
+    double mTheta;
+
+    bool mIntegrateRotation;
+    bool mIntegrateMultiplier;
+    bool mIntegrateLoad;
+
+    /*@} */
+    /**@name Private Operators*/
+    /*@{ */
+    /*@} */
+    /**@name Private Operations*/
+    /*@{ */
+
     template<typename TEntityType>
     void CalculateSystemContributionsLinearMassDamping(
         TEntityType& rCurrentElement,
@@ -1356,248 +1669,59 @@ public:
         KRATOS_CATCH("")
     }
 
-    void CalculateRHSContribution(
-        Element& rCurrentElement,
+    template<typename TEntityType>
+    void CalculateSystemContributionsReducedNonlinearMassDamping(
+        TEntityType& rCurrentElement,
+        LocalSystemMatrixType& LHS_Contribution,
         LocalSystemVectorType& RHS_Contribution,
-        Element::EquationIdVectorType& EquationId,
-        const ProcessInfo& CurrentProcessInfo) override
+        typename TEntityType::EquationIdVectorType& EquationId,
+        const ProcessInfo& CurrentProcessInfo) const
     {
-        KRATOS_TRY
+        ///
 
-        rCurrentElement.CalculateRightHandSide(RHS_Contribution, CurrentProcessInfo);
+        rCurrentElement.CalculateLocalSystem(LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
+
         rCurrentElement.EquationIdVector(EquationId, CurrentProcessInfo);
 
-        KRATOS_CATCH("")
-    }
+        LHS_Contribution *= mTheta;
 
-    void CalculateSystemContributions(
-        Element& rCurrentElement,
-        LocalSystemMatrixType& LHS_Contribution,
-        LocalSystemVectorType& RHS_Contribution,
-        Element::EquationIdVectorType& EquationId,
-        const ProcessInfo& CurrentProcessInfo) override
-    {
-        KRATOS_TRY
-
-        if constexpr (TMassDampingType == 0)
+        if (CurrentProcessInfo[QUASI_STATIC_ANALYSIS])
         {
-            CalculateSystemContributionsLinearMassDamping(rCurrentElement, LHS_Contribution,
-                    RHS_Contribution, EquationId, CurrentProcessInfo);
+            rCurrentElement.CalculateLocalVelocityContribution(LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
         }
-        else if constexpr (TMassDampingType == 1)
+        else
         {
-            CalculateSystemContributionsNonlinearMassDamping(rCurrentElement, LHS_Contribution,
-                    RHS_Contribution, EquationId, CurrentProcessInfo);
+            rCurrentElement.CalculateLocalVelocityContribution(LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
+
+            rCurrentElement.CalculateLocalAccelerationContribution(LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
         }
-
-        KRATOS_CATCH("")
-    }
-
-    void CalculateSystemContributions(
-        Condition& rCurrentCondition,
-        LocalSystemMatrixType& LHS_Contribution,
-        LocalSystemVectorType& RHS_Contribution,
-        Condition::EquationIdVectorType& EquationId,
-        const ProcessInfo& CurrentProcessInfo) override
-    {
-        KRATOS_TRY
-
-        if constexpr (TMassDampingType == 0)
-        {
-            CalculateSystemContributionsLinearMassDamping(rCurrentCondition, LHS_Contribution,
-                    RHS_Contribution, EquationId, CurrentProcessInfo);
-        }
-        else if constexpr (TMassDampingType == 1)
-        {
-            CalculateSystemContributionsNonlinearMassDamping(rCurrentCondition, LHS_Contribution,
-                    RHS_Contribution, EquationId, CurrentProcessInfo);
-        }
-
-        KRATOS_CATCH("")
-    }
-
-    /**
-     */
-    void CalculateRHSContribution(
-        Condition& rCurrentCondition,
-        LocalSystemVectorType& RHS_Contribution,
-        Condition::EquationIdVectorType& EquationId,
-        const ProcessInfo& CurrentProcessInfo) override
-    {
-        KRATOS_TRY
-
-        rCurrentCondition.CalculateRightHandSide(RHS_Contribution,CurrentProcessInfo);
-        rCurrentCondition.EquationIdVector(EquationId,CurrentProcessInfo);
-
-        KRATOS_CATCH("")
-    }
-
-    void UpdateForces(ModelPart& r_model_part )
-    {
-        KRATOS_TRY
-
-        const ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
-
-        const double Dt = CurrentProcessInfo[DELTA_TIME];
-
-        //Update nodal values and nodal velocities at mAlpha_f
-        for(ModelPart::NodeIterator i = r_model_part.NodesBegin() ; i != r_model_part.NodesEnd() ; i++)
-        {
-            if( i->SolutionStepsDataHas(FACE_LOAD) )
-            {
-                noalias( i->GetSolutionStepValue(FACE_LOAD) )
-                = (1.0-mTheta)*i->GetSolutionStepValue(FACE_LOAD_NULL)
-                  + mTheta*i->GetSolutionStepValue(FACE_LOAD_EINS);
-            }
-
-            if( i->SolutionStepsDataHas(FORCE) )
-            {
-                noalias( i->GetSolutionStepValue(FORCE) )
-                = (1.0-mTheta)*i->GetSolutionStepValue(FORCE_NULL)
-                  + mTheta*i->GetSolutionStepValue(FORCE_EINS);
-            }
-        }
-
-        KRATOS_CATCH("")
-    }
-
-    /*@} */
-    /**@name Access */
-    /*@{ */
-
-
-    /*@} */
-    /**@name Inquiry */
-    /*@{ */
-
-
-    /*@} */
-    /**@name Friends */
-    /*@{ */
-
-    ///@name Input and output
-    ///@{
-
-    /// Turn back information as a string.
-    std::string Info() const override
-    {
-        std::stringstream ss;
-        ss << "ResidualBasedThetaScheme<" << TMassDampingType << ">";
-        return ss.str();
-    }
-
-    /// Print object's data.
-    void PrintData(std::ostream& rOStream) const override
-    {
-        rOStream << " theta: " << mTheta;
-    }
-
-    ///@}
-
-protected:
-
-    template<typename TEntityType>
-    void AddInertiaToRHS(
-        const TEntityType& rCurrentElement,
-        LocalSystemVectorType& RHS_Contribution,
-        const LocalSystemMatrixType& MassMatrix,
-        const ProcessInfo& CurrentProcessInfo) const
-    {
-        // adding inertia contribution
-        Vector acceleration;
-        rCurrentElement.GetSecondDerivativesVector(acceleration, 0);
-        noalias(RHS_Contribution) -= prod(MassMatrix, acceleration );
     }
 
     template<typename TEntityType>
-    void AddDampingToRHS(
-        const TEntityType& rCurrentElement,
+    void CalculateSystemContributionsTotalNonlinearMassDamping(
+        TEntityType& rCurrentElement,
+        LocalSystemMatrixType& LHS_Contribution,
         LocalSystemVectorType& RHS_Contribution,
-        const LocalSystemMatrixType& DampingMatrix,
+        typename TEntityType::EquationIdVectorType& EquationId,
         const ProcessInfo& CurrentProcessInfo) const
     {
-        // adding damping contribution
-        Vector velocity;
-        rCurrentElement.GetFirstDerivativesVector(velocity, 0);
-        noalias(RHS_Contribution) -= prod(DampingMatrix, velocity );
+        rCurrentElement.CalculateLocalSystem(LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
+        rCurrentElement.EquationIdVector(EquationId, CurrentProcessInfo);
     }
 
-    void AssembleTimeSpaceLHS_QuasiStatic(
+    template<typename TEntityType>
+    void CalculateSystemContributionsNoMassDamping(
+        TEntityType& rCurrentElement,
         LocalSystemMatrixType& LHS_Contribution,
-        const LocalSystemMatrixType& DampingMatrix,
+        LocalSystemVectorType& RHS_Contribution,
+        typename TEntityType::EquationIdVectorType& EquationId,
         const ProcessInfo& CurrentProcessInfo) const
     {
-        const double Dt = CurrentProcessInfo[DELTA_TIME];
-        double aux;
-
-        // adding stiffness contribution to the dynamic stiffness
-        aux = mTheta;
-        LHS_Contribution *= aux;
-
-        // adding damping contribution to the dynamic stiffness
-        aux = 1.0/Dt;
-        noalias(LHS_Contribution) += aux * DampingMatrix;
+        rCurrentElement.CalculateLocalSystem(LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
+        rCurrentElement.EquationIdVector(EquationId, CurrentProcessInfo);
+        LHS_Contribution *= mTheta;
     }
 
-    void AssembleTimeSpaceLHS_Dynamics(
-        LocalSystemMatrixType& LHS_Contribution,
-        const LocalSystemMatrixType& DampingMatrix,
-        const LocalSystemMatrixType& MassMatrix,
-        const ProcessInfo& CurrentProcessInfo) const
-    {
-        const double Dt = CurrentProcessInfo[DELTA_TIME];
-        double aux;
-
-        // adding stiffness contribution to the dynamic stiffness
-        aux = mTheta;
-        LHS_Contribution *= aux;
-
-        // adding damping contribution to the dynamic stiffness
-        aux = 1.0/Dt;
-        noalias(LHS_Contribution) += aux * DampingMatrix;
-
-        // adding mass contribution to the dynamic stiffness
-        aux = 1.0/pow(Dt, 2);
-        noalias(LHS_Contribution) += aux * MassMatrix;
-    }
-
-    /*@} */
-    /**@name Protected member Variables */
-    /*@{ */
-    /*@} */
-    /**@name Protected Operators*/
-    /*@{ */
-    /*@} */
-    /**@name Protected Operations*/
-    /*@{ */
-    /*@} */
-    /**@name Protected  Access */
-    /*@{ */
-    /*@} */
-    /**@name Protected Inquiry */
-    /*@{ */
-    /*@} */
-    /**@name Protected LifeCycle */
-    /*@{ */
-private:
-    /**@name Static Member Variables */
-    /*@{ */
-    /*@} */
-    /**@name Member Variables */
-    /*@{ */
-
-    double mTheta;
-
-    bool mIntegrateRotation;
-    bool mIntegrateMultiplier;
-    bool mIntegrateLoad;
-
-    /*@} */
-    /**@name Private Operators*/
-    /*@{ */
-    /*@} */
-    /**@name Private Operations*/
-    /*@{ */
     /*@} */
     /**@name Private  Access */
     /*@{ */
