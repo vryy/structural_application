@@ -101,14 +101,14 @@ public:
     /**
      * Constructor.
      */
-    VariableProjectionUtility(const TEntitiesContainerType& pElements, LinearSolverType::Pointer pLinearSolver)
+    VariableProjectionUtility(const TEntitiesContainerType& pElements, typename LinearSolverType::Pointer pLinearSolver)
     : BaseType(pElements), mpLinearSolver(pLinearSolver)
     {
         this->Initialize(pElements);
         std::cout << "VariableProjectionUtility created" << std::endl;
     }
 
-    VariableProjectionUtility(const TEntitiesContainerType& pElements, LinearSolverType::Pointer pLinearSolver, const int EchoLevel)
+    VariableProjectionUtility(const TEntitiesContainerType& pElements, typename LinearSolverType::Pointer pLinearSolver, const int EchoLevel)
     : BaseType(pElements, EchoLevel), mpLinearSolver(pLinearSolver)
     {
         this->Initialize(pElements);
@@ -385,8 +385,8 @@ protected:
 
 private:
 
-    LinearSolverType::Pointer mpLinearSolver;
-    SparseSpaceType::MatrixType mProjectionMatrix;
+    typename LinearSolverType::Pointer mpLinearSolver;
+    typename SparseSpaceType::MatrixType mProjectionMatrix;
 
     //**********AUXILIARY FUNCTION**************************************************************
     //******************************************************************************************
@@ -420,7 +420,7 @@ private:
     //**********AUXILIARY FUNCTION**************************************************************
     //******************************************************************************************
     /// Construct the L2 projection matrix
-    void ConstructLHSMatrix(SparseSpaceType::MatrixType& rA, const TEntitiesContainerType& pElements,
+    void ConstructLHSMatrix(typename SparseSpaceType::MatrixType& rA, const TEntitiesContainerType& pElements,
             const std::map<std::size_t, std::size_t>& NodeRowId) const
     {
         // set up system
@@ -516,7 +516,7 @@ private:
 
     //**********AUXILIARY FUNCTION**************************************************************
     //******************************************************************************************
-    void ConstructMatrixStructure(SparseSpaceType::MatrixType& A,
+    void ConstructMatrixStructure(typename SparseSpaceType::MatrixType& A,
             const TEntitiesContainerType& pElements, const std::map<std::size_t, std::size_t>& NodeRowId) const
     {
         std::size_t equation_size = A.size1();

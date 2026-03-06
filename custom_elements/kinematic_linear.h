@@ -358,7 +358,6 @@ protected:
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, BaseType );
         rSerializer.load( "mInitialDisp", mInitialDisp );
-        int tmp;
         rSerializer.load( "mConstitutiveLawVector", mConstitutiveLawVector );
     }
 

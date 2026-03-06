@@ -603,8 +603,8 @@ private:
     /*@{ */
 
     std::size_t mMaxEigenSolutions;
-    std::size_t mMaxIterations;
     double mTolerance;
+    std::size_t mMaxIterations;
 
     LocalSystemVectorType mEigenvalues;
     LocalSystemMatrixType mEigenvectors;

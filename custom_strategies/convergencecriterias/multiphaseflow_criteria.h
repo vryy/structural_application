@@ -334,7 +334,7 @@ public:
                     }
                 }
             }
-            bool disp_converged;
+            bool disp_converged = false;
 
             if (mCheckType == 1)
                 disp_converged = disp_reason_1;
@@ -345,9 +345,9 @@ public:
             else if (mCheckType == 4)
                 disp_converged = disp_reason_1 || disp_reason_2;
 
-            bool water_converged;
-            bool water_reason_1;
-            bool water_reason_2;
+            bool water_converged = false;
+            bool water_reason_1 = false;
+            bool water_reason_2 = false;
             if(HasWaterPres)
             {
                 water_reason_1 = (norm_b_WATER <= mAbsoluteTolerance);
@@ -364,9 +364,9 @@ public:
             else
                 water_converged = true;
 
-            bool air_converged;
-            bool air_reason_1;
-            bool air_reason_2;
+            bool air_converged = false;
+            bool air_reason_1 = false;
+            bool air_reason_2 = false;
             if(HasAirPres)
             {
                 air_reason_1 = (norm_b_AIR <= mAbsoluteTolerance);
