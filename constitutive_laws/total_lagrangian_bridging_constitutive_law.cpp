@@ -41,25 +41,25 @@ TotalLagrangianBridgingConstitutiveLaw::~TotalLagrangianBridgingConstitutiveLaw(
 }
 
 //**********************************************************************
-bool TotalLagrangianBridgingConstitutiveLaw::Has( const Variable<int>& rThisVariable )
+bool TotalLagrangianBridgingConstitutiveLaw::Has( const Variable<int>& rThisVariable ) const
 {
     return mpConstitutiveLaw->Has(rThisVariable);
 }
 
 //**********************************************************************
-bool TotalLagrangianBridgingConstitutiveLaw::Has( const Variable<double>& rThisVariable )
+bool TotalLagrangianBridgingConstitutiveLaw::Has( const Variable<double>& rThisVariable ) const
 {
     return mpConstitutiveLaw->Has(rThisVariable);
 }
 
 //**********************************************************************
-bool TotalLagrangianBridgingConstitutiveLaw::Has( const Variable<Vector>& rThisVariable )
+bool TotalLagrangianBridgingConstitutiveLaw::Has( const Variable<Vector>& rThisVariable ) const
 {
     return mpConstitutiveLaw->Has(rThisVariable);
 }
 
 //**********************************************************************
-bool TotalLagrangianBridgingConstitutiveLaw::Has( const Variable<Matrix>& rThisVariable )
+bool TotalLagrangianBridgingConstitutiveLaw::Has( const Variable<Matrix>& rThisVariable ) const
 {
     return mpConstitutiveLaw->Has(rThisVariable);
 }

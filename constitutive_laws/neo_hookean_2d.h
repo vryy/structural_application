@@ -70,25 +70,25 @@ class NeoHookean2D : public ConstitutiveLaw
             return p_clone;
         }
 
-        ConstitutiveLaw::StrainMeasure GetStrainMeasure() final
+        ConstitutiveLaw::StrainMeasure GetStrainMeasure() const final
         {
             return StrainMeasure_GreenLagrange;
         }
 
-        ConstitutiveLaw::StressMeasure GetStressMeasure() final
+        ConstitutiveLaw::StressMeasure GetStressMeasure() const final
         {
             return StressMeasure_PK2;
         }
 
-        void GetLawFeatures(Features& rFeatures) final
+        void GetLawFeatures(Features& rFeatures) const final
         {
             rFeatures.SetStrainMeasure(this->GetStrainMeasure());
         }
 
-        bool Has( const Variable<int>& rThisVariable );
-        bool Has( const Variable<double>& rThisVariable );
-        bool Has( const Variable<Vector>& rThisVariable );
-        bool Has( const Variable<Matrix>& rThisVariable );
+        bool Has( const Variable<int>& rThisVariable ) const;
+        bool Has( const Variable<double>& rThisVariable ) const;
+        bool Has( const Variable<Vector>& rThisVariable ) const;
+        bool Has( const Variable<Matrix>& rThisVariable ) const;
 
         int& GetValue( const Variable<int>& rThisVariable, int& rValue );
         double& GetValue( const Variable<double>& rThisVariable, double& rValue );
@@ -222,24 +222,14 @@ class NeoHookean2D : public ConstitutiveLaw
             rOStream << Info();
         }
 
-        /**
-         * Print object's data.
-         */
-        //virtual void PrintData(std::ostream& rOStream) const;
-
-    protected:
-        /**
-         * there are no protected class members
-         */
     private:
 
-        ///@}
         ///@name Serialization
         ///@{
 
         friend class Serializer;
 
-        virtual void save( Serializer& rSerializer ) const
+        void save( Serializer& rSerializer ) const override
         {
             KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, ConstitutiveLaw );
             rSerializer.save( "Prestress", mPrestress );
@@ -250,7 +240,7 @@ class NeoHookean2D : public ConstitutiveLaw
             rSerializer.save( "mDE", mDE );
         }
 
-        virtual void load( Serializer& rSerializer )
+        void load( Serializer& rSerializer ) override
         {
             KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ConstitutiveLaw );
             rSerializer.load( "Prestress", mPrestress );
@@ -260,6 +250,8 @@ class NeoHookean2D : public ConstitutiveLaw
             rSerializer.load( "mNU", mNU );
             rSerializer.load( "mDE", mDE );
         }
+
+        ///@}
 
         /**
          * Static Member Variables
@@ -301,4 +293,5 @@ class NeoHookean2D : public ConstitutiveLaw
 }; // Class NeoHookean2D
 
 } // namespace Kratos.
+
 #endif // KRATOS_NEO_HOOKEAN_3D_H_INCLUDED  defined

@@ -78,7 +78,7 @@ IsotropicDamageIMPLEX::~IsotropicDamageIMPLEX()
 {
 }
 
-bool IsotropicDamageIMPLEX::Has( const Variable<double>& rThisVariable )
+bool IsotropicDamageIMPLEX::Has( const Variable<double>& rThisVariable ) const
 {
     if( rThisVariable == YOUNG_MODULUS
      || rThisVariable == POISSON_RATIO
@@ -89,14 +89,14 @@ bool IsotropicDamageIMPLEX::Has( const Variable<double>& rThisVariable )
     return false;
 }
 
-bool IsotropicDamageIMPLEX::Has( const Variable<Vector>& rThisVariable )
+bool IsotropicDamageIMPLEX::Has( const Variable<Vector>& rThisVariable ) const
 {
     if( rThisVariable == STRESSES )
         return true;
     return false;
 }
 
-bool IsotropicDamageIMPLEX::Has( const Variable<Matrix>& rThisVariable )
+bool IsotropicDamageIMPLEX::Has( const Variable<Matrix>& rThisVariable ) const
 {
     return false;
 }

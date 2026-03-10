@@ -42,25 +42,25 @@ TotalLagrangianNumericalTangentBridgingConstitutiveLaw::~TotalLagrangianNumerica
 }
 
 //**********************************************************************
-bool TotalLagrangianNumericalTangentBridgingConstitutiveLaw::Has( const Variable<int>& rThisVariable )
+bool TotalLagrangianNumericalTangentBridgingConstitutiveLaw::Has( const Variable<int>& rThisVariable ) const
 {
     return mpConstitutiveLaw->Has(rThisVariable);
 }
 
 //**********************************************************************
-bool TotalLagrangianNumericalTangentBridgingConstitutiveLaw::Has( const Variable<double>& rThisVariable )
+bool TotalLagrangianNumericalTangentBridgingConstitutiveLaw::Has( const Variable<double>& rThisVariable ) const
 {
     return mpConstitutiveLaw->Has(rThisVariable);
 }
 
 //**********************************************************************
-bool TotalLagrangianNumericalTangentBridgingConstitutiveLaw::Has( const Variable<Vector>& rThisVariable )
+bool TotalLagrangianNumericalTangentBridgingConstitutiveLaw::Has( const Variable<Vector>& rThisVariable ) const
 {
     return mpConstitutiveLaw->Has(rThisVariable);
 }
 
 //**********************************************************************
-bool TotalLagrangianNumericalTangentBridgingConstitutiveLaw::Has( const Variable<Matrix>& rThisVariable )
+bool TotalLagrangianNumericalTangentBridgingConstitutiveLaw::Has( const Variable<Matrix>& rThisVariable ) const
 {
     return mpConstitutiveLaw->Has(rThisVariable);
 }

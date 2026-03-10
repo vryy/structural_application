@@ -79,17 +79,17 @@ Isotropic3DDC::~Isotropic3DDC()
 {
 }
 
-bool Isotropic3DDC::Has(const Variable<int>& rThisVariable)
+bool Isotropic3DDC::Has(const Variable<int>& rThisVariable) const
 {
     return false;
 }
 
-bool Isotropic3DDC::Has( const Variable<double>& rThisVariable )
+bool Isotropic3DDC::Has( const Variable<double>& rThisVariable ) const
 {
     return false;
 }
 
-bool Isotropic3DDC::Has( const Variable<Vector>& rThisVariable )
+bool Isotropic3DDC::Has( const Variable<Vector>& rThisVariable ) const
 {
     if(rThisVariable == STRESSES)
         return true;
@@ -103,7 +103,7 @@ bool Isotropic3DDC::Has( const Variable<Vector>& rThisVariable )
     return false;
 }
 
-bool Isotropic3DDC::Has( const Variable<Matrix>& rThisVariable )
+bool Isotropic3DDC::Has( const Variable<Matrix>& rThisVariable ) const
 {
     if(rThisVariable == ALGORITHMIC_TANGENT || rThisVariable == THREED_ALGORITHMIC_TANGENT)
         return true;

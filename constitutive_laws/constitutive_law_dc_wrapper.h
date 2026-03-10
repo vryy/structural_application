@@ -52,7 +52,7 @@ public:
     /**
      * Destructor.
      */
-    virtual ~ConstitutiveLawDcWrapper() {}
+    ~ConstitutiveLawDcWrapper() override {}
 
     /**
      * Operators
@@ -68,7 +68,7 @@ public:
         return p_clone;
     }
 
-    bool Has( const Variable<Vector>& rThisVariable ) override
+    bool Has( const Variable<Vector>& rThisVariable ) const override
     {
         if ( rThisVariable == CURRENT_STRAIN_VECTOR )
             return true;
@@ -213,7 +213,6 @@ protected:
 
 private:
 
-    ///@}
     ///@name Serialization
     ///@{
     friend class Serializer;
@@ -227,6 +226,7 @@ private:
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseType);
     }
+    ///@}
 
     /**
      * Member Variables

@@ -76,13 +76,13 @@ Isotropic3DImpl<TNodeType>::~Isotropic3DImpl()
 }
 
 template<class TNodeType>
-bool Isotropic3DImpl<TNodeType>::Has( const Variable<int>& rThisVariable )
+bool Isotropic3DImpl<TNodeType>::Has( const Variable<int>& rThisVariable ) const
 {
     return false;
 }
 
 template<class TNodeType>
-bool Isotropic3DImpl<TNodeType>::Has( const Variable<DataType>& rThisVariable )
+bool Isotropic3DImpl<TNodeType>::Has( const Variable<DataType>& rThisVariable ) const
 {
     if ( rThisVariable == PRESTRESS_FACTOR || rThisVariable == YOUNG_MODULUS || rThisVariable == POISSON_RATIO )
         return true;
@@ -91,7 +91,7 @@ bool Isotropic3DImpl<TNodeType>::Has( const Variable<DataType>& rThisVariable )
 }
 
 template<class TNodeType>
-bool Isotropic3DImpl<TNodeType>::Has( const Variable<VectorType>& rThisVariable )
+bool Isotropic3DImpl<TNodeType>::Has( const Variable<VectorType>& rThisVariable ) const
 {
     if ( rThisVariable == INSITU_STRESS )
         return true;
@@ -106,7 +106,7 @@ bool Isotropic3DImpl<TNodeType>::Has( const Variable<VectorType>& rThisVariable 
 }
 
 template<class TNodeType>
-bool Isotropic3DImpl<TNodeType>::Has( const Variable<MatrixType>& rThisVariable )
+bool Isotropic3DImpl<TNodeType>::Has( const Variable<MatrixType>& rThisVariable ) const
 {
     if ( rThisVariable == CAUCHY_STRESS_TENSOR )
         return true;

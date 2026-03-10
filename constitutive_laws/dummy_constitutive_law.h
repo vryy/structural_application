@@ -107,7 +107,7 @@ public:
     /**
      * Destructor.
      */
-    virtual ~DummyConstitutiveLaw();
+    ~DummyConstitutiveLaw() override;
 
     /**
      * Operators
@@ -117,25 +117,25 @@ public:
      * Operations
      */
 
-    ConstitutiveLaw::StrainMeasure GetStrainMeasure() final
+    ConstitutiveLaw::StrainMeasure GetStrainMeasure() const final
     {
         return StrainMeasure_Infinitesimal;
     }
 
-    ConstitutiveLaw::StressMeasure GetStressMeasure() final
+    ConstitutiveLaw::StressMeasure GetStressMeasure() const final
     {
         return StressMeasure_Cauchy;
     }
 
-    void GetLawFeatures(Features& rFeatures) final
+    void GetLawFeatures(Features& rFeatures) const final
     {
         rFeatures.SetStrainMeasure(ConstitutiveLaw::StrainMeasure_Infinitesimal);
     }
 
-    bool Has( const Variable<int>& rThisVariable );
-    bool Has( const Variable<double>& rThisVariable );
-    bool Has( const Variable<Vector>& rThisVariable );
-    bool Has( const Variable<Matrix>& rThisVariable );
+    bool Has( const Variable<int>& rThisVariable ) const;
+    bool Has( const Variable<double>& rThisVariable ) const;
+    bool Has( const Variable<Vector>& rThisVariable ) const;
+    bool Has( const Variable<Matrix>& rThisVariable ) const;
 
     int& GetValue( const Variable<int>& rThisVariable, int& rValue );
     double& GetValue( const Variable<double>& rThisVariable, double& rValue );

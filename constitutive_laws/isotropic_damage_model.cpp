@@ -80,7 +80,7 @@ IsotropicDamageModel::~IsotropicDamageModel()
 {
 }
 
-bool IsotropicDamageModel::Has( const Variable<double>& rThisVariable )
+bool IsotropicDamageModel::Has( const Variable<double>& rThisVariable ) const
 {
     if( rThisVariable == YOUNG_MODULUS
      || rThisVariable == POISSON_RATIO
@@ -91,14 +91,14 @@ bool IsotropicDamageModel::Has( const Variable<double>& rThisVariable )
     return false;
 }
 
-bool IsotropicDamageModel::Has( const Variable<Vector>& rThisVariable )
+bool IsotropicDamageModel::Has( const Variable<Vector>& rThisVariable ) const
 {
     if( rThisVariable == STRESSES )
         return true;
     return false;
 }
 
-bool IsotropicDamageModel::Has( const Variable<Matrix>& rThisVariable )
+bool IsotropicDamageModel::Has( const Variable<Matrix>& rThisVariable ) const
 {
     return false;
 }

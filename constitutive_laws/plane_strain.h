@@ -123,27 +123,27 @@ public:
         return p_clone;
     }
 
-    typename BaseType::StrainMeasure GetStrainMeasure() override
+    typename BaseType::StrainMeasure GetStrainMeasure() const override
     {
         return BaseType::StrainMeasure_Infinitesimal;
     }
 
-    typename BaseType::StressMeasure GetStressMeasure() override
+    typename BaseType::StressMeasure GetStressMeasure() const override
     {
         return BaseType::StressMeasure_Cauchy;
     }
 
-    void GetLawFeatures(typename BaseType::Features& rFeatures) final
+    void GetLawFeatures(typename BaseType::Features& rFeatures) const final
     {
         rFeatures.SetStrainMeasure(this->GetStrainMeasure());
     }
 
     std::size_t GetStrainSize() const final;
 
-    bool Has( const Variable<int>& rThisVariable ) override;
-    bool Has( const Variable<DataType>& rThisVariable ) override;
-    bool Has( const Variable<VectorType>& rThisVariable ) override;
-    bool Has( const Variable<MatrixType>& rThisVariable ) override;
+    bool Has( const Variable<int>& rThisVariable ) const override;
+    bool Has( const Variable<DataType>& rThisVariable ) const override;
+    bool Has( const Variable<VectorType>& rThisVariable ) const override;
+    bool Has( const Variable<MatrixType>& rThisVariable ) const override;
 
     int& GetValue( const Variable<int>& rThisVariable, int& rValue ) override;
     DataType& GetValue( const Variable<DataType>& rThisVariable, DataType& rValue ) override;
@@ -289,11 +289,6 @@ public:
         rOStream << Info();
     }
 
-    /**
-     * Print object's data.
-     */
-    //virtual void PrintData(std::ostream& rOStream) const;
-
 protected:
     /**
      * there are several protected class members
@@ -305,6 +300,7 @@ private:
 
     ///@name Serialization
     ///@{
+
     friend class Serializer;
 
     void save(Serializer& rSerializer) const override

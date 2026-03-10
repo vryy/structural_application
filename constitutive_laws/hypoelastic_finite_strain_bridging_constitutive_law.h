@@ -71,7 +71,7 @@ public:
     /**
      * Destructor.
      */
-    virtual ~HypoelasticFiniteStrainBridgingConstitutiveLaw()
+    ~HypoelasticFiniteStrainBridgingConstitutiveLaw() override
     {}
 
     /**

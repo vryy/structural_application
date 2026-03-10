@@ -62,7 +62,7 @@ public:
     /**
      * Destructor.
      */
-    virtual ~FiniteStrainBridgingConstitutiveLaw();
+    ~FiniteStrainBridgingConstitutiveLaw() override;
 
     /**
      * Operators
@@ -81,22 +81,22 @@ public:
         return mpConstitutiveLaw->GetStrainSize();
     }
 
-    bool IsIncremental() override
+    bool IsIncremental() const override
     {
         return mpConstitutiveLaw->IsIncremental();
     }
 
-    ConstitutiveLaw::StrainMeasure GetStrainMeasure() override
+    ConstitutiveLaw::StrainMeasure GetStrainMeasure() const override
     {
         return ConstitutiveLaw::StrainMeasure_Deformation_Gradient;
     }
 
-    ConstitutiveLaw::StressMeasure GetStressMeasure() override
+    ConstitutiveLaw::StressMeasure GetStressMeasure() const override
     {
         return ConstitutiveLaw::StressMeasure_Cauchy;
     }
 
-    void GetLawFeatures(Features& rFeatures) override
+    void GetLawFeatures(Features& rFeatures) const override
     {
         /// Since the constitutive law is bridging one, it supports all types of strain measure required by the elemment.
         /// Nevertheless, it mainly support the StrainMeasure_Deformation_Gradient
@@ -110,10 +110,10 @@ public:
         rFeatures.SetStrainMeasure(ConstitutiveLaw::StrainMeasure_Left_CauchyGreen);
     }
 
-    bool Has( const Variable<int>& rThisVariable ) override;
-    bool Has( const Variable<double>& rThisVariable ) override;
-    bool Has( const Variable<Vector>& rThisVariable ) override;
-    bool Has( const Variable<Matrix>& rThisVariable ) override;
+    bool Has( const Variable<int>& rThisVariable ) const override;
+    bool Has( const Variable<double>& rThisVariable ) const override;
+    bool Has( const Variable<Vector>& rThisVariable ) const override;
+    bool Has( const Variable<Matrix>& rThisVariable ) const override;
 
     int& GetValue( const Variable<int>& rThisVariable, int& rValue ) override;
     double& GetValue( const Variable<double>& rThisVariable, double& rValue ) override;

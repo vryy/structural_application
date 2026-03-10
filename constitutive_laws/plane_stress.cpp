@@ -78,17 +78,17 @@ PlaneStress::~PlaneStress()
 {
 }
 
-bool PlaneStress::Has( const Variable<int>& rThisVariable )
+bool PlaneStress::Has( const Variable<int>& rThisVariable ) const
 {
     return false;
 }
 
-bool PlaneStress::Has( const Variable<double>& rThisVariable )
+bool PlaneStress::Has( const Variable<double>& rThisVariable ) const
 {
     return false;
 }
 
-bool PlaneStress::Has( const Variable<Vector>& rThisVariable )
+bool PlaneStress::Has( const Variable<Vector>& rThisVariable ) const
 {
     if ( rThisVariable == STRESSES )
         return true;
@@ -96,7 +96,7 @@ bool PlaneStress::Has( const Variable<Vector>& rThisVariable )
     return false;
 }
 
-bool PlaneStress::Has( const Variable<Matrix>& rThisVariable )
+bool PlaneStress::Has( const Variable<Matrix>& rThisVariable ) const
 {
     return false;
 }

@@ -79,12 +79,12 @@ class StVenantKirchhoff<2> : public PlaneStrain
         return p_clone;
     }
 
-    ConstitutiveLaw::StrainMeasure GetStrainMeasure() override
+    ConstitutiveLaw::StrainMeasure GetStrainMeasure() const override
     {
         return StrainMeasure_GreenLagrange;
     }
 
-    ConstitutiveLaw::StressMeasure GetStressMeasure() override
+    ConstitutiveLaw::StressMeasure GetStressMeasure() const override
     {
         return StressMeasure_PK2;
     }
@@ -127,12 +127,12 @@ class StVenantKirchhoff<3> : public Isotropic3D
         return p_clone;
     }
 
-    ConstitutiveLaw::StrainMeasure GetStrainMeasure() override
+    ConstitutiveLaw::StrainMeasure GetStrainMeasure() const override
     {
         return StrainMeasure_GreenLagrange;
     }
 
-    ConstitutiveLaw::StressMeasure GetStressMeasure() override
+    ConstitutiveLaw::StressMeasure GetStressMeasure() const override
     {
         return StressMeasure_PK2;
     }

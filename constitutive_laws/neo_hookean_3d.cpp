@@ -35,13 +35,13 @@ NeoHookean3D::~NeoHookean3D()
 }
 
 //**********************************************************************
-bool NeoHookean3D::Has( const Variable<int>& rThisVariable )
+bool NeoHookean3D::Has( const Variable<int>& rThisVariable ) const
 {
     return false;
 }
 
 //**********************************************************************
-bool NeoHookean3D::Has( const Variable<double>& rThisVariable )
+bool NeoHookean3D::Has( const Variable<double>& rThisVariable ) const
 {
     if ( rThisVariable == PRESTRESS_FACTOR || rThisVariable == YOUNG_MODULUS || rThisVariable == POISSON_RATIO )
         return true;
@@ -50,7 +50,7 @@ bool NeoHookean3D::Has( const Variable<double>& rThisVariable )
 }
 
 //**********************************************************************
-bool NeoHookean3D::Has( const Variable<Vector>& rThisVariable )
+bool NeoHookean3D::Has( const Variable<Vector>& rThisVariable ) const
 {
     if ( rThisVariable == INSITU_STRESS )
         return true;
@@ -65,7 +65,7 @@ bool NeoHookean3D::Has( const Variable<Vector>& rThisVariable )
 }
 
 //**********************************************************************
-bool NeoHookean3D::Has( const Variable<Matrix>& rThisVariable )
+bool NeoHookean3D::Has( const Variable<Matrix>& rThisVariable ) const
 {
     return false;
 }

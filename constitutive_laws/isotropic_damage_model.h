@@ -109,24 +109,24 @@ public:
         return p_clone;
     }
 
-    ConstitutiveLaw::StrainMeasure GetStrainMeasure() override
+    ConstitutiveLaw::StrainMeasure GetStrainMeasure() const override
     {
         return StrainMeasure_Infinitesimal;
     }
 
-    ConstitutiveLaw::StressMeasure GetStressMeasure() override
+    ConstitutiveLaw::StressMeasure GetStressMeasure() const override
     {
         return StressMeasure_Cauchy;
     }
 
-    void GetLawFeatures(Features& rFeatures) final
+    void GetLawFeatures(Features& rFeatures) const final
     {
         rFeatures.SetStrainMeasure(this->GetStrainMeasure());
     }
 
-    bool Has( const Variable<double>& rThisVariable ) override;
-    bool Has( const Variable<Vector>& rThisVariable ) override;
-    bool Has( const Variable<Matrix>& rThisVariable ) override;
+    bool Has( const Variable<double>& rThisVariable ) const override;
+    bool Has( const Variable<Vector>& rThisVariable ) const override;
+    bool Has( const Variable<Matrix>& rThisVariable ) const override;
 
     double& GetValue( const Variable<double>& rThisVariable, double& rValue ) override;
     Vector& GetValue( const Variable<Vector>& rThisVariable, Vector& rValue ) override;

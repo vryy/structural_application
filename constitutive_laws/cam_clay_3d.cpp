@@ -115,12 +115,12 @@ CamClay3D::~CamClay3D()
 {
 }
 
-bool CamClay3D::Has( const Variable<int>& rThisVariable )
+bool CamClay3D::Has( const Variable<int>& rThisVariable ) const
 {
     return false;
 }
 
-bool CamClay3D::Has( const Variable<double>& rThisVariable )
+bool CamClay3D::Has( const Variable<double>& rThisVariable ) const
 {
     if ( rThisVariable == YOUNG_MODULUS || rThisVariable == POISSON_RATIO )
         return true;
@@ -128,7 +128,7 @@ bool CamClay3D::Has( const Variable<double>& rThisVariable )
     return false;
 }
 
-bool CamClay3D::Has( const Variable<Vector>& rThisVariable )
+bool CamClay3D::Has( const Variable<Vector>& rThisVariable ) const
 {
     if ( rThisVariable == PRESTRESS )
         return true;
@@ -145,11 +145,10 @@ bool CamClay3D::Has( const Variable<Vector>& rThisVariable )
     return false;
 }
 
-bool CamClay3D::Has( const Variable<Matrix>& rThisVariable )
+bool CamClay3D::Has( const Variable<Matrix>& rThisVariable ) const
 {
     return false;
 }
-
 
 int& CamClay3D::GetValue( const Variable<int>& rThisVariable, int& rValue )
 {
@@ -548,7 +547,7 @@ void CamClay3D::FinalizeSolutionStep( const Properties& props,
 }
 
 //**********************************************************************
-int CamClay3D::Check( const Properties& props, const GeometryType& geom, const ProcessInfo& CurrentProcessInfo )
+int CamClay3D::Check( const Properties& props, const GeometryType& geom, const ProcessInfo& CurrentProcessInfo ) const
 {
     KRATOS_TRY
 

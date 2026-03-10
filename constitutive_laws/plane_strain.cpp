@@ -78,19 +78,19 @@ PlaneStrainImpl<TNodeType>::~PlaneStrainImpl()
 }
 
 template<class TNodeType>
-bool PlaneStrainImpl<TNodeType>::Has(const Variable<int>& rThisVariable)
+bool PlaneStrainImpl<TNodeType>::Has(const Variable<int>& rThisVariable) const
 {
     return false;
 }
 
 template<class TNodeType>
-bool PlaneStrainImpl<TNodeType>::Has( const Variable<DataType>& rThisVariable )
+bool PlaneStrainImpl<TNodeType>::Has( const Variable<DataType>& rThisVariable ) const
 {
     return false;
 }
 
 template<class TNodeType>
-bool PlaneStrainImpl<TNodeType>::Has( const Variable<VectorType>& rThisVariable )
+bool PlaneStrainImpl<TNodeType>::Has( const Variable<VectorType>& rThisVariable ) const
 {
     if(rThisVariable == VARSEL(DataType, STRESSES))
         return true;
@@ -99,7 +99,7 @@ bool PlaneStrainImpl<TNodeType>::Has( const Variable<VectorType>& rThisVariable 
 }
 
 template<class TNodeType>
-bool PlaneStrainImpl<TNodeType>::Has( const Variable<MatrixType>& rThisVariable )
+bool PlaneStrainImpl<TNodeType>::Has( const Variable<MatrixType>& rThisVariable ) const
 {
     if(rThisVariable == VARSEL(DataType, ALGORITHMIC_TANGENT)
     || rThisVariable == VARSEL(DataType, THREED_ALGORITHMIC_TANGENT))

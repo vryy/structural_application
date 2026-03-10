@@ -79,21 +79,21 @@ Casm::~Casm()
 {
 }
 
-bool Casm::Has( const Variable<double>& rThisVariable )
+bool Casm::Has( const Variable<double>& rThisVariable ) const
 {
     if ( rThisVariable == PLASTICITY_INDICATOR )
         return true;
     return false;
 }
 
-bool Casm::Has( const Variable<Vector>& rThisVariable )
+bool Casm::Has( const Variable<Vector>& rThisVariable ) const
 {
     if ( rThisVariable == INSITU_STRESS )
         return true;
     return false;
 }
 
-bool Casm::Has( const Variable<Matrix>& rThisVariable )
+bool Casm::Has( const Variable<Matrix>& rThisVariable ) const
 {
     return false;
 }

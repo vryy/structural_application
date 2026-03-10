@@ -105,7 +105,7 @@ public:
      */
     CamClay3D();
 
-    virtual  ConstitutiveLaw::Pointer Clone() const
+    ConstitutiveLaw::Pointer Clone() const override
     {
         ConstitutiveLaw::Pointer p_clone( new CamClay3D() );
         return p_clone;
@@ -114,7 +114,7 @@ public:
     /**
      * Destructor.
      */
-    virtual ~CamClay3D();
+    ~CamClay3D() override;
 
     /**
      * Operators
@@ -122,10 +122,10 @@ public:
     /**
      * Operations
      */
-    bool Has( const Variable<int>& rThisVariable );
-    bool Has( const Variable<double>& rThisVariable );
-    bool Has( const Variable<Vector>& rThisVariable );
-    bool Has( const Variable<Matrix>& rThisVariable );
+    bool Has( const Variable<int>& rThisVariable ) const;
+    bool Has( const Variable<double>& rThisVariable ) const;
+    bool Has( const Variable<Vector>& rThisVariable ) const;
+    bool Has( const Variable<Matrix>& rThisVariable ) const;
 
     int& GetValue( const Variable<int>& rThisVariable, int& rValue );
     double& GetValue( const Variable<double>& rThisVariable, double& rValue );
@@ -185,9 +185,9 @@ public:
      * @param CurrentProcessInfo
      * @return
      */
-    virtual int Check( const Properties& props,
-                       const GeometryType& geom,
-                       const ProcessInfo& CurrentProcessInfo );
+    int Check( const Properties& props,
+               const GeometryType& geom,
+               const ProcessInfo& CurrentProcessInfo ) const override;
 
     void CalculateMaterialResponse( const Vector& StrainVector,
                                     const Matrix& DeformationGradient,
@@ -211,41 +211,14 @@ public:
         return 6;
     }
 
-    /**
-     * converts a strain vector styled variable into its form, which the
-     * deviatoric parts are no longer multiplied by 2
-     */
-    //             void Calculate(const Variable<Matrix >& rVariable, Matrix& rResult, const ProcessInfo& rCurrentProcessInfo);
-
-    /**
-     * Input and output
-     */
-    /**
-     * Turn back information as a string.
-     */
-    //virtual String Info() const;
-    /**
-     * Print information about this object.
-     */
-    //virtual void PrintInfo(std::ostream& rOStream) const;
-    /**
-     * Print object's data.
-     */
-    //virtual void PrintData(std::ostream& rOStream) const;
-
-protected:
-    /**
-     * there are no protected class members
-     */
 private:
 
-    ///@}
     ///@name Serialization
     ///@{
 
     friend class Serializer;
 
-    virtual void save( Serializer& rSerializer ) const
+    void save( Serializer& rSerializer ) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, ConstitutiveLaw );
         rSerializer.save( "CurrentStress", mCurrentStress );
@@ -253,13 +226,15 @@ private:
         rSerializer.save( "NU", mNU );
     }
 
-    virtual void load( Serializer& rSerializer )
+    void load( Serializer& rSerializer ) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ConstitutiveLaw );
         rSerializer.load( "CurrentStress", mCurrentStress );
         rSerializer.load( "LastStress", mLastStress );
         rSerializer.load( "NU", mNU );
     }
+
+    ///@}
 
     /**
      * Member Variables

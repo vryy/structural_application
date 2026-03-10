@@ -79,6 +79,8 @@ public:
      * Type Definitions
      */
     typedef ConstitutiveLaw BaseType;
+    typedef BaseType::SizeType SizeType;
+
     /**
      * Counted pointer of PlaneStress
      */
@@ -95,7 +97,7 @@ public:
     /**
      * Destructor.
      */
-    virtual ~PlaneStress();
+    ~PlaneStress() override;
 
     /**
      * Operators
@@ -111,27 +113,27 @@ public:
         return p_clone;
     }
 
-    ConstitutiveLaw::StrainMeasure GetStrainMeasure() final
+    ConstitutiveLaw::StrainMeasure GetStrainMeasure() const final
     {
         return StrainMeasure_Infinitesimal;
     }
 
-    ConstitutiveLaw::StressMeasure GetStressMeasure() final
+    ConstitutiveLaw::StressMeasure GetStressMeasure() const final
     {
         return StressMeasure_Cauchy;
     }
 
-    void GetLawFeatures(Features& rFeatures) final
+    void GetLawFeatures(Features& rFeatures) const final
     {
         rFeatures.SetStrainMeasure(this->GetStrainMeasure());
     }
 
-    std::size_t GetStrainSize() const final;
+    SizeType GetStrainSize() const final;
 
-    bool Has(const Variable<int>& rThisVariable) override;
-    bool Has(const Variable<double>& rThisVariable) override;
-    bool Has(const Variable<Vector>& rThisVariable) override;
-    bool Has(const Variable<Matrix>& rThisVariable) override;
+    bool Has(const Variable<int>& rThisVariable) const override;
+    bool Has(const Variable<double>& rThisVariable) const override;
+    bool Has(const Variable<Vector>& rThisVariable) const override;
+    bool Has(const Variable<Matrix>& rThisVariable) const override;
 
     void SetValue(const Variable<int>& rVariable,
                   const int& Value,
@@ -260,6 +262,7 @@ private:
 
     ///@name Serialization
     ///@{
+
     friend class Serializer;
 
     void save( Serializer& rSerializer ) const override

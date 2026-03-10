@@ -97,7 +97,7 @@ namespace Kratos
              */
             ValuesContainerConstitutiveLaw(ConstitutiveLaw::Pointer pOther);
 
-            virtual  ConstitutiveLaw::Pointer Clone() const
+            ConstitutiveLaw::Pointer Clone() const override
             {
                 ConstitutiveLaw::Pointer p_new = mpConstitutiveLaw->Clone();
                 ConstitutiveLaw::Pointer p_clone( new ValuesContainerConstitutiveLaw(p_new) );
@@ -107,7 +107,7 @@ namespace Kratos
             /**
              * Destructor.
              */
-            virtual ~ValuesContainerConstitutiveLaw();
+            ~ValuesContainerConstitutiveLaw() override;
 
             /**
              * Operators
@@ -115,11 +115,11 @@ namespace Kratos
             /**
              * Operations
              */
-            bool Has( const Variable<int>& rThisVariable );
-            bool Has( const Variable<double>& rThisVariable );
-            bool Has( const Variable<array_1d<double, 3> >& rThisVariable );
-            bool Has( const Variable<Vector>& rThisVariable );
-            bool Has( const Variable<Matrix>& rThisVariable );
+            bool Has( const Variable<int>& rThisVariable ) const;
+            bool Has( const Variable<double>& rThisVariable ) const;
+            bool Has( const Variable<array_1d<double, 3> >& rThisVariable ) const;
+            bool Has( const Variable<Vector>& rThisVariable ) const;
+            bool Has( const Variable<Matrix>& rThisVariable ) const;
 
             int& GetValue( const Variable<int>& rThisVariable, int& rValue );
             double& GetValue( const Variable<double>& rThisVariable, double& rValue );
@@ -230,14 +230,8 @@ namespace Kratos
              */
             //virtual void PrintData(std::ostream& rOStream) const;
 
-        protected:
-            /**
-             * there are no protected class members
-             */
-
         private:
 
-            ///@}
             ///@name Serialization
             ///@{
 
@@ -254,6 +248,8 @@ namespace Kratos
                 KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ConstitutiveLaw );
                 rSerializer.load( "ConstitutiveLaw", mpConstitutiveLaw );
             }
+
+            ///@}
 
             /**
              * Private member variables

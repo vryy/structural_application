@@ -29,7 +29,7 @@ namespace Kratos
 
 //**********************************************************************
 template<int TStressType>
-bool MultiplicativeFiniteStrainBridgingConstitutiveLawDC<TStressType>::Has( const Variable<Matrix>& rThisVariable )
+bool MultiplicativeFiniteStrainBridgingConstitutiveLawDC<TStressType>::Has( const Variable<Matrix>& rThisVariable ) const
 {
     if (rThisVariable == CURRENT_DEFORMATION_GRADIENT)
         return true;

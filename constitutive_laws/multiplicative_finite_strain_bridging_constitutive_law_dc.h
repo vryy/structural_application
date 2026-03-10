@@ -69,7 +69,7 @@ public:
     /**
      * Destructor.
      */
-    virtual ~MultiplicativeFiniteStrainBridgingConstitutiveLawDC()
+    ~MultiplicativeFiniteStrainBridgingConstitutiveLawDC() override
     {}
 
     /**
@@ -80,7 +80,7 @@ public:
      * Operations
      */
 
-    bool Has( const Variable<Matrix>& rThisVariable ) override;
+    bool Has( const Variable<Matrix>& rThisVariable ) const override;
 
     void SetValue( const Variable<double>& rThisVariable, const double& rValue,
                    const ProcessInfo& rCurrentProcessInfo ) override;
@@ -118,19 +118,8 @@ public:
         rOStream << Info();
     }
 
-    /**
-     * Print object's data.
-     */
-    //virtual void PrintData(std::ostream& rOStream) const;
-
-protected:
-    /**
-     * Member Variables
-     */
-
 private:
 
-    ///@}
     ///@name Serialization
     ///@{
 
@@ -145,6 +134,8 @@ private:
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, BaseType );
     }
+
+    ///@}
 
     /**
      * Static Member Variables

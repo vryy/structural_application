@@ -70,7 +70,7 @@ public:
     /**
      * Destructor.
      */
-    virtual ~MultiplicativeFiniteStrainBridgingConstitutiveLaw()
+    ~MultiplicativeFiniteStrainBridgingConstitutiveLaw() override
     {}
 
     /**

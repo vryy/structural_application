@@ -75,12 +75,7 @@ namespace Kratos
  * This version of plane strain is defined specifically for displacement control
  * analysis
  */
-#ifdef SD_APP_FORWARD_COMPATIBILITY
-class KRATOS_API(STRUCTURAL_APPLICATION) Isotropic3DDC
-#else
-class Isotropic3DDC
-#endif
-: public ConstitutiveLaw
+class KRATOS_API(STRUCTURAL_APPLICATION) Isotropic3DDC : public ConstitutiveLaw
 {
 public:
     /**
@@ -103,7 +98,7 @@ public:
     /**
      * Destructor.
      */
-    virtual ~Isotropic3DDC();
+    ~Isotropic3DDC() override;
 
     /**
      * Operators
@@ -119,25 +114,25 @@ public:
         return p_clone;
     }
 
-    ConstitutiveLaw::StrainMeasure GetStrainMeasure() final
+    ConstitutiveLaw::StrainMeasure GetStrainMeasure() const final
     {
         return StrainMeasure_Infinitesimal;
     }
 
-    ConstitutiveLaw::StressMeasure GetStressMeasure() final
+    ConstitutiveLaw::StressMeasure GetStressMeasure() const final
     {
         return StressMeasure_Cauchy;
     }
 
-    void GetLawFeatures(Features& rFeatures) final
+    void GetLawFeatures(Features& rFeatures) const final
     {
         rFeatures.SetStrainMeasure(StrainMeasure_Infinitesimal);
     }
 
-    bool Has( const Variable<int>& rThisVariable );
-    bool Has( const Variable<double>& rThisVariable );
-    bool Has( const Variable<Vector>& rThisVariable );
-    bool Has( const Variable<Matrix>& rThisVariable );
+    bool Has( const Variable<int>& rThisVariable ) const;
+    bool Has( const Variable<double>& rThisVariable ) const;
+    bool Has( const Variable<Vector>& rThisVariable ) const;
+    bool Has( const Variable<Matrix>& rThisVariable ) const;
 
     int& GetValue( const Variable<int>& rThisVariable, int& rValue );
     double& GetValue( const Variable<double>& rThisVariable, double& rValue );
@@ -253,18 +248,7 @@ public:
         rOStream << Info();
     }
 
-    /**
-     * Print object's data.
-     */
-    //virtual void PrintData(std::ostream& rOStream) const;
-
-protected:
-    /**
-     * there are no protected class members
-     */
-
 private:
-    ///@}
     ///@name Serialization
     ///@{
     friend class Serializer;
@@ -286,6 +270,7 @@ private:
         rSerializer.load( "mDE", mDE );
         rSerializer.load( "m_stress_n1", m_stress_n1 );
     }
+    ///@}
 
     /**
      * Static Member Variables
@@ -323,5 +308,7 @@ private:
      */
     //Isotropic3DDC(const IsotropicPlaneStressWrinklingNew& rOther);
 }; // Class Isotropic3DDC
+
 }  // namespace Kratos.
+
 #endif // KRATOS_STRUCTURAL_APPLICATION_ISOTROPIC_3D_DC_H_INCLUDED  defined

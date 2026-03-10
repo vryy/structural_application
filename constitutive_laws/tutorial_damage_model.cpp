@@ -72,7 +72,7 @@ TutorialDamageModel::~TutorialDamageModel()
 {
 }
 
-bool TutorialDamageModel::Has( const Variable<double>& rThisVariable )
+bool TutorialDamageModel::Has( const Variable<double>& rThisVariable ) const
 {
     if( rThisVariable == YOUNG_MODULUS
      || rThisVariable == POISSON_RATIO
@@ -83,14 +83,14 @@ bool TutorialDamageModel::Has( const Variable<double>& rThisVariable )
     return false;
 }
 
-bool TutorialDamageModel::Has( const Variable<Vector>& rThisVariable )
+bool TutorialDamageModel::Has( const Variable<Vector>& rThisVariable ) const
 {
     if( rThisVariable == STRESSES )
         return true;
     return false;
 }
 
-bool TutorialDamageModel::Has( const Variable<Matrix>& rThisVariable )
+bool TutorialDamageModel::Has( const Variable<Matrix>& rThisVariable ) const
 {
     return false;
 }

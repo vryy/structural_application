@@ -35,25 +35,25 @@ FiniteStrainBridgingConstitutiveLaw::~FiniteStrainBridgingConstitutiveLaw()
 }
 
 //**********************************************************************
-bool FiniteStrainBridgingConstitutiveLaw::Has( const Variable<int>& rThisVariable )
+bool FiniteStrainBridgingConstitutiveLaw::Has( const Variable<int>& rThisVariable ) const
 {
     return mpConstitutiveLaw->Has(rThisVariable);
 }
 
 //**********************************************************************
-bool FiniteStrainBridgingConstitutiveLaw::Has( const Variable<double>& rThisVariable )
+bool FiniteStrainBridgingConstitutiveLaw::Has( const Variable<double>& rThisVariable ) const
 {
     return mpConstitutiveLaw->Has(rThisVariable);
 }
 
 //**********************************************************************
-bool FiniteStrainBridgingConstitutiveLaw::Has( const Variable<Vector>& rThisVariable )
+bool FiniteStrainBridgingConstitutiveLaw::Has( const Variable<Vector>& rThisVariable ) const
 {
     return mpConstitutiveLaw->Has(rThisVariable);
 }
 
 //**********************************************************************
-bool FiniteStrainBridgingConstitutiveLaw::Has( const Variable<Matrix>& rThisVariable )
+bool FiniteStrainBridgingConstitutiveLaw::Has( const Variable<Matrix>& rThisVariable ) const
 {
     return mpConstitutiveLaw->Has(rThisVariable);
 }

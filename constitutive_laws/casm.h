@@ -89,13 +89,13 @@ public:
     /**
      * Destructor.
      */
-    virtual ~Casm();
+    ~Casm() override;
 
     /**
      * Clone function
      * will be called on initialization of the constitutive law
      */
-    virtual BaseType::Pointer Clone() const
+    BaseType::Pointer Clone() const override
     {
         BaseType::Pointer p_clone ( new Casm() );
         return p_clone;
@@ -123,9 +123,9 @@ public:
 //     return false;
 //    }
 
-    bool Has ( const Variable<double>& rThisVariable );
-    bool Has ( const Variable<Vector>& rThisVariable );
-    bool Has ( const Variable<Matrix>& rThisVariable );
+    bool Has ( const Variable<double>& rThisVariable ) const;
+    bool Has ( const Variable<Vector>& rThisVariable ) const;
+    bool Has ( const Variable<Matrix>& rThisVariable ) const;
     double& GetValue ( const Variable<double>& rThisVariable, double& rValue );
     Vector& GetValue ( const Variable<Vector>& rThisVariable, Vector& rValue );
     Matrix& GetValue ( const Variable<Matrix>& rThisVariable, Matrix& rValue );
@@ -247,9 +247,6 @@ public:
      * converts a strain vector styled variable into its form, which the
      * deviatoric parts are no longer multiplied by 2
      */
-//             void Calculate( const Variable<Matrix >& rVariable,
-//                             Matrix& rResult, const ProcessInfo& rCurrentProcessInfo );
-//
     void Calculate ( const Variable<Vector >& rVariable,
                      Vector& rResult, const ProcessInfo& rCurrentProcessInfo );
 
@@ -335,7 +332,7 @@ private:
 
     friend class Serializer;
 
-    virtual void save( Serializer& rSerializer ) const
+    void save( Serializer& rSerializer ) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, ConstitutiveLaw );
 //         rSerializer.save( "mOldHistoryVariables", mOldHistoryVariables );
@@ -344,7 +341,7 @@ private:
         rSerializer.save( "mCurrentPlasticStrains", mCurrentPlasticStrains );
     }
 
-    virtual void load( Serializer& rSerializer )
+    void load( Serializer& rSerializer ) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ConstitutiveLaw );
 //         rSerializer.load( "mOldHistoryVariables", mOldHistoryVariables );
@@ -352,7 +349,6 @@ private:
         rSerializer.load( "mOldPlasticStrains", mOldPlasticStrains );
         rSerializer.load( "mCurrentPlasticStrains", mCurrentPlasticStrains );
     }
-
 
     void returnMapping (double pTr, double qTr);
 
@@ -381,9 +377,8 @@ private:
     void CalculateUnit4thSym3D();
 
     void CalculateUnit2nd3D();
-
-
-
 }; // Class Casm
+
 }  // namespace Kratos.
-#endif // KRATOS_CASM_H_INCLUDED  defined 
+
+#endif // KRATOS_CASM_H_INCLUDED  defined

@@ -80,22 +80,22 @@ DummyConstitutiveLaw::~DummyConstitutiveLaw()
 {
 }
 
-bool DummyConstitutiveLaw::Has( const Variable<int>& rThisVariable )
+bool DummyConstitutiveLaw::Has( const Variable<int>& rThisVariable ) const
 {
     return false;
 }
 
-bool DummyConstitutiveLaw::Has( const Variable<double>& rThisVariable )
+bool DummyConstitutiveLaw::Has( const Variable<double>& rThisVariable ) const
 {
     return false;
 }
 
-bool DummyConstitutiveLaw::Has( const Variable<Vector>& rThisVariable )
+bool DummyConstitutiveLaw::Has( const Variable<Vector>& rThisVariable ) const
 {
     return false;
 }
 
-bool DummyConstitutiveLaw::Has( const Variable<Matrix>& rThisVariable )
+bool DummyConstitutiveLaw::Has( const Variable<Matrix>& rThisVariable ) const
 {
     return false;
 }

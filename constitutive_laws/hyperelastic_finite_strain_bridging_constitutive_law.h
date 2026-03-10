@@ -70,7 +70,7 @@ public:
     /**
      * Destructor.
      */
-    virtual ~HyperelasticFiniteStrainBridgingConstitutiveLaw()
+    ~HyperelasticFiniteStrainBridgingConstitutiveLaw() override
     {}
 
     /**
@@ -112,7 +112,6 @@ protected:
 
 private:
 
-    ///@}
     ///@name Serialization
     ///@{
 
@@ -127,6 +126,8 @@ private:
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, BaseType );
     }
+
+    ///@}
 
     /**
      * Static Member Variables

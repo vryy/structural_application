@@ -70,7 +70,7 @@ public:
     /**
      * Destructor.
      */
-    virtual ~TotalLagrangianBridgingConstitutiveLaw();
+    ~TotalLagrangianBridgingConstitutiveLaw() override;
 
     /**
      * Operators
@@ -89,30 +89,30 @@ public:
         return mpConstitutiveLaw->GetStrainSize();
     }
 
-    bool IsIncremental() final
+    bool IsIncremental() const final
     {
         return mpConstitutiveLaw->IsIncremental();
     }
 
-    ConstitutiveLaw::StrainMeasure GetStrainMeasure() final
+    ConstitutiveLaw::StrainMeasure GetStrainMeasure() const final
     {
         return ConstitutiveLaw::StrainMeasure_GreenLagrange;
     }
 
-    ConstitutiveLaw::StressMeasure GetStressMeasure() final
+    ConstitutiveLaw::StressMeasure GetStressMeasure() const final
     {
         return ConstitutiveLaw::StressMeasure_PK2;
     }
 
-    void GetLawFeatures(Features& rFeatures) final
+    void GetLawFeatures(Features& rFeatures) const final
     {
         rFeatures.SetStrainMeasure(this->GetStrainMeasure());
     }
 
-    bool Has( const Variable<int>& rThisVariable ) final;
-    bool Has( const Variable<double>& rThisVariable ) final;
-    bool Has( const Variable<Vector>& rThisVariable ) final;
-    bool Has( const Variable<Matrix>& rThisVariable );
+    bool Has( const Variable<int>& rThisVariable ) const final;
+    bool Has( const Variable<double>& rThisVariable ) const final;
+    bool Has( const Variable<Vector>& rThisVariable ) const final;
+    bool Has( const Variable<Matrix>& rThisVariable ) const final;
 
     int& GetValue( const Variable<int>& rThisVariable, int& rValue ) final;
     double& GetValue( const Variable<double>& rThisVariable, double& rValue ) final;
@@ -206,11 +206,6 @@ public:
         rOStream << Info();
     }
 
-    /**
-     * Print object's data.
-     */
-    //virtual void PrintData(std::ostream& rOStream) const;
-
 protected:
     /**
      * Member Variables
@@ -220,7 +215,6 @@ protected:
 
 private:
 
-    ///@}
     ///@name Serialization
     ///@{
 
@@ -235,6 +229,8 @@ private:
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ConstitutiveLaw );
     }
+
+    ///@}
 
     /**
      * Static Member Variables

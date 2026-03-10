@@ -80,7 +80,7 @@ ValuesContainerConstitutiveLaw::~ValuesContainerConstitutiveLaw()
 {
 }
 
-bool ValuesContainerConstitutiveLaw::Has( const Variable<int>& rThisVariable )
+bool ValuesContainerConstitutiveLaw::Has( const Variable<int>& rThisVariable ) const
 {
     if (mValuesPosition.find(rThisVariable.Key()) != mValuesPosition.end())
         return true;
@@ -88,7 +88,7 @@ bool ValuesContainerConstitutiveLaw::Has( const Variable<int>& rThisVariable )
     return mpConstitutiveLaw->Has( rThisVariable );
 }
 
-bool ValuesContainerConstitutiveLaw::Has( const Variable<double>& rThisVariable )
+bool ValuesContainerConstitutiveLaw::Has( const Variable<double>& rThisVariable ) const
 {
     if (mValuesPosition.find(rThisVariable.Key()) != mValuesPosition.end())
         return true;
@@ -96,7 +96,7 @@ bool ValuesContainerConstitutiveLaw::Has( const Variable<double>& rThisVariable 
     return mpConstitutiveLaw->Has( rThisVariable );
 }
 
-bool ValuesContainerConstitutiveLaw::Has( const Variable<array_1d<double, 3> >& rThisVariable )
+bool ValuesContainerConstitutiveLaw::Has( const Variable<array_1d<double, 3> >& rThisVariable ) const
 {
     if (mValuesPosition.find(rThisVariable.Key()) != mValuesPosition.end())
         return true;
@@ -104,7 +104,7 @@ bool ValuesContainerConstitutiveLaw::Has( const Variable<array_1d<double, 3> >& 
     return mpConstitutiveLaw->Has( rThisVariable );
 }
 
-bool ValuesContainerConstitutiveLaw::Has( const Variable<Vector>& rThisVariable )
+bool ValuesContainerConstitutiveLaw::Has( const Variable<Vector>& rThisVariable ) const
 {
     if (mValuesPosition.find(rThisVariable.Key()) != mValuesPosition.end())
         return true;
@@ -112,7 +112,7 @@ bool ValuesContainerConstitutiveLaw::Has( const Variable<Vector>& rThisVariable 
     return mpConstitutiveLaw->Has( rThisVariable );
 }
 
-bool ValuesContainerConstitutiveLaw::Has( const Variable<Matrix>& rThisVariable )
+bool ValuesContainerConstitutiveLaw::Has( const Variable<Matrix>& rThisVariable ) const
 {
     if (mValuesPosition.find(rThisVariable.Key()) != mValuesPosition.end())
         return true;
