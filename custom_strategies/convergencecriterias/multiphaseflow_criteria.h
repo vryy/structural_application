@@ -156,10 +156,7 @@ public:
         mRelativeTolerance = RelativeTolerance;
         mAbsoluteTolerance = AbsoluteTolerance;
 
-        // mCheckType = 1; // only check the absolute criteria
-        // mCheckType = 2; // only check the relative criteria
-        // mCheckType = 3; // check both
-        mCheckType = 4; // one of them
+        mCheckType = 4;
     }
 
     /** Destructor.
@@ -167,8 +164,12 @@ public:
     ~MultiPhaseFlowCriteria() override
     {}
 
-
-    void SetType(const int& Type)
+    /// Set the type of convergence criteria to be checked for each phase
+    //  Type = 1 - only check the absolute criteria
+    //  Type = 2 - only check the relative criteria
+    //  Type = 3 - check both absolute and relative criteria
+    //  Type = 4 - check either absolute or relative criteria
+    void SetType(const int Type)
     {
         mCheckType = Type;
     }
@@ -211,6 +212,7 @@ public:
             double norm_b_AIR = 0.0;
             double norm_x_AIR = 0.0;
 
+            bool HasDisplacement = false;
             bool HasWaterPres = false;
             bool HasAirPres = false;
 
@@ -220,18 +222,24 @@ public:
                 {
                     if (i_dof->GetVariable() == DISPLACEMENT_X)
                     {
+                        HasDisplacement = true;
+
                         norm_Dx += Dx[i_dof->EquationId()] * Dx[i_dof->EquationId()];
                         norm_b += b[i_dof->EquationId()] * b[i_dof->EquationId()];
                         norm_x += i_dof->GetSolutionStepValue(DISPLACEMENT_X) * i_dof->GetSolutionStepValue(DISPLACEMENT_X);
                     }
                     if (i_dof->GetVariable() == DISPLACEMENT_Y)
                     {
+                        HasDisplacement = true;
+
                         norm_Dx += Dx[i_dof->EquationId()] * Dx[i_dof->EquationId()];
                         norm_b += b[i_dof->EquationId()] * b[i_dof->EquationId()];
                         norm_x += i_dof->GetSolutionStepValue(DISPLACEMENT_Y) * i_dof->GetSolutionStepValue(DISPLACEMENT_Y);
                     }
                     if (i_dof->GetVariable() == DISPLACEMENT_Z)
                     {
+                        HasDisplacement = true;
+
                         norm_Dx += Dx[i_dof->EquationId()] * Dx[i_dof->EquationId()];
                         norm_b += b[i_dof->EquationId()] * b[i_dof->EquationId()];
                         norm_x += i_dof->GetSolutionStepValue(DISPLACEMENT_Z) * i_dof->GetSolutionStepValue(DISPLACEMENT_Z);
@@ -297,8 +305,11 @@ public:
             std::cout << "***********************************************CONVERGENCE CRITERIA FOR MULTIPHASE PROBLEMS***********************************************" << std::endl;
             std::cout.precision(6);
             std::cout.setf(std::ios::scientific);
-            std::cout << "** expected values: \t\t\t\t\t\tabs_tol = " << mAbsoluteTolerance << "\t\t\t\trel_tol = " << mRelativeTolerance << "\t**" << std::endl;
-            std::cout << "** obtained values displacement:\tratio = " << ratioDisp << "\t||Dx|| = " << norm_Dx << "\t||x|| = " << norm_x << "\t||b|| = " << norm_b << "\t**" << std::endl;
+            if (HasDisplacement)
+            {
+                std::cout << "** expected values: \t\t\t\t\t\tabs_tol = " << mAbsoluteTolerance << "\t\t\t\trel_tol = " << mRelativeTolerance << "\t**" << std::endl;
+                std::cout << "** obtained values displacement:\tratio = " << ratioDisp << "\t||Dx|| = " << norm_Dx << "\t||x|| = " << norm_x << "\t||b|| = " << norm_b << "\t**" << std::endl;
+            }
             if (HasWaterPres)
             {
                 std::cout << "** obtained values water pressure:\tratio = " << ratioWater << "\t||Dx|| = " << norm_Dx_WATER << "\t||x|| = " << norm_x_WATER << " \t||b|| = " << norm_b_WATER << "\t**" << std::endl;
@@ -311,6 +322,19 @@ public:
                 else
                 {
                     std::cout << "** obtained values total:\t\tratio = " << ratioWater + ratioDisp << "\tchange = " << norm_Dx + norm_Dx_WATER << "\tabsolute = " << norm_x_WATER + norm_x << "\tenergy = " << norm_b_WATER + norm_b << "\t**" << std::endl;
+                }
+            }
+            else
+            {
+                if (HasAirPres)
+                {
+                    std::cout << "** obtained values air pressure:\tratio = " << ratioAir << "\t||Dx|| = " << norm_Dx_AIR << "\t||x|| = " << norm_x_AIR << "\t||b|| = " << norm_b_AIR << "\t**" << std::endl;
+
+                    std::cout << "** obtained values total:\t\tratio = " << ratioAir + ratioDisp << "\tchange = " << norm_Dx + norm_Dx_AIR << "\tabsolute = " << norm_x_AIR + norm_x << "\tenergy = " << norm_b_AIR + norm_b << "\t**" << std::endl;
+                }
+                else
+                {
+                    std::cout << "** obtained values total:\t\tratio = " << ratioWater + ratioDisp << "\tchange = " << norm_Dx << "\tabsolute = " << norm_x << "\tenergy = " << norm_b << "\t**" << std::endl;
                 }
             }
             std::cout << "******************************************************************************************************************************************" << std::endl;
