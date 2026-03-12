@@ -138,6 +138,8 @@ public:
 
     void Execute() override
     {
+        KRATOS_TRY
+
         Element::MatrixType LHS_Contribution = Element::MatrixType(0, 0);
         Element::VectorType RHS_Contribution = Element::VectorType(0);
         const ProcessInfo& CurrentProcessInfo = mr_model_part.GetProcessInfo();
@@ -203,6 +205,8 @@ public:
                 // #endif
             }
         }
+
+        KRATOS_CATCH("")
     }
 
     ///@}
@@ -345,7 +349,6 @@ private:
     ///@{
 
     /// Assignment operator.
-    CalculateReactionProcess& operator=(CalculateReactionProcess const& rOther);
 
     /// Copy constructor.
     //CalculateReactionProcess(FindConditionsNeighboursProcess const& rOther);

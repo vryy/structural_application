@@ -1,5 +1,5 @@
 //
-//   Project Name:        Kratos
+//   Project Name:        KratosStructuralApplication
 //   Last Modified by:    $Author: hbui $
 //   Date:                $Date: 22 Jun 20 $
 //   Revision:            $Revision: 1.0 $
@@ -13,7 +13,6 @@
 
 // Project includes
 #include "includes/element.h"
-#include "includes/condition.h"
 #include "includes/serializer.h"
 #include "includes/ublas_interface.h"
 #include "includes/variables.h"
@@ -22,6 +21,7 @@ namespace Kratos
 {
 
 /**
+ * Another implementation of Timoshenko beam element
  */
 class TimoshenkoLinearBeamElement : public Element
 {
@@ -47,7 +47,7 @@ public:
     /**
      * Destructor.
      */
-    virtual ~TimoshenkoLinearBeamElement();
+    ~TimoshenkoLinearBeamElement() override;
 
     /**
      * Operations.
@@ -86,30 +86,19 @@ public:
 
     int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
-    /**
-     * Turn back information as a string.
-     * (DEACTIVATED)
-     */
-    //std::string Info();
+    /// Turn back information as a string.
+    std::string Info() const override
+    {
+        return "TimoshenkoLinearBeamElement";
+    }
 
-    /**
-     * Print information about this object.
-     * (DEACTIVATED)
-     */
-    //virtual void PrintInfo(std::ostream& rOStream) const;
-
-    /**
-     * Print object's data.
-     * (DEACTIVATED)
-     */
-    //virtual void PrintData(std::ostream& rOStream) const;
-
-protected:
-
+    /// Print information about this object.
+    void PrintInfo(std::ostream& rOStream) const override
+    {
+        rOStream << "TimoshenkoLinearBeamElement #" << Id();
+    }
 
 private:
-
-    // double mE, mG, mA, mNU, mI, mk;
 
     Matrix mInitialDisp;
     Matrix mInitialRot;
@@ -142,6 +131,4 @@ private:
 
 }  // namespace Kratos.
 
-
 #endif // KRATOS_TIMOSHENKO_LINEAR_BEAM_ELEMENT_H_INCLUDED defined
-

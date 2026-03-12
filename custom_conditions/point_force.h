@@ -96,10 +96,8 @@ public:
 
     /// Default constructor.
     PointForce(IndexType NewId, typename GeometryType::Pointer pGeometry);
-    PointForce(IndexType NewId, typename GeometryType::Pointer pGeometry,
-                     typename PropertiesType::Pointer pProperties);
-
-    PointForce( IndexType NewId, typename GeometryType::PointType::Pointer const& pNode, typename PropertiesType::Pointer pProperties );
+    PointForce(IndexType NewId, typename GeometryType::Pointer pGeometry, typename PropertiesType::Pointer pProperties);
+    PointForce(IndexType NewId, typename GeometryType::PointType::Pointer const& pNode, typename PropertiesType::Pointer pProperties);
 
     /// Destructor.
     ~PointForce() override;
@@ -131,11 +129,11 @@ public:
     void CalculateMassMatrix( MatrixType& rMassMatrix,
                               const ProcessInfo& rCurrentProcessInfo) final;
 
-    void EquationIdVector(EquationIdVectorType& rResult,
-                          const ProcessInfo& rCurrentProcessInfo) const final;
+    void EquationIdVector( EquationIdVectorType& rResult,
+                           const ProcessInfo& rCurrentProcessInfo ) const final;
 
-    void GetDofList(DofsVectorType& ConditionalDofList,
-                    const ProcessInfo& CurrentProcessInfo) const final;
+    void GetDofList( DofsVectorType& ConditionalDofList,
+                     const ProcessInfo& CurrentProcessInfo ) const final;
 
     ///@}
     ///@name Access

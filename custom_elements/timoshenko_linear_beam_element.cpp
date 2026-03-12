@@ -1,5 +1,5 @@
 //
-//   Project Name:        Kratos
+//   Project Name:        KratosStructuralApplication
 //   Last Modified by:    $Author: hbui $
 //   Date:                $Date: 22 Jun 2020$
 //   Revision:            $Revision: 1.0 $
@@ -188,11 +188,6 @@ void TimoshenkoLinearBeamElement::CalculateAll( MatrixType& rLeftHandSideMatrix,
     Matrix material_matrix;
     this->CreateElementStiffnessMatrix_Material(material_matrix);
 
-    if (Id() == 1)
-    {
-        KRATOS_WATCH(transformation_matrix)
-        KRATOS_WATCH(material_matrix)
-    }
 
     noalias(rLeftHandSideMatrix) = prod( Matrix( prod( transformation_matrix, material_matrix ) ), trans(transformation_matrix));
 
@@ -506,7 +501,7 @@ void TimoshenkoLinearBeamElement::CalculateInitialLocalCS(Matrix& transformation
 void TimoshenkoLinearBeamElement::CreateElementStiffnessMatrix_Material(Matrix& local_stiffness_matrix) const
 {
 
-    KRATOS_TRY;
+    KRATOS_TRY
 
     unsigned int dim = GetGeometry().WorkingSpaceDimension();
     unsigned int mat_size;
@@ -624,7 +619,7 @@ int TimoshenkoLinearBeamElement::Check(const ProcessInfo& rCurrentProcessInfo) c
 
     return 0;
 
-    KRATOS_CATCH("");
+    KRATOS_CATCH("")
 }
 
 } // Namespace Kratos
