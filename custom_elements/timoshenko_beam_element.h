@@ -44,7 +44,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 //   Project Name:        Kratos
 //   Last Modified by:    $Author: vladislav $
-//   Date:                $Date: 2009-01-14 09:30:38 $
+//   Date:                $Date: 2015-07-28 $
 //   Revision:            $Revision: 1.4 $
 //
 //
@@ -121,8 +121,7 @@ public:
     TimoshenkoBeamElement( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties );
 
     /// Destructor.
-    virtual ~TimoshenkoBeamElement();
-
+    ~TimoshenkoBeamElement() override;
 
     ///@}
     ///@name Operators
@@ -148,11 +147,13 @@ public:
 
     void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const override;
 
-    void CalculateExternalLoadVector(Matrix& Rotation,  Vector& LocalBody, Vector& GlobalBody);
+    void CalculateExternalLoadVector(Matrix& Rotation, Vector& LocalBody, Vector& GlobalBody) const;
 
-    void CalculateTransformationMatrix(Matrix& Rotation);
+    void CalculateTransformationMatrix(Matrix& Rotation, const Vector& TangentialVector) const;
 
-    void CalculateLocalMatrix(Matrix& LocalMatrix);
+    void CalculateLocalMatrix(Matrix& LocalMatrix) const;
+
+    void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
 
@@ -173,17 +174,16 @@ public:
     ///@{
 
     /// Turn back information as a string.
-//      virtual String Info() const;
+    std::string Info() const override
+    {
+        return "TimoshenkoBeamElement";
+    }
 
     /// Print information about this object.
     void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "TimoshenkoBeamElement #" << Id();
     }
-
-    /// Print object's data.
-//      virtual void PrintData(std::ostream& rOStream) const;
-
 
     ///@}
     ///@name Friends
@@ -250,7 +250,9 @@ private:
     ///@name Static Member Variables
     ///@{
 
-//    static const double PI = boost::math::constants::pi<double>();
+    ///@}
+    ///@name Member Variables
+    ///@{
 
     double mArea;
     double mArea_y;
@@ -258,11 +260,6 @@ private:
     double mInertia_x;
     double mInertia_y;
     double mInertia_z;
-    double mLength;
-
-    ///@}
-    ///@name Member Variables
-    ///@{
 
     ///@}
     ///@name Private Operators
@@ -274,7 +271,7 @@ private:
 
     void CalculateSectionProperties();
 
-    void CalculateBoperator( Matrix& B_Operator, const Matrix& DN_DX, const Matrix& Ncontainer );
+    void CalculateBoperator( Matrix& B_Operator, const Matrix& DN_DX, const Matrix& Ncontainer ) const;
 
     ///@}
     ///@name Private  Access
@@ -295,7 +292,6 @@ private:
 
     /// Copy constructor.
     //TimoshenkoBeamElement(const TimoshenkoBeamElement& rOther);
-
 
     ///@}
 

@@ -81,7 +81,7 @@ namespace Kratos
         unsigned int number_of_nodes = GetGeometry().size();             // number of nodes
 
         if (dimension != 3)
-            KRATOS_THROW_ERROR(std::logic_error, "This element only works in 3D space", "")
+            KRATOS_ERROR << "This element only works in 3D space";
 
         KRATOS_CATCH("")
     }
@@ -149,15 +149,6 @@ namespace Kratos
     {
         KRATOS_TRY
 
-        unsigned int number_of_nodes = GetGeometry().size();
-
-        //std::cout << "CalculateSectionProperties is called" << std::endl;
-        //**********************************************************************************
-        //Initialization of auxiliary variables
-        //**********************************************************************************
-        array_1d<double, 3> x_0;    // Vector that contains coordinates of the node 0
-        array_1d<double, 3> x_1;    // Vector that contains coordinates of the node 1
-        array_1d<double, 3> length; // Vector that contains the direction of the beam
         //**********************************************************************************
         // Initializing area
         //**********************************************************************************
@@ -174,43 +165,9 @@ namespace Kratos
         mInertia_y = GetProperties()[INERTIA_Y];
         mInertia_z = GetProperties()[INERTIA_Z];
 
-        //        KRATOS_WATCH(GetProperties())
-
-        //        KRATOS_WATCH(mArea)
-        //        KRATOS_WATCH(mArea_y)
-        //        KRATOS_WATCH(mArea_z)
-        //        KRATOS_WATCH(mInertia_x)
-        //        KRATOS_WATCH(mInertia_y)
-        //        KRATOS_WATCH(mInertia_z)
-
-        if (number_of_nodes == 2)
-        {
-            x_0( 0 ) = GetGeometry()[0].X0();
-            x_0( 1 ) = GetGeometry()[0].Y0();
-            x_0( 2 ) = GetGeometry()[0].Z0();
-            x_1( 0 ) = GetGeometry()[1].X0();
-            x_1( 1 ) = GetGeometry()[1].Y0();
-            x_1( 2 ) = GetGeometry()[1].Z0();
-        }
-        else if (number_of_nodes == 3)
-        {
-            x_0( 0 ) = GetGeometry()[0].X0();
-            x_0( 1 ) = GetGeometry()[0].Y0();
-            x_0( 2 ) = GetGeometry()[0].Z0();
-            x_1( 0 ) = GetGeometry()[2].X0();
-            x_1( 1 ) = GetGeometry()[2].Y0();
-            x_1( 2 ) = GetGeometry()[2].Z0();
-        }
-
-        noalias( length ) = x_1 - x_0;
-        mLength = norm_2(length);
-
-        if (mLength == 0.00)
-            KRATOS_THROW_ERROR(std::invalid_argument, "Zero length found in timoshenko beam element #", this->Id());
-
         KRATOS_CATCH( "" )
-
     }
+
     //*************************************************************************************
     //*************************************************************************************
 
@@ -257,6 +214,7 @@ namespace Kratos
             ElementalDofList.push_back(GetGeometry()[2].pGetDof(ROTATION_Z));
         }
     }
+
     //************************************************************************************
     //************************************************************************************
 
@@ -267,7 +225,7 @@ namespace Kratos
         if (number_of_nodes == 2)
         {
             if(rResult.size() != 12)
-            rResult.resize(12, false);
+                rResult.resize(12, false);
 
             rResult[0]    = GetGeometry()[0].GetDof(DISPLACEMENT_X).EquationId();
             rResult[1]    = GetGeometry()[0].GetDof(DISPLACEMENT_Y).EquationId();
@@ -285,7 +243,7 @@ namespace Kratos
         else if (number_of_nodes == 3)
         {
             if(rResult.size() != 18)
-            rResult.resize(18, false);
+                rResult.resize(18, false);
 
             rResult[0]    = GetGeometry()[0].GetDof(DISPLACEMENT_X).EquationId();
             rResult[1]    = GetGeometry()[0].GetDof(DISPLACEMENT_Y).EquationId();
@@ -307,6 +265,7 @@ namespace Kratos
             rResult[17]   = GetGeometry()[2].GetDof(ROTATION_Z).EquationId();
         }
     }
+
     //************************************************************************************
     //************************************************************************************
 
@@ -325,48 +284,49 @@ namespace Kratos
         if (this->GetProperties().Has(AREA) == false)
         {
             // if( this->GetProperties()[AREA] == 0.0 )
-                KRATOS_THROW_ERROR(std::logic_error, "AREA not provided for this element", this->Id());
+                KRATOS_ERROR << "AREA not provided for this element " << this->Id();
         }
 
         // verify that the inertia is given by properties
         if (this->GetProperties().Has(INERTIA_X) == false)
         {
             // if( GetProperties()[INERTIA_X] == 0.0 )
-                KRATOS_THROW_ERROR(std::logic_error, "INERTIA_X not provided for this element ", this->Id());
+                KRATOS_ERROR << "INERTIA_X not provided for this element " << this->Id();
         }
 
         if (this->GetProperties().Has(INERTIA_Y) == false)
         {
             // if( GetProperties()[INERTIA_Y] == 0.0 )
-                KRATOS_THROW_ERROR(std::logic_error, "INERTIA_Y not provided for this element ", this->Id());
+                KRATOS_ERROR << "INERTIA_Y not provided for this element " << this->Id();
         }
         if (this->GetProperties().Has(INERTIA_Z) == false)
         {
             // if( GetProperties()[INERTIA_Z] == 0.0 )
-                KRATOS_THROW_ERROR(std::logic_error, "INERTIA_Z not provided for this element ", this->Id());
+                KRATOS_ERROR << "INERTIA_Z not provided for this element " << this->Id();
         }
 
         return 0;
 
         KRATOS_CATCH("");
     }
+
     //************************************************************************************
     //************************************************************************************
 
-    void TimoshenkoBeamElement::CalculateExternalLoadVector(Matrix& Rotation, Vector& LocalBody, Vector& GlobalBody)
-
+    void TimoshenkoBeamElement::CalculateExternalLoadVector(Matrix& Rotation, Vector& LocalBody, Vector& GlobalBody) const
     {
-
         KRATOS_TRY
+
         //************************************************************************************
         //Calculates external load vector
         //
         //Works only for constant distributed load - should be extended for arbitrary distibution
+        // Also extend for integration over Gauss points
         //************************************************************************************
 
         double alpha =  0.00;
         double sign  =  1.00;
-        const double mLength = GetGeometry().Length();
+        const double Length = GetGeometry().Length();
         double  sine;
         double  cosine;
 
@@ -437,23 +397,22 @@ namespace Kratos
             Load[0]= Distr_load[0]*sine;
             Load[1]= Distr_load[0]*cosine;
 
-            Load_X[0]= Load[0]*mLength/2.00;
-            Load_X[1]= -(Load[1]*mLength)/2.00;
+            Load_X[0]= Load[0]*Length/2.00;
+            Load_X[1]= -(Load[1]*Length)/2.00;
             Load_X[2]= 0.00;
 
             Load_X[3]= 0.00;
             Load_X[4]= 0.00;
-            Load_X[5]= -(Load[1])*mLength*mLength/12.00;;
-            Load_X[6]= Load[0]*mLength/2.00;
-            Load_X[7]= -(Load[1])*mLength/2.00;
+            Load_X[5]= -(Load[1])*Length*Length/12.00;;
+            Load_X[6]= Load[0]*Length/2.00;
+            Load_X[7]= -(Load[1])*Length/2.00;
             Load_X[8]= 0.00;
             Load_X[9]= 0.00;
             Load_X[10]= 0.00;
-            Load_X[11]= (Load[1])*mLength*mLength/12.00;
+            Load_X[11]= (Load[1])*Length*Length/12.00;
 
             noalias(GlobalBody) -= prod(Rotation,Load_X);
             noalias(LocalBody)  -= Load_X;
-
         }
 
         //Load in Y direction
@@ -487,21 +446,21 @@ namespace Kratos
             Load[0] = Distr_load[1]*sine;
             Load[1] = Distr_load[1]*cosine;
 
-            Load_Y[0] = -Load[0]*mLength/2.00;
-            Load_Y[1] = -(Load[1]*mLength)/2.00;
+            Load_Y[0] = -Load[0]*Length/2.00;
+            Load_Y[1] = -(Load[1]*Length)/2.00;
             Load_Y[2] = 0.00;
 
             Load_Y[3] = 0.00;
 
             Load_Y[4] = 0.00;
 
-            Load_Y[5] = -(Load[1])*mLength*mLength/12.00;
-            Load_Y[6] = -(Load[0])*mLength/2.00;
-            Load_Y[7] = -(Load[1])*mLength/2.00;
+            Load_Y[5] = -(Load[1])*Length*Length/12.00;
+            Load_Y[6] = -(Load[0])*Length/2.00;
+            Load_Y[7] = -(Load[1])*Length/2.00;
             Load_Y[8] = 0.00;
             Load_Y[9] = 0.00;
             Load_Y[10] = 0.00;
-            Load_Y[11] = (Load[1])*mLength*mLength/12.00;
+            Load_Y[11] = (Load[1])*Length*Length/12.00;
 
             noalias(GlobalBody) -= prod(Rotation, Load_Y);
             noalias(LocalBody)  -= Load_Y;
@@ -542,18 +501,18 @@ namespace Kratos
             Load[0]= Distr_load[2]*sine;  // load in axial direction
             Load[1]= Distr_load[2]*cosine; //
 
-            Load_Z[0]= -Load[0]*mLength/2.00;
+            Load_Z[0]= -Load[0]*Length/2.00;
             Load_Z[1]= 0.00;
-            Load_Z[2]= -(Load[1]*mLength)/2.00;
+            Load_Z[2]= -(Load[1]*Length)/2.00;
             Load_Z[3]= 0.00;
-            Load_Z[4]= -Load[1]*mLength*mLength/12.00;
+            Load_Z[4]= -Load[1]*Length*Length/12.00;
 
             Load_Z[5]= 0.00;
-            Load_Z[6]= -Load[0]*mLength/2.00;
+            Load_Z[6]= -Load[0]*Length/2.00;
             Load_Z[7]= 0.00;
-            Load_Z[8]= -(Load[1])*mLength/2.00;
+            Load_Z[8]= -(Load[1])*Length/2.00;
             Load_Z[9]=  0.00;
-            Load_Z[10]= (Load[1])*mLength*mLength/12.00;
+            Load_Z[10]= (Load[1])*Length*Length/12.00;
             Load_Z[11]=  0.00;
 
             noalias(GlobalBody) -= prod(Rotation, Load_Z); //External load vector in global coordinates
@@ -567,51 +526,21 @@ namespace Kratos
     //*****************************************************************************
     //*****************************************************************************
 
-    void TimoshenkoBeamElement::CalculateTransformationMatrix(Matrix& Rotation)
+    void TimoshenkoBeamElement::CalculateTransformationMatrix(Matrix& Rotation, const Vector& TangentialVector) const
     {
-        // only straight beam elements
         KRATOS_TRY
 
         unsigned int number_of_nodes = GetGeometry().size();
         Vector Normal_zero(9); // vector containing directional cosines
-        Vector x_zero(6); // vector containing nodal coordinates
-        Vector Vector_zero(3); // vector containing projections of lengths
 
         noalias(Normal_zero) =    zero_vector<double>(9);
-        noalias(x_zero)      =    zero_vector<double>(6);
-        noalias(Vector_zero) =    zero_vector<double>(3);
         noalias(Rotation)    =    zero_matrix<double>(6*number_of_nodes, 6*number_of_nodes);
 
         double nx, ny, nz, theta;
 
-        // if(number_of_nodes == 2)
-        // {
-            x_zero(0) = GetGeometry()[0].X0();
-            x_zero(1) = GetGeometry()[0].Y0();
-            x_zero(2) = GetGeometry()[0].Z0();
-            x_zero(3) = GetGeometry()[1].X0();
-            x_zero(4) = GetGeometry()[1].Y0();
-            x_zero(5) = GetGeometry()[1].Z0();
-        // }
-        // else
-        // {
-        //     x_zero(0) = GetGeometry()[0].X0();
-        //     x_zero(1) = GetGeometry()[0].Y0();
-        //     x_zero(2) = GetGeometry()[0].Z0();
-        //     x_zero(3) = GetGeometry()[2].X0();
-        //     x_zero(4) = GetGeometry()[2].Y0();
-        //     x_zero(5) = GetGeometry()[2].Z0();
-        // }
-
-        for (unsigned int i=0; i < 3; ++i)
-        {
-            Vector_zero[i] = x_zero[i+3] - x_zero[i];
-        }
-
-        double length_inverse = ( 1.00 / mLength );
         for ( unsigned int i = 0; i < 3; ++i )
         {
-            Normal_zero[i] = Vector_zero[i] * length_inverse;
+            Normal_zero[i] = TangentialVector[i];
         }
 
         nx = Normal_zero[0];
@@ -632,7 +561,7 @@ namespace Kratos
         }
 
         if(nx < 0.0)
-            theta   = theta + PI;
+            theta = theta + PI;
 
         Normal_zero[3] = -sin(theta);
         Normal_zero[4] =  cos(theta);
@@ -659,18 +588,11 @@ namespace Kratos
     //************************************************************************************
     //************************************************************************************
 
-    void TimoshenkoBeamElement::CalculateLocalMatrix(Matrix& LocalMatrix)
+    void TimoshenkoBeamElement::CalculateLocalMatrix(Matrix& LocalMatrix) const
     {
         KRATOS_TRY
 
-        //initializing the Jacobian, the inverse Jacobian and Jacobians determinant in the reference
-        // configuration
-
-        //double J0 = mLength/2.0;
         unsigned int number_of_nodes = GetGeometry().size();
-        double mInvJ0 = 2.0/mLength;
-        double mDetJ0 = mLength/2.0;
-        // KRATOS_WATCH(mDetJ0)
 
         if(LocalMatrix.size1() != 6*number_of_nodes || LocalMatrix.size2() != 6*number_of_nodes)
         {
@@ -683,14 +605,12 @@ namespace Kratos
         const double Youngs  = GetProperties()[YOUNG_MODULUS];
         const double ShearModulus = Youngs / (2.0*(1.0 + Poisson));
 
-        //const double L = mLength;
-
         double const EA   =  mArea * Youngs;
         double const EIy  =  mInertia_y * Youngs;
         double const EIz  =  mInertia_z * Youngs;
         double const GJ   =  mInertia_x * ShearModulus;
-        double const GAy = mArea_y * ShearModulus;
-        double const GAz = mArea_z * ShearModulus;
+        double const GAy  = mArea_y * ShearModulus;
+        double const GAz  = mArea_z * ShearModulus;
 
         //this is the size of the elements stiffness matrix/force vector
         unsigned int mat_size = number_of_nodes * 6;
@@ -704,8 +624,7 @@ namespace Kratos
         C(3, 3) = GJ;
         C(4, 4) = EIy;
         C(5, 5) = EIz;
-        //Vector StrainVector( 6 );
-        //Vector StressVector( 6 );
+
         Matrix DN_DX( number_of_nodes, 1 );
 
         //reading integration points, shape function values and local gradients
@@ -715,12 +634,24 @@ namespace Kratos
 
         const Matrix& Ncontainer = GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod );
 
+        Matrix DeltaPosition(number_of_nodes, 3);
+
+        for ( unsigned int node = 0; node < number_of_nodes; ++node )
+            noalias( row( DeltaPosition, node ) ) = this->GetGeometry()[node].Coordinates()
+                            - this->GetGeometry()[node].GetInitialPosition();
+
+        typename GeometryType::JacobiansType J0;
+        J0 = this->GetGeometry().Jacobian( J0, mThisIntegrationMethod, DeltaPosition );
+
         /////////////////////////////////////////////////////////////////////////
         //// Integration in space over quadrature points
         /////////////////////////////////////////////////////////////////////////
         for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); ++PointNumber )
         {
-            noalias( DN_DX ) = DN_De[PointNumber] * mInvJ0;
+            double DetJ0 = std::sqrt(MathUtils<double>::Det(Matrix(prod(trans(J0[PointNumber]), J0[PointNumber]))));
+
+            noalias( DN_DX ) = DN_De[PointNumber] / DetJ0;
+
             //Initializing B_Operator at the current integration point
             CalculateBoperator( B, DN_DX, Ncontainer);
 
@@ -729,122 +660,188 @@ namespace Kratos
 
             //calculate stiffness matrix
             noalias( LocalMatrix ) +=
-                prod( trans(B), (IntToReferenceWeight * mDetJ0) * Matrix(prod(C, B)));
-
-            /*
-               if ( CalculateResidualVectorFlag == true )
-               {
-            //contribution of external forces
-            CalculateAndAdd_ExtForceContribution( row( Ncontainer, PointNumber ), rCurrentProcessInfo, BodyForce, rRightHandSideVector, IntToReferenceWeight, mDetJ0[PointNumber]);
-
-            //contribution of gravity (if there is)
-            AddBodyForcesToRHS( rRightHandSideVector, row( Ncontainer, PointNumber ), IntToReferenceWeight, mDetJ0[PointNumber] );
-
-            //contribution of internal forces
-            AddInternalForcesToRHS( rRightHandSideVector, B, StressVector, IntToReferenceWeight, mDetJ0[PointNumber] );
-             */
+                prod( trans(B), (IntToReferenceWeight * DetJ0) * Matrix(prod(C, B)));
         }
 
-
-        //KRATOS_WATCH(LocalMatrix)
         KRATOS_CATCH("")
     }
 
-        //************************************************************************************
-        //************************************************************************************
+    //************************************************************************************
+    //************************************************************************************
 
+    void TimoshenkoBeamElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
+            const ProcessInfo& rCurrentProcessInfo)
+    {
+        KRATOS_TRY
 
-        void TimoshenkoBeamElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
-                VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
+        unsigned int number_of_nodes = GetGeometry().size();
+        unsigned int mat_size = number_of_nodes * 6;
+
+        if (rLeftHandSideMatrix.size1() != mat_size
+            || rLeftHandSideMatrix.size2() != mat_size)
         {
-            KRATOS_TRY
+            rLeftHandSideMatrix.resize(mat_size, mat_size, false);
+        }
+        noalias(rLeftHandSideMatrix) = ZeroMatrix(mat_size, mat_size);
 
-            unsigned int number_of_nodes = GetGeometry().size();
+        //Initialization of local stiffness matrix
+        const double Poisson = GetProperties()[POISSON_RATIO];
+        const double Youngs  = GetProperties()[YOUNG_MODULUS];
+        const double ShearModulus = Youngs / (2.0*(1.0 + Poisson));
 
-            //Initialization of variables
-            Matrix LocalMatrix;
-            Matrix Rotation;
-            Matrix aux_matrix;
-            Vector LocalBody;
-            Vector CurrentDisplacement;
+        double const EA   =  mArea * Youngs;
+        double const EIy  =  mInertia_y * Youngs;
+        double const EIz  =  mInertia_z * Youngs;
+        double const GJ   =  mInertia_x * ShearModulus;
+        double const GAy  = mArea_y * ShearModulus;
+        double const GAz  = mArea_z * ShearModulus;
 
-//            if (number_of_nodes==2){
-//                array_1d<double, 12> CurrentDisplacement;
-//            }
-//            else{
-//                array_1d<double, 18> CurrentDisplacement;
-//            }
-            CurrentDisplacement.resize(6*number_of_nodes);
-            LocalMatrix.resize(6*number_of_nodes, 6*number_of_nodes, false);
-            Rotation.resize(6*number_of_nodes, 6*number_of_nodes, false);
-            aux_matrix.resize(6*number_of_nodes, 6*number_of_nodes, false);
-            rLeftHandSideMatrix.resize(6*number_of_nodes, 6*number_of_nodes, false);
-            rRightHandSideVector = ZeroVector(6*number_of_nodes);
-            LocalBody = ZeroVector(6*number_of_nodes);
+        //Initialize local variables
+        Matrix B( 6, mat_size );
+        Matrix C = zero_matrix<double>(6, 6);
+        C(0, 0) = EA;
+        C(1, 1) = GAy;
+        C(2, 2) = GAz;
+        C(3, 3) = GJ;
+        C(4, 4) = EIy;
+        C(5, 5) = EIz;
 
-            //Calculating LHS
-            CalculateLocalMatrix(LocalMatrix);
-            CalculateTransformationMatrix(Rotation);
-            noalias(aux_matrix) = prod(Rotation, LocalMatrix);
-            noalias(rLeftHandSideMatrix)= prod(aux_matrix, Matrix(trans(Rotation)));
+        Matrix DN_DX( number_of_nodes, 1 );
+        Matrix LocalMatrix(mat_size, mat_size);
+        Matrix Rotation(mat_size, mat_size);
+        Matrix AuxMatrix(mat_size, mat_size);
+        Vector TangentialVector(3);
 
-            //Calculating RHS
-            CalculateExternalLoadVector(Rotation, LocalBody, rRightHandSideVector);
+        //reading integration points, shape function values and local gradients
+        const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
 
-            for(unsigned int i = 0; i < number_of_nodes; ++i)
+        const GeometryType::ShapeFunctionsGradientsType& DN_De = GetGeometry().ShapeFunctionsLocalGradients( mThisIntegrationMethod );
+
+        const Matrix& Ncontainer = GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod );
+
+        Matrix DeltaPosition(number_of_nodes, 3);
+
+        for ( unsigned int node = 0; node < number_of_nodes; ++node )
+            noalias( row( DeltaPosition, node ) ) = this->GetGeometry()[node].Coordinates()
+                            - this->GetGeometry()[node].GetInitialPosition();
+
+        typename GeometryType::JacobiansType J0;
+        J0 = this->GetGeometry().Jacobian( J0, mThisIntegrationMethod, DeltaPosition );
+
+        /////////////////////////////////////////////////////////////////////////
+        //// Integration in space over quadrature points
+        /////////////////////////////////////////////////////////////////////////
+        for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); ++PointNumber )
+        {
+            double DetJ0 = std::sqrt(MathUtils<double>::Det(Matrix(prod(trans(J0[PointNumber]), J0[PointNumber]))));
+
+            noalias( DN_DX ) = DN_De[PointNumber] / DetJ0;
+
+            // Initializing B_Operator at the current integration point
+            CalculateBoperator( B, DN_DX, Ncontainer);
+
+            // calculating weights for integration on the reference configuration
+            double IntToReferenceWeight = integration_points[PointNumber].Weight();
+
+            // calculate local stiffness matrix
+            noalias( LocalMatrix ) =
+                prod( trans(B), (IntToReferenceWeight * DetJ0) * Matrix(prod(C, B)));
+
+            // calculate tangential vector
+            noalias(TangentialVector) = ZeroVector( 3 );
+            for ( unsigned int n = 0; n < number_of_nodes; ++n )
             {
-                CurrentDisplacement(6*i    ) = GetGeometry()[i].GetSolutionStepValue(DISPLACEMENT_X);
-                CurrentDisplacement(6*i + 1) = GetGeometry()[i].GetSolutionStepValue(DISPLACEMENT_Y);
-                CurrentDisplacement(6*i + 2) = GetGeometry()[i].GetSolutionStepValue(DISPLACEMENT_Z);
-                CurrentDisplacement(6*i + 3) = GetGeometry()[i].GetSolutionStepValue(ROTATION_X);
-                CurrentDisplacement(6*i + 4) = GetGeometry()[i].GetSolutionStepValue(ROTATION_Y);
-                CurrentDisplacement(6*i + 5) = GetGeometry()[i].GetSolutionStepValue(ROTATION_Z);
+                TangentialVector[0] += GetGeometry()[n].X0() * DN_De[PointNumber]( n, 0 );
+                TangentialVector[1] += GetGeometry()[n].Y0() * DN_De[PointNumber]( n, 0 );
+                TangentialVector[2] += GetGeometry()[n].Z0() * DN_De[PointNumber]( n, 0 );
             }
+            TangentialVector *= (1.0 / norm_2(TangentialVector));
 
-            noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix, CurrentDisplacement);
+            // calculate the transformation matrix
+            CalculateTransformationMatrix(Rotation, TangentialVector);
 
-            //std::cout << CurrentDisplacement << std::endl;
-            //std::cout << rRightHandSideVector << std::endl;
-            //std::cout << rLeftHandSideMatrix << std::endl;
-
-            //KRATOS_WATCH(CurrentDisplacement)
-            //KRATOS_WATCH(rLeftHandSideMatrix)
-            //KRATOS_WATCH(rRightHandSideVector)
-            KRATOS_CATCH("")
+            // contribute to the elemental stiffness matrix
+            noalias(AuxMatrix) = prod(Rotation, LocalMatrix);
+            noalias(rLeftHandSideMatrix) += prod(AuxMatrix, Matrix(trans(Rotation)));
         }
 
-        //********************************************************************
-        void TimoshenkoBeamElement::CalculateBoperator( Matrix& B_Operator, const Matrix& DN_DX, const Matrix& Ncontainer )
+        KRATOS_CATCH("")
+    }
+
+    //************************************************************************************
+    //************************************************************************************
+
+    void TimoshenkoBeamElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
+            VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
+    {
+        KRATOS_TRY
+
+        unsigned int number_of_nodes = GetGeometry().size();
+
+        //Initialization of variables
+        Matrix LocalMatrix;
+        Matrix Rotation;
+        Matrix aux_matrix;
+        Vector LocalBody;
+        Vector CurrentDisplacement;
+
+        CurrentDisplacement.resize(6*number_of_nodes);
+        LocalMatrix.resize(6*number_of_nodes, 6*number_of_nodes, false);
+        Rotation.resize(6*number_of_nodes, 6*number_of_nodes, false);
+        aux_matrix.resize(6*number_of_nodes, 6*number_of_nodes, false);
+        rLeftHandSideMatrix.resize(6*number_of_nodes, 6*number_of_nodes, false);
+        rRightHandSideVector = ZeroVector(6*number_of_nodes);
+        LocalBody = ZeroVector(6*number_of_nodes);
+
+        CalculateLeftHandSide(rLeftHandSideMatrix, rCurrentProcessInfo);
+
+        // //Calculating RHS
+        // CalculateExternalLoadVector(Rotation, LocalBody, rRightHandSideVector);
+
+        for(unsigned int i = 0; i < number_of_nodes; ++i)
         {
-            KRATOS_TRY
-
-                const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-
-                noalias( B_Operator ) = ZeroMatrix( 6, 6*number_of_nodes );
-
-                //TODO:check if right operators are called
-
-                for ( unsigned int i = 0; i < number_of_nodes; ++i )
-                {
-                    B_Operator( 0, i*6 ) = DN_DX( i, 0 );
-
-                    B_Operator( 1, i*6 + 1 ) = DN_DX( i, 0 );
-                    B_Operator( 1, i*6 + 5 ) = -Ncontainer(0, i);
-
-                    B_Operator( 2, i*6 + 2 ) = DN_DX( i, 0 );
-                    B_Operator( 2, i*6 + 4 ) = Ncontainer(0, i);
-
-                    B_Operator( 3, i*6 + 3 ) = DN_DX( i, 0 );
-
-                    B_Operator( 4, i*6 + 4 ) = DN_DX( i, 0 );
-
-                    B_Operator( 5, i*6 + 5 ) = DN_DX( i, 0 );
-                }
-
-            //KRATOS_WATCH(B_Operator)
-            KRATOS_CATCH( "" )
+            CurrentDisplacement(6*i    ) = GetGeometry()[i].GetSolutionStepValue(DISPLACEMENT_X);
+            CurrentDisplacement(6*i + 1) = GetGeometry()[i].GetSolutionStepValue(DISPLACEMENT_Y);
+            CurrentDisplacement(6*i + 2) = GetGeometry()[i].GetSolutionStepValue(DISPLACEMENT_Z);
+            CurrentDisplacement(6*i + 3) = GetGeometry()[i].GetSolutionStepValue(ROTATION_X);
+            CurrentDisplacement(6*i + 4) = GetGeometry()[i].GetSolutionStepValue(ROTATION_Y);
+            CurrentDisplacement(6*i + 5) = GetGeometry()[i].GetSolutionStepValue(ROTATION_Z);
         }
-        //*******************************************************************
 
-    } // Namespace Kratos
+        noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix, CurrentDisplacement);
 
+        KRATOS_CATCH("")
+    }
+
+    //************************************************************************************
+    //************************************************************************************
+
+    void TimoshenkoBeamElement::CalculateBoperator( Matrix& B_Operator, const Matrix& DN_DX, const Matrix& Ncontainer ) const
+    {
+        KRATOS_TRY
+
+        const unsigned int number_of_nodes = GetGeometry().PointsNumber();
+
+        noalias( B_Operator ) = ZeroMatrix( 6, 6*number_of_nodes );
+
+        for ( unsigned int i = 0; i < number_of_nodes; ++i )
+        {
+            B_Operator( 0, i*6 ) = DN_DX( i, 0 );
+
+            B_Operator( 1, i*6 + 1 ) = DN_DX( i, 0 );
+            B_Operator( 1, i*6 + 5 ) = -Ncontainer(0, i);
+
+            B_Operator( 2, i*6 + 2 ) = DN_DX( i, 0 );
+            B_Operator( 2, i*6 + 4 ) = Ncontainer(0, i);
+
+            B_Operator( 3, i*6 + 3 ) = DN_DX( i, 0 );
+
+            B_Operator( 4, i*6 + 4 ) = DN_DX( i, 0 );
+
+            B_Operator( 5, i*6 + 5 ) = DN_DX( i, 0 );
+        }
+
+        KRATOS_CATCH( "" )
+    }
+
+} // Namespace Kratos
