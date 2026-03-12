@@ -140,6 +140,8 @@ def CheckAndConvertParameters(analysis_parameters):
             analysis_parameters['move_mesh'] = True
         if 'dissipation_radius' not in analysis_parameters:
             analysis_parameters['dissipation_radius'] = 0.9
+        if 'perform_contact_analysis_flag' not in analysis_parameters:
+            analysis_parameters['perform_contact_analysis_flag'] = False
         return analysis_parameters
     elif( type( analysis_parameters ) == list ):
         new_analysis_parameters = {}
@@ -177,18 +179,27 @@ def CheckAndConvertParameters(analysis_parameters):
 
 #######################################################################
 class SolverAdvanced(structural_solver_static.StaticStructuralSolver):
-    def __init__( self, model_part, domain_size, time_steps, analysis_parameters, abs_tol, rel_tol ):
-        structural_solver_static.StaticStructuralSolver.__init__( self, model_part, domain_size )
-        self.time_steps = time_steps
+    def __init__(self, model_part, *args):
+
+        if len(args) == 5:
+            # legacy constructor
+            # ( model_part, domain_size, time_steps, analysis_parameters, abs_tol, rel_tol )
+            print("Warning for SolverAdvanced: domain_size and time_steps are deprecated and will be removed", flush=True)
+            domain_size, time_steps, analysis_parameters, abs_tol, rel_tol = args
+        elif len(args) == 3:
+            # new constructor
+            # ( model_part, analysis_parameters, abs_tol, rel_tol )
+            analysis_parameters, abs_tol, rel_tol = args
+        else:
+            raise TypeError("Invalid constructor arguments")
+
+        structural_solver_static.StaticStructuralSolver.__init__( self, model_part )
         self.analysis_parameters = CheckAndConvertParameters(analysis_parameters)
         self.echo_level = 0
         self.dissipation_radius = self.analysis_parameters['dissipation_radius']
-        self.toll = rel_tol
+        self.relative_tol = rel_tol
         self.absolute_tol = abs_tol
-        #definition of the solvers
         self.structure_linear_solver =  SkylineLUFactorizationSolver()
-        #definition of the convergence criteria
-        self.conv_criteria = DisplacementCriteria(1e-6, 1e-9)
         self.CalculateReactionFlag = False
 
     #######################################################################
@@ -309,15 +320,13 @@ class SolverAdvanced(structural_solver_static.StaticStructuralSolver):
 
         # definition of the convergence criteria
         if(self.analysis_parameters['convergence_criteria'] == "multiphase"):
-            self.conv_criteria = MultiPhaseFlowCriteria(self.toll,self.absolute_tol)
+            self.conv_criteria = MultiPhaseFlowCriteria(self.relative_tol, self.absolute_tol)
         elif(self.analysis_parameters['convergence_criteria'] == "displacement"):
-            self.conv_criteria = DisplacementCriteria(self.toll,self.absolute_tol)
+            self.conv_criteria = DisplacementCriteria(self.relative_tol, self.absolute_tol)
         elif(self.analysis_parameters['convergence_criteria'] == "custom criteria"):
             self.conv_criteria = self.analysis_parameters['custom_convergence_criteria']
-        #self.conv_criteria = MultiPhaseFlowCriteria(1.0e-13,1.0e-13)
-        #self.conv_criteria = ResidualBasedMultiPhaseCriteria(self.toll,self.absolute_tol)
-        #self.conv_criteria = ResidualCriteria(1.0e-9,1.0e-9)
-#        self.conv_criteria = DisplacementCriteria(self.toll,self.absolute_tol)
+        else:
+            raise Exception("convergence_criteria is not set")
 
         # builder and solver
         if(self.analysis_parameters['decouple_build_and_solve'] == False):

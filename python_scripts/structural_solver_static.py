@@ -48,9 +48,8 @@ def AddDofs(model_part, config=None):
 class StaticStructuralSolver:
     #
 
-    def __init__(self, model_part, domain_size, abs_tol=1e-9, rel_tol=1e-6):
+    def __init__(self, model_part, abs_tol=1e-9, rel_tol=1e-6):
 
-        self.domain_size = domain_size
         self.model_part = model_part
 
         if self.model_part.Type == "ModelPart":
@@ -129,12 +128,3 @@ class StaticStructuralSolver:
     #
     def SetEchoLevel(self, level):
         (self.solver).SetEchoLevel(level)
-
-def CreateSolver(model_part, config):
-    solver = StaticStructuralSolver(model_part, config.domain_size)
-
-    import linear_solver_factory
-    if(hasattr(config, "linear_solver_config")):
-        solver.structure_linear_solver = linear_solver_factory.ConstructSolver(config.linear_solver_config)
-
-    return solver
