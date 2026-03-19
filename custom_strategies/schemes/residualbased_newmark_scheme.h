@@ -990,29 +990,31 @@ public:
 
         // to account for prescribed displacement, the displacement at prescribed nodes need to be updated
 
-        double curr_disp, delta_disp;
         for (ModelPart::NodesContainerType::iterator it_node = r_model_part.Nodes().begin(); it_node != r_model_part.Nodes().end(); ++it_node)
         {
-            if (it_node->IsFixed(DISPLACEMENT_X))
+            if (it_node->IsFixed(DISPLACEMENT_X)
+                && it_node->Has(PRESCRIBED_DELTA_DISPLACEMENT_X))
             {
-                curr_disp = it_node->GetSolutionStepValue(DISPLACEMENT_X);
-                delta_disp = it_node->GetSolutionStepValue(PRESCRIBED_DELTA_DISPLACEMENT_X);
+                double curr_disp = it_node->GetSolutionStepValue(DISPLACEMENT_X);
+                double delta_disp = it_node->GetSolutionStepValue(PRESCRIBED_DELTA_DISPLACEMENT_X);
                 it_node->GetSolutionStepValue(DISPLACEMENT_X) = curr_disp + delta_disp;
                 it_node->GetSolutionStepValue(PRESCRIBED_DELTA_DISPLACEMENT_X) = 0.0; // set the prescribed displacement to zero to avoid update in the second step
             }
 
-            if (it_node->IsFixed(DISPLACEMENT_Y))
+            if (it_node->IsFixed(DISPLACEMENT_Y)
+                && it_node->Has(PRESCRIBED_DELTA_DISPLACEMENT_Y))
             {
-                curr_disp = it_node->GetSolutionStepValue(DISPLACEMENT_Y);
-                delta_disp = it_node->GetSolutionStepValue(PRESCRIBED_DELTA_DISPLACEMENT_Y);
+                double curr_disp = it_node->GetSolutionStepValue(DISPLACEMENT_Y);
+                double delta_disp = it_node->GetSolutionStepValue(PRESCRIBED_DELTA_DISPLACEMENT_Y);
                 it_node->GetSolutionStepValue(DISPLACEMENT_Y) = curr_disp + delta_disp;
                 it_node->GetSolutionStepValue(PRESCRIBED_DELTA_DISPLACEMENT_Y) = 0.0; // set the prescribed displacement to zero to avoid update in the second step
             }
 
-            if (it_node->IsFixed(DISPLACEMENT_Z))
+            if (it_node->IsFixed(DISPLACEMENT_Z)
+                && it_node->Has(PRESCRIBED_DELTA_DISPLACEMENT_Z))
             {
-                curr_disp = it_node->GetSolutionStepValue(DISPLACEMENT_Z);
-                delta_disp = it_node->GetSolutionStepValue(PRESCRIBED_DELTA_DISPLACEMENT_Z);
+                double curr_disp = it_node->GetSolutionStepValue(DISPLACEMENT_Z);
+                double delta_disp = it_node->GetSolutionStepValue(PRESCRIBED_DELTA_DISPLACEMENT_Z);
                 it_node->GetSolutionStepValue(DISPLACEMENT_Z) = curr_disp + delta_disp;
                 it_node->GetSolutionStepValue(PRESCRIBED_DELTA_DISPLACEMENT_Z) = 0.0; // set the prescribed displacement to zero to avoid update in the second step
             }
@@ -1023,10 +1025,9 @@ public:
         const ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
 
         ElementsArrayType& pElements = r_model_part.Elements();
-        bool element_is_active;
         for (typename ElementsArrayType::iterator it = pElements.begin(); it != pElements.end(); ++it)
         {
-            element_is_active = true;
+            bool element_is_active = true;
             if(it->IsDefined(ACTIVE))
                 element_is_active = it->Is(ACTIVE);
             if (it->Has(IS_INACTIVE))
@@ -1036,11 +1037,10 @@ public:
                 it->FinalizeNonLinearIteration(CurrentProcessInfo);
         }
 
-        bool condition_is_active;
         ConditionsArrayType& pConditions = r_model_part.Conditions();
         for (typename ConditionsArrayType::iterator it = pConditions.begin(); it != pConditions.end(); ++it)
         {
-            condition_is_active = true;
+            bool condition_is_active = true;
             if( it->IsDefined( ACTIVE ) )
                 condition_is_active = it->Is(ACTIVE);
             if (it->Has(IS_INACTIVE))
