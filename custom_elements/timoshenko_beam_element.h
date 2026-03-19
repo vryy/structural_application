@@ -132,6 +132,11 @@ public:
     ///@name Operations
     ///@{
 
+    IntegrationMethod GetIntegrationMethod() const override
+    {
+        return mThisIntegrationMethod;
+    }
+
     Element::Pointer Create( IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties ) const override;
 
     Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,
@@ -261,6 +266,9 @@ private:
     double mInertia_y;
     double mInertia_z;
 
+    Matrix mInitialDisp;
+    Matrix mInitialRot; // mInitialRot and mInitialDisp are used to account for the stress-free reactivation
+
     ///@}
     ///@name Private Operators
     ///@{
@@ -300,7 +308,6 @@ private:
 ///@}
 ///@name Type Definitions
 ///@{
-
 
 ///@}
 ///@name Input and output

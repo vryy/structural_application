@@ -78,7 +78,6 @@ namespace Kratos
         KRATOS_TRY
 
         unsigned int dimension = GetGeometry().WorkingSpaceDimension();  // checks dimension of problem
-        unsigned int number_of_nodes = GetGeometry().size();             // number of nodes
 
         if (dimension != 3)
             KRATOS_ERROR << "This element only works in 3D space";
@@ -121,6 +120,31 @@ namespace Kratos
         else if (number_of_nodes == 3)
         {
             mThisIntegrationMethod = IntegrationMethod::GI_GAUSS_3;
+        }
+
+        if (rCurrentProcessInfo[RESET_CONFIGURATION] == 0)
+        {
+            mInitialDisp.resize(number_of_nodes, 3, false);
+            noalias(mInitialDisp) = ZeroMatrix(number_of_nodes, 3);
+            mInitialRot.resize(number_of_nodes, 3, false);
+            noalias(mInitialRot) = ZeroMatrix(number_of_nodes, 3);
+        }
+        else if (rCurrentProcessInfo[RESET_CONFIGURATION] == 1)
+        {
+            if (mInitialDisp.size1() != number_of_nodes || mInitialDisp.size2() != 3)
+                mInitialDisp.resize( number_of_nodes, 3, false );
+
+            if (mInitialRot.size1() != number_of_nodes || mInitialRot.size2() != 3)
+                mInitialRot.resize( number_of_nodes, 3, false );
+
+            for ( unsigned int node = 0; node < number_of_nodes; ++node )
+            {
+                for ( unsigned int i = 0; i < 3; ++i )
+                {
+                    mInitialDisp( node, i ) = GetGeometry()[node].GetSolutionStepValue( DISPLACEMENT )[i];
+                    mInitialRot( node, i ) = GetGeometry()[node].GetSolutionStepValue( ROTATION )[i];
+                }
+            }
         }
 
         KRATOS_CATCH("")
@@ -689,10 +713,10 @@ namespace Kratos
         const double Youngs  = GetProperties()[YOUNG_MODULUS];
         const double ShearModulus = Youngs / (2.0*(1.0 + Poisson));
 
-        double const EA   =  mArea * Youngs;
-        double const EIy  =  mInertia_y * Youngs;
-        double const EIz  =  mInertia_z * Youngs;
-        double const GJ   =  mInertia_x * ShearModulus;
+        double const EA   = mArea * Youngs;
+        double const EIy  = mInertia_y * Youngs;
+        double const EIz  = mInertia_z * Youngs;
+        double const GJ   = mInertia_x * ShearModulus;
         double const GAy  = mArea_y * ShearModulus;
         double const GAz  = mArea_z * ShearModulus;
 
@@ -800,12 +824,12 @@ namespace Kratos
 
         for(unsigned int i = 0; i < number_of_nodes; ++i)
         {
-            CurrentDisplacement(6*i    ) = GetGeometry()[i].GetSolutionStepValue(DISPLACEMENT_X);
-            CurrentDisplacement(6*i + 1) = GetGeometry()[i].GetSolutionStepValue(DISPLACEMENT_Y);
-            CurrentDisplacement(6*i + 2) = GetGeometry()[i].GetSolutionStepValue(DISPLACEMENT_Z);
-            CurrentDisplacement(6*i + 3) = GetGeometry()[i].GetSolutionStepValue(ROTATION_X);
-            CurrentDisplacement(6*i + 4) = GetGeometry()[i].GetSolutionStepValue(ROTATION_Y);
-            CurrentDisplacement(6*i + 5) = GetGeometry()[i].GetSolutionStepValue(ROTATION_Z);
+            CurrentDisplacement(6*i    ) = GetGeometry()[i].GetSolutionStepValue(DISPLACEMENT_X) - mInitialDisp(i, 0);
+            CurrentDisplacement(6*i + 1) = GetGeometry()[i].GetSolutionStepValue(DISPLACEMENT_Y) - mInitialDisp(i, 1);
+            CurrentDisplacement(6*i + 2) = GetGeometry()[i].GetSolutionStepValue(DISPLACEMENT_Z) - mInitialDisp(i, 2);
+            CurrentDisplacement(6*i + 3) = GetGeometry()[i].GetSolutionStepValue(ROTATION_X) - mInitialRot(i, 0);
+            CurrentDisplacement(6*i + 4) = GetGeometry()[i].GetSolutionStepValue(ROTATION_Y) - mInitialRot(i, 1);
+            CurrentDisplacement(6*i + 5) = GetGeometry()[i].GetSolutionStepValue(ROTATION_Z) - mInitialRot(i, 2);
         }
 
         noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix, CurrentDisplacement);
