@@ -721,9 +721,15 @@ namespace Kratos
             GetGeometry().Initialize(mThisIntegrationMethod);
             #endif
 
+            const Matrix& Ncontainer = GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod );
+
+            Vector N(GetGeometry().size());
+
             for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); ++i )
             {
-                mConstitutiveLawVector[i]->InitializeMaterial( GetProperties(), GetGeometry(), row( GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod ), i ) );
+                noalias(N) = row( Ncontainer, i );
+
+                mConstitutiveLawVector[i]->InitializeMaterial( GetProperties(), GetGeometry(), N );
 
                 //check constitutive law
                 mConstitutiveLawVector[i]->Check( GetProperties(), GetGeometry(), CurrentProcessInfo );
@@ -748,8 +754,24 @@ namespace Kratos
     {
         KRATOS_TRY
 
+        #ifdef ENABLE_BEZIER_GEOMETRY
+        GetGeometry().Initialize(mThisIntegrationMethod);
+        #endif
+
+        const Matrix& Ncontainer = GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod );
+
+        Vector N(GetGeometry().size());
+
         for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); i++ )
-            mConstitutiveLawVector[i]->ResetMaterial( GetProperties(), GetGeometry(), row( GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod ), i ) );
+        {
+            noalias(N) = row( Ncontainer, i );
+
+            mConstitutiveLawVector[i]->ResetMaterial( GetProperties(), GetGeometry(), N );
+        }
+
+        #ifdef ENABLE_BEZIER_GEOMETRY
+        GetGeometry().Clean();
+        #endif
 
         KRATOS_CATCH( "" )
     }

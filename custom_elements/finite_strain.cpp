@@ -1453,10 +1453,15 @@ namespace Kratos
                 mConstitutiveLawVector.resize( rValues.size() );
             }
 
+            const Matrix& Ncontainer = GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod );
+
+            Vector N(GetGeometry().size());
+
             for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); ++i )
             {
+                noalias(N) = row( Ncontainer, i );
                 mConstitutiveLawVector[i] = rValues[i];
-                mConstitutiveLawVector[i]->InitializeMaterial( GetProperties(), GetGeometry(), row( GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod ), i ) );
+                mConstitutiveLawVector[i]->InitializeMaterial( GetProperties(), GetGeometry(), N );
             }
 
             #ifdef ENABLE_BEZIER_GEOMETRY

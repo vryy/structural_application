@@ -273,9 +273,15 @@ namespace Kratos
             this->GetGeometry().Initialize(ThisIntegrationMethod);
             #endif
 
+            const Matrix& Ncontainer = this->GetGeometry().ShapeFunctionsValues( ThisIntegrationMethod );
+
+            Vector N(this->GetGeometry().size());
+
             for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); ++i )
             {
-                mConstitutiveLawVector[i]->InitializeMaterial( this->GetProperties(), this->GetGeometry(), row( this->GetGeometry().ShapeFunctionsValues( ThisIntegrationMethod ), i ) );
+                noalias(N) = row( Ncontainer, i );
+
+                mConstitutiveLawVector[i]->InitializeMaterial( this->GetProperties(), this->GetGeometry(), N );
 
                  //verify that the constitutive law has the correct dimension
 //                if ( dimension == 2 )
@@ -331,11 +337,16 @@ namespace Kratos
 
         // ProcessInfo DummyProcessInfo;
 
+        const Matrix& Ncontainer = this->GetGeometry().ShapeFunctionsValues( ThisIntegrationMethod );
+
+        Vector N( this->GetGeometry().size() );
+
         for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); ++i )
         {
+            noalias( N ) = row( Ncontainer, i );
             // mConstitutiveLawVector[i]->SetValue( PARENT_ELEMENT_ID, this->Id(), DummyProcessInfo);
             // mConstitutiveLawVector[i]->SetValue( INTEGRATION_POINT_INDEX, i, DummyProcessInfo);
-            mConstitutiveLawVector[i]->ResetMaterial( this->GetProperties(), this->GetGeometry(), row( this->GetGeometry().ShapeFunctionsValues( ThisIntegrationMethod ), i ) );
+            mConstitutiveLawVector[i]->ResetMaterial( this->GetProperties(), this->GetGeometry(), N );
         }
 
         #ifdef ENABLE_BEZIER_GEOMETRY
@@ -356,11 +367,14 @@ namespace Kratos
         this->GetGeometry().Initialize(ThisIntegrationMethod);
         #endif
 
-        // ProcessInfo DummyProcessInfo;
+        const Matrix& Ncontainer = this->GetGeometry().ShapeFunctionsValues( ThisIntegrationMethod );
+
+        Vector N( this->GetGeometry().size() );
 
         for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); ++i )
         {
-            mConstitutiveLawVector[i]->RewindMaterial( this->GetProperties(), this->GetGeometry(), row( this->GetGeometry().ShapeFunctionsValues( ThisIntegrationMethod ), i ) );
+            noalias( N ) = row( Ncontainer, i );
+            mConstitutiveLawVector[i]->RewindMaterial( this->GetProperties(), this->GetGeometry(), N );
         }
 
         #ifdef ENABLE_BEZIER_GEOMETRY
@@ -420,6 +434,7 @@ namespace Kratos
         const_params.SetProcessInfo(rCurrentProcessInfo);
         const_params.SetMaterialProperties(this->GetProperties());
         const_params.SetElementGeometry(this->GetGeometry());
+        const_params.SetShapeFunctionsValues(N);
         typename ConstitutiveLawType::StressMeasure stress_measure = ConstitutiveLawType::StressMeasure_Cauchy;
 
         //resize the LHS=StiffnessMatrix if its size is not correct
@@ -2365,6 +2380,10 @@ namespace Kratos
             this->GetGeometry().Initialize(ThisIntegrationMethod);
             #endif
 
+            const Matrix& Ncontainer = this->GetGeometry().ShapeFunctionsValues( ThisIntegrationMethod );
+
+            Vector N( this->GetGeometry().size() );
+
             if( mConstitutiveLawVector.size() != rValues.size() )
             {
                 mConstitutiveLawVector.resize( rValues.size() );
@@ -2372,8 +2391,9 @@ namespace Kratos
 
             for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); ++i )
             {
+                noalias(N) = row(Ncontainer, i);
                 mConstitutiveLawVector[i] = rValues[i];
-                mConstitutiveLawVector[i]->InitializeMaterial( this->GetProperties(), this->GetGeometry(), row( this->GetGeometry().ShapeFunctionsValues( ThisIntegrationMethod ), i ) );
+                mConstitutiveLawVector[i]->InitializeMaterial( this->GetProperties(), this->GetGeometry(), N );
             }
 
             #ifdef ENABLE_BEZIER_GEOMETRY

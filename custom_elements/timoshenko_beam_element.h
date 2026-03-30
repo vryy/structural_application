@@ -162,6 +162,8 @@ public:
 
     void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
 
+    void CalculateOnIntegrationPoints( const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo ) override;
+
     int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
     ///@}

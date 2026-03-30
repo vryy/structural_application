@@ -868,4 +868,18 @@ namespace Kratos
         KRATOS_CATCH( "" )
     }
 
+    //************************************************************************************
+    //************************************************************************************
+
+    void TimoshenkoBeamElement::CalculateOnIntegrationPoints( const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo )
+    {
+        const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
+
+        if (rValues.size() != integration_points.size())
+            rValues.resize(integration_points.size());
+
+        for (unsigned int i = 0; i < integration_points.size(); ++i)
+            rValues[i] = 0.0;
+    }
+
 } // Namespace Kratos
