@@ -184,7 +184,7 @@ class SolvingStrategyPython:
         normDx = self.ExecuteIteration(self.echo_level,self.MoveMeshFlag,calculate_norm)
         self.FinalizeNonLinIteration(False,self.MoveMeshFlag)
         print("normDx: " + str(normDx), flush=True)
-        print("newton_raphson_strategy.PerformOneIteration completed at time = " + str(self.model_part.ProcessInfo[TIME]), flush=True)
+        print("newton_raphson_strategy.PerformOneIteration completed at time = %f" % (self.model_part.ProcessInfo[TIME]), flush=True)
 
     #######################################################################
     def PerformNewtonRaphsonIteration( self ):
@@ -210,7 +210,7 @@ class SolvingStrategyPython:
         self.iterationCounter = self.iterationCounter + 1
         normDx = self.ExecuteIteration(self.echo_level,calculate_norm)
         self.FinalizeNonLinIteration(False,self.MoveMeshFlag)
-        print("normDx at iteration 0: " + str(normDx))
+        print("normDx at iteration 0: %.6e" % (normDx))
 
         if self.log_residuum != None:
             er_0 = self.space_utils.TwoNorm(self.b)
@@ -233,7 +233,7 @@ class SolvingStrategyPython:
             # - nodal coordinates are updated if required
             self.iterationCounter = self.iterationCounter + 1
             normDx = self.ExecuteIteration(self.echo_level,calculate_norm)
-            print("normDx at iteration " + str(it+1) + ": " + str(normDx))
+            print("normDx at iteration %d: %.6e" % (it+1, normDx))
 
             #verify convergence
             converged = self.convergence_criteria.PostCriteria(self.model_part,self.builder_and_solver.GetDofSet(),self.A,self.Dx,self.b)
@@ -277,16 +277,16 @@ class SolvingStrategyPython:
                     return False, it
 
         if( it == self.max_iter and converged == False):
-            print("Iteration did not converge at time step " + str(self.model_part.ProcessInfo[TIME]))
+            print("Iteration did not converge at time %f" % (self.model_part.ProcessInfo[TIME]))
             if('stop_Newton_Raphson_if_not_converged' in self.Parameters):
                 if(self.Parameters['stop_Newton_Raphson_if_not_converged'] == True):
-                    raise Exception("Sorry, my boss does not allow me to continue. The time step did not converge at time step " + str(self.model_part.ProcessInfo[TIME]) + ", it = " + str(it) + ", max_iter = " + str(self.max_iter))
+                    raise Exception("Sorry, my boss does not allow me to continue. The time step did not converge at time %f, it = %d, max_iter = %d" % (self.model_part.ProcessInfo[TIME], it, self.max_iter))
                 else:
-                    print('However, the iteration will still be proceeded' + ", it = " + str(it) + ", max_iter = " + str(self.max_iter))
+                    print('However, the iteration will still be proceeded')
                     return False, it
             else:
-                raise Exception("Sorry, my boss does not allow me to continue. The time step did not converge at time step " + str(self.model_part.ProcessInfo[TIME]) + ", it = " + str(it) + ", max_iter = " + str(self.max_iter))
-        print("newton_raphson_strategy.PerformNewtonRaphsonIteration converged after " + str(it) + " steps", flush=True)
+                raise Exception("Sorry, my boss does not allow me to continue. The time step did not converge at time %f, it = %d, max_iter = %d" % (self.model_part.ProcessInfo[TIME], it, self.max_iter))
+        print("newton_raphson_strategy.PerformNewtonRaphsonIteration converged after %d steps" % (it), flush=True)
         return True, it
 
     #######################################################################
