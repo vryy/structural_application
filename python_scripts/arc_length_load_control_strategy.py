@@ -182,12 +182,22 @@ class SolvingStrategyPython:
         if self.compute_external_load:
             self.set_load_callback(self.model_part, 1.0) # apply full load initially
         #solve the nonlinear equilibrium
-        self.PerformNewtonRaphsonIteration()
+        converged, it = self.PerformNewtonRaphsonIteration()
+        if not converged:
+            self.solveCounter = self.solveCounter - 1
+            #clear if needed - deallocates memory
+            if(self.ReformDofSetAtEachStep == True):
+                print("Clear the system")
+                self.Clear()
+            #reset flags for repeated step
+            self.SolutionStepIsInitialized = False
+            return False
         #finalize the solution step
         self.FinalizeSolutionStep(self.CalculateReactionsFlag)
         #clear if needed - deallocates memory
         if(self.ReformDofSetAtEachStep == True):
             self.Clear()
+        return True
 
     #######################################################################
     def PerformNewtonRaphsonIteration( self ):
@@ -204,23 +214,25 @@ class SolvingStrategyPython:
         if (self.SolutionStepIsInitialized == False):
             self.InitializeSolutionStep()
             self.SolutionStepIsInitialized = True
+
         #perform prediction
         self.Predict()
 
         #execute iteration - first iteration is ALWAYS executed
         calculate_norm = False
-        self.iterationCounter = 0 #hbui added this variable
+        self.iterationCounter = 0
         self.iterationCounter = self.iterationCounter + 1
-        normDx = self.ExecuteIteration(self.echo_level,calculate_norm,True)
+        iter_success, normDx = self.ExecuteIteration(self.echo_level,calculate_norm,True)
+        if not iter_success:
+            return False, 0
         self.FinalizeNonLinIteration(False,self.MoveMeshFlag)
-        print("normDx at iteration 0: " + str(normDx))
+        print("normDx at iteration 0: %.6e" % (normDx))
 
         er_0 = self.space_utils.TwoNorm(self.b)
-        er_n = er_0
         if self.log_residuum != None:
+            er_n = er_0
             self.log_residuum.write('time: ' + str(self.model_part.ProcessInfo[TIME]) + '\n')
             self.log_residuum.write('it\tresidual\tratio\t\treduction\tlambda\n')
-            # self.log_residuum.write('0\t' + str(er_0) + '\n')
             self.log_residuum.write('%d\t%.6e\n' % (0, er_0))
             self.log_residuum.flush()
 
@@ -236,8 +248,10 @@ class SolvingStrategyPython:
             # - database is updated depending on the solution
             # - nodal coordinates are updated if required
             self.iterationCounter = self.iterationCounter + 1
-            normDx = self.ExecuteIteration(self.echo_level,calculate_norm,False)
-            print("normDx at iteration " + str(it+1) + ": " + str(normDx))
+            iter_success, normDx = self.ExecuteIteration(self.echo_level,calculate_norm,False)
+            if not iter_success:
+                return False, it
+            print("normDx at iteration %d: %.6e" % (it+1, normDx))
 
             #verify convergence
             converged = self.convergence_criteria.PostCriteria(self.model_part,self.builder_and_solver.GetDofSet(),self.A,self.Dx,self.b)
@@ -250,22 +264,21 @@ class SolvingStrategyPython:
 
             # record the residuum and reduction
             er = self.space_utils.TwoNorm(self.b)
-
             if er_0 > 0.0:
                 er_ratio = er/er_0
             else:
                 er_ratio = 1.0
-            if er > 0.0:
-                er_reduction = er_n/er
-            else:
-                if er_n == 0.0:
-                    er_reduction = 1.0
-                else:
-                    er_reduction = 1.0e99
-            er_n = er
 
             if self.log_residuum != None:
-                # self.log_residuum.write(str(it) + '\t' + str(er) + '\t' + str(er_ratio) + '\t' + str(er_reduction) + '\t' + str(self.arc_length_control_process.GetLambda()) + '\n')
+                if er > 0.0:
+                    er_reduction = er_n/er
+                else:
+                    if er_n == 0.0:
+                        er_reduction = 1.0
+                    else:
+                        er_reduction = 1.0e99
+                er_n = er
+
                 self.log_residuum.write('%d\t%.6e\t%.6e\t%.6e\t%.6e\n' % (it, er, er_ratio, er_reduction, self.arc_length_control_process.GetLambda()))
                 self.log_residuum.flush()
 
@@ -274,15 +287,17 @@ class SolvingStrategyPython:
             self.log_lambda.flush()
 
         if( it == self.max_iter and converged == False):
-            print("Iteration did not converge at time step " + str(self.model_part.ProcessInfo[TIME]))
+            print("Iteration did not converge at time %f" % (self.model_part.ProcessInfo[TIME]))
             if('stop_Newton_Raphson_if_not_converged' in self.Parameters):
                 if(self.Parameters['stop_Newton_Raphson_if_not_converged'] == True):
-                    sys.exit("Sorry, my boss does not allow me to continue. The time step did not converge at time step " + str(self.model_part.ProcessInfo[TIME]) + ", it = " + str(it) + ", max_iter = " + str(self.max_iter))
+                    raise Exception("Sorry, my boss does not allow me to continue. The time step did not converge at time %f, it = %d, max_iter = %d" % (self.model_part.ProcessInfo[TIME], it, self.max_iter))
                 else:
-                    print('However, the iteration will still be proceeded' + ", it = " + str(it) + ", max_iter = " + str(self.max_iter))
+                    print('However, the iteration will still be proceeded')
+                    return False, it
             else:
-                sys.exit("Sorry, my boss does not allow me to continue. The time step did not converge at time step " + str(self.model_part.ProcessInfo[TIME]) + ", it = " + str(it) + ", max_iter = " + str(self.max_iter))
-        print("arc_length_load_control_strategy.PerformNewtonRaphsonIteration converged after " + str(it) + " steps")
+                raise Exception("Sorry, my boss does not allow me to continue. The time step did not converge at time %f, it = %d, max_iter = %d" % (self.model_part.ProcessInfo[TIME], it, self.max_iter))
+        print("arc_length_load_control_strategy.PerformNewtonRaphsonIteration converged after %d steps" % (it), flush=True)
+        return True, it
 
     #######################################################################
     def Predict(self):
@@ -333,7 +348,7 @@ class SolvingStrategyPython:
             # if the radius is zero, there is no need to solve
             print("arc_length_load_control_strategy.ExecuteIteration: radius is null, skip solving")
             normDx = 0.0
-            return normDx
+            return True, normDx
 
         #build and solve for delta_u_r
         if(self.Parameters['decouple_build_and_solve'] == False):
@@ -343,6 +358,12 @@ class SolvingStrategyPython:
             if self.Parameters['builder_and_solver_type'] == "residual-based block with constraints":
                 raise Exception("residual-based block with constraints cannot be used with decouple_build_and_solve")
             self.builder_and_solver.Build(self.time_scheme,self.model_part,self.A,self.b)
+            if self.model_part.ProcessInfo[BUILD_STATUS] < 0:
+                if self.Parameters['stop_Newton_Raphson_if_not_converged'] == True:
+                    raise Exception("Build failed at time step %f, error code = %d" % (self.model_part.ProcessInfo[TIME], self.model_part.ProcessInfo[BUILD_STATUS]))
+                else:
+                    print("Build failed at time step %f with error code = %d, but the simulation will continue." % (self.model_part.ProcessInfo[TIME], self.model_part.ProcessInfo[BUILD_STATUS]))
+                    return False, 0.0
             self.builder_and_solver.ApplyDirichletConditions(self.time_scheme,self.model_part,self.A,self.Dx,self.b)
             self.dof_util.ListDofs(self.builder_and_solver.GetDofSet(),self.builder_and_solver.GetEquationSystemSize())
             #provide data for the preconditioner and linear solver
@@ -418,38 +439,19 @@ class SolvingStrategyPython:
 #            self.space_utils.WriteMatrixMarketMatrix("matrix" + str(self.solveCounter) + "." + str(self.iterationCounter) + ".mm",self.A,False)
             #petsc_utils.DumpUblasCompressedMatrixVector("tempAb", self.A, self.b, False)
 
+        # print the matrix information if needed
+        if echo_level > 1:
+            print('System matrix info: ', end='', flush=True)
+            self.space_utils.PrintMatrixInfo(self.A, 3)
+            print('System vector info (Dx): ', end='', flush=True)
+            self.space_utils.PrintVectorInfo(self.Dx, 3)
+            print('System vector info (b): ', end='', flush=True)
+            self.space_utils.PrintVectorInfo(self.b, 3)
+
         if(echo_level >= 3):
-            print("SystemMatrix = " + str(self.A))
-        #printA = []
-        #printdx = []
-        #printb = []
-        #for i in range(0,len(self.Dx)):
-        #    if( abs(self.Dx[i]) < 1.0e-10 ):
-         #       printdx.append(0.0)
-         #   else:
-         #       printdx.append(self.Dx[i])
-         #   if( abs(self.b[i]) < 1.0e-6 ):
-         #       printb.append(0.0)
-         #   else:
-         #       printb.append(self.b[i])
-         #   row = []
-         #   for j in range(0,len(self.Dx)):
-         #       if( abs(self.A[(i,j)]) < 1.0 ):
-         #           row.append( 0.0 )
-         #       else:
-         #           row.append(self.A[(i,j)])
-         #   printA.append(row)
-            print("solution obtained = " + str(self.Dx))
-            #formatted_printdx = [ '%.6f' % elem for elem in printdx ]
-            #print formatted_printdx
-            #formatted_printb = [ '%.4f' % elem for elem in printb ]
-            print("RHS = " + str(self.b))
-        #print formatted_printb
-        #print "Matrix: "
-        #for i in range(0,len(self.Dx)):
-        #    formatted_printA = [ '%.1f' % elem for elem in printA[i] ]
-        #    print(formatted_printA)
-        self.AnalyseSystemMatrix(self.A)
+            print("SystemMatrix = " + str(self.A), flush=True)
+            print("solution obtained = " + str(self.Dx), flush=True)
+            print("RHS = " + str(self.b), flush=True)
 
         #calculate the norm of the "correction" Dx
         if(CalculateNormDxFlag == True):
@@ -457,7 +459,7 @@ class SolvingStrategyPython:
         else:
             normDx = 0.0
 
-        return normDx
+        return True, normDx
 
     #######################################################################
     def FinalizeNonLinIteration(self,ConvergedFlag,MoveMeshFlag):
@@ -593,10 +595,15 @@ class SolvingStrategyPython:
         g("set pm3d map")
         g("splot 'matrix.dat' matrix with dots")
 
+    #######################################################################
+    def GetStrainEnergy(self):
+        if self.Parameters['calculate_strain_energy'] == True:
+            return self.calculate_strain_energy_process.GetEnergy()
+        else:
+            return 0.0
 
+    #######################################################################
     def wait(self,str=None, prompt='Press return to show results...\n'):
         if str is not None:
             print(str)
         raw_input(prompt)
-
-

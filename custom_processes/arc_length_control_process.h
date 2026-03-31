@@ -178,6 +178,12 @@ public:
         mLambdaOldOld = 0.0;
     }
 
+    /// Rewind the multiplier
+    void Rewind()
+    {
+        mLambda = mLambdaOld;
+    }
+
     /// Update the constraint with new multiplier
     void Update(const double& DeltaLambda)
     {
@@ -266,6 +272,8 @@ public:
         mpConstraint->PrintData(rOStream);
     }
 
+    ///@}
+
 protected:
 
     ArcLengthConstraintType& GetConstraint()
@@ -340,6 +348,7 @@ inline std::ostream& operator << (std::ostream& rOStream, const ArcLengthControl
 
     return rOStream;
 }
+
 ///@}
 
 }  // namespace Kratos.
