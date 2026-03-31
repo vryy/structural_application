@@ -181,7 +181,7 @@ class SolvingStrategyPython:
         calculate_norm = False
         self.iterationCounter = 0
         self.iterationCounter = self.iterationCounter + 1
-        normDx = self.ExecuteIteration(self.echo_level,self.MoveMeshFlag,calculate_norm)
+        iter_success, normDx = self.ExecuteIteration(self.echo_level,self.MoveMeshFlag,calculate_norm)
         self.FinalizeNonLinIteration(False,self.MoveMeshFlag)
         print("normDx: " + str(normDx), flush=True)
         print("newton_raphson_strategy.PerformOneIteration completed at time = %f" % (self.model_part.ProcessInfo[TIME]), flush=True)
@@ -201,6 +201,7 @@ class SolvingStrategyPython:
         if (self.SolutionStepIsInitialized == False):
             self.InitializeSolutionStep()
             self.SolutionStepIsInitialized = True
+
         #perform prediction
         self.Predict()
 
@@ -208,12 +209,14 @@ class SolvingStrategyPython:
         calculate_norm = False
         self.iterationCounter = 0
         self.iterationCounter = self.iterationCounter + 1
-        normDx = self.ExecuteIteration(self.echo_level,calculate_norm)
+        iter_success, normDx = self.ExecuteIteration(self.echo_level,calculate_norm)
+        if not iter_success:
+            return False, 0
         self.FinalizeNonLinIteration(False,self.MoveMeshFlag)
         print("normDx at iteration 0: %.6e" % (normDx))
 
+        er_0 = self.space_utils.TwoNorm(self.b)
         if self.log_residuum != None:
-            er_0 = self.space_utils.TwoNorm(self.b)
             er_n = er_0
             self.log_residuum.write('time: ' + str(self.model_part.ProcessInfo[TIME]) + '\n')
             self.log_residuum.write('%-*s%-*s%-*s%s\n' % (10, "it", 20, "residual", 20, "ratio", "reduction"))
@@ -223,6 +226,9 @@ class SolvingStrategyPython:
         #non linear loop
         converged = False
         it = 0
+        err_inc_cnt = 0     # this number marks the consecutive iteration that the error increases
+        err_high_cnt = 0    # this number marks the consecutive iteration that the error ratio is larger than threshold
+        er_ratio_n = 1.0
         while(it < self.max_iter and converged == False):
             #verify convergence
             converged = self.convergence_criteria.PreCriteria(self.model_part,self.builder_and_solver.GetDofSet(),self.A,self.Dx,self.b)
@@ -232,7 +238,9 @@ class SolvingStrategyPython:
             # - database is updated depending on the solution
             # - nodal coordinates are updated if required
             self.iterationCounter = self.iterationCounter + 1
-            normDx = self.ExecuteIteration(self.echo_level,calculate_norm)
+            iter_success, normDx = self.ExecuteIteration(self.echo_level,calculate_norm)
+            if not iter_success:
+                return False, it
             print("normDx at iteration %d: %.6e" % (it+1, normDx))
 
             #verify convergence
@@ -244,14 +252,14 @@ class SolvingStrategyPython:
             #update iteration count
             it = it + 1
 
-            if self.log_residuum != None:
-                # record the residuum and reduction
-                er = self.space_utils.TwoNorm(self.b)
+            # record the residuum and reduction
+            er = self.space_utils.TwoNorm(self.b)
+            if er_0 > 0.0:
+                er_ratio = er/er_0
+            else:
+                er_ratio = 1.0
 
-                if er_0 > 0.0:
-                    er_ratio = er/er_0
-                else:
-                    er_ratio = 1.0
+            if self.log_residuum != None:
                 if er > 0.0:
                     er_reduction = er_n/er
                 else:
@@ -275,6 +283,36 @@ class SolvingStrategyPython:
                 if failed_points_count > 0:
                     converged = False
                     return False, it
+
+            if er_ratio > er_ratio_n:
+                err_inc_cnt += 1
+            else:
+                err_inc_cnt = 0
+
+            if er_ratio > 1e3:
+                err_high_cnt += 1
+            else:
+                err_high_cnt = 0
+
+            er_ratio_n = er_ratio
+
+            if err_inc_cnt == 3:
+                if('stop_Newton_Raphson_if_not_converged' in self.Parameters):
+                    if(self.Parameters['stop_Newton_Raphson_if_not_converged'] == True):
+                        raise Exception("Sorry, my boss does not allow me to continue. The error increases 3 times in a row at time step %f, it = %d, max_iter = %d" % (self.model_part.ProcessInfo[TIME], it, self.max_iter))
+                    else:
+                        print('The error increases 3 times in a row, so the time is marked as non-converged. The simulation will be continued')
+                        # mark as non-converged if the error increases 3 times consecuteively
+                        return False, it
+
+            if err_high_cnt == 3:
+                if('stop_Newton_Raphson_if_not_converged' in self.Parameters):
+                    if(self.Parameters['stop_Newton_Raphson_if_not_converged'] == True):
+                        raise Exception("Sorry, my boss does not allow me to continue. The error ratio is larger than threshold 3 times in a row at time step %f, it = %d, max_iter = %d" % (self.model_part.ProcessInfo[TIME], it, self.max_iter))
+                    else:
+                        print('The error ratio is larger than threshold 3 times in a row, so the time is marked as non-converged. The simulation will be continued')
+                        # mark as non-converged if the error ratio is larger than threshold 3 times consecuteively
+                        return False, it
 
         if( it == self.max_iter and converged == False):
             print("Iteration did not converge at time %f" % (self.model_part.ProcessInfo[TIME]))
@@ -342,6 +380,14 @@ class SolvingStrategyPython:
             if self.Parameters['builder_and_solver_type'] == "residual-based block with constraints":
                 raise Exception("residual-based block with constraints cannot be used with decouple_build_and_solve")
             self.builder_and_solver.Build(self.time_scheme,self.model_part,self.A,self.b)
+            if self.model_part.ProcessInfo[BUILD_STATUS] < 0:
+                if self.Parameters['stop_Newton_Raphson_if_not_converged'] == True:
+                    raise Exception("Build failed at time step %f, error code = %d" % (self.model_part.ProcessInfo[TIME], self.model_part.ProcessInfo[BUILD_STATUS]))
+                else:
+                    print("Build failed at time step %f with error code = %d, but the simulation will continue." % (self.model_part.ProcessInfo[TIME], self.model_part.ProcessInfo[BUILD_STATUS]))
+                    return False, 0.0
+            # print("b: ", self.b, flush=True)
+            print("normb at Build: %.6e" % (self.space_utils.TwoNorm(self.b)), flush=True)
             self.builder_and_solver.ApplyDirichletConditions(self.time_scheme,self.model_part,self.A,self.Dx,self.b)
             self.dof_util.ListDofs(self.builder_and_solver.GetDofSet(),self.builder_and_solver.GetEquationSystemSize())
             #provide data for the preconditioner and linear solver
@@ -393,7 +439,7 @@ class SolvingStrategyPython:
         else:
             normDx = 0.0
 
-        return normDx
+        return True, normDx
 
     #######################################################################
     def FinalizeNonLinIteration(self,ConvergedFlag,MoveMeshFlag):
