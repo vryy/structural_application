@@ -1859,6 +1859,8 @@ public:
         // omp version
     void TransferVariablesToNodes(ModelPart& model_part, const Variable<Vector>& rThisVariable)
     {
+        KRATOS_TRY
+
         ElementsArrayType& ElementsArray= model_part.Elements();
 
         //reset values at node//update by hbui: we should not do this, since some variable is at node, an then transfer again to node
@@ -2022,6 +2024,8 @@ public:
             omp_destroy_lock(&lock_array[i]);
 #endif
         std::cout << "TransferVariablesToNodes for " << rThisVariable.Name() << " completed" << std::endl;
+
+        KRATOS_CATCH("")
     }
 
     void TransferVariablesToNodes(ModelPart& model_part, const Variable<Vector>& rThisVariable, const std::size_t ncomponents)

@@ -252,25 +252,9 @@ private:
 ///@{
 
 
-/// input stream function
-/*  inline std::istream& operator >> (std::istream& rIStream,
-				    ElasticConstraint& rThis);
-*/
-/// output stream function
-/*  inline std::ostream& operator << (std::ostream& rOStream,
-				    const ElasticConstraint& rThis)
-    {
-      rThis.PrintInfo(rOStream);
-      rOStream << std::endl;
-      rThis.PrintData(rOStream);
-
-      return rOStream;
-    }*/
 ///@}
 
 }  // namespace Kratos.
 
 #endif // KRATOS_ELASTIC_POINT_CONSTRAINT_CONDITION_H_INCLUDED  defined
-
-
 

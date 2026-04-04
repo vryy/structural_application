@@ -369,8 +369,4 @@ void ElasticConstraint::GetDofList(DofsVectorType& ConditionalDofList, const Pro
     }
 }
 
-
 } // Namespace Kratos
-
-
-

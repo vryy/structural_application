@@ -564,6 +564,9 @@ private:
 
     ///@}
 }; // Class KratosStructuralApplication
+
 ///@}
+
 }  // namespace Kratos.
+
 #endif // KRATOS_STRUCTURAL_APPLICATION_H_INCLUDED  defined
