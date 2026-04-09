@@ -84,6 +84,9 @@ class SolvingStrategyPython:
         if 'stop_Newton_Raphson_if_not_converge' in self.Parameters:
             self.Parameters['stop_Newton_Raphson_if_not_converged'] = self.Parameters['stop_Newton_Raphson_if_not_converge']
 
+        if 'number_of_iterations_for_divergence_check' not in self.Parameters:
+            self.Parameters['number_of_iterations_for_divergence_check'] = 3
+
         if 'include_plastic_check_in_convergence_check' not in self.Parameters:
             self.Parameters['include_plastic_check_in_convergence_check'] = False
 
@@ -229,6 +232,7 @@ class SolvingStrategyPython:
         err_inc_cnt = 0     # this number marks the consecutive iteration that the error increases
         err_high_cnt = 0    # this number marks the consecutive iteration that the error ratio is larger than threshold
         er_ratio_n = 1.0
+        number_of_iterations_for_divergence_check = self.Parameters['number_of_iterations_for_divergence_check']
         while(it < self.max_iter and converged == False):
             #verify convergence
             converged = self.convergence_criteria.PreCriteria(self.model_part,self.builder_and_solver.GetDofSet(),self.A,self.Dx,self.b)
@@ -284,6 +288,7 @@ class SolvingStrategyPython:
                     converged = False
                     return False, it
 
+            # check divergence
             if er_ratio > er_ratio_n:
                 err_inc_cnt += 1
             else:
@@ -296,23 +301,24 @@ class SolvingStrategyPython:
 
             er_ratio_n = er_ratio
 
-            if err_inc_cnt == 3:
+            if err_inc_cnt == number_of_iterations_for_divergence_check:
                 if('stop_Newton_Raphson_if_not_converged' in self.Parameters):
                     if(self.Parameters['stop_Newton_Raphson_if_not_converged'] == True):
-                        raise Exception("Sorry, my boss does not allow me to continue. The error increases 3 times in a row at time step %f, it = %d, max_iter = %d" % (self.model_part.ProcessInfo[TIME], it, self.max_iter))
+                        raise Exception("Sorry, my boss does not allow me to continue. The error increases %d times in a row at time step %f, it = %d, max_iter = %d" % (number_of_iterations_for_divergence_check, self.model_part.ProcessInfo[TIME], it, self.max_iter))
                     else:
-                        print('The error increases 3 times in a row, so the time is marked as non-converged. The simulation will be continued')
+                        print('The error increases %d times in a row, so the time is marked as non-converged. The simulation will be continued' % (number_of_iterations_for_divergence_check))
                         # mark as non-converged if the error increases 3 times consecuteively
                         return False, it
 
-            if err_high_cnt == 3:
+            if err_high_cnt == number_of_iterations_for_divergence_check:
                 if('stop_Newton_Raphson_if_not_converged' in self.Parameters):
                     if(self.Parameters['stop_Newton_Raphson_if_not_converged'] == True):
-                        raise Exception("Sorry, my boss does not allow me to continue. The error ratio is larger than threshold 3 times in a row at time step %f, it = %d, max_iter = %d" % (self.model_part.ProcessInfo[TIME], it, self.max_iter))
+                        raise Exception("Sorry, my boss does not allow me to continue. The error ratio is larger than threshold %d times in a row at time step %f, it = %d, max_iter = %d" % (number_of_iterations_for_divergence_check, self.model_part.ProcessInfo[TIME], it, self.max_iter))
                     else:
-                        print('The error ratio is larger than threshold 3 times in a row, so the time is marked as non-converged. The simulation will be continued')
+                        print('The error ratio is larger than threshold %d times in a row, so the time is marked as non-converged. The simulation will be continued' % (number_of_iterations_for_divergence_check))
                         # mark as non-converged if the error ratio is larger than threshold 3 times consecuteively
                         return False, it
+            # end checking divergence
 
         if( it == self.max_iter and converged == False):
             print("Iteration did not converge at time %f" % (self.model_part.ProcessInfo[TIME]))
