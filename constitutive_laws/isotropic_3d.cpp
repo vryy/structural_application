@@ -323,6 +323,14 @@ void Isotropic3DImpl<TNodeType>::ResetMaterial( const Properties& props,
 }
 
 template<class TNodeType>
+void Isotropic3DImpl<TNodeType>::RewindMaterial( const Properties& props,
+                                 const GeometryType& geom,
+                                 const Vector& ShapeFunctionsValues )
+{
+    // DO NOTHING
+}
+
+template<class TNodeType>
 void Isotropic3DImpl<TNodeType>::InitializeSolutionStep( const Properties& props,
         const GeometryType& geom, //this is just to give the array of nodes
         const Vector& ShapeFunctionsValues ,

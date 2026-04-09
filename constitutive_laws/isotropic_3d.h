@@ -183,6 +183,10 @@ class KRATOS_API(STRUCTURAL_APPLICATION) Isotropic3DImpl : public ConstitutiveLa
                             const GeometryType& geom,
                             const Vector& ShapeFunctionsValues ) override;
 
+        void RewindMaterial( const Properties& rMaterialProperties,
+                             const GeometryType& rElementGeometry,
+                             const Vector& rShapeFunctionsValues) override;
+
         void FinalizeNonLinearIteration( const Properties& props,
                                          const GeometryType& geom, //this is just to give the array of nodes
                                          const Vector& ShapeFunctionsValues,
