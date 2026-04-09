@@ -214,7 +214,7 @@ void FaceForce3D::CalculateRightHandSide( VectorType& rRightHandSideVector,
 {
     //calculation flags
     bool CalculateStiffnessMatrixFlag = false;
-    bool CalculateResidualVectorFlag = false; //true; // hbui: set to false to correctly compute the reaction force
+    bool CalculateResidualVectorFlag = true;
     MatrixType temp = Matrix();
 
     CalculateAll( temp, rRightHandSideVector, rCurrentProcessInfo,
