@@ -112,9 +112,9 @@ def AddDofsForNode(node):
     node.AddDof(LAGRANGE_DISPLACEMENT_X)
     node.AddDof(LAGRANGE_DISPLACEMENT_Y)
     node.AddDof(LAGRANGE_DISPLACEMENT_Z)
-    node.AddDof(ROTATION_X)
-    node.AddDof(ROTATION_Y)
-    node.AddDof(ROTATION_Z)
+    node.AddDof(ROTATION_X, MOMENT_X)
+    node.AddDof(ROTATION_Y, MOMENT_Y)
+    node.AddDof(ROTATION_Z, MOMENT_Z)
     # node.AddDof(LAGRANGE_AIR_PRESSURE, REACTION_LAGRANGE_AIR_PRESSURE)
     # node.AddDof(LAGRANGE_WATER_PRESSURE, REACTION_LAGRANGE_WATER_PRESSURE) # do not add here, add in the include file instead
 
@@ -346,6 +346,8 @@ class SolverAdvanced(structural_solver_static.StaticStructuralSolver):
                 builder_and_solver = ResidualBasedBlockBuilderAndSolverWithConstraintsDeactivation(self.structure_linear_solver)
             elif(self.analysis_parameters['builder_and_solver_type'] == "residual-based block with constraints deactivation element-wise"):
                 builder_and_solver = ResidualBasedBlockBuilderAndSolverWithConstraintsDeactivationElementWise(self.structure_linear_solver)
+            else:
+                raise Exception("Unknown builder_and_solver_type %s" % (self.analysis_parameters['builder_and_solver_type']))
         else:
             if(self.analysis_parameters['builder_and_solver_type'] == "residual-based elimination deactivation"):
                 builder_and_solver = ResidualBasedEliminationBuilderAndSolverDeactivation(LinearSolver())
@@ -353,6 +355,8 @@ class SolverAdvanced(structural_solver_static.StaticStructuralSolver):
                 builder_and_solver = ResidualBasedBlockBuilderAndSolver(LinearSolver())
             elif(self.analysis_parameters['builder_and_solver_type'] == "residual-based block with constraints"):
                 builder_and_solver = ResidualBasedBlockBuilderAndSolverWithConstraints(LinearSolver())
+            else:
+                raise Exception("Unknown builder_and_solver_type %s" % (self.analysis_parameters['builder_and_solver_type']))
         print("builder_and_solver type: " + str(self.analysis_parameters['builder_and_solver_type']))
 
         #creating the solution strategy
