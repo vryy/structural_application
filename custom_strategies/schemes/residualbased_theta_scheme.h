@@ -262,6 +262,14 @@ public:
                     +=Dx[i->GetDof(TEMPERATURE).EquationId()];
                 }
             }
+            if( i->HasDofFor(SATURATION) )
+            {
+                if(i->GetDof(SATURATION).IsFree())
+                {
+                    i->GetSolutionStepValue(SATURATION_EINS)
+                    +=Dx[i->GetDof(SATURATION).EquationId()];
+                }
+            }
 
             // update this variables to account for Lagrange multiplier
             if( i->HasDofFor(LAGRANGE_DISPLACEMENT_X) )
@@ -378,6 +386,15 @@ public:
                     rNode.GetSolutionStepValue(TEMPERATURE_EINS)
                     += Dx[dof_iterator->EquationId()];
                     std::cout << "node " << rNode.Id() << " TEMPERATURE has been updated to " << rNode.GetSolutionStepValue(TEMPERATURE_EINS) << std::endl;
+                }
+            }
+            else if (dof_iterator->GetVariable() == SATURATION)
+            {
+                if (dof_iterator->IsFree())
+                {
+                    rNode.GetSolutionStepValue(SATURATION_EINS)
+                    += Dx[dof_iterator->EquationId()];
+                    std::cout << "node " << rNode.Id() << " SATURATION has been updated to " << rNode.GetSolutionStepValue(SATURATION_EINS) << std::endl;
                 }
             }
             else
@@ -607,6 +624,26 @@ public:
                 = (1.0-mTheta)*i->GetSolutionStepValue(TEMPERATURE_NULL)
                   + mTheta*i->GetSolutionStepValue(TEMPERATURE_EINS);
             }
+            if( i->HasDofFor(SATURATION) )
+            {
+                i->GetSolutionStepValue(SATURATION_EINS_DT)
+                = ( i->GetSolutionStepValue(SATURATION_EINS)
+                  - i->GetSolutionStepValue(SATURATION_NULL) ) / Dt;
+
+                i->GetSolutionStepValue(SATURATION_EINS_DT2)
+                = ( i->GetSolutionStepValue(SATURATION_EINS_DT)
+                  - i->GetSolutionStepValue(SATURATION_NULL_DT)) / Dt;
+
+                i->GetSolutionStepValue(SATURATION_DT2)
+                = i->GetSolutionStepValue(SATURATION_EINS_DT2);
+
+                i->GetSolutionStepValue(SATURATION_DT)
+                = i->GetSolutionStepValue(SATURATION_EINS_DT);
+
+                i->GetSolutionStepValue(SATURATION)
+                = (1.0-mTheta)*i->GetSolutionStepValue(SATURATION_NULL)
+                  + mTheta*i->GetSolutionStepValue(SATURATION_EINS);
+            }
 
             if (mIntegrateRotation)
             {
@@ -766,6 +803,7 @@ public:
                 it_node->GetSolutionStepValue(DISPLACEMENT_Z) = curr_disp + delta_disp;
                 it_node->GetSolutionStepValue(PRESCRIBED_DELTA_DISPLACEMENT_Z) = 0.0; // set the prescribed displacement to zero to avoid update in the second step
             }
+
         }
 
         // invoking the element and condition finalization after an iteration
@@ -876,6 +914,15 @@ public:
                     i->GetSolutionStepValue(TEMPERATURE_NULL_ACCELERATION);
                 i->GetSolutionStepValue(TEMPERATURE_EINS)=
                     i->GetSolutionStepValue(TEMPERATURE_NULL);
+            }
+            if( i->HasDofFor(SATURATION) && i->GetDof(SATURATION).IsFree())
+            {
+                i->GetSolutionStepValue(SATURATION_EINS_DT)=
+                    i->GetSolutionStepValue(SATURATION_NULL_DT);
+                i->GetSolutionStepValue(SATURATION_EINS_DT2)=
+                    i->GetSolutionStepValue(SATURATION_NULL_DT2);
+                i->GetSolutionStepValue(SATURATION_EINS)=
+                    i->GetSolutionStepValue(SATURATION_NULL);
             }
 
             if (mIntegrateRotation)
@@ -1102,6 +1149,27 @@ public:
                 i->GetSolutionStepValue(TEMPERATURE) = i->GetSolutionStepValue(TEMPERATURE_EINS);
                 i->GetSolutionStepValue(TEMPERATURE_DT) = i->GetSolutionStepValue(TEMPERATURE_EINS_DT);
                 i->GetSolutionStepValue(TEMPERATURE_ACCELERATION) = i->GetSolutionStepValue(TEMPERATURE_EINS_ACCELERATION);
+            }
+
+            if( i->HasDofFor(SATURATION) )
+            {
+                if(CurrentProcessInfo[FIRST_TIME_STEP])
+                {
+                    i->GetSolutionStepValue(SATURATION_NULL_DT2) = i->GetSolutionStepValue(SATURATION_DT2);
+                    i->GetSolutionStepValue(SATURATION_NULL_DT) = i->GetSolutionStepValue(SATURATION_DT);
+                    i->GetSolutionStepValue(SATURATION_NULL) = i->GetSolutionStepValue(SATURATION);
+                }
+                else
+                {
+                    i->GetSolutionStepValue(SATURATION_NULL_DT) = i->GetSolutionStepValue(SATURATION_EINS_DT);
+                    i->GetSolutionStepValue(SATURATION_NULL) = i->GetSolutionStepValue(SATURATION_EINS);
+                    i->GetSolutionStepValue(SATURATION_NULL_DT2) = i->GetSolutionStepValue(SATURATION_EINS_DT2);
+                }
+
+                // here we update the current values at the end of time step
+                i->GetSolutionStepValue(SATURATION) = i->GetSolutionStepValue(SATURATION_EINS);
+                i->GetSolutionStepValue(SATURATION_DT) = i->GetSolutionStepValue(SATURATION_EINS_DT);
+                i->GetSolutionStepValue(SATURATION_DT2) = i->GetSolutionStepValue(SATURATION_EINS_DT2);
             }
 
             if (mIntegrateRotation)
