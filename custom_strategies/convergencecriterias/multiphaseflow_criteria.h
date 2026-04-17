@@ -62,7 +62,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 /* Project includes */
 #include "includes/model_part.h"
-#include "includes/define.h"
+#include "solving_strategies/convergencecriterias/convergence_criteria.h"
 #include "structural_application_variables.h"
 
 namespace Kratos

@@ -385,7 +385,6 @@ public:
                 {
                     rNode.GetSolutionStepValue(TEMPERATURE_EINS)
                     += Dx[dof_iterator->EquationId()];
-                    std::cout << "node " << rNode.Id() << " TEMPERATURE has been updated to " << rNode.GetSolutionStepValue(TEMPERATURE_EINS) << std::endl;
                 }
             }
             else if (dof_iterator->GetVariable() == SATURATION)
@@ -394,7 +393,6 @@ public:
                 {
                     rNode.GetSolutionStepValue(SATURATION_EINS)
                     += Dx[dof_iterator->EquationId()];
-                    std::cout << "node " << rNode.Id() << " SATURATION has been updated to " << rNode.GetSolutionStepValue(SATURATION_EINS) << std::endl;
                 }
             }
             else
