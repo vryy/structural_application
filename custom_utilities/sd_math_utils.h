@@ -46,6 +46,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define SD_MATH_UTILS
 
 #include <cmath>
+
 #include "utilities/math_utils.h"
 #include "geometries/point.h"
 
@@ -3064,6 +3065,30 @@ public:
     }
 
     /**
+     * Compute determinant of 2x2 matrix
+     */
+    static inline TDataType Det2(
+        const TDataType& a1, const TDataType& b1,
+        const TDataType& a2, const TDataType& b2)
+    {
+        return (a1 * b2 - a2 * b1);
+    }
+
+    /**
+     * Compute determinant of 3x3 matrix
+     */
+    static inline TDataType Det3(
+        const TDataType& a1, const TDataType& b1, const TDataType& c1,
+        const TDataType& a2, const TDataType& b2, const TDataType& c2,
+        const TDataType& a3, const TDataType& b3, const TDataType& c3)
+    {
+        const TDataType a = b2*c3 - c2*b3;
+        const TDataType b = a2*c3 - c2*a3;
+        const TDataType c = a2*b3 - b2*a3;
+        return a1*a - b1*b + c1*c;
+    }
+
+    /**
      * Solve a1 * x + b1 * y = c1
      *       a2 * x + b2 * y = c2
      */
@@ -3073,8 +3098,9 @@ public:
         TDataType& x, TDataType& y
     )
     {
-        x = (c1 * b2 - c2 * b1) / (a1 * b2 - a2 * b1);
-        y = (c2 * a1 - c1 * a2) / (a1 * b2 - a2 * b1);
+        TDataType det = Det2(a1, b1, a2, b2);
+        x = (c1 * b2 - c2 * b1) / det;
+        y = (c2 * a1 - c1 * a2) / det;
     }
 
     /**
