@@ -194,12 +194,21 @@ void LinePressure::CalculateRightHandSide( VectorType& rRightHandSideVector,
             t[0] += GetGeometry().GetPoint( n ).X0() * DN_De[PointNumber]( n, 0 );
             t[1] += GetGeometry().GetPoint( n ).Y0() * DN_De[PointNumber]( n, 0 );
         }
-//        KRATOS_WATCH(t)
 
-        //calculating load
+        // calculating load
+        // here we assume the normal vector is (t[1], -t[0]) to point outwards from a standard finite element,
+        // however, the pressure P is assumed inwards, hence the load vector is (-P*t[1], P*t[0])
+        // *          ^
+        // *          |
+        // *      2-------3
+        // *      |       |
+        // * <-   |       |  ->
+        // *      |       |
+        // *      0-------1
+        // *         | (here is the direction of normal vector, assuming the finite element follows standard counter-clockwise direction)
+        // *         v
         Load[0] = -P*t[1];
         Load[1] = P*t[0];
-//        KRATOS_WATCH(Load)
 
         // contribute to RIGHT HAND SIDE VECTOR
         for ( unsigned int prim = 0; prim < GetGeometry().size(); ++prim )
