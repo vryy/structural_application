@@ -83,6 +83,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_utilities/foundation_utility.h"
 #include "custom_utilities/surface_utility.h"
 #include "custom_utilities/element_utility.h"
+#include "custom_utilities/recover_stress_utility.h"
 
 #include "custom_utilities/embedded_node_tying_utility.h"
 #include "custom_conditions/embedded_node_lagrange_tying_condition.h"
@@ -644,6 +645,15 @@ boost::python::list ElementUtility_GetIntegrationPoints(ElementUtility& rDummy, 
 }
 
 ///////////////////////////////////////////////////////////////////////
+
+template<typename TEntityType>
+typename TEntityType::DataType RecoverStressUtility_ComputeZZErrorEstimation(RecoverStressUtility& rDummy, TEntityType& rElement,
+        const ProcessInfo& rCurrentProcessInfo)
+{
+    return RecoverStressUtility::ComputeZZErrorEstimation(rElement, rCurrentProcessInfo);
+}
+
+///////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////
 
 template<class TEntitiesContainerType>
@@ -925,6 +935,11 @@ void AddCustomUtilitiesToPython()
     .def("ResetStrain", &ElementUtility_ResetStrain<Element>)
     .def("GetIntegrationPoints", &ElementUtility_GetIntegrationPoints<Element>)
     .def("GetIntegrationPoints", &ElementUtility_GetIntegrationPoints<Condition>)
+    ;
+
+    class_<RecoverStressUtility, boost::noncopyable >
+    ( "RecoverStressUtility", init<>() )
+    .def("ComputeZZErrorEstimation", &RecoverStressUtility_ComputeZZErrorEstimation<Element>)
     ;
 }
 

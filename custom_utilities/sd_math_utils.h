@@ -2427,6 +2427,34 @@ public:
         }
     }
 
+    /**
+    * Compute the inverse of the elasticity tensor
+    * @param Ci Inverse of the elastic tensor
+    * @param E Young modulus
+    * @param NU Poisson ratio
+    */
+    static inline void CalculateInversedElasticTensor( Fourth_Order_Tensor& Ci, TDataType E, TDataType NU )
+    {
+        const auto eye = [](int i, int j) { return i == j ? 1.0 : 0.0; };
+
+        const TDataType aux1 = 0.5 * (1 + NU) / E;
+        const TDataType aux2 = -NU / E;
+
+        for(unsigned int i = 0; i < 3; ++i)
+        {
+            for(unsigned int j = 0; j < 3; ++j)
+            {
+                for(unsigned int k = 0; k < 3; ++k)
+                {
+                    for(unsigned int l = 0; l < 3; ++l)
+                        Ci[i][j][k][l] = aux2 * eye(i, j) * eye(k, l)
+                                      + aux1 * (eye(i, k) * eye(j, l)
+                                              + eye(i, l) * eye(j, k));
+                  }
+             }
+        }
+    }
+
     // return a:b
     template<typename TVectorType1, typename TVectorType2>
     static TDataType vec_inner_prod(const TVectorType1& a, const TVectorType2& b)
