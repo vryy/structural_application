@@ -146,19 +146,19 @@ public:
                 const Matrix& DN = DN_De[PointNumber];
 
                 // compute the tangential and normal vectors
-                if (TDim == 2)
+                if constexpr (TDim == 2)
                 {
                     T1.clear();
 
                     for(std::size_t n = 0; n < rGeometry.PointsNumber(); ++n)
                     {
-                        if (TFrame == 0)
+                        if constexpr (TFrame == 0)
                         {
                             // contribution to tangential vectors
                             T1[0] += rGeometry[n].X0() * DN(n, 0);
                             T1[1] += rGeometry[n].Y0() * DN(n, 0);
                         }
-                        else if (TFrame == 1)
+                        else if constexpr (TFrame == 1)
                         {
                             // contribution to tangential vectors
                             T1[0] += (rGeometry[n].X0() + rGeometry[n].GetSolutionStepValue(DISPLACEMENT_X)) * DN(n, 0);
@@ -173,14 +173,14 @@ public:
                     DetJ = norm_2(N);
                     N *= (1.0 / DetJ);
                 }
-                else if (TDim == 3)
+                else if constexpr (TDim == 3)
                 {
                     T1.clear();
                     T2.clear();
 
                     for(std::size_t n = 0; n < rGeometry.PointsNumber(); ++n)
                     {
-                        if (TFrame == 0)
+                        if constexpr (TFrame == 0)
                         {
                             // contribution to tangential vectors
                             T1[0] += rGeometry[n].X0() * DN(n, 0);
@@ -191,7 +191,7 @@ public:
                             T2[1] += rGeometry[n].Y0() * DN(n, 1);
                             T2[2] += rGeometry[n].Z0() * DN(n, 1);
                         }
-                        else if (TFrame == 1)
+                        else if constexpr (TFrame == 1)
                         {
                             // contribution to tangential vectors
                             T1[0] += (rGeometry[n].X0() + rGeometry[n].GetSolutionStepValue(DISPLACEMENT_X)) * DN(n, 0);
@@ -265,7 +265,7 @@ private:
 
     int mEchoLevel;
 
-};//class SurfaceUtility
+}; //class SurfaceUtility
 }  /* namespace Kratos.*/
 
 #endif /* KRATOS_SURFACE_UTILITY_H_INCLUDED  defined */

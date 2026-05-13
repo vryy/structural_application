@@ -67,6 +67,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace Kratos
 {
+
 class OutputUtility
 {
 public:
@@ -151,7 +152,7 @@ public:
                   << " (tol=" << tol << "): " << nplastic_points << std::endl;
     }
 
-};//Class OutputUtility
-}//namespace Kratos.
+}; // Class OutputUtility
+} // namespace Kratos.
 
 #endif /* KRATOS_OUTPUT_UTILITY_INCLUDED defined */

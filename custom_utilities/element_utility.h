@@ -269,7 +269,6 @@ public:
 
         if( rVariable == VARSEL(DataType, INTEGRATION_POINT_GLOBAL) || rVariable == VARSEL(DataType, INTEGRATION_POINT_GLOBAL_IN_CURRENT_CONFIGURATION) )
         {
-
             if constexpr (std::is_same<DataType, ValueType>::value)
             {
                 for(std::size_t point = 0; point < integration_points.size(); ++point)

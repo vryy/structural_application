@@ -247,29 +247,9 @@ void ValuesContainerConstitutiveLaw::FinalizeSolutionStep( const Properties& pro
     mpConstitutiveLaw->FinalizeSolutionStep( props, geom, ShapeFunctionsValues, CurrentProcessInfo );
 }
 
-void  ValuesContainerConstitutiveLaw::CalculateMaterialResponse( const Vector& StrainVector,
-        const Matrix& DeformationGradient,
-        Vector& StressVector,
-        Matrix& AlgorithmicTangent,
-        const ProcessInfo& CurrentProcessInfo,
-        const Properties& props,
-        const GeometryType& geom,
-        const Vector& ShapeFunctionsValues,
-        bool CalculateStresses,
-        int CalculateTangent,
-        bool SaveInternalVariables )
+void ValuesContainerConstitutiveLaw::CalculateMaterialResponseCauchy(typename BaseType::Parameters& rValues)
 {
-    mpConstitutiveLaw->CalculateMaterialResponse( StrainVector,
-        DeformationGradient,
-        StressVector,
-        AlgorithmicTangent,
-        CurrentProcessInfo,
-        props,
-        geom,
-        ShapeFunctionsValues,
-        CalculateStresses,
-        CalculateTangent,
-        SaveInternalVariables );
+    mpConstitutiveLaw->CalculateMaterialResponseCauchy(rValues);
 }
 
 //**********************************************************************

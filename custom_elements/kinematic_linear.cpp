@@ -1878,10 +1878,9 @@ namespace Kratos
                 }
                 else
                     KRATOS_ERROR << "The stress recovery type " << Type << " is not supported";
-
             }
             else
-                KRATOS_ERROR << "The stress recovery method is not defined for element " << this->Id();
+                KRATOS_ERROR << "The stress recovery method is not defined for Properties " << this->GetProperties().Id();
         }
         else if ( rVariable == VARSEL(DataType, STRAIN) || rVariable == VARSEL(DataType, CURRENT_STRAIN_VECTOR) )
         {

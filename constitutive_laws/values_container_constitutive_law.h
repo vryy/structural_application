@@ -79,6 +79,7 @@ namespace Kratos
             typedef VariableData::KeyType VariableKeyType;
             typedef std::size_t IndexType;
             typedef std::map<VariableKeyType, VariableKeyType> ValuesKeyMapType;
+
             /**
              * Counted pointer of ValuesContainerConstitutiveLaw
              */
@@ -97,7 +98,7 @@ namespace Kratos
              */
             ValuesContainerConstitutiveLaw(ConstitutiveLaw::Pointer pOther);
 
-            ConstitutiveLaw::Pointer Clone() const override
+            ConstitutiveLaw::Pointer Clone() const final
             {
                 ConstitutiveLaw::Pointer p_new = mpConstitutiveLaw->Clone();
                 ConstitutiveLaw::Pointer p_clone( new ValuesContainerConstitutiveLaw(p_new) );
@@ -115,35 +116,35 @@ namespace Kratos
             /**
              * Operations
              */
-            bool Has( const Variable<int>& rThisVariable ) const;
-            bool Has( const Variable<double>& rThisVariable ) const;
-            bool Has( const Variable<array_1d<double, 3> >& rThisVariable ) const;
-            bool Has( const Variable<Vector>& rThisVariable ) const;
-            bool Has( const Variable<Matrix>& rThisVariable ) const;
+            bool Has( const Variable<int>& rThisVariable ) const final;
+            bool Has( const Variable<double>& rThisVariable ) const final;
+            bool Has( const Variable<array_1d<double, 3> >& rThisVariable ) const final;
+            bool Has( const Variable<Vector>& rThisVariable ) const final;
+            bool Has( const Variable<Matrix>& rThisVariable ) const final;
 
-            int& GetValue( const Variable<int>& rThisVariable, int& rValue );
-            double& GetValue( const Variable<double>& rThisVariable, double& rValue );
-            array_1d<double, 3>& GetValue( const Variable<array_1d<double, 3> >& rThisVariable, array_1d<double, 3>& rValue );
-            Vector& GetValue( const Variable<Vector>& rThisVariable, Vector& rValue );
-            Matrix& GetValue( const Variable<Matrix>& rThisVariable, Matrix& rValue );
+            int& GetValue( const Variable<int>& rThisVariable, int& rValue ) final;
+            double& GetValue( const Variable<double>& rThisVariable, double& rValue ) final;
+            array_1d<double, 3>& GetValue( const Variable<array_1d<double, 3> >& rThisVariable, array_1d<double, 3>& rValue ) final;
+            Vector& GetValue( const Variable<Vector>& rThisVariable, Vector& rValue ) final;
+            Matrix& GetValue( const Variable<Matrix>& rThisVariable, Matrix& rValue ) final;
 
             void SetValue( const Variable<int>& rThisVariable, const int& rValue,
-                           const ProcessInfo& rCurrentProcessInfo );
+                           const ProcessInfo& rCurrentProcessInfo ) final;
             void SetValue( const Variable<double>& rThisVariable, const double& rValue,
-                           const ProcessInfo& rCurrentProcessInfo );
+                           const ProcessInfo& rCurrentProcessInfo ) final;
             void SetValue( const Variable<array_1d<double, 3> >& rThisVariable,
-                           const array_1d<double, 3> & rValue, const ProcessInfo& rCurrentProcessInfo );
+                           const array_1d<double, 3> & rValue, const ProcessInfo& rCurrentProcessInfo ) final;
             void SetValue( const Variable<Vector>& rThisVariable, const Vector& rValue,
-                           const ProcessInfo& rCurrentProcessInfo );
+                           const ProcessInfo& rCurrentProcessInfo ) final;
             void SetValue( const Variable<Matrix>& rThisVariable, const Matrix& rValue,
-                           const ProcessInfo& rCurrentProcessInfo );
+                           const ProcessInfo& rCurrentProcessInfo ) final;
 
             /**
              * Material parameters are inizialized
              */
             void InitializeMaterial( const Properties& props,
                                      const GeometryType& geom,
-                                     const Vector& ShapeFunctionsValues );
+                                     const Vector& ShapeFunctionsValues ) final;
 
             /**
              * As this constitutive law describes only linear elastic material properties
@@ -152,26 +153,26 @@ namespace Kratos
             void InitializeSolutionStep( const Properties& props,
                                          const GeometryType& geom, //this is just to give the array of nodes
                                          const Vector& ShapeFunctionsValues,
-                                         const ProcessInfo& CurrentProcessInfo );
+                                         const ProcessInfo& CurrentProcessInfo ) final;
 
             void InitializeNonLinearIteration( const Properties& props,
                                                const GeometryType& geom, //this is just to give the array of nodes
                                                const Vector& ShapeFunctionsValues,
-                                               const ProcessInfo& CurrentProcessInfo );
+                                               const ProcessInfo& CurrentProcessInfo ) final;
 
             void ResetMaterial( const Properties& props,
                                 const GeometryType& geom,
-                                const Vector& ShapeFunctionsValues );
+                                const Vector& ShapeFunctionsValues ) final;
 
             void FinalizeNonLinearIteration( const Properties& props,
                                              const GeometryType& geom, //this is just to give the array of nodes
                                              const Vector& ShapeFunctionsValues,
-                                             const ProcessInfo& CurrentProcessInfo );
+                                             const ProcessInfo& CurrentProcessInfo ) final;
 
             void FinalizeSolutionStep( const Properties& props,
                                        const GeometryType& geom, //this is just to give the array of nodes
                                        const Vector& ShapeFunctionsValues,
-                                       const ProcessInfo& CurrentProcessInfo );
+                                       const ProcessInfo& CurrentProcessInfo ) final;
 
             /**
              * This function is designed to be called once to perform all the checks needed
@@ -186,18 +187,11 @@ namespace Kratos
                        const GeometryType& geom,
                        const ProcessInfo& CurrentProcessInfo ) const final;
 
-            void CalculateMaterialResponse( const Vector& StrainVector,
-                                            const Matrix& DeformationGradient,
-                                            Vector& StressVector,
-                                            Matrix& AlgorithmicTangent,
-                                            const ProcessInfo& CurrentProcessInfo,
-                                            const Properties& props,
-                                            const GeometryType& geom,
-                                            const Vector& ShapeFunctionsValues,
-                                            bool CalculateStresses = true,
-                                            int CalculateTangent = true,
-                                            bool SaveInternalVariables = true
-                                          );
+            /**
+             * Computes the material response in terms of Cauchy stresses and constitutive tensor
+             * @see Parameters
+             */
+            void CalculateMaterialResponseCauchy (typename BaseType::Parameters& rValues) final;
 
             /**
              * returns the size of the strain vector of the current constitutive law
@@ -208,11 +202,10 @@ namespace Kratos
                 return mpConstitutiveLaw->GetStrainSize();
             }
 
-            /**
-             * converts a strain vector styled variable into its form, which the
-             * deviatoric parts are no longer multiplied by 2
-             */
-            //             void Calculate(const Variable<Matrix >& rVariable, Matrix& rResult, const ProcessInfo& rCurrentProcessInfo);
+            void GetLawFeatures(typename BaseType::Features& rFeatures) const final
+            {
+                rFeatures.SetStrainMeasure(mpConstitutiveLaw->GetStrainMeasure());
+            }
 
             /**
              * Input and output
@@ -220,15 +213,26 @@ namespace Kratos
             /**
              * Turn back information as a string.
              */
-            //virtual String Info() const;
+            std::string Info() const final
+            {
+                return mpConstitutiveLaw->Info();
+            }
+
             /**
              * Print information about this object.
              */
-            //virtual void PrintInfo(std::ostream& rOStream) const;
+            void PrintInfo(std::ostream& rOStream) const final
+            {
+                mpConstitutiveLaw->PrintInfo(rOStream);
+            }
+
             /**
              * Print object's data.
              */
-            //virtual void PrintData(std::ostream& rOStream) const;
+            void PrintData(std::ostream& rOStream) const final
+            {
+                mpConstitutiveLaw->PrintData(rOStream);
+            }
 
         private:
 
@@ -237,13 +241,13 @@ namespace Kratos
 
             friend class Serializer;
 
-            void save( Serializer& rSerializer ) const override
+            void save( Serializer& rSerializer ) const final
             {
                 KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, ConstitutiveLaw );
                 rSerializer.save( "ConstitutiveLaw", mpConstitutiveLaw );
             }
 
-            void load( Serializer& rSerializer ) override
+            void load( Serializer& rSerializer ) final
             {
                 KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ConstitutiveLaw );
                 rSerializer.load( "ConstitutiveLaw", mpConstitutiveLaw );
@@ -268,14 +272,6 @@ namespace Kratos
             /**
              * Un accessible methods
              */
-            /**
-             * Assignment operator.
-             */
-            //ValuesContainerConstitutiveLaw& operator=(const IsotropicPlaneStressWrinklingNew& rOther);
-            /**
-             * Copy constructor.
-             */
-            //ValuesContainerConstitutiveLaw(const IsotropicPlaneStressWrinklingNew& rOther);
     }; // Class ValuesContainerConstitutiveLaw
 
 } // namespace Kratos.

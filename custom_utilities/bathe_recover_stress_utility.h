@@ -58,13 +58,12 @@ public:
     BatheRecoverStressUtility(unsigned int ExpansionLevel) : mExpansionLevel(ExpansionLevel) {}
     virtual ~BatheRecoverStressUtility() {}
 
-
     //recovery stress routine for 2d
     void CalculateImprovedStressOnIntegrationPoints( Element& rCurrentElement, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo )
     {
         //check dimension
         if( rCurrentElement.GetGeometry().WorkingSpaceDimension() != 2 )
-            KRATOS_THROW_ERROR(std::logic_error, "This recovery routine currently works in 2d only", "");
+            KRATOS_ERROR << "This recovery routine currently works in 2d only";
 
         // build list of neighbours of the current element
         NeighborElementsType& neighb_elems = GetNeighborElements( rCurrentElement, mExpansionLevel );
@@ -93,11 +92,9 @@ public:
         Vector RHSPart1( 12 );
         Vector RHSPart2( 6 );
 
-
         //calculate left hand side and right hand side
         for( NeighborElementsType::iterator ie = neighb_elems.begin(); ie != neighb_elems.end(); ++ie )
         {
-
             //contribution of left hand side
             noalias( LHSPart1 ) = ZeroMatrix( 12, 18 );
             noalias( LHSPart2 ) = ZeroMatrix( 6, 18 );
@@ -126,9 +123,7 @@ public:
                 }
                 RightHandSideVector( 12 + i ) += RHSPart2( i );
             }
-
         }
-
 
         #ifdef UTILITY_DEBUG_LEVEL1
         KRATOS_WATCH( LeftHandSideMatrix )
@@ -174,9 +169,7 @@ public:
 
             CalculateEtOperator( Et_Operator, RealX, RealY );
             noalias( rValues[PointNumber] ) = prod( Et_Operator, StressCoefficients );
-
         }
-
     }
 
 
@@ -189,19 +182,16 @@ public:
         return buffer.str();
     }
 
-
     /// Print information about this object.
     virtual void PrintInfo(std::ostream& rOStream) const
     {
         rOStream << Info();
     }
 
-
     /// Print object's data.
     virtual void PrintData(std::ostream& rOStream) const
     {
     }
-
 
 private:
 
@@ -221,12 +211,10 @@ private:
         rSerializer.load("BatheRecoverStressUtility", *this);
     }
 
-
     NeighborElementsType& GetNeighborElements(Element& rCurrentElement, unsigned int ExpansionLevel)
     {
-
         if( ExpansionLevel < 1 )
-            KRATOS_THROW_ERROR(std::logic_error, "The expansion level of an element must be >= 1, detected", ExpansionLevel);
+            KRATOS_ERROR << "The expansion level of an element must be >= 1, detected " << ExpansionLevel;
 
         if( ExpansionLevel == 1 )
         {
@@ -329,7 +317,6 @@ private:
         }
     }
 
-
     void CalculateLHS( const NeighborElementsType::iterator& ie,
                         Matrix& Et_Operator,
                         Matrix& DtEt_Operator,
@@ -342,10 +329,10 @@ private:
         IntegrationMethod ThisIntegrationMethod = ie->GetIntegrationMethod();
 
         //modify integration rule in case of 3-node triangle
-        if( ie->GetGeometry().size() == 3 )
+        if( ie->GetGeometry().GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Triangle2D3 )
             ThisIntegrationMethod = IntegrationMethod::GI_GAUSS_2;
 
-        const Element::GeometryType::IntegrationPointsArrayType& integration_points = ie->GetGeometry().IntegrationPoints( ThisIntegrationMethod );
+        const auto& integration_points = ie->GetGeometry().IntegrationPoints( ThisIntegrationMethod );
 
         const Matrix& Ncontainer = ie->GetGeometry().ShapeFunctionsValues( ThisIntegrationMethod );
 
@@ -360,12 +347,8 @@ private:
         int dim = ie->GetGeometry().WorkingSpaceDimension();
         Matrix dummy(dim, dim);
         for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
-            MathUtils<double>::InvertMatrix( J0[PointNumber], dummy, DetJ0[PointNumber] );
-
-        for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
         {
-            //double xi = integration_points[PointNumber].X();
-            //double eta = integration_points[PointNumber].Y();
+            MathUtils<double>::InvertMatrix( J0[PointNumber], dummy, DetJ0[PointNumber] );
             double weight = integration_points[PointNumber].Weight();
 
             Vector Nvector = row( Ncontainer, PointNumber );
@@ -400,7 +383,7 @@ private:
     {
         IntegrationMethod ThisIntegrationMethod = ie->GetIntegrationMethod();
 
-        const Element::GeometryType::IntegrationPointsArrayType& integration_points = ie->GetGeometry().IntegrationPoints( ThisIntegrationMethod );
+        const auto& integration_points = ie->GetGeometry().IntegrationPoints( ThisIntegrationMethod );
 
         const Matrix& Ncontainer = ie->GetGeometry().ShapeFunctionsValues( ThisIntegrationMethod );
 
@@ -414,8 +397,6 @@ private:
 
         int dim = ie->GetGeometry().WorkingSpaceDimension();
         Matrix dummy(dim, dim);
-        for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
-            MathUtils<double>::InvertMatrix( J0[PointNumber], dummy, DetJ0[PointNumber] );
 
         //get the stresses
         std::vector<Vector> Stresses;
@@ -427,6 +408,8 @@ private:
 
         for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
         {
+            MathUtils<double>::InvertMatrix( J0[PointNumber], dummy, DetJ0[PointNumber] );
+
             double weight = integration_points[PointNumber].Weight();
 
             Vector Nvector = row( Ncontainer, PointNumber );
@@ -451,7 +434,7 @@ private:
             //check for gravity
             Vector gravity( dim );
 
-                double density = 0.0;
+            double density = 0.0;
             if( ie->GetValue( USE_DISTRIBUTED_PROPERTIES ) )
             {
                 noalias( gravity ) = ie->GetValue(GRAVITY);
@@ -559,17 +542,8 @@ private:
 
 }  // namespace Kratos.
 
-#ifdef UTILITY_DEBUG_LEVEL1
 #undef UTILITY_DEBUG_LEVEL1
-#endif
-
-#ifdef UTILITY_DEBUG_LEVEL2
 #undef UTILITY_DEBUG_LEVEL2
-#endif
-
-#ifdef UTILITY_DEBUG_LEVEL3
 #undef UTILITY_DEBUG_LEVEL3
-#endif
 
-#endif // KRATOS_EMBEDDED_DISCONTINUITIES_INFO_H_INCLUDED  defined
-
+#endif // KRATOS_BATHE_RECOVER_STRESS_UTILITY_H_INCLUDED  defined
