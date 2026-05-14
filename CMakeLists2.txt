@@ -87,6 +87,8 @@ set( KRATOS_STRUCTURAL_APPLICATION_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/plasticity_laws/general_elastoplasticity_law.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/plasticity_laws/multi_surface_elastoplasticity_law.cpp
 
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/recover_stress_utility.cpp
+
     ${CMAKE_CURRENT_SOURCE_DIR}/structural_application.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/structural_application_variables.cpp
 )

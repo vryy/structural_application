@@ -653,6 +653,12 @@ typename TEntityType::DataType RecoverStressUtility_ComputeZZErrorEstimation(Rec
     return RecoverStressUtility::ComputeZZErrorEstimation(rElement, rCurrentProcessInfo);
 }
 
+template<typename TVariableType>
+double RecoverStressUtility_ComputeKellyErrorEstimation(RecoverStressUtility& rDummy, ModelPart& rModelPart, const TVariableType& rVariable)
+{
+    return RecoverStressUtility::ComputeKellyErrorEstimation(rModelPart, rVariable);
+}
+
 ///////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////
 
@@ -940,6 +946,8 @@ void AddCustomUtilitiesToPython()
     class_<RecoverStressUtility, boost::noncopyable >
     ( "RecoverStressUtility", init<>() )
     .def("ComputeZZErrorEstimation", &RecoverStressUtility_ComputeZZErrorEstimation<Element>)
+    .def("ComputeKellyErrorEstimation", &RecoverStressUtility_ComputeKellyErrorEstimation<Variable<double> >)
+    .def("ComputeKellyErrorEstimation", &RecoverStressUtility_ComputeKellyErrorEstimation<Variable<array_1d<double, 3> > >)
     ;
 }
 

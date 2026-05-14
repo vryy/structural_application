@@ -22,7 +22,7 @@
 
 // Project includes
 #include "includes/define.h"
-#include "includes/element.h"
+#include "includes/model_part.h"
 #include "custom_utilities/sd_math_utils.h"
 #include "structural_application_variables.h"
 
@@ -41,9 +41,43 @@ public:
      * Type Definitions
      */
 
-    typedef GeometryData::IntegrationMethod IntegrationMethod;
-
     KRATOS_CLASS_POINTER_DEFINITION(RecoverStressUtility);
+
+    typedef Element::GeometryType GeometryType;
+
+    typedef typename GeometryType::IntegrationMethod IntegrationMethod;
+
+    typedef typename GeometryType::LocalCoordinatesArrayType LocalCoordinatesArrayType;
+
+    typedef typename GeometryType::CoordinatesArrayType CoordinatesArrayType;
+
+    typedef typename GeometryType::JacobiansType JacobiansType;
+
+    typedef typename GeometryType::ShapeFunctionsGradientsType ShapeFunctionsGradientsType;
+
+    typedef ModelPart::ElementsContainerType ElementsContainerType;
+
+    struct HalfFace
+    {
+        GeometryType face;                      // the representative geometry of the face, used for searching, indexing
+        GeometryType::Pointer left  = nullptr;  // the real geometry interface (relatively left)
+        GeometryType::Pointer right = nullptr;  // the real geometry interface (relatively right)
+        Element::Pointer first  = nullptr;      // the element on the left side
+        Element::Pointer second = nullptr;      // the element on the right side
+        mutable double jump = 0.0;
+    };
+
+    struct Comparator
+    {
+        bool operator()(const HalfFace& a, const HalfFace& b) const
+        {
+            return a.face.IsLess(b.face);
+        }
+    };
+
+    /**
+     * Operations
+     */
 
     template<typename TEntityType>
     static typename TEntityType::DataType ComputeZZErrorEstimation(TEntityType& rElement, const ProcessInfo& rCurrentProcessInfo)
@@ -110,6 +144,27 @@ public:
 
         return std::sqrt(result);
     }
+
+    /// Compute the Kelly error estimation across all the elements in the model_part. On output,
+    /// returns the sum of them
+    template<typename TVariableType>
+    static double ComputeKellyErrorEstimation(ModelPart& rModelPart, const TVariableType& rVariable);
+
+private:
+
+    static std::set<HalfFace, Comparator> ConstructHalfFaceStructure(const ElementsContainerType& rElements);
+
+    static Vector ComputeGradient(const GeometryType& rGeometry, const LocalCoordinatesArrayType& rPoint, const Variable<double>& rVariable);
+
+    static Matrix ComputeGradient(const GeometryType& rGeometry, const LocalCoordinatesArrayType& rPoint, const Variable<array_1d<double, 3> >& rVariable);
+
+    static double ComputeJump(const GeometryType& rGeometry1, const GeometryType& rGeometry2,
+            const LocalCoordinatesArrayType& p1, const LocalCoordinatesArrayType& p2,
+            const Vector& n, const Variable<double>& rVariable);
+
+    static double ComputeJump(const GeometryType& rGeometry1, const GeometryType& rGeometry2,
+            const LocalCoordinatesArrayType& p1, const LocalCoordinatesArrayType& p2,
+            const Vector& n, const Variable<array_1d<double, 3> >& rVariable);
 
 };
 
