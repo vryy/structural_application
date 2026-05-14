@@ -59,14 +59,14 @@ public:
     virtual ~BatheRecoverStressUtility() {}
 
     //recovery stress routine for 2d
-    void CalculateImprovedStressOnIntegrationPoints( Element& rCurrentElement, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo )
+    void CalculateImprovedStressOnIntegrationPoints( const Element& rCurrentElement, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo ) const
     {
         //check dimension
         if( rCurrentElement.GetGeometry().WorkingSpaceDimension() != 2 )
             KRATOS_ERROR << "This recovery routine currently works in 2d only";
 
         // build list of neighbours of the current element
-        NeighborElementsType& neighb_elems = GetNeighborElements( rCurrentElement, mExpansionLevel );
+        NeighborElementsType neighb_elems = GetNeighborElements( rCurrentElement, mExpansionLevel );
 
         // from list of neighbour elements iterate through all the integration points and calculate the left hand side and right hand side contribution
 
@@ -137,7 +137,7 @@ public:
         int singular = SD_MathUtils<double>::InvertMatrix( LeftHandSideMatrix, Inverse_LeftHandSideMatrix );
         //lu_factorize() [SD_MathUtils<double>::InvertMatrix] returns 0 if it was successful. It returns (k+1) if it detects singularity after processing row k. So one should always check its return value.
         if( singular != 0 )
-            KRATOS_THROW_ERROR(std::logic_error, "Singular matrix detected when recover stress for element", rCurrentElement.Id());
+            KRATOS_ERROR << "Singular matrix detected when recover stress for element " << rCurrentElement.Id();
         noalias( StressCoefficients ) = prod( Inverse_LeftHandSideMatrix, RightHandSideVector );
 
 
@@ -171,7 +171,6 @@ public:
             noalias( rValues[PointNumber] ) = prod( Et_Operator, StressCoefficients );
         }
     }
-
 
     /// Turn back information as a string.
     virtual std::string Info() const
@@ -211,20 +210,20 @@ private:
         rSerializer.load("BatheRecoverStressUtility", *this);
     }
 
-    NeighborElementsType& GetNeighborElements(Element& rCurrentElement, unsigned int ExpansionLevel)
+    NeighborElementsType GetNeighborElements(const Element& rCurrentElement, unsigned int ExpansionLevel) const
     {
         if( ExpansionLevel < 1 )
             KRATOS_ERROR << "The expansion level of an element must be >= 1, detected " << ExpansionLevel;
 
         if( ExpansionLevel == 1 )
         {
-            NeighborElementsType& neighb_elems = rCurrentElement.GetValue(NEIGHBOUR_ELEMENTS);
+            NeighborElementsType neighb_elems = rCurrentElement.GetValue(NEIGHBOUR_ELEMENTS);
 
             bool CurrentElementIsIncluded = false;
 
             for( unsigned int i = 0; i < rCurrentElement.GetGeometry().size(); i++ )
             {
-                NeighborElementsType& tmp_elems = rCurrentElement.GetGeometry()[i].GetValue(NEIGHBOUR_ELEMENTS);
+                NeighborElementsType tmp_elems = rCurrentElement.GetGeometry()[i].GetValue(NEIGHBOUR_ELEMENTS);
 
                 for( NeighborElementsType::iterator i_tmp = tmp_elems.begin(); i_tmp != tmp_elems.end(); ++i_tmp )
                 {
@@ -261,7 +260,7 @@ private:
         }
         else
         {
-            NeighborElementsType& neighb_elems = GetNeighborElements( rCurrentElement, ExpansionLevel - 1 );
+            NeighborElementsType neighb_elems = GetNeighborElements( rCurrentElement, ExpansionLevel - 1 );
 
             NeighborElementsType more_elems;
 
@@ -269,7 +268,7 @@ private:
             {
                 for( unsigned int i = 0; i < ie->GetGeometry().size(); i++ )
                 {
-                    NeighborElementsType& tmp_elems = ie->GetGeometry()[i].GetValue(NEIGHBOUR_ELEMENTS);
+                    NeighborElementsType tmp_elems = ie->GetGeometry()[i].GetValue(NEIGHBOUR_ELEMENTS);
 
                     for( NeighborElementsType::iterator i_tmp = tmp_elems.begin(); i_tmp != tmp_elems.end(); ++i_tmp )
                     {
@@ -324,7 +323,7 @@ private:
                         Matrix& Exi_Operator,
                         Matrix& LHSPart1,
                         Matrix& LHSPart2,
-                        const ProcessInfo& rCurrentProcessInfo )
+                        const ProcessInfo& rCurrentProcessInfo ) const
     {
         IntegrationMethod ThisIntegrationMethod = ie->GetIntegrationMethod();
 
@@ -379,7 +378,7 @@ private:
                         Matrix& Exi_Operator,
                         Vector& RHSPart1,
                         Vector& RHSPart2,
-                        const ProcessInfo& rCurrentProcessInfo )
+                        const ProcessInfo& rCurrentProcessInfo ) const
     {
         IntegrationMethod ThisIntegrationMethod = ie->GetIntegrationMethod();
 
@@ -452,7 +451,7 @@ private:
         }
     }
 
-    void CalculateEtOperator( Matrix& Et_Operator, double x, double y )
+    void CalculateEtOperator( Matrix& Et_Operator, double x, double y ) const
     {
         noalias( Et_Operator ) = ZeroMatrix( 3, 18 );
 
@@ -478,7 +477,7 @@ private:
         Et_Operator( 2, 17 ) = pow( y, 2 );
     }
 
-    void CalculateDtEtOperator( Matrix& DtEt_Operator, double x, double y )
+    void CalculateDtEtOperator( Matrix& DtEt_Operator, double x, double y ) const
     {
         noalias( DtEt_Operator ) = ZeroMatrix( 2, 18 );
 
@@ -498,7 +497,7 @@ private:
         DtEt_Operator( 1, 16 ) = 2 * x;
     }
 
-    void CalculateEbartOperator( Matrix& Ebart_Operator, double x, double y )
+    void CalculateEbartOperator( Matrix& Ebart_Operator, double x, double y ) const
     {
         noalias( Ebart_Operator ) = ZeroMatrix( 3, 12 );
 
@@ -525,7 +524,7 @@ private:
         Ebart_Operator( 2, 11 ) = -2 * x * y;
     }
 
-    void CalculateExiOperator( Matrix& Exi_Operator, double x, double y )
+    void CalculateExiOperator( Matrix& Exi_Operator, double x, double y ) const
     {
         noalias( Exi_Operator ) = ZeroMatrix( 2, 6 );
 
