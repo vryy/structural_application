@@ -65,8 +65,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "structural_application_variables.h"
 
 
-//TODO: there is a potential bug at the CalculateRightHandSide, which is used for calculating the reaction. In principal, it should not tell the material to update them-self, however, CalculateRightHandSide indirectly call CalculateMaterialResponse. THis should be fixed, by introducing another abstract layer to update the material in the input parameters for CalculateAll
-
 namespace Kratos
 {
     template<typename TNodeType>
@@ -132,12 +130,6 @@ namespace Kratos
             // integration rule
             const IntegrationMethod ThisIntegrationMethod = this->GetIntegrationMethod();
 
-            // // use the default integration rule in the case of finite cell geometry
-            // This is not necessary if the INTEGRATION_ORDER is set for finite cell geometry
-            // std::string geo_name = typeid(this->GetGeometry()).name();
-            // if ( geo_name.find("FiniteCellGeometry") != std::string::npos )
-            //     mThisIntegrationMethod = this->GetGeometry().GetDefaultIntegrationMethod();
-
             // number of integration points used
             const typename GeometryType::IntegrationPointsArrayType& integration_points = this->GetGeometry().IntegrationPoints( ThisIntegrationMethod );
 
@@ -150,10 +142,6 @@ namespace Kratos
             // initialize zero displacement
             mInitialDisp.resize( this->GetGeometry().size(), dim, false );
             noalias(mInitialDisp) = ZeroMatrixType(this->GetGeometry().size(), dim);
-
-            #ifdef ENABLE_DEBUG_CONSTITUTIVE_LAW
-    //            std::cout << "BaseType " << Id() << " mInitialDisp is reinitialized to " << mInitialDisp << std::endl;
-            #endif
 
             // initializing the Jacobian in the reference configuration
             typename GeometryType::JacobiansType J0;
@@ -168,39 +156,7 @@ namespace Kratos
                 //calculating the total domain size
                 TotalDomainInitialSize += MathUtils<DataType>::Det(J0[PointNumber]) * IntegrationWeight;
             }
-            // KRATOS_WATCH(integration_points.size())
-            // KRATOS_WATCH(TotalDomainInitialSize)
-            // // debugging quadrature h8 on cube
-            // typedef GeometryType::IntegrationPointType IntegrationPointType;
-            // double TotalDomainInitialSize_New = 0.0;
-            // MatrixType J0n(dim, dim);
-            // std::vector<IntegrationPointType> points;
-            // // const double a = 1.00/std::sqrt(3.0);
-            // const double a = 0.57735026918962576450914878050195745564760175127012687601860232648397767230293334569371539558574952522520871380513556767665664836499965082627055183736479121617603107730076852735599160670036155830775501;
-            // points.push_back(IntegrationPointType(-a, -a, -a, 1.0));
-            // points.push_back(IntegrationPointType(a, -a, -a, 1.0));
-            // points.push_back(IntegrationPointType(a, a, -a, 1.0));
-            // points.push_back(IntegrationPointType(-a, a, -a, 1.0));
-            // points.push_back(IntegrationPointType(-a, -a, a, 1.0));
-            // points.push_back(IntegrationPointType(a, -a, a, 1.0));
-            // points.push_back(IntegrationPointType(a, a, a, 1.0));
-            // points.push_back(IntegrationPointType(-a, a, a, 1.0));
-            // for ( unsigned int PointNumber = 0; PointNumber < points.size(); ++PointNumber )
-            // {
-            //     this->GetGeometry().Jacobian(J0n, points[PointNumber]);
-            //     TotalDomainInitialSize_New += MathUtils<DataType>::Det(J0n) * points[PointNumber].Weight();
-            // }
-            // KRATOS_WATCH(integration_points.size())
-            // KRATOS_WATCH(TotalDomainInitialSize)
-            // const double error = TotalDomainInitialSize - 1.0;
-            // const double error_new = TotalDomainInitialSize_New - 1.0;
-            // printf("error: %.10e\n", error);
-            // printf("error_new: %.10e\n", error_new);
-            // KRATOS_ERROR << "stop here";
-            // // end of debugging
-            // std::stringstream ss;
-            // ss << "BaseType " << Id() << " domain size: " << TotalDomainInitialSize;
-            // std::cout << ss.str() << std::endl;
+
             if constexpr (std::is_arithmetic<DataType>::value)
             {
                 if ( TotalDomainInitialSize < 0.0 )
@@ -233,10 +189,6 @@ namespace Kratos
             for ( unsigned int node = 0; node < this->GetGeometry().size(); ++node )
                 for ( unsigned int i = 0; i < dim; ++i )
                     mInitialDisp( node, i ) = this->GetGeometry()[node].GetSolutionStepValue( VARSEL( DataType, DISPLACEMENT ) )[i];
-
-            #ifdef ENABLE_DEBUG_CONSTITUTIVE_LAW
-    //        std::cout << "BaseType " << Id() << " mInitialDisp is initialized to " << mInitialDisp << std::endl;
-            #endif
         }
 
         KRATOS_CATCH( "" )
@@ -283,29 +235,8 @@ namespace Kratos
 
                 mConstitutiveLawVector[i]->InitializeMaterial( this->GetProperties(), this->GetGeometry(), N );
 
-                 //verify that the constitutive law has the correct dimension
-//                if ( dimension == 2 )
-//                {
-//                    if ( this->GetProperties().Has( THICKNESS ) == false )
-//                        KRATOS_THROW_ERROR( std::logic_error, "THICKNESS not provided for element ", this->Id() );
-
-//                    if ( this->GetProperties().GetValue( CONSTITUTIVE_LAW )->Getstrain_size() != 3 )
-//                        KRATOS_THROW_ERROR( std::logic_error, "wrong constitutive law used. This is a 2D element! expected strain size is 3 (el id = ) ", this->Id() );
-//                }
-//                else if(dimension == 3)
-//                {
-//                    if ( this->GetProperties().GetValue( CONSTITUTIVE_LAW )->Getstrain_size() != 6 )
-//                        KRATOS_THROW_ERROR( std::logic_error, "wrong constitutive law used. This is a 3D element! expected strain size is 6 (el id = ) ", this->Id() );
-//                }
-
                 //check constitutive law
                 mConstitutiveLawVector[i]->Check( this->GetProperties(), this->GetGeometry(), rCurrentProcessInfo );
-//                if( mConstitutiveLawVector[i]->IsIncremental() )
-//                    KRATOS_THROW_ERROR( std::logic_error, "This element does not provide incremental strains!", "" );
-//                if( mConstitutiveLawVector[i]->GetStrainMeasure() != typename ConstitutiveLawType::StrainMeasure_Linear )
-//                    KRATOS_THROW_ERROR( std::logic_error, "This element formulated in linear strain measure", "" );
-//                if( mConstitutiveLawVector[i]->GetStressMeasure() != typename ConstitutiveLawType::StressMeasure_PK1 )
-//                    KRATOS_THROW_ERROR( std::logic_error, "This element is formulated in PK1 stresses", "" );
             }
 
             #ifdef ENABLE_BEZIER_GEOMETRY
@@ -344,8 +275,6 @@ namespace Kratos
         for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); ++i )
         {
             noalias( N ) = row( Ncontainer, i );
-            // mConstitutiveLawVector[i]->SetValue( PARENT_ELEMENT_ID, this->Id(), DummyProcessInfo);
-            // mConstitutiveLawVector[i]->SetValue( INTEGRATION_POINT_INDEX, i, DummyProcessInfo);
             mConstitutiveLawVector[i]->ResetMaterial( this->GetProperties(), this->GetGeometry(), N );
         }
 
@@ -464,16 +393,6 @@ namespace Kratos
         //reading integration points and local gradients
         const typename GeometryType::IntegrationPointsArrayType& integration_points = this->GetGeometry().IntegrationPoints( ThisIntegrationMethod );
 
-        // KRATOS_WATCH(integration_points.size())
-        // std::cout << "quadrature listing:" << std::endl;
-        // for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); ++PointNumber )
-        // {
-        //    std::cout << "integration point " << PointNumber << ": " << integration_points[PointNumber] << std::endl;
-        //    VectorType shape_values;
-        //    this->GetGeometry().ShapeFunctionsValues(shape_values, integration_points[PointNumber]);
-        //    std::cout << "shape values: " << shape_values << std::endl;
-        // }
-
         const typename GeometryType::ShapeFunctionsGradientsType& DN_De = this->GetGeometry().ShapeFunctionsLocalGradients( ThisIntegrationMethod );
 
         const Matrix& Ncontainer = this->GetGeometry().ShapeFunctionsValues( ThisIntegrationMethod );
@@ -485,22 +404,6 @@ namespace Kratos
         //Current displacements
         for ( unsigned int node = 0; node < this->GetGeometry().size(); ++node )
             noalias( row( CurrentDisp, node ) ) = subrange(this->GetGeometry()[node].GetSolutionStepValue( VARSEL( DataType, DISPLACEMENT ) ), 0, dim);
-
-        // if (Id() == 749)
-        // {
-        //     KRATOS_WATCH(CurrentDisp)
-        // }
-
-//        for(std::size_t i = 0; i < this->GetGeometry().size(); ++i)
-//            std::cout << " " << this->GetGeometry()[i].Id();
-//        std::cout << std::endl;
-
-//        std::vector<std::size_t> equation_ids;
-//        this->EquationIdVector(equation_ids, rCurrentProcessInfo);
-//        std::cout << "  equation_ids:";
-//        for(std::size_t i = 0; i < equation_ids.size(); ++i)
-//            std::cout << " " << equation_ids[i];
-//        std::cout << std::endl;
 
         //auxiliary terms
         const VectorType& BodyForce = this->GetProperties()[BODY_FORCE];
@@ -529,8 +432,6 @@ namespace Kratos
             }
             Bdil_bar /= TotalDomainInitialSize;
         }
-    //    KRATOS_WATCH(Bdil_bar / dim)
-    //    KRATOS_WATCH(TotalDomainInitialSize)
 
         /////////////////////////////////////////////////////////////////////////
         //// Integration in space over quadrature points
@@ -715,27 +616,6 @@ namespace Kratos
         MatrixType temp = MatrixType();
 
         CalculateAll( temp, rRightHandSideVector, rCurrentProcessInfo, CalculateStiffnessMatrixFlag,  CalculateResidualVectorFlag );
-
-//        //calculation flags
-//        bool CalculateStiffnessMatrixFlag = true;
-//        bool CalculateResidualVectorFlag = true;
-//        MatrixType Ke = MatrixType();
-
-//        CalculateAll( Ke, rRightHandSideVector, rCurrentProcessInfo, CalculateStiffnessMatrixFlag,  CalculateResidualVectorFlag );
-
-//        const unsigned int Dim = this->WorkingSpaceDimension();
-//        VectorType u(Ke.size1());
-//        std::size_t cnt = 0;
-//        for ( unsigned int node = 0; node < this->GetGeometry().size(); ++node )
-//        {
-//            u(cnt++) = this->GetGeometry()[node].GetSolutionStepValue(VARSELC( DataType, DISPLACEMENT, X ));
-//            u(cnt++) = this->GetGeometry()[node].GetSolutionStepValue(VARSELC( DataType, DISPLACEMENT, Y ));
-//            if (Dim == 3)
-//                u(cnt++) = this->GetGeometry()[node].GetSolutionStepValue(VARSELC( DataType, DISPLACEMENT, Z ));
-//        }
-
-//        noalias(rRightHandSideVector) = -prod(Ke, u);
-//////        KRATOS_WATCH(rRightHandSideVector)
     }
 
     /**
@@ -888,16 +768,6 @@ namespace Kratos
             this->GetGeometry()[i].GetSolutionStepValue( VARSELC( DataType, REACTION, Y ) ) = 0.0;
             this->GetGeometry()[i].GetSolutionStepValue( VARSELC( DataType, REACTION, Z ) ) = 0.0;
         }
-
-//        if( mConstitutiveLawVector[0]->Has( CURRENT_STRAIN_VECTOR ) )
-//        {
-//            std::vector<VectorType> Values;
-//            this->CalculateOnIntegrationPoints( CURRENT_STRAIN_VECTOR, Values, CurrentProcessInfo );
-//            for ( unsigned int Point = 0; Point < mConstitutiveLawVector.size(); ++Point )
-//            {
-//                mConstitutiveLawVector[Point]->SetValue( CURRENT_STRAIN_VECTOR, Values[Point], CurrentProcessInfo );
-//            }
-//        }
 
         // check if the constitutive law needs shape function
         bool need_shape_function = false;
@@ -1112,27 +982,6 @@ namespace Kratos
             density = this->GetValue( DENSITY );
         else
             density = this->GetProperties()[ DENSITY ];
-
-        /// Lumped mass
-
-        // double TotalDomainInitialSize = this->GetValue(GEOMETRICAL_DOMAIN_SIZE);
-        // double TotalMass = density * TotalDomainInitialSize;
-        // if ( dimension == 2 ) TotalMass *= this->GetProperties()[THICKNESS];
-
-        // VectorType LumpFact;
-
-        // LumpFact = this->GetGeometry().LumpingFactors( LumpFact );
-
-        // for ( unsigned int i = 0; i < number_of_nodes; ++i )
-        // {
-        //     double temp = LumpFact[i] * TotalMass;
-
-        //     for ( unsigned int j = 0; j < dimension; ++j )
-        //     {
-        //         unsigned int index = i * dimension + j;
-        //         rMassMatrix( index, index ) = temp;
-        //     }
-        // }
 
         /// Consistent mass
 
@@ -1482,36 +1331,6 @@ namespace Kratos
         KRATOS_CATCH( "" )
     }
 
-    /**
-     * Adds the Internal Forces to the load vector
-     * @param R RHS VectorType
-     * @param B_Operator B-Operator at the current integration point
-     * @param StressVector current stress vector
-     * @param Weight current integration weight
-     * @param detJ current Determinant of the Jacobian
-     */
-//    void BaseKinematicLinear<TNodeType>::AddInternalForcesToRHS( VectorType& R, const MatrixType& B_Operator, VectorType& StressVector, ValueType Weight, DataType detJ )
-//    {
-//        KRATOS_TRY
-
-//        unsigned int dim = this->WorkingSpaceDimension();
-//        unsigned int strain_size = dim * (dim + 1) / 2;
-//
-//        for ( unsigned int prim = 0; prim < this->GetGeometry().size(); ++prim )
-//        {
-//            for ( unsigned int i = 0; i < dim; ++i )
-//            {
-//                for ( unsigned int gamma = 0; gamma < strain_size; ++gamma )
-//                {
-//                    R( prim * dim + i ) += ( -1 ) * ( B_Operator( gamma, prim * dim + i ) * StressVector( gamma ) * detJ * Weight );
-//                }
-//            }
-//        }
-//        //         noalias(R) -= detJ * Weight * prod(trans(B_Operator), StressVector);
-//
-//        KRATOS_CATCH( "" )
-//    }
-
     template<typename TNodeType>
     void BaseKinematicLinear<TNodeType>::AddInternalForcesToRHS( VectorType& R, const MatrixType& B_Operator, VectorType& StressVector, DataType Weight, DataType detJ ) const
     {
@@ -1572,8 +1391,6 @@ namespace Kratos
                 }
             }
         }
-
-//        noalias(K) -= prod( trans(B_Operator), (Weight * detJ) * MatrixType(prod(C, B_Operator)) );
 
         KRATOS_CATCH( "" )
     }
@@ -1650,24 +1467,6 @@ namespace Kratos
         if(dim == 2)
         {
             KRATOS_ERROR << "Bbar formulation for 2D is not supported";
-            // const ValueType R1R3 = (1.0 / 3);
-            // ValueType tmp1;
-            // ValueType tmp2;
-
-            // for ( unsigned int i = 0; i < number_of_nodes; ++i )
-            // {
-            //    tmp1 = R1R3 * (Bdil_bar( i, 0 ) - DN_DX( i, 0 ));
-            //    tmp2 = R1R3 * (Bdil_bar( i, 1 ) - DN_DX( i, 1 ));
-
-            //    B_Operator( 0, i*2 ) = DN_DX( i, 0 ) + tmp1;
-            //    B_Operator( 1, i*2 ) = tmp1;
-
-            //    B_Operator( 0, i*2 + 1) = tmp2;
-            //    B_Operator( 1, i*2 + 1 ) = DN_DX( i, 1 ) + tmp2;
-
-            //    B_Operator( 2, i*2 ) = DN_DX( i, 1 );
-            //    B_Operator( 2, i*2 + 1 ) = DN_DX( i, 0 );
-            // }
         }
         else if(dim == 3)
         {
@@ -1796,8 +1595,6 @@ namespace Kratos
 
             //calculate strain
             CalculateStrain( B, CurrentDisp, StrainVector );
-            //assign the integration weight at the current integration point
-            //        Weight = integration_points[PointNumber].Weight();
 
             //calculate material response
             mConstitutiveLawVector[PointNumber]->CalculateMaterialResponse(const_params, stress_measure);
@@ -2162,11 +1959,9 @@ namespace Kratos
         else if( rVariable == VARSEL(DataType, STRAIN_ENERGY) )
         {
             std::vector<VectorType> StrainList(rValues.size());
-//            CalculateOnIntegrationPoints(STRAIN, StrainList, rCurrentProcessInfo);
             CalculateOnIntegrationPoints(VARSEL(DataType, THREED_STRAIN), StrainList, rCurrentProcessInfo);
 
             std::vector<VectorType> StressList(rValues.size());
-//            CalculateOnIntegrationPoints(STRESSES, StressList, rCurrentProcessInfo);
             CalculateOnIntegrationPoints(VARSEL(DataType, THREED_STRESSES), StressList, rCurrentProcessInfo);
 
             for( unsigned int i = 0; i < rValues.size(); ++i )
@@ -2439,15 +2234,6 @@ namespace Kratos
             KRATOS_ERROR << "constitutive law not provided for property " << this->GetProperties().Id();
         }
 
-        // verify the strain measure
-        // auto strain_mearure = this->GetProperties().GetValue( CONSTITUTIVE_LAW )->GetStrainMeasure();
-        // if ( strain_mearure != typename ConstitutiveLawType::StrainMeasure_Infinitesimal
-        //   && strain_mearure != typename ConstitutiveLawType::StrainMeasure_GreenLagrange )
-        // {
-        //     std::stringstream ss;
-        //     ss << "The strain measure " << strain_mearure << " is not supported by this element";
-        //     KRATOS_THROW_ERROR( std::logic_error, ss.str(), "" )
-        // }
         typename ConstitutiveLawType::Features features;
         this->GetProperties().GetValue( VARSEL(ConstitutiveLawType, CONSTITUTIVE_LAW) )->GetLawFeatures(features);
         if ( std::find(features.GetStrainMeasures().begin(), features.GetStrainMeasures().end(), ConstitutiveLawType::StrainMeasure_Infinitesimal) == features.GetStrainMeasures().end()
