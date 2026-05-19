@@ -15,17 +15,90 @@
 namespace Kratos
 {
 
-typedef RecoverStressUtility::HalfFaceSetType HalfFaceSetType;
+template<typename TEntityType>
+typename TEntityType::DataType RecoverStressUtility::ComputeZZErrorEstimation(TEntityType& rElement, const ProcessInfo& rCurrentProcessInfo)
+{
+    typedef typename TEntityType::DataType DataType;
+
+    typedef typename TEntityType::ValueType ValueType;
+
+    typedef typename TEntityType::VectorType VectorType;
+
+    typedef typename TEntityType::MatrixType MatrixType;
+
+    typedef typename TEntityType::GeometryType GeometryType;
+
+    GeometryType& rGeometry = rElement.GetGeometry();
+
+    const IntegrationMethod ThisIntegrationMethod = rElement.GetIntegrationMethod();
+
+    #ifdef ENABLE_BEZIER_GEOMETRY
+    rGeometry.Initialize(ThisIntegrationMethod);
+    #endif
+
+    const typename GeometryType::IntegrationPointsArrayType& integration_points =
+                rGeometry.IntegrationPoints( ThisIntegrationMethod );
+
+    std::vector<DataType> E;
+    rElement.CalculateOnIntegrationPoints( VARSEL(DataType, YOUNG_MODULUS), E, rCurrentProcessInfo );
+
+    std::vector<DataType> NU;
+    rElement.CalculateOnIntegrationPoints( VARSEL(DataType, POISSON_RATIO), NU, rCurrentProcessInfo );
+
+    std::vector<DataType> J0;
+    rElement.CalculateOnIntegrationPoints( VARSEL(DataType, JACOBIAN_0), J0, rCurrentProcessInfo );
+
+    std::vector<VectorType> stress;
+    rElement.CalculateOnIntegrationPoints( VARSEL(DataType, STRESSES), stress, rCurrentProcessInfo );
+
+    std::vector<VectorType> rstress;
+    rElement.CalculateOnIntegrationPoints( VARSEL(DataType, RECOVERY_STRESSES), rstress, rCurrentProcessInfo );
+
+    DataType result = 0.0;
+    MatrixType stress_tensor(3, 3), rstress_tensor(3, 3), ds(3, 3), Eds(3, 3);
+    typename SD_MathUtils<DataType>::Fourth_Order_Tensor Ci;
+
+    for(std::size_t PointNumber = 0; PointNumber < integration_points.size(); ++PointNumber)
+    {
+        ValueType weight = integration_points[PointNumber].Weight();
+
+        SD_MathUtils<DataType>::StressVectorToTensor(stress[PointNumber], stress_tensor);
+        SD_MathUtils<DataType>::StressVectorToTensor(rstress[PointNumber], rstress_tensor);
+
+        SD_MathUtils<DataType>::CalculateInversedElasticTensor(Ci, E[PointNumber], NU[PointNumber]);
+
+        noalias(ds) = (rstress_tensor - stress_tensor);
+        Eds.clear();
+        SD_MathUtils<DataType>::ContractFourthOrderTensor(1.0, Ci, ds, Eds);
+
+        result += SD_MathUtils<DataType>::mat_inner_prod(ds, Eds) * weight * J0[PointNumber];
+    }
+
+    #ifdef ENABLE_BEZIER_GEOMETRY
+    rGeometry.Clean();
+    #endif
+
+    DataType error = std::sqrt(result);
+    rElement.SetValue(VARSEL( DataType, LOCAL_ERROR ), error);
+
+    return error;
+}
 
 template<typename TVariableType>
-double RecoverStressUtility::ComputeKellyErrorEstimation(HalfFaceSetType& half_face_set,
+double RecoverStressUtility::ComputeKellyErrorEstimation(const InterfaceContainer& icon,
         const TVariableType& rVariable)
 {
+    const auto& interfaces = icon.GetInterfaces();
+
+    #ifdef DUMP_INTERFACE
+    KRATOS_WATCH(icon)
+    #endif
+
     // evaluate the jump in each half face
 
     double sum = 0.0;
 
-    for (auto& hf : half_face_set)
+    for (auto& hf : interfaces)
     {
         // integrate the jump on the surface
         if ((hf.first != nullptr) && (hf.second != nullptr))
@@ -49,7 +122,7 @@ double RecoverStressUtility::ComputeKellyErrorEstimation(HalfFaceSetType& half_f
 
             const ShapeFunctionsGradientsType& DN_De = face_geom.ShapeFunctionsLocalGradients( ThisIntegrationMethod );
 
-            const Matrix& Ncontainer = face_geom.ShapeFunctionsValues( ThisIntegrationMethod );
+            // const Matrix& Ncontainer = face_geom.ShapeFunctionsValues( ThisIntegrationMethod );
 
             JacobiansType J;
             J = face_geom.Jacobian( J, ThisIntegrationMethod );
@@ -122,7 +195,7 @@ double RecoverStressUtility::ComputeKellyErrorEstimation(HalfFaceSetType& half_f
             face_geom.Clean();
             #endif
 
-            hf.jump = jump;
+            // hf.jump = jump;
             sum += jump;
 
             // sum up the jump over the element
@@ -132,41 +205,6 @@ double RecoverStressUtility::ComputeKellyErrorEstimation(HalfFaceSetType& half_f
     }
 
     return sum;
-}
-
-HalfFaceSetType RecoverStressUtility::ConstructHalfFaceStructure(const ElementsContainerType& rElements)
-{
-    HalfFaceSetType half_face_set;
-
-    for (auto it = rElements.ptr_begin(); it != rElements.ptr_end(); ++it)
-    {
-        auto faces = (*it)->GetGeometry().Faces();
-
-        for (std::size_t i = 0; i < faces.size(); ++i)
-        {
-            HalfFace hf;
-            hf.face = faces[i];
-
-            auto itf = half_face_set.find(hf);
-            if (itf == half_face_set.end())
-            {
-                hf.left = faces(i);
-                hf.first = *it;
-                half_face_set.insert(hf);
-            }
-            else
-            {
-                hf.left = itf->left;
-                hf.first = itf->first;
-                hf.right = faces(i);
-                hf.second = *it;
-                half_face_set.erase(itf);
-                half_face_set.insert(hf);
-            }
-        }
-    }
-
-    return half_face_set;
 }
 
 Vector RecoverStressUtility::ComputeGradient(const GeometryType& rGeometry, const LocalCoordinatesArrayType& rPoint, const Variable<double>& rVariable)
@@ -251,7 +289,10 @@ double RecoverStressUtility::ComputeJump(const GeometryType& rGeometry1, const G
 
 // function template specialization
 
-template double RecoverStressUtility::ComputeKellyErrorEstimation(HalfFaceSetType&, const Variable<double>&);
-template double RecoverStressUtility::ComputeKellyErrorEstimation(HalfFaceSetType&, const Variable<array_1d<double, 3> >&);
+template Element::DataType RecoverStressUtility::ComputeZZErrorEstimation(Element& rElement, const ProcessInfo& rCurrentProcessInfo);
+template double RecoverStressUtility::ComputeKellyErrorEstimation(const InterfaceContainer&, const Variable<double>&);
+template double RecoverStressUtility::ComputeKellyErrorEstimation(const InterfaceContainer&, const Variable<array_1d<double, 3> >&);
+
+#undef DUMP_INTERFACE
 
 }  // namespace Kratos.

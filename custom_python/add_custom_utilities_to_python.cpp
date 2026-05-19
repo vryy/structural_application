@@ -76,6 +76,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include "spaces/ublas_space.h"
 #include "linear_solvers/linear_solver.h"
+#include "containers/interface_container.h"
 #include "custom_utilities/output_utility.h"
 #include "custom_utilities/dof_utility.h"
 #include "custom_utilities/tip_utility.h"
@@ -646,6 +647,12 @@ boost::python::list ElementUtility_GetIntegrationPoints(ElementUtility& rDummy, 
 
 ///////////////////////////////////////////////////////////////////////
 
+template<typename TContainerType>
+void RecoverStressUtility_ResetLocalError(RecoverStressUtility& rDummy, TContainerType& rElements)
+{
+    RecoverStressUtility::ResetLocalError(rElements);
+}
+
 template<typename TEntityType>
 typename TEntityType::DataType RecoverStressUtility_ComputeZZErrorEstimation(RecoverStressUtility& rDummy, TEntityType& rElement,
         const ProcessInfo& rCurrentProcessInfo)
@@ -654,9 +661,15 @@ typename TEntityType::DataType RecoverStressUtility_ComputeZZErrorEstimation(Rec
 }
 
 template<typename TVariableType>
-double RecoverStressUtility_ComputeKellyErrorEstimation(RecoverStressUtility& rDummy, ModelPart& rModelPart, const TVariableType& rVariable)
+double RecoverStressUtility_ComputeKellyErrorEstimation1(RecoverStressUtility& rDummy, ModelPart& rModelPart, const TVariableType& rVariable)
 {
     return RecoverStressUtility::ComputeKellyErrorEstimation(rModelPart, rVariable);
+}
+
+template<typename TVariableType>
+double RecoverStressUtility_ComputeKellyErrorEstimation2(RecoverStressUtility& rDummy, const InterfaceContainer& rInterfaces, const TVariableType& rVariable)
+{
+    return RecoverStressUtility::ComputeKellyErrorEstimation(rInterfaces, rVariable);
 }
 
 ///////////////////////////////////////////////////////////////////////
@@ -945,9 +958,12 @@ void AddCustomUtilitiesToPython()
 
     class_<RecoverStressUtility, boost::noncopyable >
     ( "RecoverStressUtility", init<>() )
+    .def("ResetLocalError", &RecoverStressUtility_ResetLocalError<ModelPart::ElementsContainerType>)
     .def("ComputeZZErrorEstimation", &RecoverStressUtility_ComputeZZErrorEstimation<Element>)
-    .def("ComputeKellyErrorEstimation", &RecoverStressUtility_ComputeKellyErrorEstimation<Variable<double> >)
-    .def("ComputeKellyErrorEstimation", &RecoverStressUtility_ComputeKellyErrorEstimation<Variable<array_1d<double, 3> > >)
+    .def("ComputeKellyErrorEstimation", &RecoverStressUtility_ComputeKellyErrorEstimation1<Variable<double> >)
+    .def("ComputeKellyErrorEstimation", &RecoverStressUtility_ComputeKellyErrorEstimation1<Variable<array_1d<double, 3> > >)
+    .def("ComputeKellyErrorEstimation", &RecoverStressUtility_ComputeKellyErrorEstimation2<Variable<double> >)
+    .def("ComputeKellyErrorEstimation", &RecoverStressUtility_ComputeKellyErrorEstimation2<Variable<array_1d<double, 3> > >)
     ;
 }
 
