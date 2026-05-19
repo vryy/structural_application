@@ -75,6 +75,8 @@ public:
         }
     };
 
+    typedef std::set<HalfFace, Comparator> HalfFaceSetType;
+
     /**
      * Operations
      */
@@ -148,11 +150,24 @@ public:
     /// Compute the Kelly error estimation across all the elements in the model_part. On output,
     /// returns the sum of them
     template<typename TVariableType>
-    static double ComputeKellyErrorEstimation(ModelPart& rModelPart, const TVariableType& rVariable);
+    static double ComputeKellyErrorEstimation(ModelPart& rModelPart, const TVariableType& rVariable)
+    {
+        for (auto it = rModelPart.Elements().begin(); it != rModelPart.Elements().end(); ++it)
+            it->SetValue(LOCAL_ERROR, 0.);
+        auto half_face_set = ConstructHalfFaceStructure(rModelPart.Elements());
+        double result = ComputeKellyErrorEstimation(half_face_set, rVariable);
+        return result;
+    }
+
+    /// Compute the Kelly error estimation across all the half-faces. On output,
+    /// returns the sum of them
+    template<typename TVariableType>
+    static double ComputeKellyErrorEstimation(HalfFaceSetType& half_face_set, const TVariableType& rVariable);
 
 private:
 
-    static std::set<HalfFace, Comparator> ConstructHalfFaceStructure(const ElementsContainerType& rElements);
+    // construct the half face structure
+    static HalfFaceSetType ConstructHalfFaceStructure(const ElementsContainerType& rElements);
 
     static Vector ComputeGradient(const GeometryType& rGeometry, const LocalCoordinatesArrayType& rPoint, const Variable<double>& rVariable);
 

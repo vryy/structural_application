@@ -15,18 +15,12 @@
 namespace Kratos
 {
 
-typedef RecoverStressUtility::HalfFace HalfFace;
-typedef RecoverStressUtility::Comparator Comparator;
+typedef RecoverStressUtility::HalfFaceSetType HalfFaceSetType;
 
 template<typename TVariableType>
-double RecoverStressUtility::ComputeKellyErrorEstimation(ModelPart& rModelPart,
+double RecoverStressUtility::ComputeKellyErrorEstimation(HalfFaceSetType& half_face_set,
         const TVariableType& rVariable)
 {
-    KRATOS_TRY
-
-    // construct the half face structure
-    auto half_face_set = ConstructHalfFaceStructure(rModelPart.Elements());
-
     // evaluate the jump in each half face
 
     double sum = 0.0;
@@ -130,39 +124,19 @@ double RecoverStressUtility::ComputeKellyErrorEstimation(ModelPart& rModelPart,
 
             hf.jump = jump;
             sum += jump;
+
+            // sum up the jump over the element
+            hf.first->GetValue(LOCAL_ERROR) += jump;
+            hf.second->GetValue(LOCAL_ERROR) += jump;
         }
-    }
-
-    // sum up the jump over the element
-
-    for (auto it = rModelPart.Elements().begin(); it != rModelPart.Elements().end(); ++it)
-    {
-        auto faces = it->GetGeometry().Faces();
-
-        double ejump = 0.0;
-        for (std::size_t i = 0; i < faces.size(); ++i)
-        {
-            HalfFace hf;
-            hf.face = faces[i];
-
-            auto itf = half_face_set.find(hf);
-            if (itf != half_face_set.end())
-            {
-                ejump += itf->jump;
-            }
-        }
-
-        it->SetValue(LOCAL_ERROR, ejump);
     }
 
     return sum;
-
-    KRATOS_CATCH("")
 }
 
-std::set<HalfFace, Comparator> RecoverStressUtility::ConstructHalfFaceStructure(const ElementsContainerType& rElements)
+HalfFaceSetType RecoverStressUtility::ConstructHalfFaceStructure(const ElementsContainerType& rElements)
 {
-    std::set<HalfFace, Comparator> half_face_set;
+    HalfFaceSetType half_face_set;
 
     for (auto it = rElements.ptr_begin(); it != rElements.ptr_end(); ++it)
     {
@@ -277,7 +251,7 @@ double RecoverStressUtility::ComputeJump(const GeometryType& rGeometry1, const G
 
 // function template specialization
 
-template double RecoverStressUtility::ComputeKellyErrorEstimation(ModelPart&, const Variable<double>&);
-template double RecoverStressUtility::ComputeKellyErrorEstimation(ModelPart&, const Variable<array_1d<double, 3> >&);
+template double RecoverStressUtility::ComputeKellyErrorEstimation(HalfFaceSetType&, const Variable<double>&);
+template double RecoverStressUtility::ComputeKellyErrorEstimation(HalfFaceSetType&, const Variable<array_1d<double, 3> >&);
 
 }  // namespace Kratos.
