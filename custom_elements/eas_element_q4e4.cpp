@@ -198,7 +198,8 @@ namespace Kratos
         noalias( F0 ) = ZeroMatrix( 3, 3 );
         double temp;
 
-        GeometryType::PointType p0(0.00 , 0.00 , 0.00);
+        GeometryType::LocalCoordinatesArrayType p0;
+        noalias(p0) = ZeroVector(3);
         CentreJ = GetGeometry().Jacobian( CentreJ, p0 );
 
         CalculateF0operator(F0 , CentreJ);
@@ -208,12 +209,10 @@ namespace Kratos
 
         mIsInitialized = true;
 
-
 //        KRATOS_WATCH(CentreJ);
 //        KRATOS_WATCH(F0);
 //        KRATOS_WATCH(mDetJcentre);
 //        KRATOS_WATCH(mInverseF0operator);
-
 
         KRATOS_CATCH( "" )
     }
@@ -246,8 +245,6 @@ namespace Kratos
 
         KRATOS_CATCH( "" )
     }
-
-
 
     /**
      * THIS is the main method here the integration in space (loop over the integration points) is done,
