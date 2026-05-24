@@ -77,11 +77,12 @@ public:
 
     /// Compute the Kelly error estimation across all the elements in the model_part. On output,
     /// returns the sum of them
-    template<typename TVariableType>
+    template<int TDim, typename TVariableType>
     static double ComputeKellyErrorEstimation(ModelPart& rModelPart, const TVariableType& rVariable)
     {
         ResetLocalError(rModelPart.Elements());
-        InterfaceContainer icon(rModelPart);
+        InterfaceContainer<ModelPart> icon;
+        icon.template ConstructInterfaces<TDim>(rModelPart);
         double result = ComputeKellyErrorEstimation(icon, rVariable);
         return result;
     }
@@ -89,7 +90,7 @@ public:
     /// Compute the Kelly error estimation across all the half-faces. On output,
     /// returns the sum of them
     template<typename TVariableType>
-    static double ComputeKellyErrorEstimation(const InterfaceContainer& icon, const TVariableType& rVariable);
+    static double ComputeKellyErrorEstimation(const InterfaceContainer<ModelPart>& icon, const TVariableType& rVariable);
 
     ///@}
 

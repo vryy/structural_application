@@ -660,14 +660,14 @@ typename TEntityType::DataType RecoverStressUtility_ComputeZZErrorEstimation(Rec
     return RecoverStressUtility::ComputeZZErrorEstimation(rElement, rCurrentProcessInfo);
 }
 
-template<typename TVariableType>
+template<int TDim, typename TVariableType>
 double RecoverStressUtility_ComputeKellyErrorEstimation1(RecoverStressUtility& rDummy, ModelPart& rModelPart, const TVariableType& rVariable)
 {
-    return RecoverStressUtility::ComputeKellyErrorEstimation(rModelPart, rVariable);
+    return RecoverStressUtility::ComputeKellyErrorEstimation<TDim>(rModelPart, rVariable);
 }
 
-template<typename TVariableType>
-double RecoverStressUtility_ComputeKellyErrorEstimation2(RecoverStressUtility& rDummy, const InterfaceContainer& rInterfaces, const TVariableType& rVariable)
+template<typename TModelPartType, typename TVariableType>
+double RecoverStressUtility_ComputeKellyErrorEstimation2(RecoverStressUtility& rDummy, const InterfaceContainer<TModelPartType>& rInterfaces, const TVariableType& rVariable)
 {
     return RecoverStressUtility::ComputeKellyErrorEstimation(rInterfaces, rVariable);
 }
@@ -960,10 +960,12 @@ void AddCustomUtilitiesToPython()
     ( "RecoverStressUtility", init<>() )
     .def("ResetLocalError", &RecoverStressUtility_ResetLocalError<ModelPart::ElementsContainerType>)
     .def("ComputeZZErrorEstimation", &RecoverStressUtility_ComputeZZErrorEstimation<Element>)
-    .def("ComputeKellyErrorEstimation", &RecoverStressUtility_ComputeKellyErrorEstimation1<Variable<double> >)
-    .def("ComputeKellyErrorEstimation", &RecoverStressUtility_ComputeKellyErrorEstimation1<Variable<array_1d<double, 3> > >)
-    .def("ComputeKellyErrorEstimation", &RecoverStressUtility_ComputeKellyErrorEstimation2<Variable<double> >)
-    .def("ComputeKellyErrorEstimation", &RecoverStressUtility_ComputeKellyErrorEstimation2<Variable<array_1d<double, 3> > >)
+    .def("ComputeKellyErrorEstimation2D", &RecoverStressUtility_ComputeKellyErrorEstimation1<2, Variable<double> >)
+    .def("ComputeKellyErrorEstimation2D", &RecoverStressUtility_ComputeKellyErrorEstimation1<2, Variable<array_1d<double, 3> > >)
+    .def("ComputeKellyErrorEstimation3D", &RecoverStressUtility_ComputeKellyErrorEstimation1<3, Variable<double> >)
+    .def("ComputeKellyErrorEstimation3D", &RecoverStressUtility_ComputeKellyErrorEstimation1<3, Variable<array_1d<double, 3> > >)
+    .def("ComputeKellyErrorEstimation", &RecoverStressUtility_ComputeKellyErrorEstimation2<ModelPart, Variable<double> >)
+    .def("ComputeKellyErrorEstimation", &RecoverStressUtility_ComputeKellyErrorEstimation2<ModelPart, Variable<array_1d<double, 3> > >)
     ;
 }
 

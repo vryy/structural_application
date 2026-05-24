@@ -85,7 +85,7 @@ typename TEntityType::DataType RecoverStressUtility::ComputeZZErrorEstimation(TE
 }
 
 template<typename TVariableType>
-double RecoverStressUtility::ComputeKellyErrorEstimation(const InterfaceContainer& icon,
+double RecoverStressUtility::ComputeKellyErrorEstimation(const InterfaceContainer<ModelPart>& icon,
         const TVariableType& rVariable)
 {
     const auto& interfaces = icon.GetInterfaces();
@@ -290,8 +290,8 @@ double RecoverStressUtility::ComputeJump(const GeometryType& rGeometry1, const G
 // function template specialization
 
 template Element::DataType RecoverStressUtility::ComputeZZErrorEstimation(Element& rElement, const ProcessInfo& rCurrentProcessInfo);
-template double RecoverStressUtility::ComputeKellyErrorEstimation(const InterfaceContainer&, const Variable<double>&);
-template double RecoverStressUtility::ComputeKellyErrorEstimation(const InterfaceContainer&, const Variable<array_1d<double, 3> >&);
+template double RecoverStressUtility::ComputeKellyErrorEstimation(const InterfaceContainer<ModelPart>&, const Variable<double>&);
+template double RecoverStressUtility::ComputeKellyErrorEstimation(const InterfaceContainer<ModelPart>&, const Variable<array_1d<double, 3> >&);
 
 #undef DUMP_INTERFACE
 
