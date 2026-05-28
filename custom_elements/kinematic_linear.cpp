@@ -60,6 +60,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include "includes/kratos_flags.h"
 #include "utilities/math_utils.h"
+#include "utilities/memory_utils.h"
 #include "custom_utilities/bathe_recover_stress_utility.h"
 #include "custom_utilities/sd_math_utils.h"
 #include "structural_application_variables.h"
@@ -2214,6 +2215,16 @@ namespace Kratos
             this->GetGeometry().Clean();
             #endif
         }
+    }
+
+    template<typename TNodeType>
+    typename BaseKinematicLinear<TNodeType>::SizeType BaseKinematicLinear<TNodeType>::DataSize() const
+    {
+        SizeType n = 0;
+        n += MemoryUtils::GetDataSize(mInitialDisp);
+        for (std::size_t i = 0; i < mConstitutiveLawVector.size(); ++i)
+            n += mConstitutiveLawVector[i]->DataSize();
+        return n;
     }
 
     template<typename TNodeType>

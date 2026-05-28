@@ -126,6 +126,8 @@ public:
 
     typedef typename BaseType::IndexType IndexType;
 
+    typedef typename BaseType::SizeType SizeType;
+
     typedef typename BaseType::DataType DataType;
 
     typedef typename BaseType::ValueType ValueType;
@@ -260,6 +262,8 @@ public:
         return NonlinearMassDampingType::LINEAR_MASS_DAMPING;
     }
 
+    SizeType DataSize() const override;
+
     ///@}
     ///@name Input and output
     ///@{
@@ -268,7 +272,12 @@ public:
     std::string Info() const override
     {
         std::stringstream ss;
-        ss << "KinematicLinear<" << DataTypeToString<DataType>::Get() << ">";
+        if constexpr (std::is_same_v<TNodeType, RealNode>)
+            ss << "KinematicLinear";
+        else if constexpr (std::is_same_v<TNodeType, ComplexNode>)
+            ss << "ComplexKinematicLinear";
+        else if constexpr (std::is_same_v<TNodeType, GComplexNode>)
+            ss << "GComplexKinematicLinear";
         return ss.str();
     }
 
