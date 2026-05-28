@@ -91,8 +91,7 @@ public:
     LinePressure( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties );
 
     // Destructor
-    virtual ~LinePressure();
-
+    ~LinePressure() override;
 
     Condition::Pointer Create(
         IndexType NewId,

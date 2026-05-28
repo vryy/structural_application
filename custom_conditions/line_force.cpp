@@ -177,12 +177,8 @@ void LineForce::CalculateRightHandSide( VectorType& rRightHandSideVector,
     // Ncontainer is the array of shape function values at each integration points
     const Matrix& Ncontainer = GetGeometry().ShapeFunctionsValues(ThisIntegrationMethod);
 
-    // KRATOS_WATCH(Id())
-    // KRATOS_WATCH(Ncontainer)
-
     //loop over integration points
     Vector Load( dim );
-    // Vector LoadEins( dim );
     Vector LoadOnNode( dim );
     for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); ++PointNumber )
     {
@@ -194,7 +190,7 @@ void LineForce::CalculateRightHandSide( VectorType& rRightHandSideVector,
             noalias( Load ) += Ncontainer( PointNumber, n ) * LoadOnNode;
             // noalias( LoadEins ) += Ncontainer( PointNumber, n ) * ( GetGeometry()[n] ).GetSolutionStepValue( FACE_LOAD_EINS );
         }
-        // KRATOS_WATCH(Load)
+
         double IntegrationWeight = integration_points[PointNumber].Weight();
 
         if(dim == 2) IntegrationWeight *= GetProperties()[THICKNESS];
@@ -216,13 +212,7 @@ void LineForce::CalculateRightHandSide( VectorType& rRightHandSideVector,
             for ( unsigned int i = 0; i < dim; ++i )
                 rRightHandSideVector( prim * dim + i ) +=
                     Ncontainer( PointNumber, prim ) * Load( i ) * IntegrationWeight * dL;
-
-        // KRATOS_WATCH(Load)
-        // // KRATOS_WATCH(LoadEins)
-        // KRATOS_WATCH(IntegrationWeight * dL)
     }
-
-    // KRATOS_WATCH(rRightHandSideVector)
 
     KRATOS_CATCH( "" )
 }

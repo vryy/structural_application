@@ -91,8 +91,7 @@ public:
     LineForce( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties );
 
     // Destructor
-    virtual ~LineForce();
-
+    ~LineForce() override;
 
     // Name Operations
 
