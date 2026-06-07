@@ -86,7 +86,8 @@ class SolvingStrategyPython:
 
         if 'number_of_iterations_for_divergence_check' not in self.Parameters:
             self.Parameters['number_of_iterations_for_divergence_check'] = 3
-
+        if 'include_dx_in_divergence_check' not in self.Parameters:
+            self.Parameters['include_dx_in_divergence_check'] = False
         if 'include_plastic_check_in_convergence_check' not in self.Parameters:
             self.Parameters['include_plastic_check_in_convergence_check'] = False
 
@@ -209,7 +210,10 @@ class SolvingStrategyPython:
         self.Predict()
 
         #execute iteration - first iteration is ALWAYS executed
-        calculate_norm = False
+        if self.Parameters['include_dx_in_divergence_check']:
+            calculate_norm = True
+        else:
+            calculate_norm = False
         self.iterationCounter = 0
         self.iterationCounter = self.iterationCounter + 1
         iter_success, normDx = self.ExecuteIteration(self.echo_level,calculate_norm)
@@ -229,10 +233,12 @@ class SolvingStrategyPython:
         #non linear loop
         converged = False
         it = 0
-        err_inc_cnt = 0     # this number marks the consecutive iteration that the error increases
-        err_high_cnt = 0    # this number marks the consecutive iteration that the error ratio is larger than threshold
+        err_inc_cnt = 0     # marks the consecutive iteration that the error increases
+        err_high_cnt = 0    # marks the consecutive iteration that the error ratio is larger than threshold
         er_ratio_n = 1.0
         number_of_iterations_for_divergence_check = self.Parameters['number_of_iterations_for_divergence_check']
+        dx_inc_cnt = 0      # marks the consecutive iteration that the normDx increases
+        normDx_old = normDx
         while(it < self.max_iter and converged == False):
             #verify convergence
             converged = self.convergence_criteria.PreCriteria(self.model_part,self.builder_and_solver.GetDofSet(),self.A,self.Dx,self.b)
@@ -301,12 +307,16 @@ class SolvingStrategyPython:
 
             er_ratio_n = er_ratio
 
+            if normDx > normDx_old:
+                dx_inc_cnt += 1
+            normDx_old = normDx
+
             if err_inc_cnt == number_of_iterations_for_divergence_check:
                 if('stop_Newton_Raphson_if_not_converged' in self.Parameters):
                     if(self.Parameters['stop_Newton_Raphson_if_not_converged'] == True):
                         raise Exception("Sorry, my boss does not allow me to continue. The error increases %d times in a row at time step %f, it = %d, max_iter = %d" % (number_of_iterations_for_divergence_check, self.model_part.ProcessInfo[TIME], it, self.max_iter))
                     else:
-                        print('The error increases %d times in a row, so the time is marked as non-converged. The simulation will be continued' % (number_of_iterations_for_divergence_check))
+                        print('The error increases %d times in a row, so the time step is marked as non-converged. The simulation will be continued' % (number_of_iterations_for_divergence_check))
                         # mark as non-converged if the error increases 3 times consecuteively
                         return False, it
 
@@ -315,8 +325,17 @@ class SolvingStrategyPython:
                     if(self.Parameters['stop_Newton_Raphson_if_not_converged'] == True):
                         raise Exception("Sorry, my boss does not allow me to continue. The error ratio is larger than threshold %d times in a row at time step %f, it = %d, max_iter = %d" % (number_of_iterations_for_divergence_check, self.model_part.ProcessInfo[TIME], it, self.max_iter))
                     else:
-                        print('The error ratio is larger than threshold %d times in a row, so the time is marked as non-converged. The simulation will be continued' % (number_of_iterations_for_divergence_check))
+                        print('The error ratio is larger than threshold %d times in a row, so the time step is marked as non-converged. The simulation will be continued' % (number_of_iterations_for_divergence_check))
                         # mark as non-converged if the error ratio is larger than threshold 3 times consecuteively
+                        return False, it
+
+            if dx_inc_cnt == number_of_iterations_for_divergence_check:
+                if('stop_Newton_Raphson_if_not_converged' in self.Parameters):
+                    if(self.Parameters['stop_Newton_Raphson_if_not_converged'] == True):
+                        raise Exception("Sorry, my boss does not allow me to continue. The normDx increases %d times in a row at time step %f, it = %d, max_iter = %d" % (number_of_iterations_for_divergence_check, self.model_part.ProcessInfo[TIME], it, self.max_iter))
+                    else:
+                        print('The normDx increases %d times in a row, so the time step is marked as non-converged. The simulation will be continued' % (number_of_iterations_for_divergence_check))
+                        # mark as non-converged if the error increases 3 times consecuteively
                         return False, it
             # end checking divergence
 
