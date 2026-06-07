@@ -307,26 +307,27 @@ namespace Kratos
         // verify that the area is given by properties
         if (this->GetProperties().Has(AREA) == false)
         {
-            // if( this->GetProperties()[AREA] == 0.0 )
-                KRATOS_ERROR << "AREA not provided for this element " << this->Id();
+            KRATOS_ERROR << "AREA not provided for this element " << this->Id();
+        }
+
+        if (this->GetProperties().Has(AREA_Y) == false)
+        {
+            KRATOS_ERROR << "AREA_Y not provided for this element " << this->Id();
         }
 
         // verify that the inertia is given by properties
         if (this->GetProperties().Has(INERTIA_X) == false)
         {
-            // if( GetProperties()[INERTIA_X] == 0.0 )
-                KRATOS_ERROR << "INERTIA_X not provided for this element " << this->Id();
+            KRATOS_ERROR << "INERTIA_X not provided for this element " << this->Id();
         }
 
         if (this->GetProperties().Has(INERTIA_Y) == false)
         {
-            // if( GetProperties()[INERTIA_Y] == 0.0 )
-                KRATOS_ERROR << "INERTIA_Y not provided for this element " << this->Id();
+            KRATOS_ERROR << "INERTIA_Y not provided for this element " << this->Id();
         }
         if (this->GetProperties().Has(INERTIA_Z) == false)
         {
-            // if( GetProperties()[INERTIA_Z] == 0.0 )
-                KRATOS_ERROR << "INERTIA_Z not provided for this element " << this->Id();
+            KRATOS_ERROR << "INERTIA_Z not provided for this element " << this->Id();
         }
 
         return 0;
