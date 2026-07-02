@@ -361,7 +361,6 @@ class SolverAdvanced(structural_solver_static.StaticStructuralSolver):
 
         #creating the solution strategy
         self.ReformDofSetAtEachStep = True
-        self.MoveMeshFlag = True
         self.space_utils = UblasSparseSpace()
         self.model_part.ProcessInfo[RESET_CONFIGURATION] = 0
 
