@@ -94,32 +94,24 @@ public:
     template<int TSize>
     using VectorVariableInitializer = typename BaseType::template VectorVariableInitializer<TSize>;
 
-    /**
-     * Constructor.
-     */
     VariableInterpolationUtility(const TEntitiesContainerType& pElements)
-    : BaseType(pElements)
+        : BaseType(pElements)
     {
         std::cout << "VariableInterpolationUtility created" << std::endl;
     }
 
     VariableInterpolationUtility(const TEntitiesContainerType& pElements, const int EchoLevel)
-    : BaseType(pElements, EchoLevel)
+        : BaseType(pElements, EchoLevel)
     {
         if (this->GetEchoLevel() > 0)
+        {
             std::cout << "VariableInterpolationUtility created" << std::endl;
+        }
     }
 
-    /**
-     * Destructor.
-     */
     ~VariableInterpolationUtility() override
     {
     }
-
-    /**
-     * Operations
-     */
 
     /// Get the elements of which the BV contains the point
     TEntitiesContainerType FindPotentialPartners( const PointType& rSourcePoint ) const
@@ -141,126 +133,175 @@ public:
     }
 
     /// Transfer the double variable to node of the target model_part
-    void TransferVariablesToNodes(ModelPart& rTarget, const Variable<double>& rThisVariable)
+    void TransferVariablesToNodes(ModelPart& rTarget, const Variable<double>& rThisVariable) const
     {
         if (this->GetEchoLevel() > 0)
+        {
             std::cout << __LINE__ << " : At TransferVariablesToNodes(" << rTarget.Name() << ", Variable<double> " << rThisVariable.Name() << std::endl;
+        }
 
         TransferVariablesToNodes(rTarget.Nodes(), rThisVariable);
     }
 
     /// Transfer the double variable to node of the target node mesh
-    void TransferVariablesToNodes(NodesContainerType& rTargetNodes, const Variable<double>& rThisVariable)
+    void TransferVariablesToNodes(NodesContainerType& rTargetNodes, const Variable<double>& rThisVariable) const
     {
         if (this->GetEchoLevel() > 0)
+        {
             std::cout << __LINE__ << " : At TransferVariablesToNodes(" << " Variable<double> " << rThisVariable.Name() << std::endl;
+        }
 
         TransferVariablesToNodesImpl<DoubleVariableInitializer>(rTargetNodes, rThisVariable);
     }
 
     /// Transfer the double variable to node of the target model_part
-    void TransferVariablesToNodes(ModelPart& rTarget, const Variable<array_1d<double, 3> >& rThisVariable)
+    void TransferVariablesToNodes(ModelPart& rTarget, const Variable<array_1d<double, 3> >& rThisVariable) const
     {
         if (this->GetEchoLevel() > 0)
+        {
             std::cout << __LINE__ << " : At TransferVariablesToNodes(" << rTarget.Name() << ", Variable<array_1d<double, 3> > " << rThisVariable.Name() << std::endl;
+        }
 
         TransferVariablesToNodes(rTarget.Nodes(), rThisVariable);
     }
 
     /// Transfer the double variable to node of the target node mesh
-    void TransferVariablesToNodes(NodesContainerType& rTargetNodes, const Variable<array_1d<double, 3> >& rThisVariable)
+    void TransferVariablesToNodes(NodesContainerType& rTargetNodes, const Variable<array_1d<double, 3> >& rThisVariable) const
     {
         if (this->GetEchoLevel() > 0)
+        {
             std::cout << __LINE__ << " : At TransferVariablesToNodes(" << " Variable<array_1d<double, 3> > " << rThisVariable.Name() << std::endl;
+        }
 
         TransferVariablesToNodesImpl<Array1DVariableInitializer>(rTargetNodes, rThisVariable);
     }
 
     /// Transfer the double variable to node of the target model_part
-    void TransferVariablesToNodes(ModelPart& rTarget, const Variable<Vector>& rThisVariable, const std::size_t& ncomponents)
+    void TransferVariablesToNodes(ModelPart& rTarget, const Variable<Vector>& rThisVariable, const std::size_t& ncomponents) const
     {
         if (this->GetEchoLevel() > 0)
+        {
             std::cout << __LINE__ << " : At TransferVariablesToNodes(" << rTarget.Name() << ", Variable<Vector> " << rThisVariable.Name() << std::endl;
+        }
 
         TransferVariablesToNodes(rTarget.Nodes(), rThisVariable, ncomponents);
     }
 
     /// Transfer the double variable to node of the target node mesh
-    void TransferVariablesToNodes(NodesContainerType& rTargetNodes, const Variable<Vector>& rThisVariable, const std::size_t& ncomponents)
+    void TransferVariablesToNodes(NodesContainerType& rTargetNodes, const Variable<Vector>& rThisVariable, const std::size_t& ncomponents) const
     {
         if (this->GetEchoLevel() > 0)
+        {
             std::cout << __LINE__ << " : At TransferVariablesToNodes(" << " Variable<Vector> " << rThisVariable.Name() << std::endl;
+        }
 
         if (ncomponents == 3)
+        {
             TransferVariablesToNodesImpl<VectorVariableInitializer<3> >(rTargetNodes, rThisVariable);
+        }
         else if (ncomponents == 6)
+        {
             TransferVariablesToNodesImpl<VectorVariableInitializer<6> >(rTargetNodes, rThisVariable);
+        }
     }
 
     /// Transfer the double variable to Gauss points of the target model_part
-    void TransferVariablesToGaussPoints(ModelPart& rTarget, const Variable<double>& rThisVariable)
+    void TransferVariablesToGaussPoints(ModelPart& rTarget, const Variable<double>& rThisVariable) const
     {
         if (this->GetEchoLevel() > 0)
+        {
             std::cout << __LINE__ << " : At TransferVariablesToGaussPoints(" << rTarget.Name() << ", Variable<double> " << rThisVariable.Name() << std::endl;
+        }
 
         if constexpr (std::is_same<TEntitiesContainerType, ModelPart::ElementsContainerType>::value)
+        {
             TransferVariablesToGaussPoints(rTarget.Elements(), rThisVariable, rTarget.GetProcessInfo());
+        }
         else if constexpr (std::is_same<TEntitiesContainerType, ModelPart::ConditionsContainerType>::value)
+        {
             TransferVariablesToGaussPoints(rTarget.Conditions(), rThisVariable, rTarget.GetProcessInfo());
+        }
     }
 
     /// Transfer the double variable to Gauss points of the target model_part
-    void TransferVariablesToGaussPoints(TEntitiesContainerType& TargetMeshElementsArray, const Variable<double>& rThisVariable, const ProcessInfo& CurrentProcessInfo)
+    void TransferVariablesToGaussPoints(TEntitiesContainerType& TargetMeshElementsArray, const Variable<double>& rThisVariable, const ProcessInfo& CurrentProcessInfo) const
     {
         if (this->GetEchoLevel() > 0)
+        {
             std::cout << __LINE__ << " : At TransferVariablesToGaussPoints(" << " Variable<double> " << rThisVariable.Name() << std::endl;
+        }
 
         TransferVariablesToGaussPointsImpl<DoubleVariableInitializer>(TargetMeshElementsArray, CurrentProcessInfo, rThisVariable);
     }
 
     /// Transfer the array_1d variable to Gauss points of the target model_part
-    void TransferVariablesToGaussPoints(ModelPart& rTarget, const Variable<array_1d<double, 3> >& rThisVariable)
+    void TransferVariablesToGaussPoints(ModelPart& rTarget, const Variable<array_1d<double, 3> >& rThisVariable) const
     {
         if (this->GetEchoLevel() > 0)
+        {
             std::cout << __LINE__ << " : At TransferVariablesToGaussPoints(" << rTarget.Name() << ", Variable<array_1d<double, 3> > " << rThisVariable.Name() << std::endl;
+        }
 
         if constexpr (std::is_same<TEntitiesContainerType, ModelPart::ElementsContainerType>::value)
+        {
             TransferVariablesToGaussPoints(rTarget.Elements(), rThisVariable, rTarget.GetProcessInfo());
+        }
         else if constexpr (std::is_same<TEntitiesContainerType, ModelPart::ConditionsContainerType>::value)
+        {
             TransferVariablesToGaussPoints(rTarget.Conditions(), rThisVariable, rTarget.GetProcessInfo());
+        }
     }
 
     /// Transfer the double variable to Gauss points of the target model_part
-    void TransferVariablesToGaussPoints(TEntitiesContainerType& TargetMeshElementsArray, const Variable<array_1d<double, 3> >& rThisVariable, const ProcessInfo& CurrentProcessInfo)
+    void TransferVariablesToGaussPoints(TEntitiesContainerType& TargetMeshElementsArray, const Variable<array_1d<double, 3> >& rThisVariable, const ProcessInfo& CurrentProcessInfo) const
     {
         if (this->GetEchoLevel() > 0)
+        {
             std::cout << __LINE__ << " : At TransferVariablesToGaussPoints(" << " Variable<array_1d<double, 3> > " << rThisVariable.Name() << std::endl;
+        }
 
         TransferVariablesToGaussPointsImpl<Array1DVariableInitializer>(TargetMeshElementsArray, CurrentProcessInfo, rThisVariable);
     }
 
     /// Transfer the vector variable to Gauss points of the target model_part
-    void TransferVariablesToGaussPoints(ModelPart& rTarget, const Variable<Vector>& rThisVariable, std::size_t ncomponents = 6)
+    void TransferVariablesToGaussPoints(ModelPart& rTarget, const Variable<Vector>& rThisVariable, std::size_t ncomponents = 6) const
     {
         if (this->GetEchoLevel() > 0)
+        {
             std::cout << __LINE__ << " : At TransferVariablesToGaussPoints(" << rTarget.Name() << ", Variable<Vector> " << rThisVariable.Name() << std::endl;
+        }
 
         if constexpr (std::is_same<TEntitiesContainerType, ModelPart::ElementsContainerType>::value)
+        {
             TransferVariablesToGaussPoints(rTarget.Elements(), rThisVariable, rTarget.GetProcessInfo(), ncomponents);
+        }
         else if constexpr (std::is_same<TEntitiesContainerType, ModelPart::ConditionsContainerType>::value)
+        {
             TransferVariablesToGaussPoints(rTarget.Conditions(), rThisVariable, rTarget.GetProcessInfo(), ncomponents);
+        }
     }
 
     /// Transfer the vector variable to Gauss points of the target model_part
-    void TransferVariablesToGaussPoints(TEntitiesContainerType& TargetMeshElementsArray, const Variable<Vector>& rThisVariable, const ProcessInfo& CurrentProcessInfo, std::size_t ncomponents = 6)
+    void TransferVariablesToGaussPoints(TEntitiesContainerType& TargetMeshElementsArray, const Variable<Vector>& rThisVariable,
+            const ProcessInfo& CurrentProcessInfo, std::size_t ncomponents = 6) const
     {
         if (this->GetEchoLevel() > 0)
+        {
             std::cout << __LINE__ << " : At TransferVariablesToGaussPoints(" << " Variable<Vector> " << rThisVariable.Name() << std::endl;
+        }
 
         if (ncomponents == 3)
+        {
             TransferVariablesToGaussPointsImpl<VectorVariableInitializer<3> >(TargetMeshElementsArray, CurrentProcessInfo, rThisVariable);
+        }
         else if (ncomponents == 6)
+        {
             TransferVariablesToGaussPointsImpl<VectorVariableInitializer<6> >(TargetMeshElementsArray, CurrentProcessInfo, rThisVariable);
+        }
+        else
+            KRATOS_ERROR << "Number of component = " << ncomponents << " is not supported";
+    }
+
     }
 
 protected:
@@ -279,14 +320,14 @@ protected:
     /// The rLocalTargetPoint is the local point in pTargetElement of rSourcePoint
     /// REMARK: we should disable the move mesh flag if we want to search in the reference configuration
     bool SearchPartner( const PointType& rSourcePoint, TEntitiesContainerType& pMasterElements,
-            typename EntityType::Pointer& pTargetElement, PointType& rLocalTargetPoint ) const
+                        typename EntityType::Pointer& pTargetElement, PointType& rLocalTargetPoint ) const
     {
-        for( auto it = pMasterElements.ptr_begin(); it != pMasterElements.ptr_end(); ++it )
+        for ( auto it = pMasterElements.ptr_begin(); it != pMasterElements.ptr_end(); ++it )
         {
             const GeometryType& r_geom = (*it)->GetGeometry();
 
             bool is_inside = r_geom.IsInside( rSourcePoint, rLocalTargetPoint );
-            if( is_inside )
+            if ( is_inside )
             {
                 pTargetElement = *it;
                 return true;
@@ -294,20 +335,22 @@ protected:
         }
 
         if (this->GetEchoLevel() > 4)
+        {
             std::cout << " !!!! WARNING: NO ELEMENT FOUND TO CONTAIN " << rSourcePoint << " !!!! " << std::endl;
+        }
 
         return false;
     }
 
     /// Interpolate the double value in the element
     void ValueVectorInOldMesh( double& newValue, const EntityType& oldElement, const PointType& localPoint,
-                               const Variable<double>& rThisVariable )
+                               const Variable<double>& rThisVariable ) const
     {
         Vector shape_functions_values;
         shape_functions_values = oldElement.GetGeometry().ShapeFunctionsValues(shape_functions_values, localPoint);
 
         newValue = 0.0;
-        for(unsigned int i = 0; i < oldElement.GetGeometry().size(); ++i)
+        for (unsigned int i = 0; i < oldElement.GetGeometry().size(); ++i)
         {
             const double temp = oldElement.GetGeometry()[i].GetSolutionStepValue(rThisVariable);
             newValue += shape_functions_values[i] * temp;
@@ -316,14 +359,14 @@ protected:
 
     /// Interpolate the array_1d value in the element
     void ValueVectorInOldMesh( array_1d<double, 3>& newValue, const EntityType& oldElement, const PointType& localPoint,
-                               const Variable<array_1d<double, 3> >& rThisVariable )
+                               const Variable<array_1d<double, 3> >& rThisVariable ) const
     {
         Vector shape_functions_values;
         shape_functions_values = oldElement.GetGeometry().ShapeFunctionsValues(shape_functions_values, localPoint);
 
         array_1d<double, 3> temp;
         noalias(newValue) = ZeroVector(3);
-        for(unsigned int i = 0; i < oldElement.GetGeometry().size(); ++i)
+        for (unsigned int i = 0; i < oldElement.GetGeometry().size(); ++i)
         {
             noalias(temp) = oldElement.GetGeometry()[i].GetSolutionStepValue(rThisVariable);
             noalias(newValue) += shape_functions_values[i] * temp;
@@ -332,7 +375,7 @@ protected:
 
     /// Interpolate the vector value in the element
     void ValueVectorInOldMesh( Vector& newValue, const EntityType& oldElement, const PointType& localPoint,
-                               const Variable<Vector>& rThisVariable )
+                               const Variable<Vector>& rThisVariable ) const
     {
         Vector shape_functions_values;
         shape_functions_values = oldElement.GetGeometry().ShapeFunctionsValues(shape_functions_values, localPoint);
@@ -340,7 +383,7 @@ protected:
         const std::size_t ncomponents = newValue.size();
         noalias(newValue) = ZeroVector(ncomponents);
         Vector temp(ncomponents);
-        for(unsigned int i = 0; i < oldElement.GetGeometry().size(); ++i)
+        for (unsigned int i = 0; i < oldElement.GetGeometry().size(); ++i)
         {
             noalias(temp) = oldElement.GetGeometry()[i].GetSolutionStepValue(rThisVariable);
             noalias(newValue) += shape_functions_values[i] * temp;
@@ -350,11 +393,13 @@ protected:
     /// Transfer the variable to Gauss points of the target mesh
     template<class TVariableInitializer>
     void TransferVariablesToGaussPointsImpl( TEntitiesContainerType& TargetMeshElementsArray,
-                                             const ProcessInfo& CurrentProcessInfo,
-                                             const typename TVariableInitializer::VariableType& rThisVariable)
+            const ProcessInfo& CurrentProcessInfo,
+            const typename TVariableInitializer::VariableType& rThisVariable) const
     {
         if (this->GetEchoLevel() > 0)
+        {
             std::cout << __LINE__ << " : At TransferVariablesToGaussPoints, Variable " << rThisVariable.Name() << std::endl;
+        }
 
         int number_of_threads = 1;
         std::vector<unsigned int> element_partition;
@@ -364,23 +409,21 @@ protected:
 #endif
         OpenMPUtils::CreatePartition(number_of_threads, TargetMeshElementsArray.size(), element_partition);
         KRATOS_WATCH( number_of_threads );
-        std::cout << "element_partition:";
-        for (std::size_t i = 0; i < element_partition.size(); ++i)
-            std::cout << " " << element_partition[i];
-        std::cout << std::endl;
-        // KRATOS_WATCH( element_partition );
+        KRATOS_WATCH_STD_CON( element_partition )
         Kratos::progress_display show_progress( TargetMeshElementsArray.size() );
 #ifdef _OPENMP
         #pragma omp parallel for
 #endif
-        for(int k = 0; k < number_of_threads; ++k)
+        for (int k = 0; k < number_of_threads; ++k)
         {
             auto it_begin = TargetMeshElementsArray.ptr_begin() + element_partition[k];
-            auto it_end = TargetMeshElementsArray.ptr_begin() + element_partition[k+1];
+            auto it_end = TargetMeshElementsArray.ptr_begin() + element_partition[k + 1];
             for (auto it = it_begin; it != it_end; ++it)
             {
-                if( ((*it)->GetValue(IS_INACTIVE) == true) && !(*it)->Is(ACTIVE) )
+                if ( ((*it)->GetValue(IS_INACTIVE) == true) && !(*it)->Is(ACTIVE) )
+                {
                     continue;
+                }
 
                 // KRATOS_WATCH((*it)->Id())
                 // KRATOS_WATCH(typeid((*it)->GetGeometry()).name())
@@ -389,7 +432,7 @@ protected:
                 // KRATOS_WATCH(integration_points.size())
                 std::vector<typename TVariableInitializer::DataType> ValuesOnIntPoint(integration_points.size());
                 TVariableInitializer::Initialize(ValuesOnIntPoint);
-                for(unsigned int point = 0; point< integration_points.size(); ++point)
+                for (unsigned int point = 0; point < integration_points.size(); ++point)
                 {
                     PointType sourceLocalPoint;
                     PointType targetLocalPoint;
@@ -402,7 +445,7 @@ protected:
                     typename EntityType::Pointer sourceElement;
                     //Calculate Value of rVariable(firstvalue, secondvalue) in OldMesh
                     bool found = this->SearchPartner( targetGlobalPoint, pMasterElements, sourceElement, sourceLocalPoint );
-                    if(found)
+                    if (found)
                     {
                         // KRATOS_WATCH(sourceElement->Id())
                         // KRATOS_WATCH(typeid(*sourceElement).name())
@@ -433,10 +476,12 @@ protected:
 
     /// Transfer the variable at node target mesh
     template<class TVariableInitializer>
-    void TransferVariablesToNodesImpl(NodesContainerType& rTargetNodes, const typename TVariableInitializer::VariableType& rThisVariable)
+    void TransferVariablesToNodesImpl(NodesContainerType& rTargetNodes, const typename TVariableInitializer::VariableType& rThisVariable) const
     {
         if (this->GetEchoLevel() > 0)
+        {
             std::cout << __LINE__ << " : At TransferVariablesToNodes, Variable " << rThisVariable.Name() << std::endl;
+        }
 
         int number_of_threads = 1;
         std::vector<unsigned int> node_partition;
@@ -448,18 +493,20 @@ protected:
         KRATOS_WATCH( number_of_threads );
         std::cout << "node_partition:";
         for (std::size_t i = 0; i < node_partition.size(); ++i)
+        {
             std::cout << " " << node_partition[i];
+        }
         std::cout << std::endl;
         Kratos::progress_display show_progress( rTargetNodes.size() );
 #ifdef _OPENMP
         #pragma omp parallel for
 #endif
-        for(int k = 0; k < number_of_threads; ++k)
+        for (int k = 0; k < number_of_threads; ++k)
         {
             NodesContainerType::ptr_iterator it_begin =
                 rTargetNodes.ptr_begin() + node_partition[k];
             NodesContainerType::ptr_iterator it_end =
-                rTargetNodes.ptr_begin() + node_partition[k+1];
+                rTargetNodes.ptr_begin() + node_partition[k + 1];
 
             typename TVariableInitializer::DataType Tmp;
             for (NodesContainerType::ptr_iterator it = it_begin; it != it_end; ++it)
@@ -481,7 +528,7 @@ protected:
                 else
                 {
                     std::cout << "###### NO PARTNER FOUND IN OLD MESH : TransferVariablesToNodes(..."
-                              << rThisVariable.Name() << "...) at node " << (*it)->Id() << ", " << (*it)->GetInitialPosition() << "#####"<< std::endl;
+                              << rThisVariable.Name() << "...) at node " << (*it)->Id() << ", " << (*it)->GetInitialPosition() << "#####" << std::endl;
                     continue;
                 }
 

@@ -154,9 +154,6 @@ public:
         }
     };
 
-    /**
-     * Constructor.
-     */
     VariableUtility()
     : mEchoLevel(0)
     {
@@ -244,9 +241,6 @@ public:
         }
     }
 
-    /**
-     * Destructor.
-     */
     virtual ~VariableUtility()
     {}
 
@@ -268,7 +262,7 @@ protected:
 
     TEntitiesContainerType mpElements;
 
-    /// Initialize the utilitey
+    /// Initialize the utility
     virtual void Initialize( const TEntitiesContainerType& pElements )
     {
         KRATOS_ERROR << "Error calling base class function";

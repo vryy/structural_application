@@ -98,9 +98,6 @@ public:
     typedef typename GeometryType::JacobiansType JacobiansType;
     typedef ModelPart::NodesContainerType NodesContainerType;
 
-    /**
-     * Constructor.
-     */
     VariableProjectionUtility(const TEntitiesContainerType& pElements, typename LinearSolverType::Pointer pLinearSolver)
     : BaseType(pElements), mpLinearSolver(pLinearSolver)
     {
@@ -116,15 +113,8 @@ public:
             std::cout << "VariableProjectionUtility created" << std::endl;
     }
 
-    /**
-     * Destructor.
-     */
     ~VariableProjectionUtility() override
     {}
-
-    /**
-     * Operations
-     */
 
     /**
      * Compute the projected nodal values, based on the integration point values

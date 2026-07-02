@@ -86,9 +86,6 @@ public:
     typedef typename BaseType::NodesContainerType NodesContainerType;
     typedef BoundingVolumeTree<0, TEntitiesContainerType> BoundingVolumeTreeType;
 
-    /**
-     * Constructor.
-     */
     VariableBVHInterpolationUtility(const TEntitiesContainerType& pElements, const int bv_type)
     : BaseType(pElements)
     {
@@ -97,16 +94,9 @@ public:
         std::cout << "VariableBVHInterpolationUtility created, BVH depth = " << mpBVTree->Depth() << std::endl;
     }
 
-    /**
-     * Destructor.
-     */
     ~VariableBVHInterpolationUtility() override
     {
     }
-
-    /**
-     * Operations
-     */
 
 protected:
 

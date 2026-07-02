@@ -87,9 +87,6 @@ public:
     typedef typename BaseType::PointType PointType;
     typedef typename BaseType::NodesContainerType NodesContainerType;
 
-    /**
-     * Constructor.
-     */
     VariableBinningInterpolationUtility(const TEntitiesContainerType& pElements,
             const double Dx, const double Dy, const double Dz)
     : BaseType(pElements), mDx(Dx), mDy(Dy), mDz(Dz)
@@ -107,16 +104,9 @@ public:
             std::cout << "VariableBinningInterpolationUtility created" << std::endl;
     }
 
-    /**
-     * Destructor.
-     */
     ~VariableBinningInterpolationUtility() override
     {
     }
-
-    /**
-     * Operations
-     */
 
 protected:
 
