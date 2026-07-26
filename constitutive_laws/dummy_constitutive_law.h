@@ -72,13 +72,7 @@ namespace Kratos
  * As there are no further parameters the functionality is limited
  * to linear elasticity.
  */
-
-#ifdef SD_APP_FORWARD_COMPATIBILITY
-class KRATOS_API(STRUCTURAL_APPLICATION) DummyConstitutiveLaw
-#else
-class DummyConstitutiveLaw
-#endif
-: public ConstitutiveLaw
+class KRATOS_API(STRUCTURAL_APPLICATION) DummyConstitutiveLaw : public ConstitutiveLaw
 {
 public:
     /**
@@ -132,26 +126,26 @@ public:
         rFeatures.SetStrainMeasure(ConstitutiveLaw::StrainMeasure_Infinitesimal);
     }
 
-    bool Has( const Variable<int>& rThisVariable ) const;
-    bool Has( const Variable<double>& rThisVariable ) const;
-    bool Has( const Variable<Vector>& rThisVariable ) const;
-    bool Has( const Variable<Matrix>& rThisVariable ) const;
+    bool Has( const Variable<int>& rThisVariable ) const final;
+    bool Has( const Variable<double>& rThisVariable ) const final;
+    bool Has( const Variable<Vector>& rThisVariable ) const final;
+    bool Has( const Variable<Matrix>& rThisVariable ) const final;
 
-    int& GetValue( const Variable<int>& rThisVariable, int& rValue );
-    double& GetValue( const Variable<double>& rThisVariable, double& rValue );
-    Vector& GetValue( const Variable<Vector>& rThisVariable, Vector& rValue );
-    Matrix& GetValue( const Variable<Matrix>& rThisVariable, Matrix& rValue );
+    int& GetValue( const Variable<int>& rThisVariable, int& rValue ) final;
+    double& GetValue( const Variable<double>& rThisVariable, double& rValue ) final;
+    Vector& GetValue( const Variable<Vector>& rThisVariable, Vector& rValue ) final;
+    Matrix& GetValue( const Variable<Matrix>& rThisVariable, Matrix& rValue ) final;
 
     void SetValue( const Variable<int>& rThisVariable, const int& rValue,
-                   const ProcessInfo& rCurrentProcessInfo );
+                   const ProcessInfo& rCurrentProcessInfo ) final;
     void SetValue( const Variable<double>& rThisVariable, const double& rValue,
-                   const ProcessInfo& rCurrentProcessInfo );
+                   const ProcessInfo& rCurrentProcessInfo ) final;
     void SetValue( const Variable<array_1d<double, 3 > >& rThisVariable,
-                   const array_1d<double, 3 > & rValue, const ProcessInfo& rCurrentProcessInfo );
+                   const array_1d<double, 3 > & rValue, const ProcessInfo& rCurrentProcessInfo ) final;
     void SetValue( const Variable<Vector>& rThisVariable, const Vector& rValue,
-                   const ProcessInfo& rCurrentProcessInfo );
+                   const ProcessInfo& rCurrentProcessInfo ) final;
     void SetValue( const Variable<Matrix>& rThisVariable, const Matrix& rValue,
-                   const ProcessInfo& rCurrentProcessInfo );
+                   const ProcessInfo& rCurrentProcessInfo ) final;
 
     /**
      * Material parameters are inizialized
@@ -213,7 +207,7 @@ public:
                                     bool CalculateStresses = true,
                                     int CalculateTangent = true,
                                     bool SaveInternalVariables = true
-                                  );
+                                  ) final;
 
     /**
      * returns the size of the strain vector of the current constitutive law
@@ -247,20 +241,15 @@ public:
     /**
      * Print object's data.
      */
-    void PrintData(std::ostream& rOStream) const
+    void PrintData(std::ostream& rOStream) const final
     {
         rOStream << "ElemId: " << mElemId << ", GaussId: " << mGaussId << std::endl;
     }
 
-protected:
-    /**
-     * there are no protected class members
-     */
 private:
 
     int mElemId, mGaussId;
 
-    ///@}
     ///@name Serialization
     ///@{
 
@@ -276,12 +265,10 @@ private:
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ConstitutiveLaw );
     }
 
-    /**
-         * Copy constructor.
-         */
-    //DummyConstitutiveLaw(const IsotropicPlaneStressWrinklingNew& rOther);
+    ///@}
+
 }; // Class DummyConstitutiveLaw
 
-
 } // namespace Kratos.
-#endif // KRATOS_STRUCTURAL_APPLICATION_DUMMY_CONSTITUTIVE_LAW_H_INCLUDED  defined 
+
+#endif // KRATOS_STRUCTURAL_APPLICATION_DUMMY_CONSTITUTIVE_LAW_H_INCLUDED  defined

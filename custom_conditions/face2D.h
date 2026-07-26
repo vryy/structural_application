@@ -55,7 +55,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define  KRATOS_FACE2D_CONDITION_H_INCLUDED
 
 
-
 // System includes
 
 
@@ -95,8 +94,7 @@ namespace Kratos
 /** Detail class definition.
 */
 
-class Face2D
-    : public Condition
+class Face2D : public Condition
 {
 public:
     ///@name Type Definitions
@@ -114,8 +112,7 @@ public:
     Face2D( IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties );
 
     /// Destructor.
-    virtual ~Face2D();
-
+    ~Face2D() override;
 
     ///@}
     ///@name Operators
@@ -151,6 +148,7 @@ public:
      * @param rCurrentProcessInfo
      */
     int Check( const ProcessInfo& rCurrentProcessInfo ) const override;
+
     ///@}
     ///@name Access
     ///@{
@@ -229,10 +227,10 @@ private:
     ///@{
 
 
-
     ///@}
     ///@name Private Operators
     ///@{
+
     void CalculateAll( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector,
                        const ProcessInfo& rCurrentProcessInfo,
                        bool CalculateStiffnessMatrixFlag,
@@ -246,13 +244,13 @@ private:
         double weight
     );
 
-
     void CalculateAndAdd_PressureForce(
         Vector& residualvector,
         const Vector& N,
         Vector& v3,
         double pressure,
         double weight );
+
     ///@}
     ///@name Private Operations
     ///@{
@@ -276,16 +274,15 @@ private:
     // A private default constructor necessary for serialization
     Face2D() {};
 
-    virtual void save( Serializer& rSerializer ) const
+    void save( Serializer& rSerializer ) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, Condition );
     }
 
-    virtual void load( Serializer& rSerializer )
+    void load( Serializer& rSerializer ) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Condition );
     }
-
 
     ///@}
     ///@name Un accessible methods
@@ -313,24 +310,8 @@ private:
 ///@{
 
 
-/// input stream function
-/*  inline std::istream& operator >> (std::istream& rIStream,
-        Face2D& rThis);
-*/
-/// output stream function
-/*  inline std::ostream& operator << (std::ostream& rOStream,
-        const Face2D& rThis)
-    {
-      rThis.PrintInfo(rOStream);
-      rOStream << std::endl;
-      rThis.PrintData(rOStream);
-
-      return rOStream;
-    }*/
 ///@}
 
 }  // namespace Kratos.
 
 #endif // KRATOS_FACE2D_CONDITION_H_INCLUDED  defined
-
-

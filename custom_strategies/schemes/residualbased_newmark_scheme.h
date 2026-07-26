@@ -242,8 +242,8 @@ public:
         this->mBeta = rOther.mBeta;
         this->mGamma = rOther.mGamma;
         this->mIntegrateRotation = rOther.mIntegrateRotation;
-        this->mIntegrateMultiplier = mIntegrateMultiplier;
-        this->mIntegrateLoad = mIntegrateLoad;
+        this->mIntegrateMultiplier = rOther.mIntegrateMultiplier;
+        this->mIntegrateLoad = rOther.mIntegrateLoad;
         return *this;
     }
 

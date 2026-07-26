@@ -102,51 +102,31 @@ public:
     }
 
     /**
-     * Operators
+     * Operations
      */
-//    virtual template<class TVariableType> typename TVariableType::Type const& GetValue(const TVariableType& rThisVariable) const
-//    {
-//     if( rThisVariable == DP_EPSILON )
-//      return mEpsilon;
-//     if( rThisVariable == INSITU_STRESS )
-//     {
-//      return mInSituStress;
-//     }
-//    }
-//
-//    virtual template<class TVariableType> bool Has(const TVariableType& rThisVariable) const
-//    {
-//     if( rThisVariable == DP_EPSILON )
-//      return true;
-//     if( rThisVariable == INSITU_STRESS )
-//      return true;
-//     return false;
-//    }
 
-    bool Has ( const Variable<double>& rThisVariable ) const;
-    bool Has ( const Variable<Vector>& rThisVariable ) const;
-    bool Has ( const Variable<Matrix>& rThisVariable ) const;
-    double& GetValue ( const Variable<double>& rThisVariable, double& rValue );
-    Vector& GetValue ( const Variable<Vector>& rThisVariable, Vector& rValue );
-    Matrix& GetValue ( const Variable<Matrix>& rThisVariable, Matrix& rValue );
+    bool Has ( const Variable<double>& rThisVariable ) const override;
+    bool Has ( const Variable<Vector>& rThisVariable ) const override;
+    bool Has ( const Variable<Matrix>& rThisVariable ) const override;
+    double& GetValue ( const Variable<double>& rThisVariable, double& rValue ) override;
+    Vector& GetValue ( const Variable<Vector>& rThisVariable, Vector& rValue ) override;
+    Matrix& GetValue ( const Variable<Matrix>& rThisVariable, Matrix& rValue ) override;
     void SetValue ( const Variable<double>& rThisVariable, const double& rValue,
-                    const ProcessInfo& rCurrentProcessInfo );
+                    const ProcessInfo& rCurrentProcessInfo ) override;
     void SetValue ( const Variable<array_1d<double, 3> >& rThisVariable,
-                    const array_1d<double, 3>& rValue, const ProcessInfo& rCurrentProcessInfo );
+                    const array_1d<double, 3>& rValue, const ProcessInfo& rCurrentProcessInfo ) override;
     void SetValue ( const Variable<Vector>& rThisVariable, const Vector& rValue,
-                    const ProcessInfo& rCurrentProcessInfo );
+                    const ProcessInfo& rCurrentProcessInfo ) override;
     void SetValue ( const Variable<Matrix>& rThisVariable, const Matrix& rValue,
-                    const ProcessInfo& rCurrentProcessInfo );
+                    const ProcessInfo& rCurrentProcessInfo ) override;
 
-
-    /**
-     * Material parameters are inizialized
-     */
     void InitializeMaterial ( const Properties& props,
                               const GeometryType& geom,
-                              const Vector& ShapeFunctionsValues );
+                              const Vector& ShapeFunctionsValues ) override;
 
-    void ResetMaterial ( const Properties& props, const GeometryType& geom, const Vector& ShapeFunctionsValues );
+    void ResetMaterial ( const Properties& props,
+                         const GeometryType& geom,
+                         const Vector& ShapeFunctionsValues ) override;
 
     /**
      * Calculates the constitutive matrix for a given strain vector
@@ -166,12 +146,12 @@ public:
     void InitializeSolutionStep ( const Properties& props,
                                   const GeometryType& geom, //this is just to give the array of nodes
                                   const Vector& ShapeFunctionsValues ,
-                                  const ProcessInfo& CurrentProcessInfo );
+                                  const ProcessInfo& CurrentProcessInfo ) override;
 
     void FinalizeSolutionStep ( const Properties& props,
                                 const GeometryType& geom, //this is just to give the array of nodes
                                 const Vector& ShapeFunctionsValues ,
-                                const ProcessInfo& CurrentProcessInfo );
+                                const ProcessInfo& CurrentProcessInfo ) override;
 
     /**
      * Computes the material response in terms of stresses and algorithmic tangent
@@ -199,7 +179,7 @@ public:
                                      bool CalculateStresses = true,
                                      int CalculateTangent = true,
                                      bool SaveInternalVariables = true
-                                   );
+                                   ) override;
 
     /**
      * Calculates the cauchy stresses. For a given deformation and stress state
@@ -212,7 +192,7 @@ public:
     void CalculateCauchyStresses ( Vector& Cauchy_StressVector,
                                    const Matrix& F,
                                    const Vector& PK2_StressVector,
-                                   const Vector& GreenLagrangeStrainVector );
+                                   const Vector& GreenLagrangeStrainVector ) override;
 
 
     /**
@@ -249,8 +229,6 @@ public:
      */
     void Calculate ( const Variable<Vector >& rVariable,
                      Vector& rResult, const ProcessInfo& rCurrentProcessInfo );
-
-
 
     /**
      * Turn back information as a string.

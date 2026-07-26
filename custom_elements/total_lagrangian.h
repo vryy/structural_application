@@ -243,7 +243,7 @@ public:
     void GetFirstDerivativesVector(Vector& values, int Step = 0) const override;
     void GetSecondDerivativesVector(Vector& values, int Step = 0) const override;
 
-    void Calculate(const Variable<DataType>& rVariable, DataType& Output, const ProcessInfo& rCurrentProcessInfo);
+    void Calculate(const Variable<DataType>& rVariable, DataType& Output, const ProcessInfo& rCurrentProcessInfo) override;
 
     //************************************************************************************
     //************************************************************************************

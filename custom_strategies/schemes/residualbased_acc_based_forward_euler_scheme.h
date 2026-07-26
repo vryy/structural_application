@@ -181,9 +181,9 @@ public:
     ResidualBasedAccBasedForwardEulerScheme& operator=(const ResidualBasedAccBasedForwardEulerScheme& rOther)
     {
         this->mIntegrateRotation = rOther.mIntegrateRotation;
-        this->mIntegrateMultiplier = mIntegrateMultiplier;
-        this->mIntegrateLoad = mIntegrateLoad;
-        this->mForceLumpedMass = mForceLumpedMass;
+        this->mIntegrateMultiplier = rOther.mIntegrateMultiplier;
+        this->mIntegrateLoad = rOther.mIntegrateLoad;
+        this->mForceLumpedMass = rOther.mForceLumpedMass;
         return *this;
     }
 

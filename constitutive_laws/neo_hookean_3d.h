@@ -85,61 +85,54 @@ class NeoHookean3D : public ConstitutiveLaw
             rFeatures.SetStrainMeasure(this->GetStrainMeasure());
         }
 
-        bool Has( const Variable<int>& rThisVariable ) const;
-        bool Has( const Variable<double>& rThisVariable ) const;
-        bool Has( const Variable<Vector>& rThisVariable ) const;
-        bool Has( const Variable<Matrix>& rThisVariable ) const;
+        bool Has( const Variable<int>& rThisVariable ) const override;
+        bool Has( const Variable<double>& rThisVariable ) const override;
+        bool Has( const Variable<Vector>& rThisVariable ) const override;
+        bool Has( const Variable<Matrix>& rThisVariable ) const override;
 
-        int& GetValue( const Variable<int>& rThisVariable, int& rValue );
-        double& GetValue( const Variable<double>& rThisVariable, double& rValue );
-        Vector& GetValue( const Variable<Vector>& rThisVariable, Vector& rValue );
-        Matrix& GetValue( const Variable<Matrix>& rThisVariable, Matrix& rValue );
+        int& GetValue( const Variable<int>& rThisVariable, int& rValue ) override;
+        double& GetValue( const Variable<double>& rThisVariable, double& rValue ) override;
+        Vector& GetValue( const Variable<Vector>& rThisVariable, Vector& rValue ) override;
+        Matrix& GetValue( const Variable<Matrix>& rThisVariable, Matrix& rValue ) override;
 
         void SetValue( const Variable<int>& rThisVariable, const int& rValue,
-                       const ProcessInfo& rCurrentProcessInfo );
+                       const ProcessInfo& rCurrentProcessInfo ) override;
         void SetValue( const Variable<double>& rThisVariable, const double& rValue,
-                       const ProcessInfo& rCurrentProcessInfo );
+                       const ProcessInfo& rCurrentProcessInfo ) override;
         void SetValue( const Variable<array_1d<double, 3 > >& rThisVariable,
-                       const array_1d<double, 3 > & rValue, const ProcessInfo& rCurrentProcessInfo );
+                       const array_1d<double, 3 > & rValue, const ProcessInfo& rCurrentProcessInfo ) override;
         void SetValue( const Variable<Vector>& rThisVariable, const Vector& rValue,
-                       const ProcessInfo& rCurrentProcessInfo );
+                       const ProcessInfo& rCurrentProcessInfo ) override;
         void SetValue( const Variable<Matrix>& rThisVariable, const Matrix& rValue,
-                       const ProcessInfo& rCurrentProcessInfo );
+                       const ProcessInfo& rCurrentProcessInfo ) override;
 
-        /**
-         * Material parameters are inizialized
-         */
         void InitializeMaterial( const Properties& props,
                                  const GeometryType& geom,
-                                 const Vector& ShapeFunctionsValues );
+                                 const Vector& ShapeFunctionsValues ) override;
 
-        /**
-         * As this constitutive law describes only linear elastic material properties
-         * this function is rather useless and in fact does nothing
-         */
         void InitializeSolutionStep( const Properties& props,
                                      const GeometryType& geom, //this is just to give the array of nodes
                                      const Vector& ShapeFunctionsValues,
-                                     const ProcessInfo& CurrentProcessInfo );
+                                     const ProcessInfo& CurrentProcessInfo ) override;
 
         void InitializeNonLinearIteration( const Properties& props,
                                            const GeometryType& geom, //this is just to give the array of nodes
                                            const Vector& ShapeFunctionsValues,
-                                           const ProcessInfo& CurrentProcessInfo );
+                                           const ProcessInfo& CurrentProcessInfo ) override;
 
         void ResetMaterial( const Properties& props,
                             const GeometryType& geom,
-                            const Vector& ShapeFunctionsValues );
+                            const Vector& ShapeFunctionsValues ) override;
 
         void FinalizeNonLinearIteration( const Properties& props,
                                          const GeometryType& geom, //this is just to give the array of nodes
                                          const Vector& ShapeFunctionsValues,
-                                         const ProcessInfo& CurrentProcessInfo );
+                                         const ProcessInfo& CurrentProcessInfo ) override;
 
         void FinalizeSolutionStep( const Properties& props,
                                    const GeometryType& geom, //this is just to give the array of nodes
                                    const Vector& ShapeFunctionsValues,
-                                   const ProcessInfo& CurrentProcessInfo );
+                                   const ProcessInfo& CurrentProcessInfo ) override;
 
         /**
          * Calculates the cauchy stresses. For a given deformation and stress state
@@ -152,7 +145,7 @@ class NeoHookean3D : public ConstitutiveLaw
         void CalculateCauchyStresses( Vector& Cauchy_StressVector,
                                       const Matrix& F,
                                       const Vector& PK2_StressVector,
-                                      const Vector& GreenLagrangeStrainVector );
+                                      const Vector& GreenLagrangeStrainVector ) override;
 
         /**
          * This function is designed to be called once to perform all the checks needed
@@ -184,7 +177,7 @@ class NeoHookean3D : public ConstitutiveLaw
                                         bool CalculateStresses = true,
                                         int CalculateTangent = true,
                                         bool SaveInternalVariables = true
-                                      );
+                                      ) override;
 
         /**
          * returns the size of the strain vector of the current constitutive law
@@ -205,7 +198,7 @@ class NeoHookean3D : public ConstitutiveLaw
          * Input and output
          */
 
-/**
+        /**
          * Turn back information as a string.
          */
         std::string Info() const final
@@ -283,11 +276,11 @@ class NeoHookean3D : public ConstitutiveLaw
         /**
          * Assignment operator.
          */
-        //NeoHookean3D& operator=(const IsotropicPlaneStressWrinklingNew& rOther);
+        //NeoHookean3D& operator=(const ConstitutiveLaw& rOther);
         /**
          * Copy constructor.
          */
-        //NeoHookean3D(const IsotropicPlaneStressWrinklingNew& rOther);
+        //NeoHookean3D(const ConstitutiveLaw& rOther);
 }; // Class NeoHookean3D
 
 } // namespace Kratos.

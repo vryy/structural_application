@@ -122,31 +122,31 @@ public:
     /**
      * Operations
      */
-    bool Has( const Variable<int>& rThisVariable ) const;
-    bool Has( const Variable<double>& rThisVariable ) const;
-    bool Has( const Variable<Vector>& rThisVariable ) const;
-    bool Has( const Variable<Matrix>& rThisVariable ) const;
+    bool Has( const Variable<int>& rThisVariable ) const override;
+    bool Has( const Variable<double>& rThisVariable ) const override;
+    bool Has( const Variable<Vector>& rThisVariable ) const override;
+    bool Has( const Variable<Matrix>& rThisVariable ) const override;
 
-    int& GetValue( const Variable<int>& rThisVariable, int& rValue );
-    double& GetValue( const Variable<double>& rThisVariable, double& rValue );
-    Vector& GetValue( const Variable<Vector>& rThisVariable, Vector& rValue );
-    Matrix& GetValue( const Variable<Matrix>& rThisVariable, Matrix& rValue );
+    int& GetValue( const Variable<int>& rThisVariable, int& rValue ) override;
+    double& GetValue( const Variable<double>& rThisVariable, double& rValue ) override;
+    Vector& GetValue( const Variable<Vector>& rThisVariable, Vector& rValue ) override;
+    Matrix& GetValue( const Variable<Matrix>& rThisVariable, Matrix& rValue ) override;
 
     void SetValue( const Variable<int>& rThisVariable, const int& rValue,
-                   const ProcessInfo& rCurrentProcessInfo );
+                   const ProcessInfo& rCurrentProcessInfo ) override;
     void SetValue( const Variable<double>& rThisVariable, const double& rValue,
-                   const ProcessInfo& rCurrentProcessInfo );
+                   const ProcessInfo& rCurrentProcessInfo ) override;
     void SetValue( const Variable<Vector>& rThisVariable, const Vector& rValue,
-                   const ProcessInfo& rCurrentProcessInfo );
+                   const ProcessInfo& rCurrentProcessInfo ) override;
     void SetValue( const Variable<Matrix>& rThisVariable, const Matrix& rValue,
-                   const ProcessInfo& rCurrentProcessInfo );
+                   const ProcessInfo& rCurrentProcessInfo ) override;
 
     /**
      * Material parameters are inizialized
      */
     void InitializeMaterial( const Properties& props,
                              const GeometryType& geom,
-                             const Vector& ShapeFunctionsValues );
+                             const Vector& ShapeFunctionsValues ) override;
 
     /**
      * As this constitutive law describes only linear elastic material properties
@@ -155,26 +155,26 @@ public:
     void InitializeSolutionStep( const Properties& props,
                                  const GeometryType& geom, //this is just to give the array of nodes
                                  const Vector& ShapeFunctionsValues,
-                                 const ProcessInfo& CurrentProcessInfo );
+                                 const ProcessInfo& CurrentProcessInfo ) override;
 
     void InitializeNonLinearIteration( const Properties& props,
                                        const GeometryType& geom, //this is just to give the array of nodes
                                        const Vector& ShapeFunctionsValues,
-                                       const ProcessInfo& CurrentProcessInfo );
+                                       const ProcessInfo& CurrentProcessInfo ) override;
 
     void ResetMaterial( const Properties& props,
                         const GeometryType& geom,
-                        const Vector& ShapeFunctionsValues );
+                        const Vector& ShapeFunctionsValues ) override;
 
     void FinalizeNonLinearIteration( const Properties& props,
                                      const GeometryType& geom, //this is just to give the array of nodes
                                      const Vector& ShapeFunctionsValues,
-                                     const ProcessInfo& CurrentProcessInfo );
+                                     const ProcessInfo& CurrentProcessInfo ) override;
 
     void FinalizeSolutionStep( const Properties& props,
                                const GeometryType& geom, //this is just to give the array of nodes
                                const Vector& ShapeFunctionsValues,
-                               const ProcessInfo& CurrentProcessInfo );
+                               const ProcessInfo& CurrentProcessInfo ) override;
 
     /**
      * This function is designed to be called once to perform all the checks needed
@@ -200,7 +200,7 @@ public:
                                     bool CalculateStresses = true,
                                     int CalculateTangent = true,
                                     bool SaveInternalVariables = true
-                                  );
+                                  ) override;
 
     /**
      * returns the size of the strain vector of the current constitutive law
@@ -283,7 +283,6 @@ private:
      */
     //CamClay3D(const IsotropicPlaneStressWrinklingNew& rOther);
 }; // Class CamClay3D
-
 
 } // namespace Kratos.
 

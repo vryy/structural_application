@@ -129,31 +129,29 @@ public:
         rFeatures.SetStrainMeasure(StrainMeasure_Infinitesimal);
     }
 
-    bool Has( const Variable<int>& rThisVariable ) const;
-    bool Has( const Variable<double>& rThisVariable ) const;
-    bool Has( const Variable<Vector>& rThisVariable ) const;
-    bool Has( const Variable<Matrix>& rThisVariable ) const;
+    bool Has( const Variable<int>& rThisVariable ) const final;
+    bool Has( const Variable<double>& rThisVariable ) const final;
+    bool Has( const Variable<Vector>& rThisVariable ) const final;
+    bool Has( const Variable<Matrix>& rThisVariable ) const final;
 
-    int& GetValue( const Variable<int>& rThisVariable, int& rValue );
-    double& GetValue( const Variable<double>& rThisVariable, double& rValue );
-    Vector& GetValue( const Variable<Vector>& rThisVariable, Vector& rValue );
-    Matrix& GetValue( const Variable<Matrix>& rThisVariable, Matrix& rValue );
+    int& GetValue( const Variable<int>& rThisVariable, int& rValue ) final;
+    double& GetValue( const Variable<double>& rThisVariable, double& rValue ) final;
+    Vector& GetValue( const Variable<Vector>& rThisVariable, Vector& rValue ) final;
+    Matrix& GetValue( const Variable<Matrix>& rThisVariable, Matrix& rValue ) final;
 
     void SetValue( const Variable<int>& rVariable,
                    const int& Value,
-                   const ProcessInfo& rCurrentProcessInfo );
+                   const ProcessInfo& rCurrentProcessInfo ) final;
     void SetValue( const Variable<double>& rVariable,
                    const double& Value,
-                   const ProcessInfo& rCurrentProcessInfo );
+                   const ProcessInfo& rCurrentProcessInfo ) final;
     void SetValue( const Variable<Vector>& rThisVariable,
                    const Vector& rValue,
-                   const ProcessInfo& rCurrentProcessInfo );
+                   const ProcessInfo& rCurrentProcessInfo ) final;
     void SetValue( const Variable<Matrix>& rThisVariable,
                    const Matrix& rValue,
-                   const ProcessInfo& rCurrentProcessInfo );
-    /**
-     * Material parameters are inizialized
-     */
+                   const ProcessInfo& rCurrentProcessInfo ) final;
+
     void InitializeMaterial( const Properties& props,
                              const GeometryType& geom,
                              const Vector& ShapeFunctionsValues ) final;
@@ -173,7 +171,7 @@ public:
                                      const ProcessInfo& rCurrentProcessInfo ) final;
 
     void FinalizeSolutionStep ( const Properties& props,
-                                const GeometryType& geom, //this is just to give the array of nodes
+                                const GeometryType& geom,
                                 const Vector& ShapeFunctionsValues ,
                                 const ProcessInfo& CurrentProcessInfo ) final;
 
@@ -183,21 +181,6 @@ public:
      * @param rResult the stress vector corresponding to the given strains
      */
     void CalculateStress(const Matrix& strain_tensor, Matrix& stress_tensor) const;
-
-    /**
-     * As this constitutive law describes only linear elastic material properties
-     * this function is rather useless and in fact does nothing
-     */
-    /*            void InitializeSolutionStep( const Properties& props,
-                        const GeometryType& geom, //this is just to give the array of nodes
-                        const Vector& ShapeFunctionsValues ,
-                        const ProcessInfo& CurrentProcessInfo);
-
-                void FinalizeSolutionStep( const Properties& props,
-                        const GeometryType& geom, //this is just to give the array of nodes
-                        const Vector& ShapeFunctionsValues ,
-                        const ProcessInfo& CurrentProcessInfo);
-    */
 
     /**
      * Computes the material response in terms of Cauchy stresses and constitutive tensor
@@ -222,11 +205,11 @@ public:
                                      const Vector& ShapeFunctionsValues,
                                      bool CalculateStresses = true,
                                      int CalculateTangent = 1,
-                                     bool SaveInternalVariables = true );
+                                     bool SaveInternalVariables = true ) final;
 
-    int Check(const Properties& props,
-              const GeometryType& geom,
-              const ProcessInfo& CurrentProcessInfo) const final;
+    int Check( const Properties& props,
+               const GeometryType& geom,
+               const ProcessInfo& CurrentProcessInfo ) const final;
 
     /**
      * Input and output
@@ -295,18 +278,17 @@ private:
     double mPrestressFactor;
     Vector mPreStress;
 
-
     /**
      * Un accessible methods
      */
     /**
      * Assignment operator.
      */
-    //Isotropic3DDC& operator=(const IsotropicPlaneStressWrinklingNew& rOther);
+    //Isotropic3DDC& operator=(const ConstitutiveLaw& rOther);
     /**
      * Copy constructor.
      */
-    //Isotropic3DDC(const IsotropicPlaneStressWrinklingNew& rOther);
+    //Isotropic3DDC(const ConstitutiveLaw& rOther);
 }; // Class Isotropic3DDC
 
 }  // namespace Kratos.

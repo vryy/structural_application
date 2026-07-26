@@ -402,8 +402,7 @@ private:
         Stresses.resize( integration_points.size() );
         ie->CalculateOnIntegrationPoints( STRESSES, Stresses, rCurrentProcessInfo );
 
-        typedef decltype(*ie) ElementType;
-        const auto& rProperties = static_cast<const ElementType&>(*ie).GetProperties();
+        const auto& rProperties = ie->GetProperties();
 
         for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
         {

@@ -91,45 +91,44 @@ public:
     LineTraction( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties );
 
     // Destructor
-    virtual ~LineTraction();
-
+    ~LineTraction() override;
 
     // Name Operations
 
     Condition::Pointer Create(
         IndexType NewId,
         NodesArrayType const& ThisNodes,
-        PropertiesType::Pointer pProperties ) const;
+        PropertiesType::Pointer pProperties ) const override;
 
     Condition::Pointer Create(
         IndexType NewId,
         GeometryType::Pointer pGeom,
-        PropertiesType::Pointer pProperties) const;
+        PropertiesType::Pointer pProperties) const override;
 
     void EquationIdVector(
         EquationIdVectorType& rResult,
-        const ProcessInfo& rCurrentProcessInfo ) const;
+        const ProcessInfo& rCurrentProcessInfo ) const override;
 
     void GetDofList(
         DofsVectorType& ElementalDofList,
-        const ProcessInfo& rCurrentProcessInfo ) const;
+        const ProcessInfo& rCurrentProcessInfo ) const override;
 
     void CalculateRightHandSide(
         VectorType& rRightHandSideVector,
-        const ProcessInfo& rCurrentProcessInfo );
+        const ProcessInfo& rCurrentProcessInfo ) override;
 
     void CalculateLocalSystem(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        const ProcessInfo& rCurrentProcessInfo );
+        const ProcessInfo& rCurrentProcessInfo ) override;
 
     void CalculateMassMatrix(
         MatrixType& rMassMatrix,
-        const ProcessInfo& rCurrentProcessInfo );
+        const ProcessInfo& rCurrentProcessInfo ) override;
 
     void CalculateDampingMatrix(
         MatrixType& rDampingMatrix,
-        const ProcessInfo& rCurrentProcessInfo );
+        const ProcessInfo& rCurrentProcessInfo ) override;
 
 //    void GetValuesVector(
 //        Vector& values,

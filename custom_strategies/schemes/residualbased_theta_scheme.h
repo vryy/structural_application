@@ -151,8 +151,6 @@ public:
         std::cout << "Theta Scheme !!!!!!!!!!!!!!!!!!!!!" << " theta = " << mTheta << std::endl;
     }
 
-    /**
-
     /** Destructor.*/
     ~ResidualBasedThetaScheme() override
     {}

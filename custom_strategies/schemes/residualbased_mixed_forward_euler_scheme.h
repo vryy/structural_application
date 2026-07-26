@@ -191,9 +191,9 @@ public:
     ResidualBasedMixedForwardEulerScheme& operator=(const ResidualBasedMixedForwardEulerScheme& rOther)
     {
         this->mIntegrateRotation = rOther.mIntegrateRotation;
-        this->mIntegrateMultiplier = mIntegrateMultiplier;
-        this->mIntegrateLoad = mIntegrateLoad;
-        this->mForceLumpedMass = mForceLumpedMass;
+        this->mIntegrateMultiplier = rOther.mIntegrateMultiplier;
+        this->mIntegrateLoad = rOther.mIntegrateLoad;
+        this->mForceLumpedMass = rOther.mForceLumpedMass;
         return *this;
     }
 
@@ -202,19 +202,19 @@ public:
     /*@{ */
 
     /// Enable integration of rotation d.o.f
-    void SetIntegrateRotation(const bool& value)
+    void SetIntegrateRotation(const bool value)
     {
         mIntegrateRotation = value;
     }
 
     /// Enable integration of multiplier d.o.f
-    void SetIntegrateMultiplier(const bool& value)
+    void SetIntegrateMultiplier(const bool value)
     {
         mIntegrateMultiplier = value;
     }
 
     /// Enable time values of load
-    void SetIntegrateLoad(const bool& value)
+    void SetIntegrateLoad(const bool value)
     {
         mIntegrateLoad = value;
     }
