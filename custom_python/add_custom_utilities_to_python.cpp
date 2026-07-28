@@ -707,18 +707,24 @@ void AddVariableUtilitiesToPython(const std::string& Prefix)
     .def("ComputeNodalValues", &VariableProjectionUtility_ComputeNodalValues<TEntitiesContainerType>)
     ;
 
-    void(VariableInterpolationUtilityType::*pointer_to_TransferVariablesToNodesDouble1)(ModelPart&, const Variable<double>&) = &VariableInterpolationUtilityType::TransferVariablesToNodes;
-    void(VariableInterpolationUtilityType::*pointer_to_TransferVariablesToNodesDouble2)(ModelPart::NodesContainerType&, const Variable<double>&) = &VariableInterpolationUtilityType::TransferVariablesToNodes;
-    void(VariableInterpolationUtilityType::*pointer_to_TransferVariablesToNodesArray1D1)(ModelPart&, const Variable<array_1d<double, 3> >&) = &VariableInterpolationUtilityType::TransferVariablesToNodes;
-    void(VariableInterpolationUtilityType::*pointer_to_TransferVariablesToNodesArray1D2)(ModelPart::NodesContainerType&, const Variable<array_1d<double, 3> >&) = &VariableInterpolationUtilityType::TransferVariablesToNodes;
-    void(VariableInterpolationUtilityType::*pointer_to_TransferVariablesToNodesVector1)(ModelPart&, const Variable<Vector>&, const std::size_t&) = &VariableInterpolationUtilityType::TransferVariablesToNodes;
-    void(VariableInterpolationUtilityType::*pointer_to_TransferVariablesToNodesVector2)(ModelPart::NodesContainerType&, const Variable<Vector>&, const std::size_t&) = &VariableInterpolationUtilityType::TransferVariablesToNodes;
-    void(VariableInterpolationUtilityType::*pointer_to_TransferVariablesToGaussPointsDouble1)(ModelPart&, const Variable<double>&) = &VariableInterpolationUtilityType::TransferVariablesToGaussPoints;
-    void(VariableInterpolationUtilityType::*pointer_to_TransferVariablesToGaussPointsDouble2)(TEntitiesContainerType&, const Variable<double>&, const ProcessInfo&) = &VariableInterpolationUtilityType::TransferVariablesToGaussPoints;
-    void(VariableInterpolationUtilityType::*pointer_to_TransferVariablesToGaussPointsArray1D1)(ModelPart&, const Variable<array_1d<double, 3> >&) = &VariableInterpolationUtilityType::TransferVariablesToGaussPoints;
-    void(VariableInterpolationUtilityType::*pointer_to_TransferVariablesToGaussPointsArray1D2)(TEntitiesContainerType&, const Variable<array_1d<double, 3> >&, const ProcessInfo&) = &VariableInterpolationUtilityType::TransferVariablesToGaussPoints;
-    void(VariableInterpolationUtilityType::*pointer_to_TransferVariablesToGaussPointsVector1)(ModelPart&, const Variable<Vector>&, std::size_t) = &VariableInterpolationUtilityType::TransferVariablesToGaussPoints;
-    void(VariableInterpolationUtilityType::*pointer_to_TransferVariablesToGaussPointsVector2)(TEntitiesContainerType&, const Variable<Vector>&, const ProcessInfo&, std::size_t) = &VariableInterpolationUtilityType::TransferVariablesToGaussPoints;
+    void(VariableInterpolationUtilityType::*pointer_to_TransferVariablesToNodesDouble1)(ModelPart&, const Variable<double>&) const = &VariableInterpolationUtilityType::TransferVariablesToNodes;
+    void(VariableInterpolationUtilityType::*pointer_to_TransferVariablesToNodesDouble2)(ModelPart::NodesContainerType&, const Variable<double>&) const = &VariableInterpolationUtilityType::TransferVariablesToNodes;
+    void(VariableInterpolationUtilityType::*pointer_to_TransferVariablesToNodesArray1D1)(ModelPart&, const Variable<array_1d<double, 3> >&) const = &VariableInterpolationUtilityType::TransferVariablesToNodes;
+    void(VariableInterpolationUtilityType::*pointer_to_TransferVariablesToNodesArray1D2)(ModelPart::NodesContainerType&, const Variable<array_1d<double, 3> >&) const = &VariableInterpolationUtilityType::TransferVariablesToNodes;
+    void(VariableInterpolationUtilityType::*pointer_to_TransferVariablesToNodesVector1)(ModelPart&, const Variable<Vector>&, const std::size_t&) const = &VariableInterpolationUtilityType::TransferVariablesToNodes;
+    void(VariableInterpolationUtilityType::*pointer_to_TransferVariablesToNodesVector2)(ModelPart::NodesContainerType&, const Variable<Vector>&, const std::size_t&) const = &VariableInterpolationUtilityType::TransferVariablesToNodes;
+    void(VariableInterpolationUtilityType::*pointer_to_TransferVariablesToGaussPointsDouble1)(ModelPart&, const Variable<double>&) const = &VariableInterpolationUtilityType::TransferVariablesToGaussPoints;
+    void(VariableInterpolationUtilityType::*pointer_to_TransferVariablesToGaussPointsDouble2)(TEntitiesContainerType&, const Variable<double>&, const ProcessInfo&) const = &VariableInterpolationUtilityType::TransferVariablesToGaussPoints;
+    void(VariableInterpolationUtilityType::*pointer_to_TransferVariablesToGaussPointsArray1D1)(ModelPart&, const Variable<array_1d<double, 3> >&) const = &VariableInterpolationUtilityType::TransferVariablesToGaussPoints;
+    void(VariableInterpolationUtilityType::*pointer_to_TransferVariablesToGaussPointsArray1D2)(TEntitiesContainerType&, const Variable<array_1d<double, 3> >&, const ProcessInfo&) const = &VariableInterpolationUtilityType::TransferVariablesToGaussPoints;
+    void(VariableInterpolationUtilityType::*pointer_to_TransferVariablesToGaussPointsVector1)(ModelPart&, const Variable<Vector>&, std::size_t) const = &VariableInterpolationUtilityType::TransferVariablesToGaussPoints;
+    void(VariableInterpolationUtilityType::*pointer_to_TransferVariablesToGaussPointsVector2)(TEntitiesContainerType&, const Variable<Vector>&, const ProcessInfo&, std::size_t) const = &VariableInterpolationUtilityType::TransferVariablesToGaussPoints;
+    double(VariableInterpolationUtilityType::*pointer_to_ComputeRelativeDifferenceDouble1)(ModelPart&, const Variable<double>&, const ProcessInfo&) const = &VariableInterpolationUtilityType::ComputeRelativeDifference;
+    double(VariableInterpolationUtilityType::*pointer_to_ComputeRelativeDifferenceDouble2)(TEntitiesContainerType&, const Variable<double>&, const ProcessInfo&) const = &VariableInterpolationUtilityType::ComputeRelativeDifference;
+    double(VariableInterpolationUtilityType::*pointer_to_ComputeRelativeDifferenceArray1D1)(ModelPart&, const Variable<array_1d<double, 3> >&, const ProcessInfo&) const = &VariableInterpolationUtilityType::ComputeRelativeDifference;
+    double(VariableInterpolationUtilityType::*pointer_to_ComputeRelativeDifferenceArray1D2)(TEntitiesContainerType&, const Variable<array_1d<double, 3> >&, const ProcessInfo&) const = &VariableInterpolationUtilityType::ComputeRelativeDifference;
+    double(VariableInterpolationUtilityType::*pointer_to_ComputeRelativeDifferenceVector1)(ModelPart&, const Variable<Vector>&, const ProcessInfo&, std::size_t) const = &VariableInterpolationUtilityType::ComputeRelativeDifference;
+    double(VariableInterpolationUtilityType::*pointer_to_ComputeRelativeDifferenceVector2)(TEntitiesContainerType&, const Variable<Vector>&, const ProcessInfo&, std::size_t) const = &VariableInterpolationUtilityType::ComputeRelativeDifference;
     TEntitiesContainerType(VariableInterpolationUtilityType::*pointer_to_FindPotentialPartners)(const typename EntityType::GeometryType::PointType::PointType&) const = &VariableInterpolationUtilityType::FindPotentialPartners;
     typename EntityType::Pointer(VariableInterpolationUtilityType::*pointer_to_SearchPartner)(const typename EntityType::GeometryType::PointType::PointType&, TEntitiesContainerType&) const = &VariableInterpolationUtilityType::SearchPartner;
 
@@ -740,6 +746,12 @@ void AddVariableUtilitiesToPython(const std::string& Prefix)
     .def("TransferVariablesToGaussPoints", pointer_to_TransferVariablesToGaussPointsArray1D2)
     .def("TransferVariablesToGaussPoints", pointer_to_TransferVariablesToGaussPointsVector1)
     .def("TransferVariablesToGaussPoints", pointer_to_TransferVariablesToGaussPointsVector2)
+    .def("ComputeRelativeDifference", pointer_to_ComputeRelativeDifferenceDouble1)
+    .def("ComputeRelativeDifference", pointer_to_ComputeRelativeDifferenceDouble2)
+    .def("ComputeRelativeDifference", pointer_to_ComputeRelativeDifferenceArray1D1)
+    .def("ComputeRelativeDifference", pointer_to_ComputeRelativeDifferenceArray1D2)
+    .def("ComputeRelativeDifference", pointer_to_ComputeRelativeDifferenceVector1)
+    .def("ComputeRelativeDifference", pointer_to_ComputeRelativeDifferenceVector2)
     ;
 
     ss.str(std::string());
@@ -784,11 +796,11 @@ void AddCustomUtilitiesToPython()
     .def( "SetAssociatedElement", &SetAssociatedElement )
     ;
 
-    void(VariableTransferUtility::*pointer_to_TransferPrestressIdentically)(ModelPart&, ModelPart&) = &VariableTransferUtility::TransferPrestressIdentically;
-    void(VariableTransferUtility::*pointer_to_TransferPrestressIdenticallyWithCheck)(ModelPart&, ModelPart&) = &VariableTransferUtility::TransferPrestressIdenticallyWithCheck;
-    void(VariableTransferUtility::*pointer_to_TransferPrestressIdenticallyNoCheck)(ModelPart&, ModelPart&) = &VariableTransferUtility::TransferPrestressIdenticallyNoCheck;
-    void(VariableTransferUtility::*pointer_to_TransferInternalVariablesIdenticallyWithCheck)(ModelPart&, ModelPart&) = &VariableTransferUtility::TransferInternalVariablesIdenticallyWithCheck;
-    void(VariableTransferUtility::*pointer_to_TransferPrestressIdenticallyForElement)(Element&, Element&, const ProcessInfo&) = &VariableTransferUtility::TransferPrestressIdentically;
+    void(VariableTransferUtility::*pointer_to_TransferPrestressIdentically)(ModelPart&, ModelPart&) const = &VariableTransferUtility::TransferPrestressIdentically;
+    void(VariableTransferUtility::*pointer_to_TransferPrestressIdenticallyWithCheck)(ModelPart&, ModelPart&) const = &VariableTransferUtility::TransferPrestressIdenticallyWithCheck;
+    void(VariableTransferUtility::*pointer_to_TransferPrestressIdenticallyNoCheck)(ModelPart&, ModelPart&) const = &VariableTransferUtility::TransferPrestressIdenticallyNoCheck;
+    void(VariableTransferUtility::*pointer_to_TransferInternalVariablesIdenticallyWithCheck)(ModelPart&, ModelPart&) const = &VariableTransferUtility::TransferInternalVariablesIdenticallyWithCheck;
+    void(VariableTransferUtility::*pointer_to_TransferPrestressIdenticallyForElement)(Element&, Element&, const ProcessInfo&) const = &VariableTransferUtility::TransferPrestressIdentically;
 
     class_<VariableTransferUtility, boost::noncopyable >
     ( "VariableTransferUtility", init<>() )

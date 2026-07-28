@@ -65,6 +65,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/variables.h"
 #include "utilities/openmp_utils.h"
 #include "utilities/progress.h"
+#include "utilities/timer.h"
 #include "custom_utilities/variable_utility.h"
 
 namespace Kratos
@@ -95,22 +96,23 @@ public:
     using VectorVariableInitializer = typename BaseType::template VectorVariableInitializer<TSize>;
 
     VariableInterpolationUtility(const TEntitiesContainerType& pElements)
-        : BaseType(pElements)
+        : BaseType(pElements), mSearchTolerance(1e-8)
     {
-        std::cout << "VariableInterpolationUtility created" << std::endl;
     }
 
     VariableInterpolationUtility(const TEntitiesContainerType& pElements, const int EchoLevel)
-        : BaseType(pElements, EchoLevel)
+        : BaseType(pElements, EchoLevel), mSearchTolerance(1e-8)
     {
-        if (this->GetEchoLevel() > 0)
-        {
-            std::cout << "VariableInterpolationUtility created" << std::endl;
-        }
     }
 
     ~VariableInterpolationUtility() override
     {
+    }
+
+    /// Set the search tolerance
+    void SetSearchTolerance(double value)
+    {
+        mSearchTolerance = value;
     }
 
     /// Get the elements of which the BV contains the point
@@ -302,12 +304,96 @@ public:
             KRATOS_ERROR << "Number of component = " << ncomponents << " is not supported";
     }
 
+    /// Compute the L-2 norm of the difference between two meshes for a double variable.
+    /// It can be useful to compute the error norm when the master mesh is very fine and contains very accurate solution.
+    double ComputeRelativeDifference(ModelPart& rTarget, const Variable<double>& rThisVariable,
+            const ProcessInfo& CurrentProcessInfo) const
+    {
+        return ComputeRelativeDifference(GetEntities(rTarget), rThisVariable, CurrentProcessInfo);
     }
+
+    /// Compute the L-2 norm of the difference between two meshes for a double variable.
+    /// It can be useful to compute the error norm when the master mesh is very fine and contains very accurate solution.
+    double ComputeRelativeDifference(TEntitiesContainerType& TargetMeshElementsArray,
+            const Variable<double>& rThisVariable, const ProcessInfo& CurrentProcessInfo) const
+    {
+        return ComputeRelativeDifferenceImpl<DoubleVariableInitializer>(TargetMeshElementsArray, CurrentProcessInfo, rThisVariable);
+    }
+
+    /// Compute the L-2 norm of the difference between two meshes for an array_1d variable.
+    /// It can be useful to compute the error norm when the master mesh is very fine and contains very accurate solution.
+    double ComputeRelativeDifference(ModelPart& rTarget, const Variable<array_1d<double, 3> >& rThisVariable,
+            const ProcessInfo& CurrentProcessInfo) const
+    {
+        return ComputeRelativeDifference(GetEntities(rTarget), rThisVariable, CurrentProcessInfo);
+    }
+
+    /// Compute the L-2 norm of the difference between two meshes for an array_1d variable.
+    /// It can be useful to compute the error norm when the master mesh is very fine and contains very accurate solution.
+    double ComputeRelativeDifference(TEntitiesContainerType& TargetMeshElementsArray, const Variable<array_1d<double, 3> >& rThisVariable,
+            const ProcessInfo& CurrentProcessInfo) const
+    {
+        return ComputeRelativeDifferenceImpl<Array1DVariableInitializer>(TargetMeshElementsArray, CurrentProcessInfo, rThisVariable);
+    }
+
+    /// Compute the L-2 norm of the difference between two meshes for an array_1d variable.
+    /// It can be useful to compute the error norm when the master mesh is very fine and contains very accurate solution.
+    double ComputeRelativeDifference(ModelPart& rTarget, const Variable<Vector>& rThisVariable,
+            const ProcessInfo& CurrentProcessInfo, std::size_t ncomponents = 6) const
+    {
+        return ComputeRelativeDifference(GetEntities(rTarget), rThisVariable, CurrentProcessInfo, ncomponents);
+    }
+
+    /// Compute the L-2 norm of the difference between two meshes for an array_1d variable.
+    /// It can be useful to compute the error norm when the master mesh is very fine and contains very accurate solution.
+    double ComputeRelativeDifference(TEntitiesContainerType& TargetMeshElementsArray,
+            const Variable<Vector>& rThisVariable,
+            const ProcessInfo& CurrentProcessInfo,
+            std::size_t ncomponents = 6) const
+    {
+        if (ncomponents == 3)
+        {
+            return ComputeRelativeDifferenceImpl<VectorVariableInitializer<3> >(TargetMeshElementsArray, CurrentProcessInfo, rThisVariable);
+        }
+        else if (ncomponents == 6)
+        {
+            return ComputeRelativeDifferenceImpl<VectorVariableInitializer<6> >(TargetMeshElementsArray, CurrentProcessInfo, rThisVariable);
+        }
+        else
+            KRATOS_ERROR << "Number of component = " << ncomponents << " is not supported";
+
+        return 0.0;
+    }
+
+    ///@name Input and output
+    ///@{
+
+    std::string Info() const override
+    {
+        return "VariableInterpolationUtility";
+    }
+
+    ///@}
 
 protected:
 
     //**********AUXILIARY FUNCTION**************************************************************
     //******************************************************************************************
+
+    /// Get the corresponding elements or conditions from the model_part
+    static TEntitiesContainerType& GetEntities(ModelPart& rTarget)
+    {
+        if constexpr (std::is_same<TEntitiesContainerType, ModelPart::ElementsContainerType>::value)
+        {
+            return rTarget.Elements();
+        }
+        else if constexpr (std::is_same<TEntitiesContainerType, ModelPart::ConditionsContainerType>::value)
+        {
+            return rTarget.Conditions();
+        }
+        else
+            KRATOS_ERROR << "Invalid operation";
+    }
 
     /// Find the master element candidates that contains the point.
     /// REMARK: we should disable the move mesh flag if we want to search in the reference configuration
@@ -326,7 +412,8 @@ protected:
         {
             const GeometryType& r_geom = (*it)->GetGeometry();
 
-            bool is_inside = r_geom.IsInside( rSourcePoint, rLocalTargetPoint );
+            r_geom.PointLocalCoordinates( rLocalTargetPoint, rSourcePoint, true, mSearchTolerance );
+            bool is_inside = r_geom.IsInside( rLocalTargetPoint, mSearchTolerance );
             if ( is_inside )
             {
                 pTargetElement = *it;
@@ -447,12 +534,7 @@ protected:
                     bool found = this->SearchPartner( targetGlobalPoint, pMasterElements, sourceElement, sourceLocalPoint );
                     if (found)
                     {
-                        // KRATOS_WATCH(sourceElement->Id())
-                        // KRATOS_WATCH(typeid(*sourceElement).name())
-                        // KRATOS_WATCH(sourceElement->Is(ACTIVE))
-                        // KRATOS_WATCH(sourceLocalPoint)
                         ValueVectorInOldMesh( ValuesOnIntPoint[point], *sourceElement, sourceLocalPoint, rThisVariable );
-                        // KRATOS_WATCH(ValuesOnIntPoint[point])
                     }
                     else
                     {
@@ -538,6 +620,116 @@ protected:
             }
         }
     }
+
+    /// Compute the relative difference: sqrt(int_{\Omega^s} ||u_s - u_m||^2 dV) / sqrt(int__{\Omega^s} ||u_m||^2 dV)
+    template<class TVariableInitializer>
+    double ComputeRelativeDifferenceImpl( TEntitiesContainerType& TargetMeshElementsArray,
+            const ProcessInfo& CurrentProcessInfo,
+            const typename TVariableInitializer::VariableType& rThisVariable) const
+    {
+        if (this->GetEchoLevel() > 0)
+        {
+            std::cout << __LINE__ << " : At ComputeRelativeDifference, Variable " << rThisVariable.Name() << std::endl;
+        }
+
+        int number_of_threads = 1;
+        std::vector<unsigned int> element_partition;
+        std::vector<double> error_partition;
+#ifdef _OPENMP
+        number_of_threads = omp_get_max_threads();
+        double start_compute = omp_get_wtime();
+#endif
+        OpenMPUtils::CreatePartition(number_of_threads, TargetMeshElementsArray.size(), element_partition);
+        error_partition.resize(number_of_threads);
+        std::fill(error_partition.begin(), error_partition.end(), 0.0);
+        KRATOS_WATCH( number_of_threads );
+        KRATOS_WATCH_STD_CON( element_partition )
+        Kratos::progress_display show_progress( TargetMeshElementsArray.size() );
+#ifdef _OPENMP
+        #pragma omp parallel for
+#endif
+        for (int k = 0; k < number_of_threads; ++k)
+        {
+            auto it_begin = TargetMeshElementsArray.begin() + element_partition[k];
+            auto it_end = TargetMeshElementsArray.begin() + element_partition[k + 1];
+            double nom = 0.0, denom = 0.0;
+            for (auto it = it_begin; it != it_end; ++it)
+            {
+                if ( (it->GetValue(IS_INACTIVE) == true) && !it->Is(ACTIVE) )
+                {
+                    continue;
+                }
+
+                const IntegrationPointsArrayType& integration_points
+                    = it->GetGeometry().IntegrationPoints(it->GetIntegrationMethod());
+
+                typename GeometryType::JacobiansType J0;
+                it->GetGeometry().Jacobian0(J0, it->GetIntegrationMethod());
+
+                // Extract value of rVariable in target mesh
+                std::vector<typename TVariableInitializer::DataType> ValuesOnIntPoint(integration_points.size());
+                it->CalculateOnIntegrationPoints( rThisVariable, ValuesOnIntPoint, CurrentProcessInfo );
+
+                for (unsigned int point = 0; point < integration_points.size(); ++point)
+                {
+                    // Calculate value of rVariable in source mesh
+                    PointType targetLocalPoint;
+                    noalias(targetLocalPoint) = integration_points[point];
+                    PointType targetGlobalPoint;
+                    it->GetGeometry().GlobalCoordinates(targetGlobalPoint, targetLocalPoint);
+
+                    TEntitiesContainerType pMasterElements;
+                    this->FindPotentialPartners(targetGlobalPoint, pMasterElements);
+
+                    PointType sourceLocalPoint;
+                    typename EntityType::Pointer sourceElement;
+                    typename TVariableInitializer::DataType sourceValue;
+                    TVariableInitializer::Initialize( sourceValue );
+                    bool found = this->SearchPartner( targetGlobalPoint, pMasterElements, sourceElement, sourceLocalPoint );
+                    if (found)
+                    {
+                        ValueVectorInOldMesh( sourceValue, *sourceElement, sourceLocalPoint, rThisVariable );
+                    }
+                    else
+                    {
+                        std::cout << "###### NO PARTNER FOUND IN OLD MESH : TransferVariablesToGaussPoints(..."
+                                  << rThisVariable.Name() << "...) at point " << targetGlobalPoint << "#####" << std::endl;
+                        continue;
+                    }
+
+                    // Calculate the difference
+                    double IntegrationWeight = integration_points[point].Weight();
+                    IntegrationWeight *= std::sqrt(MathUtils<double>::Det(Matrix(prod(trans(J0[point]), J0[point]))));
+
+                    const auto& targetValue = ValuesOnIntPoint[point];
+// std::cout << "  targetValue: " << targetValue << ", sourceValue: " << sourceValue << std::endl;
+                    double tmp1 = TVariableInitializer::Norm(targetValue - sourceValue);
+                    double tmp2 = TVariableInitializer::Norm(sourceValue);
+                    nom += tmp1*tmp1*IntegrationWeight;
+                    denom += tmp2*tmp2*IntegrationWeight;
+                }
+
+                ++show_progress;
+            }
+
+            if (denom == 0.0)
+                KRATOS_ERROR << "The value of Variable " << rThisVariable << " in source mesh is zero";
+
+            error_partition[k] = std::sqrt(nom / denom);
+        }
+
+#ifdef _OPENMP
+        double stop_compute = omp_get_wtime();
+        std::cout << "ComputeRelativeDifference time: " << stop_compute - start_compute << std::endl;
+#endif
+
+        return std::accumulate(error_partition.begin(), error_partition.end(), 0.0);
+    }
+
+private:
+
+    double mSearchTolerance;
+
 }; // Class VariableInterpolationUtility
 
 } // namespace Kratos.

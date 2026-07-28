@@ -103,6 +103,11 @@ public:
         {
             rA = rB;
         }
+
+        static double Norm(const double& rValue)
+        {
+            return rValue;
+        }
     };
 
     struct Array1DVariableInitializer
@@ -124,6 +129,11 @@ public:
         static void inline Initialize(array_1d<double, 3>& rA, const array_1d<double, 3>& rB)
         {
             noalias(rA) = rB;
+        }
+
+        static double Norm(const array_1d<double, 3>& rValue)
+        {
+            return norm_2(rValue);
         }
     };
 
@@ -152,6 +162,11 @@ public:
         {
             noalias(rA) = rB;
         }
+
+        static double Norm(const Vector& rValue)
+        {
+            return norm_2(rValue);
+        }
     };
 
     VariableUtility()
@@ -163,12 +178,14 @@ public:
     VariableUtility(const TEntitiesContainerType& pElements)
     : mEchoLevel(0), mpElements(pElements)
     {
+        mpElements.Sort(); // the provided container should be sorted previously but it is resorted here as a safety net
         std::cout << "VariableUtility created, number of elements = " << mpElements.size() << std::endl;
     }
 
     VariableUtility(const TEntitiesContainerType& pElements, const int EchoLevel)
     : mEchoLevel(EchoLevel), mpElements(pElements)
     {
+        mpElements.Sort(); // the provided container should be sorted previously but it is resorted here as a safety net
         std::cout << "VariableUtility created, number of elements = " << mpElements.size() << std::endl;
     }
 
@@ -257,6 +274,27 @@ public:
     {
         return mEchoLevel;
     }
+
+    ///@name Input and output
+    ///@{
+
+    /// Turn back information as a string.
+    virtual std::string Info() const
+    {
+        return "VariableUtility";
+    }
+
+    /// Print information about this object.
+    virtual void PrintInfo(std::ostream& rOStream) const
+    {
+    }
+
+    /// Print object's data.
+    virtual void PrintData(std::ostream& rOStream) const
+    {
+    }
+
+    ///@}
 
 protected:
 

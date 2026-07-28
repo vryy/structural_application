@@ -92,7 +92,7 @@ public:
     : BaseType(pElements), mDx(Dx), mDy(Dy), mDz(Dz)
     {
         this->Initialize(pElements);
-        std::cout << "VariableBinningInterpolationUtility created" << std::endl;
+        this->PrintInfo(std::cout);
     }
 
     VariableBinningInterpolationUtility(const TEntitiesContainerType& pElements,
@@ -101,12 +101,39 @@ public:
     {
         this->Initialize(pElements);
         if (this->GetEchoLevel() > 0)
-            std::cout << "VariableBinningInterpolationUtility created" << std::endl;
+            this->PrintInfo(std::cout);
     }
 
     ~VariableBinningInterpolationUtility() override
     {
     }
+
+    ///@name Input and output
+    ///@{
+
+    std::string Info() const override
+    {
+        return "VariableBinningInterpolationUtility";
+    }
+
+    void PrintInfo(std::ostream& rOStream) const override
+    {
+        rOStream << "max bin = " << this->ComputeMaxBin()
+                 << ", min bin = " << this->ComputeMinBin()
+                 << ", no of bin = " << mBinElements.size()
+                 << ", sum bin = " << this->ComputeSumBin()
+                 << std::endl;
+        auto map_bin_size = this->ComputeBinDistribution();
+        rOStream << "Bin distribution:" << std::endl;
+        for (auto it = map_bin_size.begin(); it != map_bin_size.end(); ++it)
+        {
+            rOStream << "  " << it->first << ": " << it->second
+                     << " (" << double(it->second) / mBinElements.size() * 100.0 << " %)"
+                     << std::endl;
+        }
+    }
+
+    ///@}
 
 protected:
 
@@ -199,7 +226,7 @@ protected:
 
         if(it_bin_elements != mBinElements.end())
         {
-            for(std::set<std::size_t>::const_iterator it = it_bin_elements->second.begin(); it != it_bin_elements->second.end(); ++it )
+            for(auto it = it_bin_elements->second.begin(); it != it_bin_elements->second.end(); ++it )
             {
                 auto it_elem = BaseType::mpElements.find(*it);
                 if (it_elem != BaseType::mpElements.end())
@@ -268,6 +295,47 @@ private:
                 if (rGeometry[i].Z() > vmax[2]) vmax[2] = rGeometry[i].Z();
             }
         }
+    }
+
+    std::size_t ComputeMaxBin() const
+    {
+        std::size_t bin_size = 0;
+        for (auto it = mBinElements.begin(); it != mBinElements.end(); ++it)
+            if (it->second.size() > bin_size)
+                bin_size = it->second.size();
+        return bin_size;
+    }
+
+    std::size_t ComputeMinBin() const
+    {
+        std::size_t bin_size = 1e99;
+        for (auto it = mBinElements.begin(); it != mBinElements.end(); ++it)
+            if (it->second.size() < bin_size)
+                bin_size = it->second.size();
+        return bin_size;
+    }
+
+    std::size_t ComputeSumBin() const
+    {
+        std::size_t bin_size = 0;
+        for (auto it = mBinElements.begin(); it != mBinElements.end(); ++it)
+            bin_size += it->second.size();
+        return bin_size;
+    }
+
+    std::map<std::size_t, std::size_t> ComputeBinDistribution() const
+    {
+        std::map<std::size_t, std::size_t> map_bin_size;
+        for (auto it = mBinElements.begin(); it != mBinElements.end(); ++it)
+        {
+            std::size_t key = it->second.size();
+            auto it2 = map_bin_size.find(key);
+            if (it2 == map_bin_size.end())
+                map_bin_size[key] = 1;
+            else
+                it2->second += 1;
+        }
+        return map_bin_size;
     }
 
 }; // Class VariableBinningInterpolationUtility
