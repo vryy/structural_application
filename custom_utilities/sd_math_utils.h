@@ -1193,63 +1193,43 @@ public:
     }
 
     /**
-    * Transforms a given 6*1 vector to a corresponding symmetric tensor of second order (3*3)
-    * @param Stress the given vector
-    * @param T the symmetric second order tensor
+    * Transforms a given vector to a second order tensor. The vector stride is assumed as s2.
+    * @param V the given vector; the vector must have the size s1*s2
+    * @param T the second order tensor
     */
     template<typename TVectorType, typename TMatrixType>
-    static inline void VectorToTensor(const TVectorType& Stress, TMatrixType& T)
+    static inline void VectorToTensor(const TVectorType& V, TMatrixType& T)
     {
-        if(Stress.size()==6)
-        {
-            T.resize(3,3);
-            T(0,0)= Stress(0);
-            T(0,1)= Stress(3);
-            T(0,2)= Stress(5);
-            T(1,0)= Stress(3);
-            T(1,1)= Stress(1);
-            T(1,2)= Stress(4);
-            T(2,0)= Stress(5);
-            T(2,1)= Stress(4);
-            T(2,2)= Stress(2);
-        }
-        if(Stress.size()==3)
-        {
-            T.resize(2,2);
-            T(0,0)= Stress(0);
-            T(0,1)= Stress(2);
-            T(1,0)= Stress(2);
-            T(1,1)= Stress(1);
-        }
+        const std::size_t s1 = T.size1();
+        const std::size_t s2 = T.size2();
+
+        if (V.size() != s1*s2)
+            KRATOS_ERROR << "The vector size and the given size is not compatible."
+                         << " The vector size is " << V.size() << ", meanwhile T.size1() = " << s1
+                         << " and T.size2() = " << s2;
+
+        for (std::size_t i = 0; i < s1; ++i)
+            for (std::size_t j = 0; j < s2; ++j)
+                T(i, j) = V(i*s2+j);
     }
 
     /**
-    * Transforms a given symmetric tensor of second order (3*3) to a corresponing 6*1 Vector
-    * @param T the given symmetric second order tensor
-    * @param Vector the vector
+    * Transforms a given second order tensor to a vector. The vector stride is the second dimension of the matrix.
+    * @param T the given second order tensor
+    * @param V the vector
     */
     template<typename TVectorType, typename TMatrixType>
-    static void TensorToVector( const TMatrixType& T, TVectorType& Vector)
+    static void TensorToVector( const TMatrixType& T, TVectorType& V)
     {
-        //if(Vector.size()!= 6)
-        unsigned int  dim  =  T.size1();
-        if (dim==3)
-        {
-            Vector.resize(6,false);
-            Vector(0)= T(0,0);
-            Vector(1)= T(1,1);
-            Vector(2)= T(2,2);
-            Vector(3)= T(0,1);
-            Vector(4)= T(1,2);
-            Vector(5)= T(2,0);
-        }
-        else if(dim==2)
-        {
-            Vector.resize(3,false);
-            Vector(0)= T(0,0);
-            Vector(1)= T(1,1);
-            Vector(2)= T(0,1);
-        }
+        const std::size_t s1 = T.size1();
+        const std::size_t s2 = T.size2();
+
+        if (V.size() != s1*s2)
+            V.resize(s1*s2, false);
+
+        for (std::size_t i = 0; i < s1; ++i)
+            for (std::size_t j = 0; j < s2; ++j)
+                V(i*s2+j) = T(i, j);
     }
 
     /// Transformation from a fourth order tensor to symmetric matrix. The matrix
