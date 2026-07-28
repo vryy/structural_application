@@ -146,9 +146,9 @@ public:
             if( a == 0 )
                 return false;
 
-            solution(0)= pow(q/2.0, 1.0/3.0)-b/(3*a);
-            solution(1)= pow(q/2.0, 1.0/3.0)-b/(3*a);
-            solution(2)= pow(-4.0*q, 1.0/3.0)-b/(3*a);
+            solution(0) = pow(q/2.0, 1.0/3.0)-b/(3*a);
+            solution(1) = pow(q/2.0, 1.0/3.0)-b/(3*a);
+            solution(2) = pow(-4.0*q, 1.0/3.0)-b/(3*a);
 
             return true;
         }
@@ -255,7 +255,7 @@ public:
 
         for(int i=0; i<dim; i++)
         {
-            Result(i)= HelpA(i,i);
+            Result(i) = HelpA(i,i);
 
             if(std::abs(Result(i)) <zero)
                 Result(i)=0.0;
@@ -405,15 +405,15 @@ public:
         {
             HelpQ[i].resize(dim,dim,false);
             HelpR[i].resize(dim,dim,false);
-            noalias(HelpQ[i])= unity;
-            noalias(HelpR[i])= ZeroMatrix(dim,dim);
+            noalias(HelpQ[i]) = unity;
+            noalias(HelpR[i]) = ZeroMatrix(dim,dim);
         }
 
         for(int iteration=0; iteration< dim-1; iteration++)
         {
             //Vector y
             for(int i=iteration; i<dim; i++)
-                y(i)= Help(i,iteration);
+                y(i) = Help(i,iteration);
 
 
             //Helpvalue l
@@ -440,12 +440,12 @@ public:
                 if(i==iteration)
                     e=1;
 
-                w(i)= 1/(2*l)*(y(i)-k*e);
+                w(i) = 1/(2*l)*(y(i)-k*e);
             }
 
             for(int i=iteration; i<dim; i++)
                 for(int j=iteration; j<dim; j++)
-                    HelpQ[iteration](i,j)= unity(i,j)- 2*w(i)*w(j);
+                    HelpQ[iteration](i,j) = unity(i,j)- 2*w(i)*w(j);
 
 
             for(int i=iteration; i<dim; i++)
@@ -494,7 +494,7 @@ public:
 
         for(int i=0; i<3; i++)
             for(int j=0; j<3; j++)
-                Help(i,j)= Help(i,j);
+                Help(i,j) = Help(i,j);
 
 
         vectors.resize(Help.size1(),Help.size2(),false);
@@ -508,7 +508,7 @@ public:
         MatrixType unity=ZeroMatrix(Help.size1(),Help.size2());
 
         for(unsigned int i=0; i< Help.size1(); i++)
-            unity(i,i)= 1.0;
+            unity(i,i) = 1.0;
 
         MatrixType V= unity;
 
@@ -573,10 +573,10 @@ public:
             //Ratotion of the Matrix
             HelpDummy= Help;
 
-            HelpDummy(index2,index2)= Help(index2,index2)+u*Help(index1,index2);
-            HelpDummy(index1,index1)= Help(index1,index1)-u*Help(index1,index2);
-            HelpDummy(index1,index2)= 0.0;
-            HelpDummy(index2,index1)= 0.0;
+            HelpDummy(index2,index2) = Help(index2,index2)+u*Help(index1,index2);
+            HelpDummy(index1,index1) = Help(index1,index1)-u*Help(index1,index2);
+            HelpDummy(index1,index2) = 0.0;
+            HelpDummy(index2,index1) = 0.0;
 
             for(unsigned int i=0; i<Help.size1(); i++)
             {
@@ -652,12 +652,12 @@ public:
         {
             for(unsigned int j=0; j< Help.size1(); j++)
             {
-                vectors(i,j)= V(j,i);
+                vectors(i,j) = V(j,i);
             }
         }
 
         for(unsigned int i=0; i<Help.size1(); i++)
-            lambda(i)= Help(i,i);
+            lambda(i) = Help(i,i);
     }
 
     /**
@@ -1605,7 +1605,7 @@ public:
             for(unsigned int j=0; j<3; j++)
             {
                 T[i][j].resize(3,3,false);
-                noalias(T[i][j])= ZeroMatrix(3,3);
+                noalias(T[i][j]) = ZeroMatrix(3,3);
                 for(unsigned int k=0; k<3; k++)
                 {
                     for(unsigned int l=0; l<3; l++)
@@ -1630,7 +1630,7 @@ public:
                             if((k==2 && l==0) || (k==0 && l==2)) help2= 5;
                         }
 
-                        T[i][j](k,l)= A(help1,help2)*coeff;
+                        T[i][j](k,l) = A(help1,help2)*coeff;
                     }
                 }
             }
@@ -1753,7 +1753,7 @@ public:
                     coeff= 2.0;
                 }
 
-                A(i,j)= T[help1][help2](help3,help4)*coeff;
+                A(i,j) = T[help1][help2](help3,help4)*coeff;
             }
         }
     }
@@ -2369,7 +2369,7 @@ public:
             for(unsigned int j=0; j<3; j++)
             {
                 Unity[i][j].resize(3,3,false);
-                noalias(Unity[i][j])= ZeroMatrix(3,3);
+                noalias(Unity[i][j]) = ZeroMatrix(3,3);
 
                 for(unsigned int k=0; k<3; k++)
                 {
@@ -3011,8 +3011,8 @@ public:
             if(clipp_edge< (clipping_points.size()-1))
                 index_clipp_2= clipp_edge+1;
             //define clipping edge vector
-            noalias(actual_edge)= *(clipping_points[clipp_edge])-*(clipping_points[index_clipp_2]);
-            noalias(actual_edge)= actual_edge/sqrt(inner_prod(actual_edge,actual_edge));
+            noalias(actual_edge) = *(clipping_points[clipp_edge])-*(clipping_points[index_clipp_2]);
+            noalias(actual_edge) = actual_edge/sqrt(inner_prod(actual_edge,actual_edge));
 
             //define normal on clipping-edge vector towards visible side
             if(clipp_edge< (clipping_points.size()-2))
@@ -3054,12 +3054,12 @@ public:
                 }
                 //Calculate minimal distance between the two points
                 VectorType b(2);
-                b(0)= -inner_prod((*(result_points[index_subj_2])-*(result_points[subj_edge])),(*(result_points[subj_edge])-*(clipping_points[clipp_edge])));
-                b(1)= inner_prod((*(clipping_points[index_clipp_2])-*(clipping_points[clipp_edge])),(*(result_points[subj_edge])-*(clipping_points[clipp_edge])));
+                b(0) = -inner_prod((*(result_points[index_subj_2])-*(result_points[subj_edge])),(*(result_points[subj_edge])-*(clipping_points[clipp_edge])));
+                b(1) = inner_prod((*(clipping_points[index_clipp_2])-*(clipping_points[clipp_edge])),(*(result_points[subj_edge])-*(clipping_points[clipp_edge])));
                 MatrixType A(2,2);
                 A(0,0)=inner_prod((*(result_points[index_subj_2])-*(result_points[subj_edge])),(*(result_points[index_subj_2])-*(result_points[subj_edge])));
                 A(0,1)=-inner_prod((*(result_points[index_subj_2])-*(result_points[subj_edge])),(*(clipping_points[index_clipp_2])-*(clipping_points[clipp_edge])));
-                A(1,0)= A(0,1);
+                A(1,0) = A(0,1);
                 A(1,1)=inner_prod(*(clipping_points[index_clipp_2])-*(clipping_points[clipp_edge]),*(clipping_points[index_clipp_2])-*(clipping_points[clipp_edge]));
                 VectorType coeff(2);
                 coeff(0)=1.0/A(0,0)*(b(0)-A(0,1)/(A(1,1)-A(0,1)*A(1,0)/A(0,0))*(b(1)-b(0)*A(1,0)/A(0,0)));
@@ -3068,7 +3068,7 @@ public:
 
                 //TEST on distance to endpoints of the line
                 VectorType dist_vec(3);
-                noalias(dist_vec)= *(result_points[subj_edge])+coeff(0)*(*(result_points[index_subj_2])-*(result_points[subj_edge]))-(*(clipping_points[clipp_edge])+coeff(1)*(*(clipping_points[index_clipp_2])-*(clipping_points[clipp_edge])));
+                noalias(dist_vec) = *(result_points[subj_edge])+coeff(0)*(*(result_points[index_subj_2])-*(result_points[subj_edge]))-(*(clipping_points[clipp_edge])+coeff(1)*(*(clipping_points[index_clipp_2])-*(clipping_points[clipp_edge])));
 
                 if( coeff(0) > tolerance && coeff(0) < (1-tolerance)&& (sqrt(inner_prod(dist_vec,dist_vec))< tolerance))
                 {
