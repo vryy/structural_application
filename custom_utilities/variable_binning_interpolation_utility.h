@@ -54,6 +54,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define  KRATOS_VARIABLE_BINNING_INTERPOLATION_UTILITY_INCLUDED
 
 //System includes
+#include <limits>
 #ifdef _OPENMP
 #include <omp.h>
 #endif
@@ -308,7 +309,7 @@ private:
 
     std::size_t ComputeMinBin() const
     {
-        std::size_t bin_size = 1e99;
+        std::size_t bin_size = std::numeric_limits<std::size_t>::max();
         for (auto it = mBinElements.begin(); it != mBinElements.end(); ++it)
             if (it->second.size() < bin_size)
                 bin_size = it->second.size();
