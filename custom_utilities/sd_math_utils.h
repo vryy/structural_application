@@ -1135,9 +1135,9 @@ public:
 
                 det *= A(i, i);
             }
+            inverse.assign(IdentityMatrix(size));
+            lu_substitute(A, pm, inverse);
         }
-        inverse.assign(IdentityMatrix(size));
-        lu_substitute(A, pm, inverse);
         return singular;
     }
 
@@ -1155,10 +1155,11 @@ public:
         const std::size_t size = A.size1();
         pmatrix pm(size);
         const int singular = lu_factorize(Acopy, pm);
-        MatrixType inverse;
-        inverse.assign(IdentityMatrix(size));
-        lu_substitute(Acopy, pm, inverse);
-        noalias(x) = prod(inverse, b);
+        if (!singular)
+        {
+            noalias(x) = b;
+            lu_substitute(Acopy, pm, x);
+        }
         return singular;
     }
 
