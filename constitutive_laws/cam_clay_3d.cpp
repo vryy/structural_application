@@ -963,7 +963,6 @@ int CamClay3D::solveG(double& Pc, double pTr)
             KRATOS_WATCH(mTheta)
             KRATOS_WATCH(mDGamma)
             KRATOS_WATCH(mKm)
-            std::cout << "solveG (invalid input): " << result << std::endl;
         }
         #endif
 
