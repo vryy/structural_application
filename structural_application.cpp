@@ -165,8 +165,8 @@ namespace Kratos
 {
 
 KratosStructuralApplication::KratosStructuralApplication()
-#ifdef SD_APP_FORWARD_COMPATIBILITY
     : KratosApplication("StructuralApplication")
+#ifdef SD_APP_FORWARD_COMPATIBILITY
     , mCrisfieldTrussElement3D2N( 0, Element::GeometryType::Pointer( new Line3D2<Node>( Element::GeometryType::PointsArrayType( 2 ) ) ) )
     , mCrisfieldTrussElement3D3N( 0, Element::GeometryType::Pointer( new Line3D3<Node>( Element::GeometryType::PointsArrayType( 3 ) ) ) )
     , mTrussElement3D2N( 0, Element::GeometryType::Pointer( new Line3D2<Node>( Element::GeometryType::PointsArrayType( 2 ) ) ) )
@@ -243,7 +243,6 @@ KratosStructuralApplication::KratosStructuralApplication()
     , mPointForce2D( 0, Element::GeometryType::Pointer( new Point2D<Node>( Element::GeometryType::PointsArrayType( 1 ) ) ) )
     , mPointMoment3D( 0, Element::GeometryType::Pointer( new Point3D<Node>( Element::GeometryType::PointsArrayType( 1 ) ) ) )
 #else
-    : KratosApplication()
     , mCrisfieldTrussElement3D2N( 0, Element::GeometryType::Pointer( new Line3D2<RealNode>( Element::GeometryType::PointsArrayType( 2, RealNode() ) ) ) )
     , mCrisfieldTrussElement3D3N( 0, Element::GeometryType::Pointer( new Line3D3<RealNode>( Element::GeometryType::PointsArrayType( 3, RealNode() ) ) ) )
     , mTrussElement3D2N( 0, Element::GeometryType::Pointer( new Line3D2<RealNode>( Element::GeometryType::PointsArrayType( 2, RealNode() ) ) ) )
