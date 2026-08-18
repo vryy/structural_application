@@ -171,6 +171,7 @@ def CheckAndConvertParameters(analysis_parameters):
         new_analysis_parameters['builder_and_solver_type'] = "residual-based elimination deactivation"
         new_analysis_parameters['solution_strategy'] = "implicit_Newton_Raphson"
         new_analysis_parameters['move_mesh'] = True
+        new_analysis_parameters['reform_dofset_at_each_step'] = True
         new_analysis_parameters['convergence_criteria'] = "multiphase"
         return new_analysis_parameters
     else:
@@ -360,7 +361,10 @@ class SolverAdvanced(structural_solver_static.StaticStructuralSolver):
         print("builder_and_solver type: " + str(self.analysis_parameters['builder_and_solver_type']))
 
         #creating the solution strategy
-        self.ReformDofSetAtEachStep = True
+        if 'reform_dofset_at_each_step' in self.analysis_parameters:
+            self.ReformDofSetAtEachStep = self.analysis_parameters['reform_dofset_at_each_step']
+        else:
+            self.ReformDofSetAtEachStep = True
         self.space_utils = UblasSparseSpace()
         self.model_part.ProcessInfo[RESET_CONFIGURATION] = 0
 
