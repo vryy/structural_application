@@ -56,10 +56,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
 /* Project includes */
-#include "includes/define.h"
-#include "includes/model_part.h"
+#include "includes/legacy_structural_app_vars.h"
 #include "solving_strategies/schemes/scheme.h"
-#include "includes/variables.h"
 #include "custom_elements/prescribed_object.h"
 
 namespace Kratos
@@ -90,36 +88,11 @@ namespace Kratos
 /**@name Kratos Classes */
 /*@{ */
 
-/** Short class definition.
-
-This class provides the implementation of the basic tasks that are needed by the solution strategy.
-It is intended to be the place for tailoring the solution strategies to problem specific tasks.
-
-Detail class definition.
-
-\URL[Example of use html]{ extended_documentation/no_ex_of_use.html}
-
-\URL[Example of use pdf]{ extended_documentation/no_ex_of_use.pdf}
-
-\URL[Example of use doc]{ extended_documentation/no_ex_of_use.doc}
-
-\URL[Example of use ps]{ extended_documentation/no_ex_of_use.ps}
-
-
-\URL[Extended documentation html]{ extended_documentation/no_ext_doc.html}
-
-\URL[Extended documentation pdf]{ extended_documentation/no_ext_doc.pdf}
-
-\URL[Extended documentation doc]{ extended_documentation/no_ext_doc.doc}
-
-\URL[Extended documentation ps]{ extended_documentation/no_ext_doc.ps}
-
-
-*/
 template<class TSparseSpace,
-         class TDenseSpace //= DenseSpace<double>
+         class TDenseSpace, //= DenseSpace<double>
+         class TModelPartType = ModelPart
          >
-class ResidualBasedIncrementalUpdateStaticDeactivationScheme : public Scheme<TSparseSpace,TDenseSpace>
+class ResidualBasedIncrementalUpdateStaticDeactivationScheme : public Scheme<TSparseSpace, TDenseSpace, TModelPartType>
 {
 
 public:
@@ -128,7 +101,7 @@ public:
 
     KRATOS_CLASS_POINTER_DEFINITION( ResidualBasedIncrementalUpdateStaticDeactivationScheme);
 
-    typedef Scheme<TSparseSpace,TDenseSpace> BaseType;
+    typedef Scheme<TSparseSpace, TDenseSpace, TModelPartType> BaseType;
 
     typedef TSparseSpace SparseSpaceType;
     typedef TDenseSpace DenseSpaceType;
@@ -155,7 +128,7 @@ public:
     /** Constructor.
     */
     ResidualBasedIncrementalUpdateStaticDeactivationScheme()
-        : Scheme<TSparseSpace,TDenseSpace>()
+        : BaseType()
     {}
 
     /** Destructor.
@@ -178,7 +151,7 @@ public:
     /*@{ */
 
     void Update(
-        ModelPart& r_model_part,
+        TModelPartType& r_model_part,
         DofsArrayType& rDofSet,
         TSystemMatrixType& A,
         TSystemVectorType& Dx,
@@ -199,7 +172,7 @@ public:
     }
 
     void InitializeSolutionStep(
-        ModelPart& r_model_part,
+        TModelPartType& r_model_part,
         TSystemMatrixType& A,
         TSystemVectorType& Dx,
         TSystemVectorType& b
@@ -238,7 +211,7 @@ public:
     }
 
     void InitializeNonLinIteration(
-        ModelPart& r_model_part,
+        TModelPartType& r_model_part,
         TSystemMatrixType& A,
         TSystemVectorType& Dx,
         TSystemVectorType& b
@@ -276,7 +249,7 @@ public:
     }
 
     void FinalizeNonLinIteration(
-        ModelPart& r_model_part,
+        TModelPartType& r_model_part,
         TSystemMatrixType& A,
         TSystemVectorType& Dx,
         TSystemVectorType& b
@@ -286,7 +259,7 @@ public:
 
         // to account for prescribed displacement, the displacement at prescribed nodes need to be updated
         double curr_disp, delta_disp;
-        for (ModelPart::NodesContainerType::iterator it_node = r_model_part.Nodes().begin(); it_node != r_model_part.Nodes().end(); ++it_node)
+        for (auto it_node = r_model_part.Nodes().begin(); it_node != r_model_part.Nodes().end(); ++it_node)
         {
             if (it_node->IsFixed(DISPLACEMENT_X))
             {
@@ -345,7 +318,7 @@ public:
     }
 
     void FinalizeSolutionStep(
-        ModelPart& rModelPart,
+        TModelPartType& rModelPart,
         TSystemMatrixType& A,
         TSystemVectorType& Dx,
         TSystemVectorType& b
