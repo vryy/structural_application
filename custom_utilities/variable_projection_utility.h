@@ -139,9 +139,9 @@ public:
         number_of_threads = omp_get_max_threads();
 #endif
 
+        unsigned int M_size = pActiveNodes.size();
 #ifdef _OPENMP
         //create the array of lock
-        unsigned int M_size = pActiveNodes.size();
         std::vector<omp_lock_t> lock_array(M_size);
         for (unsigned int i = 0; i < M_size; ++i)
             omp_init_lock(&lock_array[i]);
@@ -271,9 +271,9 @@ public:
         number_of_threads = omp_get_max_threads();
 #endif
 
+        unsigned int M_size = pActiveNodes.size();
 #ifdef _OPENMP
         //create the array of lock
-        unsigned int M_size = pActiveNodes.size();
         std::vector<omp_lock_t> lock_array(M_size);
         for (unsigned int i = 0; i < M_size; ++i)
             omp_init_lock(&lock_array[i]);
