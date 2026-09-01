@@ -88,32 +88,12 @@ namespace Kratos
 /*@{ */
 
 
-
 /*@} */
 /**@name Kratos Classes */
 /*@{ */
 
-/** Short class definition.
-Detail class definition.
-
-\URL[Example of use html]{ extended_documentation/no_ex_of_use.html}
-
-\URL[Example of use pdf]{ extended_documentation/no_ex_of_use.pdf}
-
-\URL[Example of use doc]{ extended_documentation/no_ex_of_use.doc}
-
-\URL[Example of use ps]{ extended_documentation/no_ex_of_use.ps}
-
-
-\URL[Extended documentation html]{ extended_documentation/no_ext_doc.html}
-
-\URL[Extended documentation pdf]{ extended_documentation/no_ext_doc.pdf}
-
-\URL[Extended documentation doc]{ extended_documentation/no_ext_doc.doc}
-
-\URL[Extended documentation ps]{ extended_documentation/no_ext_doc.ps}
-
-
+/**
+ * Define a convergence criteria for multiphase problem, including water, air and displacement.
  */
 template<class TSparseSpace,
          class TDenseSpace,
@@ -148,9 +128,7 @@ public:
 
     /** Constructor.
      */
-    MultiPhaseFlowCriteria(
-        ValueType RelativeTolerance,
-        ValueType AbsoluteTolerance)
+    MultiPhaseFlowCriteria(ValueType RelativeTolerance, ValueType AbsoluteTolerance)
         : BaseType()
     {
         mRelativeTolerance = RelativeTolerance;
@@ -560,7 +538,7 @@ public:
     /// Turn back information as a string.
     std::string Info() const override
     {
-        return "ConvergenceCriteria";
+        return "MultiPhaseFlowCriteria";
     }
 
     ///@}

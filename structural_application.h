@@ -198,6 +198,7 @@ public:
 
     /// Pointer definition of KratosStructuralApplication
     KRATOS_CLASS_POINTER_DEFINITION(KratosStructuralApplication);
+
     ///@}
     ///@name Life Cycle
     ///@{
