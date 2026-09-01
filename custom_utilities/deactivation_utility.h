@@ -61,6 +61,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <fstream>
 #include <cmath>
 
+#ifdef _OPENMP
+#include <omp.h>
+#endif
+
 // #if !defined(isnan)
 // #define isnan(x) (x!=x)
 // #endif
@@ -177,6 +181,7 @@ public:
             std::cout << "deactivation utility initialized" << std::endl;
     }
 
+#ifdef _OPENMP
     /**
      * Initializes all elements before performing any calculation.
      * This is done even for those elements that are deactivated
@@ -247,6 +252,7 @@ public:
         if(mEchoLevel > 0)
             std::cout << "deactivation utility (multithreaded) initialized" << std::endl;
     }
+#endif
 
     /**
      * Deactivates all elements and conditions marked with an
@@ -445,7 +451,7 @@ private:
      */
     //DeactivationUtility(DeactivationUtility const& rOther);
 
-}; //class DeactivationUtility
+}; // class DeactivationUtility
 
 }  // namespace Kratos.
 

@@ -785,12 +785,15 @@ void AddCustomUtilitiesToPython()
     .def( "ReactivateAll", &DeactivationUtility::ReactivateAll<ModelPart> )
     .def( "ReactivateAll", &DeactivationUtility::ReactivateAll<ComplexModelPart> )
     .def( "ReactivateAll", &DeactivationUtility::ReactivateAll<GComplexModelPart> )
+#ifndef _OPENMP
     .def( "Initialize", &DeactivationUtility::Initialize<ModelPart> )
     .def( "Initialize", &DeactivationUtility::Initialize<ComplexModelPart> )
     .def( "Initialize", &DeactivationUtility::Initialize<GComplexModelPart> )
-    .def( "InitializeWithThreads", &DeactivationUtility::InitializeWithThreads<ModelPart> )
-    .def( "InitializeWithThreads", &DeactivationUtility::InitializeWithThreads<ComplexModelPart> )
-    .def( "InitializeWithThreads", &DeactivationUtility::InitializeWithThreads<GComplexModelPart> )
+#else
+    .def( "Initialize", &DeactivationUtility::InitializeWithThreads<ModelPart> )
+    .def( "Initialize", &DeactivationUtility::InitializeWithThreads<ComplexModelPart> )
+    .def( "Initialize", &DeactivationUtility::InitializeWithThreads<GComplexModelPart> )
+#endif
     .def( "GetName", &DeactivationUtility::GetName<Element> )
     .def( "GetName", &DeactivationUtility::GetName<Condition> )
     .def( "SetAssociatedElement", &SetAssociatedElement )
