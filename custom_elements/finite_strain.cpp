@@ -445,7 +445,6 @@ namespace Kratos
             this->CalculateG( GX, N, DN_DX );
             this->CalculateF( F, GX, CurrentDisp );
 
-
             DetF = MathUtils<double>::Det(F);
 
             #ifdef CHECK_DEFORMATION_GRADIENT
@@ -1902,6 +1901,14 @@ namespace Kratos
             FO.resize(f_size, f_size, false);
             this->CalculateF( FO, GOX, CurrentDisp );
             DetFO = MathUtils<double>::Det(FO);
+
+            #ifdef CHECK_DEFORMATION_GRADIENT
+            if (DetFO < 0.0)
+            {
+                KRATOS_WATCH(FO, DetFO)
+                KRATOS_ERROR << "Deformation gradient is negative at origin of element " << Id();
+            }
+            #endif
         }
 
         for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
@@ -1945,8 +1952,16 @@ namespace Kratos
                 }
                 else
                     KRATOS_ERROR << "Invalid size " << f_size << " of deformation gradient";
-            }
 
+                #ifdef CHECK_DEFORMATION_GRADIENT
+                if (DetF < 0.0)
+                {
+                    KRATOS_WATCH(F, DetF)
+                    KRATOS_ERROR << "Deformation gradient is negative at integration point " << PointNumber
+                                << " of element " << Id();
+                }
+                #endif
+            }
 
             if ( rVariable == GREEN_LAGRANGE_STRAIN_TENSOR )
             {
