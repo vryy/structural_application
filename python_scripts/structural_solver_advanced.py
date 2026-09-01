@@ -209,10 +209,10 @@ class SolverAdvanced(structural_solver_static.StaticStructuralSolver):
             raise Exception("Invalid parameter nonlinear_mass_damping")
 
         ## selection for time integration scheme
-        if (self.analysis_parameters['solution_strategy'] == "implicit_Newton_Raphson")     \
-                or (self.analysis_parameters['solution_strategy'] == "initial_stiffness")   \
-                or (self.analysis_parameters['solution_strategy'] == "modified_thomas")     \
-                or (self.analysis_parameters['solution_strategy'] == "modified_sloan" ):
+        if (self.analysis_parameters['solution_strategy'] == "implicit_Newton_Raphson") \
+        or (self.analysis_parameters['solution_strategy'] == "initial_stiffness")       \
+        or (self.analysis_parameters['solution_strategy'] == "modified_thomas")         \
+        or (self.analysis_parameters['solution_strategy'] == "modified_sloan" ):
             #definition of time integration scheme
             if( self.analysis_parameters['analysis_type'] == 0 ):
                 print("using static scheme")

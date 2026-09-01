@@ -43,9 +43,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 /* *********************************************************
  *
- *   Last Modified by:    $Author: janosch $
- *   Dxte:                $Dxte: 2007-04-13 15:59:32 $
- *   Revision:            $Revision: 1.2 $
+ *   Created by:          $Author: janosch $
+ *   Last Modified by:    $Author: hbui $
+ *   Date:                $Date: 2007-04-13 15:59:32 $
+ *   Revision:            $Revision: 1.3 $
  *
  * ***********************************************************/
 
@@ -63,7 +64,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 /* Project includes */
 #include "includes/model_part.h"
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
-#include "structural_application_variables.h"
 
 namespace Kratos
 {
@@ -198,45 +198,52 @@ public:
             {
                 if (i_dof->IsFree())
                 {
+                    const auto eq_id = i_dof->EquationId();
+
                     if (i_dof->GetVariable() == DISPLACEMENT_X)
                     {
                         HasDisplacement = true;
+                        double aux = i_dof->GetSolutionStepValue(DISPLACEMENT_X);
 
-                        norm_Dx += Dx[i_dof->EquationId()] * Dx[i_dof->EquationId()];
-                        norm_b += b[i_dof->EquationId()] * b[i_dof->EquationId()];
-                        norm_x += i_dof->GetSolutionStepValue(DISPLACEMENT_X) * i_dof->GetSolutionStepValue(DISPLACEMENT_X);
+                        norm_Dx += Dx[eq_id] * Dx[eq_id];
+                        norm_b += b[eq_id] * b[eq_id];
+                        norm_x += aux * aux;
                     }
                     if (i_dof->GetVariable() == DISPLACEMENT_Y)
                     {
                         HasDisplacement = true;
+                        double aux = i_dof->GetSolutionStepValue(DISPLACEMENT_Y);
 
-                        norm_Dx += Dx[i_dof->EquationId()] * Dx[i_dof->EquationId()];
-                        norm_b += b[i_dof->EquationId()] * b[i_dof->EquationId()];
-                        norm_x += i_dof->GetSolutionStepValue(DISPLACEMENT_Y) * i_dof->GetSolutionStepValue(DISPLACEMENT_Y);
+                        norm_Dx += Dx[eq_id] * Dx[eq_id];
+                        norm_b += b[eq_id] * b[eq_id];
+                        norm_x += aux * aux;
                     }
                     if (i_dof->GetVariable() == DISPLACEMENT_Z)
                     {
                         HasDisplacement = true;
+                        double aux = i_dof->GetSolutionStepValue(DISPLACEMENT_Z);
 
-                        norm_Dx += Dx[i_dof->EquationId()] * Dx[i_dof->EquationId()];
-                        norm_b += b[i_dof->EquationId()] * b[i_dof->EquationId()];
-                        norm_x += i_dof->GetSolutionStepValue(DISPLACEMENT_Z) * i_dof->GetSolutionStepValue(DISPLACEMENT_Z);
+                        norm_Dx += Dx[eq_id] * Dx[eq_id];
+                        norm_b += b[eq_id] * b[eq_id];
+                        norm_x += aux * aux;
                     }
                     if (i_dof->GetVariable() == WATER_PRESSURE)
                     {
                         HasWaterPres = true;
+                        double aux = i_dof->GetSolutionStepValue(WATER_PRESSURE);
 
-                        norm_Dx_WATER += Dx[i_dof->EquationId()] * Dx[i_dof->EquationId()];
-                        norm_b_WATER += b[i_dof->EquationId()] * b[i_dof->EquationId()];
-                        norm_x_WATER += i_dof->GetSolutionStepValue(WATER_PRESSURE) * i_dof->GetSolutionStepValue(WATER_PRESSURE);
+                        norm_Dx_WATER += Dx[eq_id] * Dx[eq_id];
+                        norm_b_WATER += b[eq_id] * b[eq_id];
+                        norm_x_WATER += aux * aux;
                     }
                     if (i_dof->GetVariable() == AIR_PRESSURE)
                     {
                         HasAirPres = true;
+                        double aux = i_dof->GetSolutionStepValue(AIR_PRESSURE);
 
-                        norm_Dx_AIR += Dx[i_dof->EquationId()] * Dx[i_dof->EquationId()];
-                        norm_b_AIR += b[i_dof->EquationId()] * b[i_dof->EquationId()];
-                        norm_x_AIR += i_dof->GetSolutionStepValue(AIR_PRESSURE) * i_dof->GetSolutionStepValue(AIR_PRESSURE);
+                        norm_Dx_AIR += Dx[eq_id] * Dx[eq_id];
+                        norm_b_AIR += b[eq_id] * b[eq_id];
+                        norm_x_AIR += aux * aux;
                     }
                 }
             }
@@ -280,42 +287,79 @@ public:
             if (norm_Dx_AIR == 0.0)
                 ratioAir = 0.0;
 
-            std::cout << "***********************************************CONVERGENCE CRITERIA FOR MULTIPHASE PROBLEMS***********************************************" << std::endl;
+            std::cout << "***********************************************"
+                      << "CONVERGENCE CRITERIA FOR MULTIPHASE PROBLEMS"
+                      << "***********************************************"
+                      << std::endl;
             std::cout.precision(6);
             std::cout.setf(std::ios::scientific);
             if (HasDisplacement)
             {
-                std::cout << "** expected values: \t\t\t\t\t\tabs_tol = " << mAbsoluteTolerance << "\t\t\t\trel_tol = " << mRelativeTolerance << "\t**" << std::endl;
-                std::cout << "** obtained values displacement:\tratio = " << ratioDisp << "\t||Dx|| = " << norm_Dx << "\t||x|| = " << norm_x << "\t||b|| = " << norm_b << "\t**" << std::endl;
+                std::cout << "** expected values: \t\t\t\t\t\tabs_tol = " << mAbsoluteTolerance
+                          << "\t\t\t\trel_tol = " << mRelativeTolerance << "\t**" << std::endl;
+                std::cout << "** obtained values displacement:\tratio = " << ratioDisp
+                          << "\t||Dx|| = " << norm_Dx
+                          << "\t||x|| = " << norm_x
+                          << "\t||b|| = " << norm_b
+                          << "\t**" << std::endl;
             }
             if (HasWaterPres)
             {
-                std::cout << "** obtained values water pressure:\tratio = " << ratioWater << "\t||Dx|| = " << norm_Dx_WATER << "\t||x|| = " << norm_x_WATER << " \t||b|| = " << norm_b_WATER << "\t**" << std::endl;
+                std::cout << "** obtained values water pressure:\tratio = " << ratioWater
+                          << "\t||Dx|| = " << norm_Dx_WATER
+                          << "\t||x|| = " << norm_x_WATER
+                          << " \t||b|| = " << norm_b_WATER<< "\t**" << std::endl;
                 if (HasAirPres)
                 {
-                    std::cout << "** obtained values air pressure:\tratio = " << ratioAir << "\t||Dx|| = " << norm_Dx_AIR << "\t||x|| = " << norm_x_AIR << "\t||b|| = " << norm_b_AIR << "\t**" << std::endl;
+                    std::cout << "** obtained values air pressure:\tratio = " << ratioAir
+                              << "\t||Dx|| = " << norm_Dx_AIR
+                              << "\t||x|| = " << norm_x_AIR
+                              << "\t||b|| = " << norm_b_AIR
+                              << "\t**" << std::endl;
 
-                    std::cout << "** obtained values total:\t\tratio = " << ratioAir + ratioWater + ratioDisp << "\tchange = " << norm_Dx + norm_Dx_WATER + norm_Dx_AIR << "\tabsolute = " << norm_x_AIR + norm_x_WATER + norm_x << "\tenergy = " << norm_b_AIR + norm_b_WATER + norm_b << "\t**" << std::endl;
+                    std::cout << "** obtained values total:\t\tratio = " << ratioAir + ratioWater + ratioDisp
+                              << "\tchange = " << norm_Dx + norm_Dx_WATER + norm_Dx_AIR
+                              << "\tabsolute = " << norm_x_AIR + norm_x_WATER + norm_x
+                              << "\tenergy = " << norm_b_AIR + norm_b_WATER + norm_b
+                              << "\t**" << std::endl;
                 }
                 else
                 {
-                    std::cout << "** obtained values total:\t\tratio = " << ratioWater + ratioDisp << "\tchange = " << norm_Dx + norm_Dx_WATER << "\tabsolute = " << norm_x_WATER + norm_x << "\tenergy = " << norm_b_WATER + norm_b << "\t**" << std::endl;
+                    std::cout << "** obtained values total:\t\tratio = " << ratioWater + ratioDisp
+                              << "\tchange = " << norm_Dx + norm_Dx_WATER
+                              << "\tabsolute = " << norm_x_WATER + norm_x
+                              << "\tenergy = " << norm_b_WATER + norm_b
+                              << "\t**" << std::endl;
                 }
             }
             else
             {
                 if (HasAirPres)
                 {
-                    std::cout << "** obtained values air pressure:\tratio = " << ratioAir << "\t||Dx|| = " << norm_Dx_AIR << "\t||x|| = " << norm_x_AIR << "\t||b|| = " << norm_b_AIR << "\t**" << std::endl;
+                    std::cout << "** obtained values air pressure:\tratio = " << ratioAir
+                              << "\t||Dx|| = " << norm_Dx_AIR
+                              << "\t||x|| = " << norm_x_AIR
+                              << "\t||b|| = " << norm_b_AIR
+                              << "\t**" << std::endl;
 
-                    std::cout << "** obtained values total:\t\tratio = " << ratioAir + ratioDisp << "\tchange = " << norm_Dx + norm_Dx_AIR << "\tabsolute = " << norm_x_AIR + norm_x << "\tenergy = " << norm_b_AIR + norm_b << "\t**" << std::endl;
+                    std::cout << "** obtained values total:\t\tratio = " << ratioAir + ratioDisp
+                              << "\tchange = " << norm_Dx + norm_Dx_AIR
+                              << "\tabsolute = " << norm_x_AIR + norm_x
+                              << "\tenergy = " << norm_b_AIR + norm_b
+                              << "\t**" << std::endl;
                 }
                 else
                 {
-                    std::cout << "** obtained values total:\t\tratio = " << ratioWater + ratioDisp << "\tchange = " << norm_Dx << "\tabsolute = " << norm_x << "\tenergy = " << norm_b << "\t**" << std::endl;
+                    std::cout << "** obtained values total:\t\tratio = " << ratioWater + ratioDisp
+                              << "\tchange = " << norm_Dx
+                              << "\tabsolute = " << norm_x
+                              << "\tenergy = " << norm_b
+                              << "\t**" << std::endl;
                 }
             }
-            std::cout << "******************************************************************************************************************************************" << std::endl;
+            std::cout << "*****************************************************"
+                      << "*****************************************************"
+                      << "********************************" << std::endl;
 
             bool disp_reason_1 = (norm_b <= mAbsoluteTolerance);
             bool disp_reason_2 = false;
@@ -477,7 +521,7 @@ public:
             else
                 return false;
         }
-        else   //in this case all the displacements are imposed!
+        else // in this case all the displacements are imposed!
         {
             return true;
         }

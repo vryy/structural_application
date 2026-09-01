@@ -72,10 +72,10 @@ class SolvingStrategyPython:
                     self.Parameters['log_strain_energy'] = True
         if 'log_strain_energy' not in self.Parameters:
             self.Parameters['log_strain_energy'] = False
-        if self.Parameters['calculate_strain_energy'] == True:
+        if self.Parameters['calculate_strain_energy']:
             self.calculate_strain_energy_process = CalculateStrainEnergyProcessFactory.Create(self.model_part)
             self.attached_processes.append(self.calculate_strain_energy_process)
-        if self.Parameters['log_strain_energy'] == True:
+        if self.Parameters['log_strain_energy']:
             self.log_energy = open('strain_energy_newton_raphson.log', 'w')
             self.log_energy.write("time\tenergy\n")
 
@@ -109,7 +109,7 @@ class SolvingStrategyPython:
         if self.log_residuum != None:
             self.log_residuum.close()
 
-        if self.Parameters['log_strain_energy'] == True:
+        if self.Parameters['log_strain_energy']:
             self.log_energy.close()
 
     def GetBuilderAndSolver(self):
@@ -117,11 +117,11 @@ class SolvingStrategyPython:
 
     #######################################################################
     def Initialize(self):
-        if(self.time_scheme.SchemeIsInitialized() == False):
+        if not self.time_scheme.SchemeIsInitialized():
             self.time_scheme.Initialize(self.model_part)
-        if (self.time_scheme.ElementsAreInitialized() == False):
+        if not self.time_scheme.ElementsAreInitialized():
             self.time_scheme.InitializeElements(self.model_part)
-        if (self.time_scheme.ConditionsAreInitialized() == False):
+        if not self.time_scheme.ConditionsAreInitialized():
             self.time_scheme.InitializeConditions(self.model_part)
         for proc in self.attached_processes:
             proc.ExecuteInitialize()
@@ -137,7 +137,7 @@ class SolvingStrategyPython:
         #finalize the solution step
         self.FinalizeSolutionStep(self.CalculateReactionsFlag)
         #clear if needed - deallocates memory
-        if(self.ReformDofSetAtEachStep == True):
+        if self.ReformDofSetAtEachStep:
             self.Clear()
 
     #######################################################################
@@ -150,7 +150,7 @@ class SolvingStrategyPython:
         if not converged:
             self.solveCounter = self.solveCounter - 1
             #clear if needed - deallocates memory
-            if(self.ReformDofSetAtEachStep == True):
+            if self.ReformDofSetAtEachStep:
                 print("Clear the system")
                 self.Clear()
             #reset flags for repeated step
@@ -159,7 +159,7 @@ class SolvingStrategyPython:
         #finalize the solution step
         self.FinalizeSolutionStep(self.CalculateReactionsFlag)
         #clear if needed - deallocates memory
-        if(self.ReformDofSetAtEachStep == True):
+        if self.ReformDofSetAtEachStep:
             self.Clear()
         return True
 
@@ -168,14 +168,14 @@ class SolvingStrategyPython:
         print("time = " + str(self.model_part.ProcessInfo[TIME]))
         #perform the operations to be performed ONCE and ensure they will not be repeated
         # elemental function "Initialize" is called here
-        if(self.InitializeWasPerformed == False):
+        if not self.InitializeWasPerformed:
             self.Initialize()
         #perform initializations for the current step
         #this operation implies:
         #identifying the set of DOFs that will be solved during this step
         #organizing the DOFs so to identify the dirichlet conditions
         #resizing the matrix preallocating the "structure"
-        if (self.SolutionStepIsInitialized == False):
+        if not self.SolutionStepIsInitialized:
             self.InitializeSolutionStep()
             self.SolutionStepIsInitialized = True
         #perform prediction
@@ -195,14 +195,14 @@ class SolvingStrategyPython:
         print("time = " + str(self.model_part.ProcessInfo[TIME]))
         #perform the operations to be performed ONCE and ensure they will not be repeated
         # elemental function "Initialize" is called here
-        if(self.InitializeWasPerformed == False):
+        if not self.InitializeWasPerformed:
             self.Initialize()
         #perform initializations for the current step
         #this operation implies:
         #identifying the set of DOFs that will be solved during this step
         #organizing the DOFs so to identify the dirichlet conditions
         #resizing the matrix preallocating the "structure"
-        if (self.SolutionStepIsInitialized == False):
+        if not self.SolutionStepIsInitialized:
             self.InitializeSolutionStep()
             self.SolutionStepIsInitialized = True
 
@@ -239,7 +239,7 @@ class SolvingStrategyPython:
         number_of_iterations_for_divergence_check = self.Parameters['number_of_iterations_for_divergence_check']
         dx_inc_cnt = 0      # marks the consecutive iteration that the normDx increases
         normDx_old = normDx
-        while(it < self.max_iter and converged == False):
+        while it < self.max_iter and not converged:
             #verify convergence
             converged = self.convergence_criteria.PreCriteria(self.model_part,self.builder_and_solver.GetDofSet(),self.A,self.Dx,self.b)
 
@@ -312,8 +312,8 @@ class SolvingStrategyPython:
             normDx_old = normDx
 
             if err_inc_cnt == number_of_iterations_for_divergence_check:
-                if('stop_Newton_Raphson_if_not_converged' in self.Parameters):
-                    if(self.Parameters['stop_Newton_Raphson_if_not_converged'] == True):
+                if 'stop_Newton_Raphson_if_not_converged' in self.Parameters:
+                    if self.Parameters['stop_Newton_Raphson_if_not_converged']:
                         raise Exception("Sorry, my boss does not allow me to continue. The error increases %d times in a row at time step %f, it = %d, max_iter = %d" % (number_of_iterations_for_divergence_check, self.model_part.ProcessInfo[TIME], it, self.max_iter))
                     else:
                         print('The error increases %d times in a row, so the time step is marked as non-converged. The simulation will be continued' % (number_of_iterations_for_divergence_check))
@@ -321,8 +321,8 @@ class SolvingStrategyPython:
                         return False, it
 
             if err_high_cnt == number_of_iterations_for_divergence_check:
-                if('stop_Newton_Raphson_if_not_converged' in self.Parameters):
-                    if(self.Parameters['stop_Newton_Raphson_if_not_converged'] == True):
+                if 'stop_Newton_Raphson_if_not_converged' in self.Parameters:
+                    if self.Parameters['stop_Newton_Raphson_if_not_converged']:
                         raise Exception("Sorry, my boss does not allow me to continue. The error ratio is larger than threshold %d times in a row at time step %f, it = %d, max_iter = %d" % (number_of_iterations_for_divergence_check, self.model_part.ProcessInfo[TIME], it, self.max_iter))
                     else:
                         print('The error ratio is larger than threshold %d times in a row, so the time step is marked as non-converged. The simulation will be continued' % (number_of_iterations_for_divergence_check))
@@ -330,8 +330,8 @@ class SolvingStrategyPython:
                         return False, it
 
             if dx_inc_cnt == number_of_iterations_for_divergence_check:
-                if('stop_Newton_Raphson_if_not_converged' in self.Parameters):
-                    if(self.Parameters['stop_Newton_Raphson_if_not_converged'] == True):
+                if 'stop_Newton_Raphson_if_not_converged' in self.Parameters:
+                    if self.Parameters['stop_Newton_Raphson_if_not_converged']:
                         raise Exception("Sorry, my boss does not allow me to continue. The normDx increases %d times in a row at time step %f, it = %d, max_iter = %d" % (number_of_iterations_for_divergence_check, self.model_part.ProcessInfo[TIME], it, self.max_iter))
                     else:
                         print('The normDx increases %d times in a row, so the time step is marked as non-converged. The simulation will be continued' % (number_of_iterations_for_divergence_check))
@@ -339,10 +339,10 @@ class SolvingStrategyPython:
                         return False, it
             # end checking divergence
 
-        if( it == self.max_iter and converged == False):
+        if it == self.max_iter and not converged:
             print("Iteration did not converge at time %f" % (self.model_part.ProcessInfo[TIME]))
-            if('stop_Newton_Raphson_if_not_converged' in self.Parameters):
-                if(self.Parameters['stop_Newton_Raphson_if_not_converged'] == True):
+            if 'stop_Newton_Raphson_if_not_converged' in self.Parameters:
+                if self.Parameters['stop_Newton_Raphson_if_not_converged']:
                     raise Exception("Sorry, my boss does not allow me to continue. The time step did not converge at time %f, it = %d, max_iter = %d" % (self.model_part.ProcessInfo[TIME], it, self.max_iter))
                 else:
                     print('However, the iteration will still be proceeded')
@@ -368,7 +368,7 @@ class SolvingStrategyPython:
     #######################################################################
     def InitializeSolutionStep(self):
         print("newton_raphson_strategy.ExecuteIteration:InitializeSolutionStep is called", flush=True)
-        if(self.builder_and_solver.GetDofSetIsInitializedFlag() == False or self.ReformDofSetAtEachStep == True):
+        if not self.builder_and_solver.GetDofSetIsInitializedFlag() or self.ReformDofSetAtEachStep:
             #initialize the list of degrees of freedom to be used
             self.builder_and_solver.SetUpDofSet(self.time_scheme,self.model_part)
             #reorder the list of degrees of freedom to identify fixity and system size
@@ -381,7 +381,7 @@ class SolvingStrategyPython:
             self.A = (self.pA).GetReference()
             self.Dx = (self.pDx).GetReference()
             self.b = (self.pb).GetReference()
-        if(self.SolutionStepIsInitialized == False):
+        if not self.SolutionStepIsInitialized:
             self.builder_and_solver.InitializeSolutionStep(self.model_part,self.A,self.Dx,self.b)
             self.time_scheme.InitializeSolutionStep(self.model_part,self.A,self.Dx,self.b)
         for proc in self.attached_processes:
@@ -398,7 +398,7 @@ class SolvingStrategyPython:
         print("newton_raphson_strategy.ExecuteIteration:InitializeNonLinIteration is called", flush=True)
 
         #build and solve the problem
-        if(self.Parameters['decouple_build_and_solve'] == False):
+        if not self.Parameters['decouple_build_and_solve']:
             self.builder_and_solver.BuildAndSolve(self.time_scheme,self.model_part,self.A,self.Dx,self.b)
             self.dof_util.ListDofs(self.builder_and_solver.GetDofSet(),self.builder_and_solver.GetEquationSystemSize())
         else:
@@ -406,7 +406,7 @@ class SolvingStrategyPython:
                 raise Exception("residual-based block with constraints cannot be used with decouple_build_and_solve")
             self.builder_and_solver.Build(self.time_scheme,self.model_part,self.A,self.b)
             if self.model_part.ProcessInfo[BUILD_STATUS] < 0:
-                if self.Parameters['stop_Newton_Raphson_if_not_converged'] == True:
+                if self.Parameters['stop_Newton_Raphson_if_not_converged']:
                     raise Exception("Build failed at time step %f, error code = %d" % (self.model_part.ProcessInfo[TIME], self.model_part.ProcessInfo[BUILD_STATUS]))
                 else:
                     print("Build failed at time step %f with error code = %d, but the simulation will continue." % (self.model_part.ProcessInfo[TIME], self.model_part.ProcessInfo[BUILD_STATUS]))
@@ -428,7 +428,7 @@ class SolvingStrategyPython:
         if not(self.calculate_reaction_process == None):
             self.calculate_reaction_process.Execute()
 
-        if(self.Parameters['list_plastic_points'] == True):
+        if self.Parameters['list_plastic_points']:
             self.output_util.ListPlasticPoints(self.model_part)
 
 #        diagAstr = ""
@@ -437,7 +437,7 @@ class SolvingStrategyPython:
 #        print("diagonal A:" + diagAstr)
 
         #full output if needed
-        if( self.PrintSparsity ):
+        if self.PrintSparsity:
             self.PlotSparsityScheme( self.A )
 #            wr = UblasMatrixIO()
 #            wr.WriteHB(self.A, self.b, "matrix" + str(self.solveCounter) + "." + str(self.iterationCounter) + ".hb.dat")
@@ -453,13 +453,13 @@ class SolvingStrategyPython:
             print('System vector info (b): ', end='', flush=True)
             self.space_utils.PrintVectorInfo(self.b, 3)
 
-        if(echo_level >= 3):
+        if echo_level >= 3:
             print("SystemMatrix = " + str(self.A), flush=True)
             print("solution obtained = " + str(self.Dx), flush=True)
             print("RHS = " + str(self.b), flush=True)
 
         #calculate the norm of the "correction" Dx
-        if(CalculateNormDxFlag == True):
+        if CalculateNormDxFlag:
             normDx = self.space_utils.TwoNorm(self.Dx)
         else:
             normDx = 0.0
@@ -474,7 +474,7 @@ class SolvingStrategyPython:
             print("newton_raphson_strategy.FinalizeNonLinIteration:Update is called", flush=True)
 
             #move the mesh as needed
-            if(MoveMeshFlag == True):
+            if MoveMeshFlag:
                 self.time_scheme.MoveMesh(self.model_part.Nodes)
     #        print("b:" + str(self.b))
     #        print("Dx:" + str(self.Dx))
@@ -485,7 +485,7 @@ class SolvingStrategyPython:
 
     #######################################################################
     def FinalizeSolutionStep(self,CalculateReactionsFlag):
-        if(CalculateReactionsFlag == True):
+        if CalculateReactionsFlag:
             self.model_part.ProcessInfo[SET_CALCULATE_REACTION] = True
             self.builder_and_solver.CalculateReactions(self.time_scheme,self.model_part,self.A,self.Dx,self.b)
             self.model_part.ProcessInfo[SET_CALCULATE_REACTION] = False
@@ -542,13 +542,13 @@ class SolvingStrategyPython:
     def AnalyseSystemMatrix(self,  A):
         max = 0.0
         for i in range(0,  A.Size1()):
-           if( abs(A[(i, i)]) > max ):
+           if abs(A[(i, i)]) > max:
                max = A[(i, i)]
 
 #        nonzeros = 0
 #        for i in range(0,  A.Size1()):
 #            for j in range(0,  A.Size2()):
-#                if( abs(A[(i, j)]) > 1e-16 ):
+#                if abs(A[(i, j)]) > 1e-16:
 #                    nonzeros = nonzeros + 1
 
         print("#############################")
@@ -579,7 +579,7 @@ class SolvingStrategyPython:
         for i in range(0, A.Size1()):
             for j in range(0, A.Size2()):
                 tmp = A[(i,j)]
-                if( (tmp > 1.0e-9) or (tmp < -1.0e-9) ):
+                if (tmp > 1.0e-9) or (tmp < -1.0e-9):
                    #file.write( str(tmp) +"\t" )
                    file.write( "1.0 " )
                 else:
@@ -595,7 +595,7 @@ class SolvingStrategyPython:
 
     #######################################################################
     def GetStrainEnergy(self):
-        if self.Parameters['calculate_strain_energy'] == True:
+        if self.Parameters['calculate_strain_energy']:
             return self.calculate_strain_energy_process.GetEnergy()
         else:
             return 0.0
