@@ -6,8 +6,6 @@
 //
 //
 
-
-
 #if !defined(KRATOS_STRUCTURAL_APP_POWER_HARDENING_LAW_H_INCLUDED )
 #define  KRATOS_STRUCTURAL_APP_POWER_HARDENING_LAW_H_INCLUDED
 
@@ -42,7 +40,7 @@ public:
     /**
      * Destructor.
      */
-    virtual ~PowerHardeningLaw();
+    ~PowerHardeningLaw() override;
 
     /**
      * Clone function (has to be implemented by any derived class)
@@ -90,7 +88,6 @@ public:
 
 private:
 
-    ///@}
     ///@name Serialization
     ///@{
 
@@ -117,10 +114,6 @@ private:
     ///@}
 
 }; /* Class PowerHardeningLaw */
-
-//template class KRATOS_API(KRATOS_CORE) KratosComponents<PowerHardeningLaw>;
-
-//void KRATOS_API(KRATOS_CORE) AddKratosComponent(std::string const& Name, PowerHardeningLaw const& ThisComponent);
 
 } /* namespace Kratos.*/
 

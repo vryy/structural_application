@@ -42,7 +42,7 @@ public:
     /**
      * Destructor.
      */
-    virtual ~ExponentialHardeningLaw();
+    ~ExponentialHardeningLaw() override;
 
     /**
      * Clone function (has to be implemented by any derived class)
@@ -77,7 +77,6 @@ public:
 
 private:
 
-    ///@}
     ///@name Serialization
     ///@{
 
@@ -106,10 +105,6 @@ private:
 
 }; /* Class ExponentialHardeningLaw */
 
-//template class KRATOS_API(KRATOS_CORE) KratosComponents<ExponentialHardeningLaw>;
-
-//void KRATOS_API(KRATOS_CORE) AddKratosComponent(std::string const& Name, ExponentialHardeningLaw const& ThisComponent);
-
 } /* namespace Kratos.*/
 
-#endif /* KRATOS_STRUCTURAL_APP_LINEAR_HARDENING_LAW_H_INCLUDED  defined */
+#endif /* KRATOS_STRUCTURAL_APP_EXPONENTIAL_HARDENING_LAW_H_INCLUDED  defined */

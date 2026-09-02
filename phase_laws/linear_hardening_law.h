@@ -42,7 +42,7 @@ public:
     /**
      * Destructor.
      */
-    virtual ~LinearHardeningLaw();
+    ~LinearHardeningLaw() override;
 
     /**
      * Clone function (has to be implemented by any derived class)
@@ -77,7 +77,6 @@ public:
 
 private:
 
-    ///@}
     ///@name Serialization
     ///@{
 
@@ -103,10 +102,6 @@ private:
     ///@}
 
 }; /* Class LinearHardeningLaw */
-
-//template class KRATOS_API(KRATOS_CORE) KratosComponents<LinearHardeningLaw>;
-
-//void KRATOS_API(KRATOS_CORE) AddKratosComponent(std::string const& Name, LinearHardeningLaw const& ThisComponent);
 
 } /* namespace Kratos.*/
 

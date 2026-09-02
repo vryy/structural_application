@@ -6,8 +6,6 @@
 //
 //
 
-
-
 #if !defined(KRATOS_STRUCTURAL_APP_PIECEWISE_LINEAR_HARDENING_LAW_H_INCLUDED )
 #define  KRATOS_STRUCTURAL_APP_PIECEWISE_LINEAR_HARDENING_LAW_H_INCLUDED
 
@@ -41,7 +39,7 @@ public:
     /**
      * Destructor.
      */
-    virtual ~PiecewiseLinearHardeningLaw();
+    ~PiecewiseLinearHardeningLaw() override;
 
     /**
      * Clone function (has to be implemented by any derived class)
@@ -83,7 +81,6 @@ public:
 
 private:
 
-    ///@}
     ///@name Serialization
     ///@{
 
@@ -109,10 +106,6 @@ private:
     ///@}
 
 }; /* Class PiecewiseLinearHardeningLaw */
-
-//template class KRATOS_API(KRATOS_CORE) KratosComponents<PiecewiseLinearHardeningLaw>;
-
-//void KRATOS_API(KRATOS_CORE) AddKratosComponent(std::string const& Name, PiecewiseLinearHardeningLaw const& ThisComponent);
 
 } /* namespace Kratos.*/
 
