@@ -64,6 +64,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "phase_laws/exponential_hardening_law.h"
 #include "phase_laws/piecewise_linear_hardening_law.h"
 #include "phase_laws/power_hardening_law.h"
+#include "phase_laws/mixed_hardening_law.h"
 
 namespace Kratos
 {
@@ -101,6 +102,11 @@ void AddPhaseLawsToPython()
     class_< ExponentialHardeningLaw, bases< HardeningLaw >, boost::noncopyable >
     ( "ExponentialHardeningLaw", init<>() )
     .def(init<const double, const double, const double>())
+    ;
+
+    class_< MixedHardeningLaw, bases< HardeningLaw >, boost::noncopyable >
+    ( "MixedHardeningLaw", init<>() )
+    .def(init<const double, const double, const double, const double>())
     ;
 
     class_< PiecewiseLinearHardeningLaw, bases< HardeningLaw >, boost::noncopyable >
