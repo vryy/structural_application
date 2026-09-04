@@ -58,12 +58,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <boost/math/special_functions/fpclassify.hpp>
 
 // Project includes
-#include "includes/define.h"
 #include "includes/variables.h"
-#include "includes/process_info.h"
-#include "includes/properties.h"
-#include "utilities/math_utils.h"
-#include "utilities/kratos_log.h"
 #include "constitutive_laws/cam_clay_3d.h"
 #include "structural_application_variables.h"
 
