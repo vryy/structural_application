@@ -185,10 +185,7 @@ public:
      */
     std::string Info() const override
     {
-        std::stringstream ss;
-        ss << "FiniteStrainBridgingConstitutiveLaw("
-           << mpConstitutiveLaw->Info() << ")";
-        return ss.str();
+        return "FiniteStrainBridgingConstitutiveLaw";
     }
 
     /**
@@ -197,6 +194,10 @@ public:
     void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << Info();
+        if (mpConstitutiveLaw != nullptr)
+            rOStream << "(" << mpConstitutiveLaw->Info() << ")";
+        else
+            rOStream << "(nullptr)";
     }
 
     /**

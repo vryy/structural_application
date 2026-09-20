@@ -110,14 +110,6 @@ public:
         return "MultiplicativeFiniteStrainBridgingConstitutiveLawDC";
     }
 
-    /**
-     * Print information about this object.
-     */
-    void PrintInfo(std::ostream& rOStream) const override
-    {
-        rOStream << Info();
-    }
-
 private:
 
     ///@name Serialization

@@ -119,14 +119,6 @@ public:
             return "HypoelasticFiniteStrainBridgingConstitutiveLaw<ModifiedHW, Kirchhoff>";
     }
 
-    /**
-     * Print information about this object.
-     */
-    void PrintInfo(std::ostream& rOStream) const override
-    {
-        rOStream << Info();
-    }
-
 protected:
     /**
      * Member Variables

@@ -204,6 +204,10 @@ public:
     void PrintInfo(std::ostream& rOStream) const final
     {
         rOStream << Info();
+        if (mpConstitutiveLaw != nullptr)
+            rOStream << "(" << mpConstitutiveLaw->Info() << ")";
+        else
+            rOStream << "(nullptr)";
     }
 
 protected:

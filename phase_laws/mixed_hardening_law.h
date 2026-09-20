@@ -72,17 +72,23 @@ public:
         return "MixedHardeningLaw";
     }
 
+    /// Print object's data.
+    void PrintData(std::ostream& rOStream) const override
+    {
+        rOStream << mOy << " + " << mQ << "*(1-exp(-" << mb << "*alpha)) + " << mH << "*alpha";
+    }
+
 private:
-
-    ///@name Serialization
-    ///@{
-
-    friend class Serializer;
 
     double mOy;
     double mH;
     double mQ;
     double mb;
+
+    ///@name Serialization
+    ///@{
+
+    friend class Serializer;
 
     void save(Serializer& rSerializer) const final
     {
