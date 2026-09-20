@@ -221,6 +221,8 @@ public:
 
     void CalculateOnIntegrationPoints(const Variable<MatrixType>& rVariable, std::vector<MatrixType>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
+    void CalculateOnIntegrationPoints(const Variable<ConstitutiveLaw::Pointer>& rVariable, std::vector<ConstitutiveLaw::Pointer>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
+
     void GetValuesVector(VectorType& values, int Step = 0) const override;
     void GetFirstDerivativesVector(VectorType& values, int Step = 0) const override;
     void GetSecondDerivativesVector(VectorType& values, int Step = 0) const override;

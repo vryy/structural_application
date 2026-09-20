@@ -119,6 +119,7 @@ public:
     double& GetValue( const Variable<double>& rThisVariable, double& rValue ) override;
     Vector& GetValue( const Variable<Vector>& rThisVariable, Vector& rValue ) override;
     Matrix& GetValue( const Variable<Matrix>& rThisVariable, Matrix& rValue ) override;
+    ConstitutiveLaw::Pointer& GetValue( const Variable<ConstitutiveLaw::Pointer>& rThisVariable, ConstitutiveLaw::Pointer& rValue ) override;
 
     Matrix& CalculateValue(Parameters& rParameterValues, const Variable<Matrix>& rThisVariable, Matrix& rValue) override;
 

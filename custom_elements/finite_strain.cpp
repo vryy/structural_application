@@ -1712,6 +1712,23 @@ namespace Kratos
             return;
         }
 
+        if( rVariable == INTEGRATION_POINT_GLOBAL_IN_REFERENCE_CONFIGURATION )
+        {
+            const typename GeometryType::IntegrationPointsArrayType& integration_points =
+                    this->GetGeometry().IntegrationPoints( mThisIntegrationMethod );
+
+            Vector N( this->GetGeometry().size() );
+
+            for(std::size_t point = 0; point < integration_points.size(); ++point)
+            {
+                this->GetGeometry().ShapeFunctionsValues( N, integration_points[point] );
+
+                noalias( rValues[point] ) = ZeroVectorType(3);
+                for(std::size_t i = 0 ; i < this->GetGeometry().size() ; ++i)
+                    noalias( rValues[point] ) += N[i] * this->GetGeometry()[i].GetInitialPosition();
+            }
+        }
+
         if( rVariable == INTEGRATION_POINT_LOCAL )
         {
             const GeometryType::IntegrationPointsArrayType& integration_points =
@@ -2035,6 +2052,24 @@ namespace Kratos
         #endif
 
         KRATOS_CATCH( "" )
+    }
+
+//************************************************************************************
+//************************************************************************************
+
+    void FiniteStrain::CalculateOnIntegrationPoints( const Variable<ConstitutiveLaw::Pointer>& rVariable,
+            std::vector<ConstitutiveLaw::Pointer>& rValues, const ProcessInfo& rCurrentProcessInfo )
+    {
+        if ( rValues.size() != mConstitutiveLawVector.size() )
+            rValues.resize( mConstitutiveLawVector.size() );
+
+        if( rVariable == CONSTITUTIVE_LAW )
+        {
+            for ( unsigned int Point = 0; Point < mConstitutiveLawVector.size(); Point++ )
+            {
+                rValues[Point] = mConstitutiveLawVector[Point];
+            }
+        }
     }
 
 //************************************************************************************

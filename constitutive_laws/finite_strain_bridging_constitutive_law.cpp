@@ -98,6 +98,16 @@ Matrix& FiniteStrainBridgingConstitutiveLaw::GetValue( const Variable<Matrix>& r
 }
 
 //**********************************************************************
+ConstitutiveLaw::Pointer& FiniteStrainBridgingConstitutiveLaw::GetValue( const Variable<ConstitutiveLaw::Pointer>& rThisVariable, ConstitutiveLaw::Pointer& rValue )
+{
+    if (rThisVariable == CONSTITUTIVE_LAW)
+        rValue = mpConstitutiveLaw;
+    else
+        return mpConstitutiveLaw->GetValue(rThisVariable, rValue);
+    return rValue;
+}
+
+//**********************************************************************
 Matrix& FiniteStrainBridgingConstitutiveLaw::CalculateValue( Parameters& rParameterValues, const Variable<Matrix>& rThisVariable, Matrix& rValue )
 {
     if (rThisVariable == THREED_ALGORITHMIC_TANGENT)
