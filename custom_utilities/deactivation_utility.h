@@ -72,12 +72,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 // Project includes
 #include "includes/define.h"
-#include "includes/node.h"
-#include "includes/element.h"
+#include "includes/kernel.h"
 #include "includes/model_part.h"
 #include "includes/variables.h"
 #include "includes/kratos_flags.h"
-#include "processes/process.h"
 #include "utilities/openmp_utils.h"
 #include "structural_application_variables.h"
 
@@ -112,15 +110,6 @@ public:
      */
     DeactivationUtility()
     {
-        mEchoLevel = 1;
-    }
-
-    /**
-     * Constructor with echo level
-     */
-    DeactivationUtility(int EchoLevel)
-    {
-        mEchoLevel = EchoLevel;
     }
 
     /**
@@ -138,8 +127,8 @@ public:
     template<class TModelPartType>
     void Initialize( TModelPartType& model_part )
     {
-        if(mEchoLevel > 0)
-            std::cout << "initializing deactivation utility" << std::endl;
+        KRATOS_INFO_IF("DeactivationUtility", Kernel::GetInstance().GetLogLevel() > 0)
+            << "Initializing" << std::endl;
 
         //initializing elements
         for ( auto it = model_part.Elements().ptr_begin();
@@ -177,8 +166,8 @@ public:
             // (*it)->Initialize(); // conditions shall not be initialized here. They should be initialized by the nonlinear solver.
         }
 
-        if(mEchoLevel > 0)
-            std::cout << "deactivation utility initialized" << std::endl;
+        KRATOS_INFO_IF("DeactivationUtility", Kernel::GetInstance().GetLogLevel() > 0)
+            << "Initialized" << std::endl;
     }
 
 #ifdef _OPENMP
@@ -190,8 +179,8 @@ public:
     template<class TModelPartType>
     void InitializeWithThreads( TModelPartType& model_part )
     {
-        if(mEchoLevel > 0)
-            std::cout << "multithreaded initializing deactivation utility" << std::endl;
+        KRATOS_INFO_IF("DeactivationUtility", Kernel::GetInstance().GetLogLevel() > 0)
+            << "Initializing in parallel" << std::endl;
 
         int number_of_threads = omp_get_max_threads();
 
@@ -249,8 +238,8 @@ public:
             }
         }
 
-        if(mEchoLevel > 0)
-            std::cout << "deactivation utility (multithreaded) initialized" << std::endl;
+        KRATOS_INFO_IF("DeactivationUtility", Kernel::GetInstance().GetLogLevel() > 0)
+            << "Initialized" << std::endl;
     }
 #endif
 
@@ -288,7 +277,6 @@ public:
         for( auto it = model_part.Conditions().ptr_begin();
                 it != model_part.Conditions().ptr_end(); ++it )
         {
-//                     std::cout << "condition: " << (*it)->Id() <<  "has activation level: " << (*it)->GetValue( ACTIVATION_LEVEL ) << std::endl;
             if( ( (*it)->GetValue( ACTIVATION_LEVEL ) >= from_level
                     && (*it)->GetValue( ACTIVATION_LEVEL ) <= to_level
                     && (*it)->GetValue( ACTIVATION_LEVEL ) != 0 )
@@ -438,8 +426,6 @@ private:
     /**
      * Containers for deactivated elements and conditions
      */
-
-    int mEchoLevel;
 
     /**
      * Assignment operator

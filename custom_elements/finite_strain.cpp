@@ -2181,7 +2181,6 @@ namespace Kratos
 
     void FiniteStrain::save( Serializer& rSerializer ) const
     {
-//  std::cout << "Saving the FiniteStrain #" << Id() << std::endl;
         rSerializer.save( "Name", "FiniteStrain" );
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, Element );
     }
@@ -2189,7 +2188,6 @@ namespace Kratos
     void FiniteStrain::load( Serializer& rSerializer )
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Element );
-//  std::cout << "Loading the FiniteStrain #" << Id() << std::endl;
         mThisIntegrationMethod = GetGeometry().GetDefaultIntegrationMethod();
     }
 

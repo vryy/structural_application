@@ -772,7 +772,6 @@ void AddCustomUtilitiesToPython()
 {
     class_<DeactivationUtility, boost::noncopyable >
     ( "DeactivationUtility", init<>() )
-    .def( init<int>() )
     .def( "Deactivate", &DeactivationUtility::Deactivate<ModelPart> )
     .def( "Deactivate", &DeactivationUtility::Deactivate<ComplexModelPart> )
     .def( "Deactivate", &DeactivationUtility::Deactivate<GComplexModelPart> )

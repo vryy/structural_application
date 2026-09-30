@@ -170,9 +170,9 @@ namespace Kratos
                     }
                     else
                     {
-                        std::cout << "Warning on element -> " << this->Id();
-                        std::cout << ". Domain size is small, TotalDomainInitialSize = " << TotalDomainInitialSize << " < -1e-10";
-                        std::cout << ". This element will be deactivated." << std::endl;
+                        KRATOS_WARNING("KinematicLinear") << "Element -> " << this->Id()
+                            << ". Domain size is small, TotalDomainInitialSize = " << TotalDomainInitialSize << " < -1e-10"
+                            << ". This element will be deactivated." << std::endl;
                         this->SetValue(ACTIVATION_LEVEL, -1);
                         this->SetValue(IS_INACTIVE, true);
                         this->Set(ACTIVE, false);
@@ -332,8 +332,6 @@ namespace Kratos
     {
         KRATOS_TRY
 
-        // std::cout << "start computing element " << Id() << std::endl;
-
         unsigned int number_of_nodes = this->GetGeometry().size();
         unsigned int dim = this->WorkingSpaceDimension();
         unsigned int strain_size = this->GetStrainSize(dim);
@@ -455,18 +453,19 @@ namespace Kratos
             #ifdef ENABLE_DEBUG_CONSTITUTIVE_LAW
             mConstitutiveLawVector[PointNumber]->SetValue(PARENT_ELEMENT_ID, this->Id(), rCurrentProcessInfo);
             mConstitutiveLawVector[PointNumber]->SetValue(INTEGRATION_POINT_INDEX, PointNumber, rCurrentProcessInfo);
-            std::cout << "At element " << Id() << " integration point " << PointNumber << ":" << std::endl;
-            std::cout << "B: " << B << std::endl;
-            std::cout << "CurrentDisp: " << CurrentDisp << std::endl;
-            std::cout << "mInitialDisp: " << mInitialDisp << std::endl;
-            std::cout << "StrainVector: " << StrainVector << std::endl;
+            KRATOS_INFO("KinematicLinear")
+                << "At element " << Id() << " integration point " << PointNumber << ":" << std::endl
+                << "B: " << B << std::endl
+                << "CurrentDisp: " << CurrentDisp << std::endl
+                << "mInitialDisp: " << mInitialDisp << std::endl
+                << "StrainVector: " << StrainVector << std::endl;
             #endif
 
             mConstitutiveLawVector[PointNumber]->CalculateMaterialResponse(const_params, stress_measure);
 
             #ifdef ENABLE_DEBUG_CONSTITUTIVE_LAW
             if (CalculateResidualVectorFlag)
-                std::cout << "StressVector: " << StressVector << std::endl;
+                KRATOS_INFO("KinematicLinear") << "StressVector: " << StressVector << std::endl;
             #endif
 
             //calculating weights for integration on the reference configuration

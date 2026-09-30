@@ -425,7 +425,7 @@ KratosStructuralApplication::KratosStructuralApplication()
 
 void KratosStructuralApplication::Register()
 {
-    std::cout << "Initializing KratosStructuralApplication..." << std::endl;
+    KRATOS_INFO("KratosStructuralApplication") << "Initializing..." << std::endl;
 
     /// Register variables
 

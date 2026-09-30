@@ -94,7 +94,7 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(ANGULAR_ACCELERATION)
     model_part.AddNodalSolutionStepVariable(ANGULAR_ACCELERATION_NULL)
     model_part.AddNodalSolutionStepVariable(ANGULAR_ACCELERATION_EINS)
-    print("variables for the dynamic structural solution added correctly")
+    kprint("variables for the dynamic structural solution added correctly")
 
 def AddDofsForNode(node):
     #adding dofs
@@ -121,7 +121,7 @@ def AddDofsForNode(node):
 def AddDofsForNodes(nodes):
     for node in nodes:
         AddDofsForNode(node)
-    print("dofs for the dynamic structural solution added correctly")
+    kprint("dofs for the dynamic structural solution added correctly")
 
 def AddDofs(model_part):
     AddDofsForNodes(model_part.Nodes)
@@ -175,8 +175,8 @@ def CheckAndConvertParameters(analysis_parameters):
         new_analysis_parameters['convergence_criteria'] = "multiphase"
         return new_analysis_parameters
     else:
-        print('unsupported type of analysis parameters')
-        sys.exit(0)
+        kprint('unsupported type of analysis parameters')
+        sys.exit(1)
 
 #######################################################################
 class SolverAdvanced(structural_solver_static.StaticStructuralSolver):
@@ -185,7 +185,7 @@ class SolverAdvanced(structural_solver_static.StaticStructuralSolver):
         if len(args) == 5:
             # legacy constructor
             # ( model_part, domain_size, time_steps, analysis_parameters, abs_tol, rel_tol )
-            print("Warning for SolverAdvanced: domain_size and time_steps are deprecated and will be removed", flush=True)
+            kprint("Warning for SolverAdvanced: domain_size and time_steps are deprecated and will be removed", flush=True)
             domain_size, time_steps, analysis_parameters, abs_tol, rel_tol = args
         elif len(args) == 3:
             # new constructor
@@ -215,13 +215,13 @@ class SolverAdvanced(structural_solver_static.StaticStructuralSolver):
         or (self.analysis_parameters['solution_strategy'] == "modified_sloan" ):
             #definition of time integration scheme
             if( self.analysis_parameters['analysis_type'] == 0 ):
-                print("using static scheme")
+                kprint("using static scheme")
                 # self.time_scheme = ResidualBasedIncrementalUpdateStaticScheme()
                 self.time_scheme = ResidualBasedIncrementalUpdateStaticDeactivationScheme()
                 #self.time_scheme = ParallelResidualBasedIncrementalUpdateStaticScheme()
                 self.MoveMeshFlag = self.analysis_parameters["move_mesh"]
             elif( self.analysis_parameters['analysis_type'] == 1 ):
-                print("using newmark quasi-static scheme, dissipation_radius=" + str(self.dissipation_radius))
+                kprint("using newmark quasi-static scheme, dissipation_radius=" + str(self.dissipation_radius))
                 self.model_part.ProcessInfo.SetValue( QUASI_STATIC_ANALYSIS, True )
                 if(self.dissipation_radius >= 0.0 and self.dissipation_radius <= 1.0): # generalized Newmark-alpha
                     self.time_scheme = ResidualBasedNewmarkScheme(self.dissipation_radius)
@@ -233,7 +233,7 @@ class SolverAdvanced(structural_solver_static.StaticStructuralSolver):
                     self.time_scheme = ResidualBasedNewmarkScheme() # pure Newmarkscheme
                 self.MoveMeshFlag = self.analysis_parameters["move_mesh"]
             elif( self.analysis_parameters['analysis_type'] == 2 ):
-                print("using newmark dynamic scheme, dissipation_radius=" + str(self.dissipation_radius))
+                kprint("using newmark dynamic scheme, dissipation_radius=" + str(self.dissipation_radius))
                 self.model_part.ProcessInfo.SetValue( QUASI_STATIC_ANALYSIS, False )
                 if(self.dissipation_radius >= 0.0 and self.dissipation_radius <= 1.0): # generalized Newmark-alpha
                     self.time_scheme = ResidualBasedNewmarkScheme(self.dissipation_radius)
@@ -246,73 +246,73 @@ class SolverAdvanced(structural_solver_static.StaticStructuralSolver):
                 #self.time_scheme.Check(self.model_part)
             elif( self.analysis_parameters['analysis_type'] == 3 ):
                 self.model_part.ProcessInfo.SetValue( QUASI_STATIC_ANALYSIS, True )
-                print("using theta quasi-static scheme, theta=" + str(self.dissipation_radius))
+                kprint("using theta quasi-static scheme, theta=" + str(self.dissipation_radius))
                 self.time_scheme = ResidualBasedThetaScheme(self.dissipation_radius)
             elif( self.analysis_parameters['analysis_type'] == 4 ):
                 self.model_part.ProcessInfo.SetValue( QUASI_STATIC_ANALYSIS, False )
-                print("using theta dynamics scheme, theta=" + str(self.dissipation_radius))
+                kprint("using theta dynamics scheme, theta=" + str(self.dissipation_radius))
                 self.time_scheme = ResidualBasedThetaScheme(self.dissipation_radius)
             elif( self.analysis_parameters['analysis_type'] == -1 ):
-                print("using custom time scheme given in 'time_scheme' analysis parameters")
+                kprint("using custom time scheme given in 'time_scheme' analysis parameters")
                 if not "time_scheme" in self.analysis_parameters:
                     raise Exception("time_scheme must be given when analysis_type is -1")
                 self.time_scheme = self.analysis_parameters["time_scheme"]
                 self.MoveMeshFlag = self.analysis_parameters["move_mesh"]
             elif( self.analysis_parameters['analysis_type'] == 10 ):
-                print("performing frequency analysis")
+                kprint("performing frequency analysis")
                 if 'omega' not in self.analysis_parameters:
                     raise Exception("Omega is necessary for steady state dynamics analysis at specific frequency")
                 omega = self.analysis_parameters['omega']
                 self.time_scheme = SteadyStateDynamicsScheme(omega)
             else:
-                print("analysis type is not defined! Define in analysis_parameters['analysis_type']:")
-                print("   'using static scheme': static analysis")
-                print("   'using newmark quasi-static scheme': quasi-static analysis")
-                print("   'using newmark dynamic scheme': dynamic analysis")
-                sys.exit(0)
+                kprint("analysis type is not defined! Define in analysis_parameters['analysis_type']:")
+                kprint("   'using static scheme': static analysis")
+                kprint("   'using newmark quasi-static scheme': quasi-static analysis")
+                kprint("   'using newmark dynamic scheme': dynamic analysis")
+                sys.exit(1)
         elif self.analysis_parameters['solution_strategy'] == "explicit":
             if( self.analysis_parameters['analysis_type'] == 0 ):
-                print("using static scheme")
+                kprint("using static scheme")
                 # self.time_scheme = ResidualBasedIncrementalUpdateStaticScheme()
                 self.time_scheme = ResidualBasedIncrementalUpdateStaticDeactivationScheme()
                 #self.time_scheme = ParallelResidualBasedIncrementalUpdateStaticScheme()
                 self.MoveMeshFlag = self.analysis_parameters["move_mesh"]
             elif( self.analysis_parameters['analysis_type'] == 1 ):
-                print("using acceleration-based forward Euler scheme")
+                kprint("using acceleration-based forward Euler scheme")
                 self.time_scheme = ResidualBasedAccBasedForwardEulerScheme(self.analysis_parameters['use_lumped_mass'])
                 self.MoveMeshFlag = self.analysis_parameters["move_mesh"]
             elif( self.analysis_parameters['analysis_type'] == 2 ):
-                print("using central difference scheme")
+                kprint("using central difference scheme")
                 self.time_scheme = ResidualBasedCentralDifferenceScheme()
                 self.MoveMeshFlag = self.analysis_parameters["move_mesh"]
             elif( self.analysis_parameters['analysis_type'] == 3 ):
-                print("using acceleration-based central difference scheme")
+                kprint("using acceleration-based central difference scheme")
                 self.time_scheme = ResidualBasedAccBasedCentralDifferenceScheme(self.analysis_parameters['use_lumped_mass'])
                 self.MoveMeshFlag = self.analysis_parameters["move_mesh"]
             elif( self.analysis_parameters['analysis_type'] == -1 ):
-                print("using custom time scheme given in 'time_scheme' analysis parameters")
+                kprint("using custom time scheme given in 'time_scheme' analysis parameters")
                 if not "time_scheme" in self.analysis_parameters:
                     raise Exception("time_scheme must be given when analysis_type is -1")
                 self.time_scheme = self.analysis_parameters["time_scheme"]
                 self.MoveMeshFlag = self.analysis_parameters["move_mesh"]
             elif( self.analysis_parameters['analysis_type'] == 10 ):
-                print("performing frequency analysis")
+                kprint("performing frequency analysis")
                 if 'omega' not in self.analysis_parameters:
                     raise Exception("Omega is necessary for steady state dynamics analysis at specific frequency")
                 omega = self.analysis_parameters['omega']
                 self.time_scheme = SteadyStateDynamicsScheme(omega)
             else:
-                print("analysis type is not defined or unknown! Define in analysis_parameters['analysis_type']:")
-                sys.exit(0)
+                kprint("analysis type is not defined or unknown! Define in analysis_parameters['analysis_type']:")
+                sys.exit(1)
         elif self.analysis_parameters['solution_strategy'] == "arc_length_load_control":
             if( self.analysis_parameters['analysis_type'] == 0 ):
-                print("using static scheme")
+                kprint("using static scheme")
                 self.time_scheme = ResidualBasedIncrementalUpdateStaticDeactivationScheme()
             else:
                 raise Exception("analysis_type > 0 is not yet supported for arc-length load control")
         elif self.analysis_parameters['solution_strategy'] == "arc_length_displacement_control":
             if( self.analysis_parameters['analysis_type'] == 0 ):
-                print("using static scheme")
+                kprint("using static scheme")
                 self.time_scheme = ArcLengthDisplacementControlResidualBasedIncrementalUpdateStaticDeactivationScheme(ResidualBasedIncrementalUpdateStaticDeactivationScheme())
             else:
                 raise Exception("analysis_type > 0 is not yet supported for arc-length displacement control")
@@ -358,7 +358,7 @@ class SolverAdvanced(structural_solver_static.StaticStructuralSolver):
                 builder_and_solver = ResidualBasedBlockBuilderAndSolverWithConstraints(LinearSolver())
             else:
                 raise Exception("Unknown builder_and_solver_type %s" % (self.analysis_parameters['builder_and_solver_type']))
-        print("builder_and_solver type: " + str(self.analysis_parameters['builder_and_solver_type']))
+        kprint("builder_and_solver type: " + str(self.analysis_parameters['builder_and_solver_type']))
 
         #creating the solution strategy
         if 'reform_dofset_at_each_step' in self.analysis_parameters:

@@ -212,12 +212,12 @@ Vector& CamClay3D::GetValue( const Variable<Vector>& rThisVariable, Vector& rVal
         return( rValue );
     }
 
-    KRATOS_THROW_ERROR( std::logic_error, "Vector Variable case not considered", "" );
+    KRATOS_ERROR << "Vector Variable case not considered";
 }
 
 Matrix& CamClay3D::GetValue( const Variable<Matrix>& rThisVariable, Matrix& rValue )
 {
-        KRATOS_THROW_ERROR( std::logic_error, "Matrix Variable case not considered", "" );
+    KRATOS_ERROR << "Matrix Variable case not considered";
 }
 
 void CamClay3D::SetValue( const Variable<int>& rThisVariable, const int& rValue,
@@ -244,7 +244,6 @@ void CamClay3D::SetValue( const Variable<double>& rThisVariable, const double& r
         mPck = this->getP();
 
         if(rValue < 0.0)
-            KRATOS_THROW_ERROR(std::logic_error, "Negative PRECONSOLIDATION_PRESSURE is detected", "")
 
         if(mPck < rValue)
             mPck = rValue;
@@ -268,7 +267,7 @@ void CamClay3D::SetValue( const Variable<double>& rThisVariable, const double& r
     if ( rThisVariable == PRECONSOLIDATION_PRESSURE_DEF || rThisVariable == PRECONSOLIDATION_PRESSURE )
     {
         if(rValue < 0.0)
-            KRATOS_THROW_ERROR(std::logic_error, "Negative PRECONSOLIDATION_PRESSURE is detected", "")
+            KRATOS_ERROR << "Negative PRECONSOLIDATION_PRESSURE is detected";
 
         mPck = rValue;
 
@@ -421,7 +420,7 @@ void CamClay3D::ResetMaterial( const Properties& props,
         KRATOS_WATCH(mM)
         KRATOS_WATCH(yield_value)
         KRATOS_WATCH(yield_value / fabs(mPc))
-        KRATOS_THROW_ERROR(std::logic_error, "The prestress point violate the yield criteria. It is not handled for now", "")
+        KRATOS_ERROR << "The prestress point violate the yield criteria. It is not handled for now";
     }
 
     #ifdef ENABLE_YIELD_PLOT
@@ -495,9 +494,7 @@ void CamClay3D::CalculateMaterialResponse( const Vector& StrainVector,
         double norm_stress = norm_2(StressVector);
         if((norm_stress != norm_stress) || std::isnan(norm_stress) /*|| isnan(norm_stress)*/ || boost::math::isnan(norm_stress))
         {
-            std::stringstream ss;
-            ss << "NaN stress at element " << mParentElementId << ", point " << mIntegrationPointIndex << ": " << StressVector;
-            KRATOS_THROW_ERROR(std::runtime_error, ss.str(), "")
+            KRATOS_ERROR << "NaN stress at element " << mParentElementId << ", point " << mIntegrationPointIndex << ": " << StressVector;
         }
         std::stringstream ss;
         ss << "elem " << mParentElementId << ", point " << mIntegrationPointIndex << ": stress = " << StressVector << ", norm_stress: " << norm_stress;

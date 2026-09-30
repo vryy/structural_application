@@ -141,7 +141,13 @@ public:
         mIntegrateMultiplier = false;
         mIntegrateLoad = false;
 
-        std::cout << "PURE Newmark Time Integration Scheme!!!!!!!!!!!!!!!!!!!!!" << " alpha_f= " << mAlpha_f << " alpha_m= " << mAlpha_m << " beta= " << mBeta << " gamma= " << mGamma << std::endl;
+        KRATOS_INFO("ResidualBasedNewmarkScheme")
+            << "PURE Newmark Time Integration Scheme!!!!!!!!!!!!!!!!!!!!!"
+            << " alpha_f= " << mAlpha_f
+            << " alpha_m= " << mAlpha_m
+            << " beta= " << mBeta
+            << " gamma= " << mGamma
+            << std::endl;
         //(...)_NULL DOF at the begin of time step, (...)_EINS DOF at the end of time step, (...)
         // DOF at the midpoint of time step, Please recognize that the name of the DOF is (...)
         // while the iteration is done towards the (...)_EINS DOF value at end of time step
@@ -168,7 +174,13 @@ public:
         mIntegrateMultiplier = false;
         mIntegrateLoad = false;
 
-        std::cout << "Using the Generalized alpha Time Integration Scheme with radius= "<< mDissipationRadius << " alpha_f= " << mAlpha_f << " alpha_m= " << mAlpha_m << " beta= " << mBeta << " gamma= " << mGamma << std::endl;
+        KRATOS_INFO("ResidualBasedNewmarkScheme")
+            << "Using the Generalized alpha Time Integration Scheme with radius = "
+            << mDissipationRadius << " alpha_f= " << mAlpha_f
+            << " alpha_m = " << mAlpha_m
+            << " beta = " << mBeta
+            << " gamma = " << mGamma
+            << std::endl;
     }
 
     /**
@@ -193,7 +205,13 @@ public:
             mBeta = 1.0 / 4.0;
             mGamma = 0.5;
 
-            std::cout << "PURE Newmark Time Integration Scheme!!!!!!!!!!!!!!!!!!!!!" << " alpha_f= " << mAlpha_f << " alpha_m= " << mAlpha_m << " beta= " << mBeta << " gamma= " << mGamma << std::endl;
+            KRATOS_INFO("ResidualBasedNewmarkScheme")
+                << "PURE Newmark Time Integration Scheme!!!!!!!!!!!!!!!!!!!!!"
+                << " alpha_f = " << mAlpha_f
+                << " alpha_m = " << mAlpha_m
+                << " beta = " << mBeta
+                << " gamma = " << mGamma
+                << std::endl;
         }
         else if (option == 1)
         {
@@ -202,7 +220,13 @@ public:
             mBeta = (1.0 + mAlpha_f - mAlpha_m) * (1.0 + mAlpha_f - mAlpha_m)/4.0;
             mGamma = 0.5 + mAlpha_f - mAlpha_m;
 
-            std::cout << "using the Generalized-alpha Time Integration Scheme with radius= "<< mDissipationRadius << " alpha_f= " << mAlpha_f << " alpha_m= " << mAlpha_m << " beta= " << mBeta << " gamma= " << mGamma << std::endl;
+            KRATOS_INFO("ResidualBasedNewmarkScheme")
+                << "using the Generalized-alpha Time Integration Scheme with radius = "
+                << mDissipationRadius << " alpha_f = " << mAlpha_f
+                << " alpha_m = " << mAlpha_m
+                << " beta = " << mBeta
+                << " gamma = " << mGamma
+                << std::endl;
         }
         else if (option == 2)
         {
@@ -211,7 +235,12 @@ public:
             mBeta = (1.0 - mAlpha_m) * (1.0 - mAlpha_m)/4.0;
             mGamma = 0.5 - mAlpha_m;
 
-            std::cout << "using the Bossak-alpha Time Integration Scheme with radius= "<< mDissipationRadius << " alpha_m= " << mAlpha_m << " beta= " << mBeta << " gamma= " << mGamma << std::endl;
+            KRATOS_INFO("ResidualBasedNewmarkScheme")
+                << "using the Bossak-alpha Time Integration Scheme with radius = "
+                << mDissipationRadius << " alpha_m = " << mAlpha_m
+                << " beta = " << mBeta
+                << " gamma = " << mGamma
+                << std::endl;
         }
         else if (option == 3)
         {
@@ -220,7 +249,12 @@ public:
             mBeta = (1.0 + mAlpha_f) * (1.0 + mAlpha_f)/4.0;
             mGamma = 0.5 + mAlpha_f;
 
-            std::cout << "using the Hilber-alpha Time Integration Scheme with radius= "<< mDissipationRadius << " alpha_f= " << mAlpha_f << " beta= " << mBeta << " gamma= " << mGamma << std::endl;
+            KRATOS_INFO("ResidualBasedNewmarkScheme")
+                << "using the Hilber-alpha Time Integration Scheme with radius = "
+                << mDissipationRadius << " alpha_f = " << mAlpha_f
+                << " beta = " << mBeta
+                << " gamma = " << mGamma
+                << std::endl;
         }
         else
         {
@@ -282,8 +316,10 @@ public:
         CurrentProcessInfo[NEWMARK_BETA]   = mBeta;
         CurrentProcessInfo[NEWMARK_GAMMA]  = mGamma;
 
-        std::cout << "ModelPart " << r_model_part.Name() << " is initialized by " << Info() << std::endl;
-        KRATOS_WATCH(CurrentProcessInfo[TIME_INTEGRATION_SCHEME])
+        KRATOS_INFO("ResidualBasedNewmarkScheme")
+            << "ModelPart " << r_model_part.Name() << " is initialized by " << Info() << std::endl
+            << "Time integration info: " << CurrentProcessInfo[TIME_INTEGRATION_SCHEME]
+            << std::endl;
     }
 
     /** Performing the update of the solution.*/

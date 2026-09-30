@@ -4,7 +4,6 @@ from KratosMultiphysics import *
 from KratosMultiphysics.StructuralApplication import *
 CheckForPreviousImport()
 
-
 def AddVariables(model_part, config=None):
     model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
     model_part.AddNodalSolutionStepVariable(DISPLACEMENT_OLD)
@@ -29,9 +28,7 @@ def AddVariables(model_part, config=None):
     model_part.AddNodalSolutionStepVariable(FORCE)
     model_part.AddNodalSolutionStepVariable(PRESCRIBED_DELTA_DISPLACEMENT)
     model_part.AddNodalSolutionStepVariable(LAGRANGE_DISPLACEMENT)
-
-    print("variables for the dynamic structural solution added correctly")
-
+    kprint("variables for the dynamic structural solution added correctly")
 
 def AddDofs(model_part, config=None):
     for node in model_part.Nodes:
@@ -42,8 +39,7 @@ def AddDofs(model_part, config=None):
         node.AddDof(LAGRANGE_DISPLACEMENT_X)
         node.AddDof(LAGRANGE_DISPLACEMENT_Y)
         node.AddDof(LAGRANGE_DISPLACEMENT_Z)
-    print("dofs for the dynamic structural solution added correctly")
-
+    kprint("dofs for the dynamic structural solution added correctly")
 
 class StaticStructuralSolver:
     #

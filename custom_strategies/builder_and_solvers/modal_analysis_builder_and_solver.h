@@ -44,13 +44,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 *
 * ***********************************************************/
 
-
 #if !defined(KRATOS_MODAL_ANALYSIS_BUILDER_AND_SOLVER )
 #define  KRATOS_MODAL_ANALYSIS_BUILDER_AND_SOLVER
 
-
 /* System includes */
-#include <set>
 #include <omp.h>
 
 /* External includes */
@@ -136,7 +133,6 @@ public:
     /**@name Type Definitions */
     /*@{ */
     KRATOS_CLASS_POINTER_DEFINITION( ModalAnalysisBuilderAndSolver );
-
 
     typedef BuilderAndSolver<TSparseSpace,TDenseSpace, TLinearSolver, ModelPart> BaseType;
 
@@ -338,23 +334,17 @@ public:
     {
         KRATOS_TRY
 
-        Kratos::timer building_time;
+        Timer::Start("Build");
 
         //build matrices
         BuildSystemMatrices( pScheme, r_model_part, K, M );
 
-        //elapsed time
-        if(BaseType::GetEchoLevel() > 0)
-        {
-            std::cout << "Building Time : " << building_time.elapsed() << std::endl;
-        }
+        Timer::Stop("Build");
 
-        if (BaseType::GetEchoLevel() == 3)
-        {
-            std::cout << "before the solution of the system" << std::endl;
-            std::cout << "stiffness Matrix = " << K << std::endl;
-            std::cout << "mass Matrix = " << M << std::endl;
-        }
+        KRATOS_INFO_IF("ModalAnalysisBuilderAndSolver", Kernel::GetInstance().GetLogLevel() > 2)
+            << "before the solution of the system" << std::endl
+            << "stiffness Matrix = " << K << std::endl
+            << "mass Matrix = " << M << std::endl;
 
         KRATOS_CATCH("")
     }
@@ -369,7 +359,7 @@ public:
     {
         KRATOS_TRY
 
-        Kratos::timer building_time;
+        Timer::Start("Build");
 
         //getting the elements from the model
         ElementsContainerType& pElements = r_model_part.Elements();
@@ -384,38 +374,28 @@ public:
         //build matrices
         BuildSystemMatrices( pScheme, r_model_part, A, M );
 
-        //elapsed time
-        if(BaseType::GetEchoLevel() > 0)
-        {
-            std::cout << "Building Time : " << building_time.elapsed() << std::endl;
-        }
+        Timer::Stop("Build");
 
-        if (BaseType::GetEchoLevel() == 3)
-        {
-            std::cout << "before the solution of the system" << std::endl;
-            std::cout << "stiffness Matrix = " << A << std::endl;
-            std::cout << "mass Matrix = " << M << std::endl;
-            std::cout << "unknowns vector = " << Dx << std::endl;
-            std::cout << "RHS vector = " << b << std::endl;
-        }
+        KRATOS_INFO_IF("ModalAnalysisBuilderAndSolver", Kernel::GetInstance().GetLogLevel() > 2)
+            << "before the solution of the system" << std::endl
+            << "stiffness Matrix = " << A << std::endl
+            << "mass Matrix = " << M << std::endl
+            << "unknowns vector = " << Dx << std::endl
+            << "RHS vector = " << b << std::endl;
 
-        Kratos::timer solve_time;
+        Timer::Start("Solve");
 
         typedef PowerIterationEigenvalueSolver<TSparseSpace, TDenseSpace, TLinearSolver, ModelPart> EigenvalueSolverType;
         EigenvalueSolverType eigenvalue_solver( mTolerance, mMaxIterations, mMaxEigenSolutions, BaseType::mpLinearSystemSolver );
 
         eigenvalue_solver.Solve( A, M, mEigenvalues, mEigenvectors);
 
-        if(BaseType::GetEchoLevel() > 0)
-        {
-            std::cout << "System Solve Time : " << solve_time.elapsed() << std::endl;
-        }
-        if (BaseType::GetEchoLevel() == 3)
-        {
-            std::cout << "after the solution of the system" << std::endl;
-            std::cout << "Eigenvalues = " << mEigenvalues << std::endl;
-            std::cout << "Eigenvectors = " << mEigenvectors << std::endl;
-        }
+        Timer::Stop("Solve");
+
+        KRATOS_INFO_IF("ModalAnalysisBuilderAndSolver", Kernel::GetInstance().GetLogLevel() > 2)
+            << "after the solution of the system" << std::endl
+            << "Eigenvalues = " << mEigenvalues << std::endl
+            << "Eigenvectors = " << mEigenvectors << std::endl;
 
         KRATOS_CATCH("")
     }
@@ -433,10 +413,8 @@ public:
             TSparseSpace::Clear( (this->mpReactionsVector) );
         }
 
-        if (this->GetEchoLevel()>0)
-        {
-            std::cout << "ModalAnalysisBuilderAndSolver Clear Function called" << std::endl;
-        }
+        KRATOS_INFO_IF("ModalAnalysisBuilderAndSolver", Kernel::GetInstance().GetLogLevel() > 0)
+            << "Clear Function called" << std::endl;
     }
 
     /*@} */
@@ -481,7 +459,6 @@ protected:
         const ConditionsContainerType& rConditions,
         const ProcessInfo& CurrentProcessInfo) const
     {
-
         std::size_t equation_size = A.size1();
         std::vector<std::vector<std::size_t> > indices(equation_size);
         //              std::vector<std::vector<std::size_t> > dirichlet_indices(TSystemSpaceType::Size1(mDirichletMatrix));
@@ -782,4 +759,3 @@ private:
 }  /* namespace Kratos.*/
 
 #endif /* KRATOS_MODAL_ANALYSIS_BUILDER_AND_SOLVER  defined */
-

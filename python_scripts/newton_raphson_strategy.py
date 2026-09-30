@@ -126,7 +126,7 @@ class SolvingStrategyPython:
         for proc in self.attached_processes:
             proc.ExecuteInitialize()
         self.InitializeWasPerformed = True
-        print("newton_raphson_strategy.Initialize is called", flush=True)
+        kprint("newton_raphson_strategy.Initialize is called", flush=True)
 
     #######################################################################
     def SolveOneStep(self):
@@ -151,7 +151,7 @@ class SolvingStrategyPython:
             self.solveCounter = self.solveCounter - 1
             #clear if needed - deallocates memory
             if self.ReformDofSetAtEachStep:
-                print("Clear the system")
+                kprint("Clear the system")
                 self.Clear()
             #reset flags for repeated step
             self.SolutionStepIsInitialized = False
@@ -165,7 +165,7 @@ class SolvingStrategyPython:
 
     #######################################################################
     def PerformOneIteration( self ):
-        print("time = " + str(self.model_part.ProcessInfo[TIME]))
+        kprint("time = " + str(self.model_part.ProcessInfo[TIME]))
         #perform the operations to be performed ONCE and ensure they will not be repeated
         # elemental function "Initialize" is called here
         if not self.InitializeWasPerformed:
@@ -187,12 +187,12 @@ class SolvingStrategyPython:
         self.iterationCounter = self.iterationCounter + 1
         iter_success, normDx = self.ExecuteIteration(self.echo_level,self.MoveMeshFlag,calculate_norm)
         self.FinalizeNonLinIteration(False,self.MoveMeshFlag)
-        print("normDx: " + str(normDx), flush=True)
-        print("newton_raphson_strategy.PerformOneIteration completed at time = %f" % (self.model_part.ProcessInfo[TIME]), flush=True)
+        kprint("normDx: " + str(normDx), flush=True)
+        kprint("newton_raphson_strategy.PerformOneIteration completed at time = %f" % (self.model_part.ProcessInfo[TIME]), flush=True)
 
     #######################################################################
     def PerformNewtonRaphsonIteration( self ):
-        print("time = " + str(self.model_part.ProcessInfo[TIME]))
+        kprint("time = " + str(self.model_part.ProcessInfo[TIME]))
         #perform the operations to be performed ONCE and ensure they will not be repeated
         # elemental function "Initialize" is called here
         if not self.InitializeWasPerformed:
@@ -220,7 +220,7 @@ class SolvingStrategyPython:
         if not iter_success:
             return False, 0
         self.FinalizeNonLinIteration(False,self.MoveMeshFlag)
-        print("normDx at iteration 0: %.6e" % (normDx))
+        kprint("normDx at iteration 0: %.6e" % (normDx))
 
         er_0 = self.space_utils.TwoNorm(self.b)
         if self.log_residuum != None:
@@ -251,7 +251,7 @@ class SolvingStrategyPython:
             iter_success, normDx = self.ExecuteIteration(self.echo_level,calculate_norm)
             if not iter_success:
                 return False, it
-            print("normDx at iteration %d: %.6e" % (it+1, normDx))
+            kprint("normDx at iteration %d: %.6e" % (it+1, normDx))
 
             #verify convergence
             converged = self.convergence_criteria.PostCriteria(self.model_part,self.builder_and_solver.GetDofSet(),self.A,self.Dx,self.b)
@@ -289,7 +289,7 @@ class SolvingStrategyPython:
                     for v in pm:
                         if v[0] == -1:
                             failed_points_count += 1
-                print("Number of failed plastic points: %d" % (failed_points_count))
+                kprint("Number of failed plastic points: %d" % (failed_points_count))
                 if failed_points_count > 0:
                     converged = False
                     return False, it
@@ -316,7 +316,7 @@ class SolvingStrategyPython:
                     if self.Parameters['stop_Newton_Raphson_if_not_converged']:
                         raise Exception("Sorry, my boss does not allow me to continue. The error increases %d times in a row at time step %f, it = %d, max_iter = %d" % (number_of_iterations_for_divergence_check, self.model_part.ProcessInfo[TIME], it, self.max_iter))
                     else:
-                        print('The error increases %d times in a row, so the time step is marked as non-converged. The simulation will be continued' % (number_of_iterations_for_divergence_check))
+                        kprint('The error increases %d times in a row, so the time step is marked as non-converged. The simulation will be continued' % (number_of_iterations_for_divergence_check))
                         # mark as non-converged if the error increases 3 times consecuteively
                         return False, it
 
@@ -325,7 +325,7 @@ class SolvingStrategyPython:
                     if self.Parameters['stop_Newton_Raphson_if_not_converged']:
                         raise Exception("Sorry, my boss does not allow me to continue. The error ratio is larger than threshold %d times in a row at time step %f, it = %d, max_iter = %d" % (number_of_iterations_for_divergence_check, self.model_part.ProcessInfo[TIME], it, self.max_iter))
                     else:
-                        print('The error ratio is larger than threshold %d times in a row, so the time step is marked as non-converged. The simulation will be continued' % (number_of_iterations_for_divergence_check))
+                        kprint('The error ratio is larger than threshold %d times in a row, so the time step is marked as non-converged. The simulation will be continued' % (number_of_iterations_for_divergence_check))
                         # mark as non-converged if the error ratio is larger than threshold 3 times consecuteively
                         return False, it
 
@@ -334,22 +334,22 @@ class SolvingStrategyPython:
                     if self.Parameters['stop_Newton_Raphson_if_not_converged']:
                         raise Exception("Sorry, my boss does not allow me to continue. The normDx increases %d times in a row at time step %f, it = %d, max_iter = %d" % (number_of_iterations_for_divergence_check, self.model_part.ProcessInfo[TIME], it, self.max_iter))
                     else:
-                        print('The normDx increases %d times in a row, so the time step is marked as non-converged. The simulation will be continued' % (number_of_iterations_for_divergence_check))
+                        kprint('The normDx increases %d times in a row, so the time step is marked as non-converged. The simulation will be continued' % (number_of_iterations_for_divergence_check))
                         # mark as non-converged if the error increases 3 times consecuteively
                         return False, it
             # end checking divergence
 
         if it == self.max_iter and not converged:
-            print("Iteration did not converge at time %f" % (self.model_part.ProcessInfo[TIME]))
+            kprint("Iteration did not converge at time %f" % (self.model_part.ProcessInfo[TIME]))
             if 'stop_Newton_Raphson_if_not_converged' in self.Parameters:
                 if self.Parameters['stop_Newton_Raphson_if_not_converged']:
                     raise Exception("Sorry, my boss does not allow me to continue. The time step did not converge at time %f, it = %d, max_iter = %d" % (self.model_part.ProcessInfo[TIME], it, self.max_iter))
                 else:
-                    print('However, the iteration will still be proceeded')
+                    kprint('However, the iteration will still be proceeded')
                     return False, it
             else:
                 raise Exception("Sorry, my boss does not allow me to continue. The time step did not converge at time %f, it = %d, max_iter = %d" % (self.model_part.ProcessInfo[TIME], it, self.max_iter))
-        print("newton_raphson_strategy.PerformNewtonRaphsonIteration converged after %d steps" % (it), flush=True)
+        kprint("newton_raphson_strategy.PerformNewtonRaphsonIteration converged after %d steps" % (it), flush=True)
         return True, it
 
     #######################################################################
@@ -367,7 +367,7 @@ class SolvingStrategyPython:
 
     #######################################################################
     def InitializeSolutionStep(self):
-        print("newton_raphson_strategy.ExecuteIteration:InitializeSolutionStep is called", flush=True)
+        kprint("newton_raphson_strategy.ExecuteIteration:InitializeSolutionStep is called", flush=True)
         if not self.builder_and_solver.GetDofSetIsInitializedFlag() or self.ReformDofSetAtEachStep:
             #initialize the list of degrees of freedom to be used
             self.builder_and_solver.SetUpDofSet(self.time_scheme,self.model_part)
@@ -395,7 +395,7 @@ class SolvingStrategyPython:
         self.space_utils.SetToZeroVector(self.b)
 
         self.time_scheme.InitializeNonLinIteration(self.model_part,self.A,self.Dx,self.b)
-        print("newton_raphson_strategy.ExecuteIteration:InitializeNonLinIteration is called", flush=True)
+        kprint("newton_raphson_strategy.ExecuteIteration:InitializeNonLinIteration is called", flush=True)
 
         #build and solve the problem
         if not self.Parameters['decouple_build_and_solve']:
@@ -409,10 +409,10 @@ class SolvingStrategyPython:
                 if self.Parameters['stop_Newton_Raphson_if_not_converged']:
                     raise Exception("Build failed at time step %f, error code = %d" % (self.model_part.ProcessInfo[TIME], self.model_part.ProcessInfo[BUILD_STATUS]))
                 else:
-                    print("Build failed at time step %f with error code = %d, but the simulation will continue." % (self.model_part.ProcessInfo[TIME], self.model_part.ProcessInfo[BUILD_STATUS]))
+                    kprint("Build failed at time step %f with error code = %d, but the simulation will continue." % (self.model_part.ProcessInfo[TIME], self.model_part.ProcessInfo[BUILD_STATUS]))
                     return False, 0.0
-            # print("b: ", self.b, flush=True)
-            print("normb at Build: %.6e" % (self.space_utils.TwoNorm(self.b)), flush=True)
+            # kprint("b: ", self.b, flush=True)
+            kprint("normb at Build: %.6e" % (self.space_utils.TwoNorm(self.b)), flush=True)
             self.builder_and_solver.ApplyDirichletConditions(self.time_scheme,self.model_part,self.A,self.Dx,self.b)
             self.dof_util.ListDofs(self.builder_and_solver.GetDofSet(),self.builder_and_solver.GetEquationSystemSize())
             #provide data for the preconditioner and linear solver
@@ -420,9 +420,9 @@ class SolvingStrategyPython:
                 self.linear_solver.ProvideAdditionalData(self.A,self.Dx,self.b,self.builder_and_solver.GetDofSet(),self.model_part)
             self.linear_solver.Solve(self.A,self.Dx,self.b)
 
-        # print("At solve, A = " + str(self.A))
-        # print("At solve, rhs = " + str(self.b))
-        # print("At solve, dx = " + str(self.Dx))
+        # kprint("At solve, A = " + str(self.A))
+        # kprint("At solve, rhs = " + str(self.b))
+        # kprint("At solve, dx = " + str(self.Dx))
 
         #calculate reaction process
         if not(self.calculate_reaction_process == None):
@@ -434,7 +434,7 @@ class SolvingStrategyPython:
 #        diagAstr = ""
 #        for i in range(0, self.A.Size1()):
 #            diagAstr = diagAstr + ", " + str(self.A[(i, i)])
-#        print("diagonal A:" + diagAstr)
+#        kprint("diagonal A:" + diagAstr)
 
         #full output if needed
         if self.PrintSparsity:
@@ -446,17 +446,17 @@ class SolvingStrategyPython:
 
         # print the matrix information if needed
         if echo_level > 1:
-            print('System matrix info: ', end='', flush=True)
-            self.space_utils.PrintMatrixInfo(self.A, 3)
-            print('System vector info (Dx): ', end='', flush=True)
-            self.space_utils.PrintVectorInfo(self.Dx, 3)
-            print('System vector info (b): ', end='', flush=True)
-            self.space_utils.PrintVectorInfo(self.b, 3)
+            kprint('System matrix info: ', end='', flush=True)
+            self.space_utils.PrintMatrixInfo(Kernel(), self.A, 3)
+            kprint('System vector info (Dx): ', end='', flush=True)
+            self.space_utils.PrintVectorInfo(Kernel(), self.Dx, 3)
+            kprint('System vector info (b): ', end='', flush=True)
+            self.space_utils.PrintVectorInfo(Kernel(), self.b, 3)
 
         if echo_level >= 3:
-            print("SystemMatrix = " + str(self.A), flush=True)
-            print("solution obtained = " + str(self.Dx), flush=True)
-            print("RHS = " + str(self.b), flush=True)
+            kprint("SystemMatrix = " + str(self.A), flush=True)
+            kprint("solution obtained = " + str(self.Dx), flush=True)
+            kprint("RHS = " + str(self.b), flush=True)
 
         #calculate the norm of the "correction" Dx
         if CalculateNormDxFlag:
@@ -471,17 +471,17 @@ class SolvingStrategyPython:
         if not ConvergedFlag:
             #perform update
             self.time_scheme.Update(self.model_part,self.builder_and_solver.GetDofSet(),self.A,self.Dx,self.b)
-            print("newton_raphson_strategy.FinalizeNonLinIteration:Update is called", flush=True)
+            kprint("newton_raphson_strategy.FinalizeNonLinIteration:Update is called", flush=True)
 
             #move the mesh as needed
             if MoveMeshFlag:
                 self.time_scheme.MoveMesh(self.model_part.Nodes)
-    #        print("b:" + str(self.b))
-    #        print("Dx:" + str(self.Dx))
-    #        print("A:" + str(self.A))
+    #        kprint("b:" + str(self.b))
+    #        kprint("Dx:" + str(self.Dx))
+    #        kprint("A:" + str(self.A))
 
         self.time_scheme.FinalizeNonLinIteration(self.model_part,self.A,self.Dx,self.b)
-        print("newton_raphson_strategy.FinalizeNonLinIteration:FinalizeNonLinIteration is called", flush=True)
+        kprint("newton_raphson_strategy.FinalizeNonLinIteration:FinalizeNonLinIteration is called", flush=True)
 
     #######################################################################
     def FinalizeSolutionStep(self,CalculateReactionsFlag):
@@ -508,7 +508,7 @@ class SolvingStrategyPython:
             self.log_residuum.write("----------------------------------------------------\n")
             self.log_residuum.flush()
 
-        print("newton_raphson_strategy.FinalizeSolutionStep is called", flush=True)
+        kprint("newton_raphson_strategy.FinalizeSolutionStep is called", flush=True)
 
     #######################################################################
     def Clear(self):
@@ -536,7 +536,7 @@ class SolvingStrategyPython:
     #######################################################################
     def SetEchoLevel(self,level):
         self.echo_level = level
-        self.builder_and_solver.SetEchoLevel(level)
+        Kernel().SetLogLevel(level)
 
     #######################################################################
     def AnalyseSystemMatrix(self,  A):
@@ -551,12 +551,12 @@ class SolvingStrategyPython:
 #                if abs(A[(i, j)]) > 1e-16:
 #                    nonzeros = nonzeros + 1
 
-        print("#############################")
-        print("Number of rows: " +str(A.Size1()) )
-        print("Number of columns: " +str(A.Size2()) )
-#        print("Number of entries: " +str(nonzeros) )
-        print("Max in Diagonal: " +str(max) )
-        print("#############################")
+        kprint("#############################")
+        kprint("Number of rows: " +str(A.Size1()) )
+        kprint("Number of columns: " +str(A.Size2()) )
+#        kprint("Number of entries: " +str(nonzeros) )
+        kprint("Max in Diagonal: " +str(max) )
+        kprint("#############################")
 
     #######################################################################
     def PlotSparsityScheme(self, A):
@@ -570,7 +570,7 @@ class SolvingStrategyPython:
             Gnuplot.PlotItems = PlotItems
             import funcutils
             Gnuplot.funcutils = funcutils
-        print("gnuplot-python imported")
+        kprint("gnuplot-python imported")
         g = Gnuplot.Gnuplot(debug=1)
         g.clear()
         #g.plot(Gnuplot.Func('sin(x)'))
@@ -603,5 +603,5 @@ class SolvingStrategyPython:
     #######################################################################
     def wait(self,str=None, prompt='Press return to show results...\n'):
         if str is not None:
-            print(str)
+            kprint(str)
         raw_input(prompt)

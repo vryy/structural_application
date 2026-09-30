@@ -74,7 +74,7 @@ public:
      */
     DofUtility()
     {
-        std::cout << "DofUtility created" << std::endl;
+        KRATOS_INFO("DofUtility") << "DofUtility created" << std::endl;
     }
 
     /**
@@ -101,10 +101,10 @@ public:
             }
         }
 
-        std::cout << "List of Dofs in the system:" << std::endl;
+        KRATOS_INFO("DofUtility") << "List of Dofs in the system:" << std::endl;
         for(std::set<VariableData>::iterator it = VarSet.begin(); it != VarSet.end(); ++it)
         {
-            std::cout << "    " << it->Name() << ": " << VarCount[it->Key()] << std::endl;
+            KRATOS_INFO("DofUtility") << "    " << it->Name() << ": " << VarCount[it->Key()] << std::endl;
         }
     }
 
@@ -119,14 +119,14 @@ public:
             else
                 ++dof_iterator;
         }
-        std::cout << "Dof " << rVariable.Name() << " is removed from the dof set" << std::endl;
+        KRATOS_INFO("DofUtility") << "Dof " << rVariable.Name() << " is removed from the dof set" << std::endl;
     }
 
     /// Print the key of a variable
     template<class TVariableType>
     static void PrintKey(const TVariableType& rThisVariable)
     {
-        std::cout << "Variable " << rThisVariable.Name() << " key: " << rThisVariable.Key() << std::endl;
+        KRATOS_INFO("DofUtility") << "Variable " << rThisVariable.Name() << " key: " << rThisVariable.Key() << std::endl;
     }
 
     /// Find and print the dof containing the maximum unbalanced force
@@ -147,7 +147,7 @@ public:
         {
             if (dof_iterator->EquationId() == imax)
             {
-                std::cout << "Max unbalanced force at node " << dof_iterator->Id()
+                KRATOS_INFO("DofUtility") << "Max unbalanced force at node " << dof_iterator->Id()
                           << ", dof " << imax << " (" << dof_iterator->GetVariable().Name() << "), value = " << max_force
                           << std::endl;
             }
@@ -173,7 +173,7 @@ public:
         {
             if (dof_iterator->EquationId() == imin)
             {
-                std::cout << "Min unbalanced force at node " << dof_iterator->Id()
+                KRATOS_INFO("DofUtility") << "Min unbalanced force at node " << dof_iterator->Id()
                           << ", dof " << imin << " (" << dof_iterator->GetVariable().Name() << "), value = " << min_force
                           << std::endl;
             }
