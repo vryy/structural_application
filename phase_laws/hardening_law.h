@@ -162,7 +162,7 @@ inline std::ostream & operator <<(std::ostream& rOStream,
                                   const HardeningLaw& rThis)
 {
     rThis.PrintInfo(rOStream);
-    rOStream << " : " << std::endl;
+    rOStream << " : ";
     rThis.PrintData(rOStream);
 
     return rOStream;

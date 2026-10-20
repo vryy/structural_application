@@ -81,13 +81,13 @@ public:
 
 private:
 
+    std::vector<double> mPx;
+    std::vector<double> mPy;
+
     ///@name Serialization
     ///@{
 
     friend class Serializer;
-
-    std::vector<double> mPx;
-    std::vector<double> mPy;
 
     void save(Serializer& rSerializer) const final
     {

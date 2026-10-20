@@ -75,15 +75,21 @@ public:
         return "ExponentialHardeningLaw";
     }
 
+    /// Print object's data.
+    void PrintData(std::ostream& rOStream) const override
+    {
+        rOStream << mCinf << " - (" << mCinf - mC0 << ")*exp(-" << mRho << "*alpha)";
+    }
+
 private:
+
+    double mCinf, mC0;
+    double mRho;
 
     ///@name Serialization
     ///@{
 
     friend class Serializer;
-
-    double mCinf, mC0;
-    double mRho;
 
     void save(Serializer& rSerializer) const final
     {

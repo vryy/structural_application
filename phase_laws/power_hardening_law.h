@@ -88,12 +88,12 @@ public:
 
 private:
 
+    double mK, me0, mn;
+
     ///@name Serialization
     ///@{
 
     friend class Serializer;
-
-    double mK, me0, mn;
 
     void save(Serializer& rSerializer) const final
     {

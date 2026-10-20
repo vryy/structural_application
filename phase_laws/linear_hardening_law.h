@@ -75,15 +75,21 @@ public:
         return "LinearHardeningLaw";
     }
 
+    /// Print object's data.
+    void PrintData(std::ostream& rOStream) const override
+    {
+        rOStream << mOy << " + " << mH << "*alpha";
+    }
+
 private:
+
+    double mOy;
+    double mH;
 
     ///@name Serialization
     ///@{
 
     friend class Serializer;
-
-    double mOy;
-    double mH;
 
     void save(Serializer& rSerializer) const final
     {
