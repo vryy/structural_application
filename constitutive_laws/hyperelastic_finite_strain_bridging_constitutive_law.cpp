@@ -29,7 +29,7 @@ namespace Kratos
 {
 
 //**********************************************************************
-void HyperelasticFiniteStrainBridgingConstitutiveLaw::StressIntegration(const Parameters& rValues,
+int HyperelasticFiniteStrainBridgingConstitutiveLaw::StressIntegration(const Parameters& rValues,
         const Matrix& F, Matrix& stress_tensor) const
 {
     const auto& geom = rValues.GetElementGeometry();
@@ -95,6 +95,8 @@ void HyperelasticFiniteStrainBridgingConstitutiveLaw::StressIntegration(const Pa
 
     // transform to Cauchy stress
     this->ComputeStress(stress_tensor, pk2_stress);
+
+    return const_params.GetErrorCode();
 }
 
 //**********************************************************************
@@ -103,7 +105,8 @@ void HyperelasticFiniteStrainBridgingConstitutiveLaw::CalculateMaterialResponseC
     // integrate the Cauchy stress
     const Matrix& F = rValues.GetDeformationGradientF();
     this->UpdateDeformationGradient(m_F_n1, m_J_n1, rValues);
-    this->StressIntegration(rValues, m_F_n1, m_stress_n1);
+    int error_code = this->StressIntegration(rValues, m_F_n1, m_stress_n1);
+    rValues.SetErrorCode(error_code);
 
     // export the stress
     if (rValues.IsSetStressVector())

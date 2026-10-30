@@ -98,7 +98,7 @@ public:
      * Computes the material response in terms of Cauchy stresses
      * @see Parameters
      */
-    void CalculateMaterialResponseCauchy (Parameters& rValues) override;
+    void CalculateMaterialResponseCauchy( Parameters& rValues ) override;
 
     /**
      * Input and output
@@ -135,7 +135,7 @@ protected:
 
     /// Integrate the stress; depending on the TStressType, the output is Cauchy stress (TStressType=1) or
     /// Kirchhoff stress (TStressType=2)
-    void StressIntegration(const Parameters& rValues, const Matrix& F, Matrix& stress_tensor) const override;
+    int StressIntegration(const Parameters& rValues, const Matrix& F, Matrix& stress_tensor) const override;
 
     /// Compute the consistent tangent (tensor)
     void ComputeTangent(const Parameters& rValues, Fourth_Order_Tensor& A) const override;

@@ -313,7 +313,7 @@ void PlaneStrainImpl<TNodeType>::SetValue( const Variable<MatrixType>& rThisVari
 }
 
 template<class TNodeType>
-void PlaneStrainImpl<TNodeType>::CalculateMaterialResponseCauchy (typename BaseType::Parameters& rValues)
+void PlaneStrainImpl<TNodeType>::CalculateMaterialResponseCauchy( typename BaseType::Parameters& rValues )
 {
     if (rValues.IsSetStressVector())
     {
@@ -332,10 +332,12 @@ void PlaneStrainImpl<TNodeType>::CalculateMaterialResponseCauchy (typename BaseT
             AlgorithmicTangent.resize(3, 3, false);
         CalculateConstitutiveMatrix( AlgorithmicTangent );
     }
+
+    rValues.SetErrorCode(0);
 }
 
 template<class TNodeType>
-void PlaneStrainImpl<TNodeType>::CalculateMaterialResponse( const VectorType& StrainVector,
+int PlaneStrainImpl<TNodeType>::CalculateMaterialResponse( const VectorType& StrainVector,
         const MatrixType& DeformationGradient,
         VectorType& StressVector,
         MatrixType& AlgorithmicTangent,
@@ -354,6 +356,7 @@ void PlaneStrainImpl<TNodeType>::CalculateMaterialResponse( const VectorType& St
     const_params.SetConstitutiveMatrix(AlgorithmicTangent);
 
     this->CalculateMaterialResponseCauchy(const_params);
+    return const_params.GetErrorCode();
 }
 
 template<class TNodeType>
@@ -375,6 +378,13 @@ void PlaneStrainImpl<TNodeType>::ResetMaterial( const Properties& props,
                                  const Vector& ShapeFunctionsValues )
 {
     noalias(mCurrentStress) = ZeroVectorType(3);
+}
+
+template<class TNodeType>
+void PlaneStrainImpl<TNodeType>::RewindMaterial( const Properties& props,
+                                 const GeometryType& geom,
+                                 const Vector& ShapeFunctionsValues )
+{
 }
 
 template<class TNodeType>

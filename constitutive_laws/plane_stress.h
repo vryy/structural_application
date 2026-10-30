@@ -163,14 +163,17 @@ public:
                         const GeometryType& geom,
                         const Vector& ShapeFunctionsValues ) override;
 
+    void RewindMaterial( const Properties& rMaterialProperties,
+                         const GeometryType& rElementGeometry,
+                         const Vector& rShapeFunctionsValues ) final;
+
     /**
      * Calculates the constitutive matrix for a given strain vector
      * @param StrainVector the current vector of strains the constitutive
      * matrix is to be generated for
      * @param rResult Matrix the result will be stored in
      */
-    void CalculateConstitutiveMatrix(Matrix& rResult);
-    //      void PlaneStrainConstitutiveMatrix(const Vector& StrainVector, Matrix& rResult);
+    void CalculateConstitutiveMatrix(Matrix& rResult) const;
 
     /**
      * Calculates the stresses for given strain state
@@ -197,31 +200,30 @@ public:
      * @param PK2_StressVector the current second Piola-Kirchhoff-Stress vector
      * @param GreenLagrangeStrainVector the current Green-Lagrangian strains
      */
-    void CalculateCauchyStresses(Vector& Cauchy_StressVector,
-                                 const Matrix& F,
-                                 const Vector& PK2_StressVector,
-                                 const Vector& GreenLagrangeStrainVector) const;
+    void CalculateCauchyStresses( Vector& Cauchy_StressVector,
+                                  const Matrix& F,
+                                  const Vector& PK2_StressVector,
+                                  const Vector& GreenLagrangeStrainVector ) const;
 
     /**
      * converts a strain vector styled variable into its form, which the
      * deviatoric parts are no longer multiplied by 2
      */
-    void Calculate(const Variable<Matrix >& rVariable,
+    void Calculate( const Variable<Matrix >& rVariable,
                     Matrix& rResult,
                     const ProcessInfo& rCurrentProcessInfo) const;
 
-    void Calculate(const Variable<double>& rVariable,
+    void Calculate( const Variable<double>& rVariable,
                     double& Output,
-                    const ProcessInfo& rCurrentProcessInfo) const;
+                    const ProcessInfo& rCurrentProcessInfo ) const;
 
     /**
      * Computes the material response in terms of Cauchy stresses and constitutive tensor
      * @see Parameters
      */
-    void CalculateMaterialResponseCauchy (Parameters& rValues) final;
+    void CalculateMaterialResponseCauchy( Parameters& rValues ) final;
 
-    /// DEPRECATED interface
-    void CalculateMaterialResponse(const Vector& StrainVector,
+    int CalculateMaterialResponse( const Vector& StrainVector,
                                    const Matrix& DeformationGradient,
                                    Vector& StressVector,
                                    Matrix& AlgorithmicTangent,
@@ -232,7 +234,7 @@ public:
                                    bool CalculateStresses = true,
                                    int CalculateTangent = true,
                                    bool SaveInternalVariables = true
-                                  ) override;
+                                 ) override;
 
     /**
      * Input and output
@@ -254,9 +256,9 @@ public:
         rOStream << Info();
     }
 
-    int Check(const Properties& props,
-              const GeometryType& geom,
-              const ProcessInfo& CurrentProcessInfo) const final;
+    int Check( const Properties& props,
+               const GeometryType& geom,
+               const ProcessInfo& CurrentProcessInfo ) const final;
 
 private:
 
@@ -290,7 +292,7 @@ private:
      * @param NU the Poisson ratio
      * @return the linear elastic constitutive matrix
      */
-    void CalculateElasticMatrix(Matrix& C, const double E, const double NU);
+    void CalculateElasticMatrix(Matrix& C, const double E, const double NU) const;
 
     double mE, mNU;
 
@@ -305,11 +307,11 @@ private:
     /**
      * Assignment operator.
      */
-    //PlaneStress& operator=(const IsotropicPlaneStressWrinklingNew& rOther);
+    //PlaneStress& operator=(const ConstitutiveLaw& rOther);
     /**
      * Copy constructor.
      */
-    //PlaneStress(const IsotropicPlaneStressWrinklingNew& rOther);
+    //PlaneStress(const ConstitutiveLaw& rOther);
 }; // Class PlaneStress
 
 } // namespace Kratos.

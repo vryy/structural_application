@@ -110,7 +110,7 @@ void HypoelasticFiniteStrainBridgingConstitutiveLawDC<THWSchemeType, TStressType
 
 //**********************************************************************
 template<int THWSchemeType, int TStressType>
-void HypoelasticFiniteStrainBridgingConstitutiveLawDC<THWSchemeType, TStressType>::CalculateMaterialResponseCauchy (Parameters& rValues)
+void HypoelasticFiniteStrainBridgingConstitutiveLawDC<THWSchemeType, TStressType>::CalculateMaterialResponseCauchy(Parameters& rValues)
 {
     const ProcessInfo& CurrentProcessInfo = rValues.GetProcessInfo();
     if (CurrentProcessInfo[SET_CALCULATE_REACTION])

@@ -160,7 +160,7 @@ void MultiplicativeFiniteStrainBridgingConstitutiveLawDC<2>::FinalizeNonLinearIt
 
 //**********************************************************************
 template<int TStressType>
-void MultiplicativeFiniteStrainBridgingConstitutiveLawDC<TStressType>::CalculateMaterialResponseCauchy (Parameters& rValues)
+void MultiplicativeFiniteStrainBridgingConstitutiveLawDC<TStressType>::CalculateMaterialResponseCauchy( Parameters& rValues )
 {
     const ProcessInfo& CurrentProcessInfo = rValues.GetProcessInfo();
     if (CurrentProcessInfo[SET_CALCULATE_REACTION])

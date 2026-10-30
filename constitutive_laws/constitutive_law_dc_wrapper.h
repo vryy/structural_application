@@ -122,25 +122,24 @@ public:
      * NOTE: the CalculateTangent flag is defined as int to allow for distinctive variants of the tangent
      * @param SaveInternalVariables flag whether or not to store internal (history) variables
      */
-    /// DEPRECATED interface
-    void CalculateMaterialResponse( const Vector& StrainVector,
-                                    const Matrix& DeformationGradient,
-                                    Vector& StressVector,
-                                    Matrix& AlgorithmicTangent,
-                                    const ProcessInfo& CurrentProcessInfo,
-                                    const Properties& props,
-                                    const GeometryType& geom,
-                                    const Vector& ShapeFunctionsValues,
-                                    bool CalculateStresses,
-                                    int CalculateTangent,
-                                    bool SaveInternalVariables) override
+    int CalculateMaterialResponse( const Vector& StrainVector,
+                                   const Matrix& DeformationGradient,
+                                   Vector& StressVector,
+                                   Matrix& AlgorithmicTangent,
+                                   const ProcessInfo& CurrentProcessInfo,
+                                   const Properties& props,
+                                   const GeometryType& geom,
+                                   const Vector& ShapeFunctionsValues,
+                                   bool CalculateStresses,
+                                   int CalculateTangent,
+                                   bool SaveInternalVariables) override
     {
         if (CurrentProcessInfo[SET_CALCULATE_REACTION])
         {
             if (CalculateStresses)
             {
                 this->GetValue(STRESSES, StressVector);
-                return;
+                return 0;
             }
         }
 
@@ -148,6 +147,7 @@ public:
             this->ComputeTangent(AlgorithmicTangent, CurrentProcessInfo, props);
         if (CalculateStresses)
             this->GetValue(STRESSES, StressVector);
+        return 0;
     }
 
     /**
@@ -161,7 +161,7 @@ public:
     void FinalizeNonLinearIteration( const Properties& props,
                                      const GeometryType& geom,
                                      const Vector& ShapeFunctionsValues,
-                                     const ProcessInfo& CurrentProcessInfo) override
+                                     const ProcessInfo& CurrentProcessInfo ) override
     {
         double TOL;
         if (props.Has(LOCAL_ERROR_TOLERANCE))

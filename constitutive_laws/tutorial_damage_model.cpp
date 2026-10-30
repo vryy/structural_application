@@ -211,9 +211,9 @@ void TutorialDamageModel::FinalizeSolutionStep( const Properties& props,
     mKappa_old = mKappa;
 }
 
-void TutorialDamageModel::CalculateMaterialResponseCauchy (Parameters& rValues)
+void TutorialDamageModel::CalculateMaterialResponseCauchy( Parameters& rValues )
 {
-    this->CalculateMaterialResponse(rValues.GetStrainVector(),
+    int error_code = this->CalculateMaterialResponse(rValues.GetStrainVector(),
         rValues.GetDeformationGradientF(),
         rValues.GetStressVector(),
         rValues.GetConstitutiveMatrix(),
@@ -224,9 +224,10 @@ void TutorialDamageModel::CalculateMaterialResponseCauchy (Parameters& rValues)
         true,
         1,
         true);
+    rValues.SetErrorCode(error_code);
 }
 
-void  TutorialDamageModel::CalculateMaterialResponse( const Vector& StrainVector,
+int TutorialDamageModel::CalculateMaterialResponse( const Vector& StrainVector,
         const Matrix& DeformationGradient,
         Vector& StressVector,
         Matrix& AlgorithmicTangent,
@@ -298,6 +299,8 @@ void  TutorialDamageModel::CalculateMaterialResponse( const Vector& StrainVector
     noalias(AlgorithmicTangent) = C;
     StressVector = prod( C, StrainVector );
     noalias(mCurrentStress) = StressVector;
+
+    return 0;
 }
 
 double TutorialDamageModel::ComputeKappa(const double d, const double TOL, const int max_iters) const

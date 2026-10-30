@@ -177,7 +177,7 @@ void MultiplicativeFiniteStrainBridgingConstitutiveLaw<TStressType>::ComputeStra
 
 //**********************************************************************
 template<int TStressType>
-void MultiplicativeFiniteStrainBridgingConstitutiveLaw<TStressType>::StressIntegration(const Parameters& rValues,
+int MultiplicativeFiniteStrainBridgingConstitutiveLaw<TStressType>::StressIntegration(const Parameters& rValues,
         const Matrix& F, Matrix& stress_tensor, Matrix& Be_trial) const
 {
     const auto strain_measure = mpConstitutiveLaw->GetStrainMeasure();
@@ -229,6 +229,8 @@ void MultiplicativeFiniteStrainBridgingConstitutiveLaw<TStressType>::StressInteg
     if (!mpConstitutiveLaw->Has(CAUCHY_STRESS_TENSOR))
         KRATOS_ERROR << "Constitutive law " << mpConstitutiveLaw->Info() << " is not able to return CAUCHY_STRESS_TENSOR";
     mpConstitutiveLaw->GetValue(CAUCHY_STRESS_TENSOR, stress_tensor);
+
+    return const_params.GetErrorCode();
 }
 
 //**********************************************************************
@@ -237,7 +239,7 @@ void MultiplicativeFiniteStrainBridgingConstitutiveLaw<TStressType>::CalculateMa
 {
     // integrate the Kirchhoff stress
     this->UpdateDeformationGradient(m_F_n1, m_J_n1, rValues);
-    this->StressIntegration(rValues, m_F_n1, m_stress_n1, m_Be_trial);
+    int error_code = this->StressIntegration(rValues, m_F_n1, m_stress_n1, m_Be_trial);
 
     if constexpr (TStressType == 2)
     {
@@ -272,14 +274,7 @@ void MultiplicativeFiniteStrainBridgingConstitutiveLaw<TStressType>::CalculateMa
     // this->ComputeStressDerivatives(dTaudF, rValues, m_F_n1, 1e-8);
     // KRATOS_WATCH(dTaudF)
 
-    #ifdef DEBUG_CONSTITUTIVE_LAW
-    // if (ElemId == DEBUG_ELEMENT_ID && GaussId == 0)
-    if (ElemId == DEBUG_ELEMENT_ID)
-    {
-        KRATOS_WATCH(m_stress_n1)
-        KRATOS_WATCH("-----------")
-    }
-    #endif
+    rValues.SetErrorCode(error_code);
 }
 
 //**********************************************************************

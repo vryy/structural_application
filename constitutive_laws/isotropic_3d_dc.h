@@ -110,7 +110,7 @@ public:
 
     ConstitutiveLaw::Pointer Clone() const final
     {
-         ConstitutiveLaw::Pointer p_clone(new Isotropic3DDC());
+        ConstitutiveLaw::Pointer p_clone(new Isotropic3DDC());
         return p_clone;
     }
 
@@ -194,18 +194,17 @@ public:
      */
     void CalculateMaterialResponsePK2 (Parameters& rValues) final;
 
-    /// DEPRECATED interface
-    void CalculateMaterialResponse( const Vector& StrainVector,
-                                     const Matrix& DeformationGradient,
-                                     Vector& StressVector,
-                                     Matrix& AlgorithmicTangent,
-                                     const ProcessInfo& CurrentProcessInfo,
-                                     const Properties& props,
-                                     const GeometryType& geom,
-                                     const Vector& ShapeFunctionsValues,
-                                     bool CalculateStresses = true,
-                                     int CalculateTangent = 1,
-                                     bool SaveInternalVariables = true ) final;
+    int CalculateMaterialResponse( const Vector& StrainVector,
+                                   const Matrix& DeformationGradient,
+                                   Vector& StressVector,
+                                   Matrix& AlgorithmicTangent,
+                                   const ProcessInfo& CurrentProcessInfo,
+                                   const Properties& props,
+                                   const GeometryType& geom,
+                                   const Vector& ShapeFunctionsValues,
+                                   bool CalculateStresses = true,
+                                   int CalculateTangent = 1,
+                                   bool SaveInternalVariables = true ) final;
 
     int Check( const Properties& props,
                const GeometryType& geom,

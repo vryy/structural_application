@@ -363,7 +363,7 @@ void Isotropic3DImpl<TNodeType>::FinalizeSolutionStep( const Properties& props,
 }
 
 template<class TNodeType>
-void Isotropic3DImpl<TNodeType>::CalculateMaterialResponseCauchy (typename BaseType::Parameters& rValues)
+void Isotropic3DImpl<TNodeType>::CalculateMaterialResponseCauchy( typename BaseType::Parameters& rValues )
 {
     if (rValues.IsSetConstitutiveMatrix())
     {
@@ -392,10 +392,12 @@ void Isotropic3DImpl<TNodeType>::CalculateMaterialResponseCauchy (typename BaseT
             CalculateStress( StrainVector, AlgorithmicTangent, StressVector );
         }
     }
+
+    rValues.SetErrorCode(0);
 }
 
 template<class TNodeType>
-void Isotropic3DImpl<TNodeType>::CalculateMaterialResponse( const VectorType& StrainVector,
+int Isotropic3DImpl<TNodeType>::CalculateMaterialResponse( const VectorType& StrainVector,
         const MatrixType& DeformationGradient,
         VectorType& StressVector,
         MatrixType& AlgorithmicTangent,
@@ -416,6 +418,7 @@ void Isotropic3DImpl<TNodeType>::CalculateMaterialResponse( const VectorType& St
         const_params.SetConstitutiveMatrix(AlgorithmicTangent);
 
     this->CalculateMaterialResponseCauchy(const_params);
+    return const_params.GetErrorCode();
 }
 
 template<class TNodeType>

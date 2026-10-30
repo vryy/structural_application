@@ -392,7 +392,7 @@ void Casm::FinalizeSolutionStep( const Properties& props,
 
 }
 
-void Casm::CalculateMaterialResponse( const Vector& StrainVector,
+int Casm::CalculateMaterialResponse( const Vector& StrainVector,
                                       const Matrix& DeformationGradient,
                                       Vector& StressVector,
                                       Matrix& AlgorithmicTangent,
@@ -408,6 +408,7 @@ void Casm::CalculateMaterialResponse( const Vector& StrainVector,
         CalculateStress( StrainVector, StressVector );
     if ( CalculateTangent != 0 )
         CalculateConstitutiveMatrix(StrainVector, AlgorithmicTangent);
+    return 0;
 }
 
 /**

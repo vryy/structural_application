@@ -274,7 +274,7 @@ void Isotropic3DDC::SetValue( const Variable<Matrix>& rThisVariable, const Matri
 {
 }
 
-void Isotropic3DDC::CalculateMaterialResponseCauchy (Parameters& rValues)
+void Isotropic3DDC::CalculateMaterialResponseCauchy( Parameters& rValues )
 {
     if (rValues.IsSetStressVector())
     {
@@ -289,14 +289,16 @@ void Isotropic3DDC::CalculateMaterialResponseCauchy (Parameters& rValues)
         SD_MathUtils<double>::CalculateElasticTensor(De, mE, mNU);
         SD_MathUtils<double>::TensorToMatrix(De, AlgorithmicTangent);
     }
+
+    rValues.SetErrorCode(0);
 }
 
-void Isotropic3DDC::CalculateMaterialResponsePK2 (Parameters& rValues)
+void Isotropic3DDC::CalculateMaterialResponsePK2( Parameters& rValues )
 {
     CalculateMaterialResponseCauchy(rValues);
 }
 
-void Isotropic3DDC::CalculateMaterialResponse( const Vector& StrainVector,
+int Isotropic3DDC::CalculateMaterialResponse( const Vector& StrainVector,
         const Matrix& DeformationGradient,
         Vector& StressVector,
         Matrix& AlgorithmicTangent,
@@ -315,6 +317,7 @@ void Isotropic3DDC::CalculateMaterialResponse( const Vector& StrainVector,
     const_params.SetConstitutiveMatrix(AlgorithmicTangent);
 
     this->CalculateMaterialResponseCauchy(const_params);
+    return const_params.GetErrorCode();
 }
 
 /**

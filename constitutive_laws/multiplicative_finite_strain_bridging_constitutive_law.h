@@ -94,7 +94,7 @@ public:
      * Computes the material response in terms of Cauchy stresses
      * @see Parameters
      */
-    void CalculateMaterialResponseCauchy (Parameters& rValues) override;
+    void CalculateMaterialResponseCauchy( Parameters& rValues ) override;
 
     /**
      * Computes the material response in terms of Kirchhoff stresses
@@ -160,7 +160,7 @@ private:
 
     /// Integrate the stress; depending on the TStressType, the output is Cauchy stress (TStressType=1) or
     /// Kirchhoff stress (TStressType=2)
-    void StressIntegration(const Parameters& rValues, const Matrix& F, Matrix& stress_tensor, Matrix& Be_trial) const;
+    int StressIntegration(const Parameters& rValues, const Matrix& F, Matrix& stress_tensor, Matrix& Be_trial) const;
 
     /// Compute the numerical derivatives of Be^trial with respect to F
     void ComputeBetrialDerivatives(Fourth_Order_Tensor& B, const Matrix& F, double epsilon) const;

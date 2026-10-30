@@ -175,12 +175,10 @@ void DummyConstitutiveLaw::InitializeSolutionStep( const Properties& props,
         const Vector& ShapeFunctionsValues ,
         const ProcessInfo& CurrentProcessInfo )
 {
-    // std::stringstream ss;
-    // ss << "Error calling DummyConstitutiveLaw::" << __FUNCTION__
+    // KRATOS_ERROR << "Error calling DummyConstitutiveLaw::" << __FUNCTION__
     //    << ", Properties: " << props.Id()
     //    << ", Element: " << mElemId
     //    << ", Point: " << mGaussId;
-    // KRATOS_THROW_ERROR(std::runtime_error, ss.str(), "")
 }
 
 void DummyConstitutiveLaw::InitializeNonLinearIteration(const Properties& rMaterialProperties,
@@ -188,12 +186,10 @@ void DummyConstitutiveLaw::InitializeNonLinearIteration(const Properties& rMater
         const Vector& rShapeFunctionsValues,
         const ProcessInfo& rCurrentProcessInfo)
 {
-    std::stringstream ss;
-    ss << "Error calling DummyConstitutiveLaw::" << __FUNCTION__
-       << ", Properties: " << rMaterialProperties.Id()
-       << ", Element: " << mElemId
-       << ", Point: " << mGaussId;
-    KRATOS_THROW_ERROR(std::runtime_error, ss.str(), "")
+    KRATOS_ERROR << "Error calling DummyConstitutiveLaw::" << __FUNCTION__
+        << ", Properties: " << rMaterialProperties.Id()
+        << ", Element: " << mElemId
+        << ", Point: " << mGaussId;
 }
 
 void DummyConstitutiveLaw::FinalizeNonLinearIteration(const Properties& rMaterialProperties,
@@ -201,12 +197,10 @@ void DummyConstitutiveLaw::FinalizeNonLinearIteration(const Properties& rMateria
         const Vector& rShapeFunctionsValues,
         const ProcessInfo& rCurrentProcessInfo)
 {
-    std::stringstream ss;
-    ss << "Error calling DummyConstitutiveLaw::" << __FUNCTION__
-       << ", Properties: " << rMaterialProperties.Id()
-       << ", Element: " << mElemId
-       << ", Point: " << mGaussId;
-    KRATOS_THROW_ERROR(std::runtime_error, ss.str(), "")
+    KRATOS_ERROR << "Error calling DummyConstitutiveLaw::" << __FUNCTION__
+        << ", Properties: " << rMaterialProperties.Id()
+        << ", Element: " << mElemId
+        << ", Point: " << mGaussId;
 }
 
 void DummyConstitutiveLaw::FinalizeSolutionStep( const Properties& props,
@@ -214,15 +208,13 @@ void DummyConstitutiveLaw::FinalizeSolutionStep( const Properties& props,
         const Vector& ShapeFunctionsValues ,
         const ProcessInfo& CurrentProcessInfo )
 {
-    // std::stringstream ss;
-    // ss << "Error calling DummyConstitutiveLaw::" << __FUNCTION__
-    //    << ", Properties: " << props.Id()
-    //    << ", Element: " << mElemId
-    //    << ", Point: " << mGaussId;
-    // KRATOS_THROW_ERROR(std::runtime_error, ss.str(), "")
+    // KRATOS_ERROR << "Error calling DummyConstitutiveLaw::" << __FUNCTION__
+    //     << ", Properties: " << props.Id()
+    //     << ", Element: " << mElemId
+    //     << ", Point: " << mGaussId;
 }
 
-void  DummyConstitutiveLaw::CalculateMaterialResponse( const Vector& StrainVector,
+int DummyConstitutiveLaw::CalculateMaterialResponse( const Vector& StrainVector,
         const Matrix& DeformationGradient,
         Vector& StressVector,
         Matrix& AlgorithmicTangent,
@@ -234,12 +226,11 @@ void  DummyConstitutiveLaw::CalculateMaterialResponse( const Vector& StrainVecto
         int CalculateTangent,
         bool SaveInternalVariables )
 {
-    std::stringstream ss;
-    ss << "Error calling DummyConstitutiveLaw::" << __FUNCTION__
-       << ", Properties: " << props.Id()
-       << ", Element: " << mElemId
-       << ", Point: " << mGaussId;
-    KRATOS_THROW_ERROR(std::runtime_error, ss.str(), "")
+    KRATOS_ERROR << "Error calling DummyConstitutiveLaw::" << __FUNCTION__
+        << ", Properties: " << props.Id()
+        << ", Element: " << mElemId
+        << ", Point: " << mGaussId;
+    return -1;
 }
 
 //**********************************************************************
@@ -251,4 +242,5 @@ int DummyConstitutiveLaw::Check( const Properties& props, const GeometryType& ge
 
     KRATOS_CATCH( "" );
 }
+
 } // Namespace Kratos

@@ -304,9 +304,9 @@ void IsotropicDamageModel::FinalizeSolutionStep( const Properties& props,
     noalias(m_stress_n) = m_stress_n1;
 }
 
-void IsotropicDamageModel::CalculateMaterialResponseCauchy (Parameters& parameters)
+void IsotropicDamageModel::CalculateMaterialResponseCauchy( Parameters& parameters )
 {
-    this->CalculateMaterialResponse( parameters.GetStrainVector()
+    int error_code = this->CalculateMaterialResponse( parameters.GetStrainVector()
         , parameters.GetDeformationGradientF()
         , parameters.GetStressVector()
         , parameters.GetConstitutiveMatrix()
@@ -318,9 +318,10 @@ void IsotropicDamageModel::CalculateMaterialResponseCauchy (Parameters& paramete
         , parameters.IsSetConstitutiveMatrix()
         , true
     );
+    parameters.SetErrorCode(error_code);
 }
 
-void  IsotropicDamageModel::CalculateMaterialResponse( const Vector& StrainVector,
+int IsotropicDamageModel::CalculateMaterialResponse( const Vector& StrainVector,
         const Matrix& DeformationGradient,
         Vector& StressVector,
         Matrix& AlgorithmicTangent,
@@ -338,7 +339,7 @@ void  IsotropicDamageModel::CalculateMaterialResponse( const Vector& StrainVecto
         {
             // use only effective stress to evaluate the reaction forces
             SD_MathUtils<double>::StressTensorToVector(m_stress_n1, StressVector);
-            return;
+            return 0;
         }
     }
 
@@ -346,9 +347,10 @@ void  IsotropicDamageModel::CalculateMaterialResponse( const Vector& StrainVecto
     if (props.Has(LOCAL_ERROR_TOLERANCE))
         TOL = props[LOCAL_ERROR_TOLERANCE];
 
+    int error_code = 0;
     if (CalculateStresses)
     {
-        this->StressIntegration(StrainVector, TOL, CurrentProcessInfo, props);
+        error_code = this->StressIntegration(StrainVector, TOL, CurrentProcessInfo, props);
 
         SD_MathUtils<double>::StressTensorToVector(m_stress_n1, StressVector);
         noalias(StressVector) += mPrestressFactor*mPrestress;
@@ -383,9 +385,11 @@ void  IsotropicDamageModel::CalculateMaterialResponse( const Vector& StrainVecto
 
     // KRATOS_WATCH(StressVector)
     // KRATOS_WATCH(AlgorithmicTangent)
+
+    return error_code;
 }
 
-void IsotropicDamageModel::StressIntegration(const Vector& StrainVector, const double TOL,
+int IsotropicDamageModel::StressIntegration(const Vector& StrainVector, const double TOL,
             const ProcessInfo& CurrentProcessInfo, const Properties& rProperties)
 {
     // equivalent strain
@@ -510,6 +514,8 @@ void IsotropicDamageModel::StressIntegration(const Vector& StrainVector, const d
     // KRATOS_WATCH(mKappa)
     // KRATOS_WATCH(d)
     // KRATOS_WATCH(this->DamageFunctionDerivative(mKappa))
+
+    return 0;
 }
 
 void IsotropicDamageModel::ComputeTangent(Matrix& AlgorithmicTangent,

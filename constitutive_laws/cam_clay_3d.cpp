@@ -474,7 +474,7 @@ void CamClay3D::InitializeNonLinearIteration( const Properties& props,
 //    #endif
 }
 
-void CamClay3D::CalculateMaterialResponse( const Vector& StrainVector,
+int CamClay3D::CalculateMaterialResponse( const Vector& StrainVector,
         const Matrix& DeformationGradient,
         Vector& StressVector,
         Matrix& AlgorithmicTangent,
@@ -503,6 +503,7 @@ void CamClay3D::CalculateMaterialResponse( const Vector& StrainVector,
     #endif
     if(CalculateTangent)
         ComputeTangent(AlgorithmicTangent);
+    return 0;
 }
 
 void CamClay3D::FinalizeNonLinearIteration( const Properties& props,

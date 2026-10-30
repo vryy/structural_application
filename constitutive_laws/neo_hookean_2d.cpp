@@ -312,10 +312,12 @@ void NeoHookean2D::CalculateMaterialResponsePK2(Parameters& rValues)
             }
         }
     }
+
+    rValues.SetErrorCode(0);
 }
 
 //**********************************************************************
-void  NeoHookean2D::CalculateMaterialResponse( const Vector& StrainVector,
+int NeoHookean2D::CalculateMaterialResponse( const Vector& StrainVector,
         const Matrix& DeformationGradient,
         Vector& StressVector,
         Matrix& AlgorithmicTangent,
@@ -351,6 +353,8 @@ void  NeoHookean2D::CalculateMaterialResponse( const Vector& StrainVector,
             AlgorithmicTangent(i, j) = AlgorithmicTangent3D(cmap[i], cmap[j]);
         }
     }
+
+    return 0;
 }
 
 //**********************************************************************

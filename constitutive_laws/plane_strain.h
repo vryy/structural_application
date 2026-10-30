@@ -173,6 +173,10 @@ public:
                         const GeometryType& geom,
                         const Vector& ShapeFunctionsValues ) final;
 
+    void RewindMaterial( const Properties& rMaterialProperties,
+                         const GeometryType& rElementGeometry,
+                         const Vector& rShapeFunctionsValues ) final;
+
     void InitializeNonLinearIteration( const Properties& rMaterialProperties,
                                        const GeometryType& rElementGeometry,
                                        const Vector& rShapeFunctionsValues,
@@ -213,20 +217,6 @@ public:
     void CalculateStrain(const DataType E, const DataType NU, const VectorType& StressVector, VectorType& rResult ) const;
 
     /**
-     * As this constitutive law describes only linear elastic material properties
-     * this function is rather useless and in fact does nothing
-     */
-    /*            void InitializeSolutionStep( const Properties& props,
-                        const GeometryType& geom, //this is just to give the array of nodes
-                        const Vector& ShapeFunctionsValues ,
-                        const ProcessInfo& CurrentProcessInfo);
-
-                void FinalizeSolutionStep( const Properties& props,
-                        const GeometryType& geom, //this is just to give the array of nodes
-                        const Vector& ShapeFunctionsValues ,
-                        const ProcessInfo& CurrentProcessInfo);
-    */
-    /**
      * Calculates the cauchy stresses. For a given deformation and stress state
      * the cauchy stress vector is calculated
      * @param Cauchy_StressVector the result vector of cauchy stresses (will be overwritten)
@@ -252,18 +242,17 @@ public:
      */
     void CalculateMaterialResponseCauchy (typename BaseType::Parameters& rValues) final;
 
-    /// DEPRECATED interface
-    void CalculateMaterialResponse( const VectorType& StrainVector,
-                                    const MatrixType& DeformationGradient,
-                                    VectorType& StressVector,
-                                    MatrixType& AlgorithmicTangent,
-                                    const ProcessInfo& CurrentProcessInfo,
-                                    const Properties& props,
-                                    const GeometryType& geom,
-                                    const Vector& ShapeFunctionsValues,
-                                    bool CalculateStresses = true,
-                                    int CalculateTangent = 1,
-                                    bool SaveInternalVariables = true ) override;
+    int CalculateMaterialResponse( const VectorType& StrainVector,
+                                   const MatrixType& DeformationGradient,
+                                   VectorType& StressVector,
+                                   MatrixType& AlgorithmicTangent,
+                                   const ProcessInfo& CurrentProcessInfo,
+                                   const Properties& props,
+                                   const GeometryType& geom,
+                                   const Vector& ShapeFunctionsValues,
+                                   bool CalculateStresses = true,
+                                   int CalculateTangent = 1,
+                                   bool SaveInternalVariables = true ) override;
 
     int Check(const Properties& props,
               const GeometryType& geom,

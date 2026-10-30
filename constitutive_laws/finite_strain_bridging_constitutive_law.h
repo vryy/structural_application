@@ -226,9 +226,10 @@ protected:
     void UpdateDeformationGradient(Matrix& F, double& J, const Parameters& rValues) const;
 
     /// Integrate the stress
-    virtual void StressIntegration(const Parameters& rValues, const Matrix& F, Matrix& stress_tensor) const
+    virtual int StressIntegration(const Parameters& rValues, const Matrix& F, Matrix& stress_tensor) const
     {
         KRATOS_ERROR << "Calling base class function";
+        return -1;
     }
 
     /// Compute the consistent tangent (tensor A)

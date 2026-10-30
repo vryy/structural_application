@@ -168,18 +168,18 @@ public:
      * NOTE: the CalculateTangent flag is defined as int to allow for distinctive variants of the tangent
      * @param SaveInternalVariables flag whether or not to store internal (history) variables
      */
-    void CalculateMaterialResponse ( const Vector& StrainVector,
-                                     const Matrix& DeformationGradient,
-                                     Vector& StressVector,
-                                     Matrix& AlgorithmicTangent,
-                                     const ProcessInfo& CurrentProcessInfo,
-                                     const Properties& props,
-                                     const GeometryType& geom,
-                                     const Vector& ShapeFunctionsValues,
-                                     bool CalculateStresses = true,
-                                     int CalculateTangent = true,
-                                     bool SaveInternalVariables = true
-                                   ) override;
+    int CalculateMaterialResponse ( const Vector& StrainVector,
+                                    const Matrix& DeformationGradient,
+                                    Vector& StressVector,
+                                    Matrix& AlgorithmicTangent,
+                                    const ProcessInfo& CurrentProcessInfo,
+                                    const Properties& props,
+                                    const GeometryType& geom,
+                                    const Vector& ShapeFunctionsValues,
+                                    bool CalculateStresses = true,
+                                    int CalculateTangent = true,
+                                    bool SaveInternalVariables = true
+                                  ) override;
 
     /**
      * Calculates the cauchy stresses. For a given deformation and stress state
@@ -193,7 +193,6 @@ public:
                                    const Matrix& F,
                                    const Vector& PK2_StressVector,
                                    const Vector& GreenLagrangeStrainVector ) override;
-
 
     /**
      * calculates the current stress and the material tangent

@@ -299,7 +299,7 @@ void HypoelasticFiniteStrainBridgingConstitutiveLaw<THWSchemeType, TStressType>:
 
 //**********************************************************************
 template<int THWSchemeType, int TStressType>
-void HypoelasticFiniteStrainBridgingConstitutiveLaw<THWSchemeType, TStressType>::StressIntegration(const Parameters& rValues,
+int HypoelasticFiniteStrainBridgingConstitutiveLaw<THWSchemeType, TStressType>::StressIntegration(const Parameters& rValues,
         const Matrix& DDu, Matrix& stress_tensor) const
 {
     const auto strain_measure = mpConstitutiveLaw->GetStrainMeasure();
@@ -345,6 +345,8 @@ void HypoelasticFiniteStrainBridgingConstitutiveLaw<THWSchemeType, TStressType>:
     if (!mpConstitutiveLaw->Has(CAUCHY_STRESS_TENSOR))
         KRATOS_ERROR << "Constitutive law is not able to return CAUCHY_STRESS_TENSOR";
     mpConstitutiveLaw->GetValue(CAUCHY_STRESS_TENSOR, stress_tensor);
+
+    return const_params.GetErrorCode();
 }
 
 //**********************************************************************
@@ -359,7 +361,8 @@ void HypoelasticFiniteStrainBridgingConstitutiveLaw<THWSchemeType, TStressType>:
 
     Matrix DDu_half(3, 3); // TODO moving this calculation to element
     this->ComputeDDuMidpoint( DDu_half, geom, mIntPoint );
-    this->StressIntegration(rValues, DDu_half, m_stress_n1);
+    int error_code = this->StressIntegration(rValues, DDu_half, m_stress_n1);
+    rValues.SetErrorCode(error_code);
 
     if constexpr (TStressType == 2)
     {

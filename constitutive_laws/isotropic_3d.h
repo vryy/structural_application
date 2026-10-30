@@ -227,21 +227,20 @@ class KRATOS_API(STRUCTURAL_APPLICATION) Isotropic3DImpl : public ConstitutiveLa
          * Computes the material response in terms of Cauchy stresses and constitutive tensor
          * @see Parameters
          */
-        void CalculateMaterialResponseCauchy (typename BaseType::Parameters& rValues) final;
+        void CalculateMaterialResponseCauchy( typename BaseType::Parameters& rValues ) final;
 
-        /// DEPRECATED function
-        void CalculateMaterialResponse( const VectorType& StrainVector,
-                                        const MatrixType& DeformationGradient,
-                                        VectorType& StressVector,
-                                        MatrixType& AlgorithmicTangent,
-                                        const ProcessInfo& CurrentProcessInfo,
-                                        const Properties& props,
-                                        const GeometryType& geom,
-                                        const Vector& ShapeFunctionsValues,
-                                        bool CalculateStresses = true,
-                                        int CalculateTangent = true,
-                                        bool SaveInternalVariables = true
-                                      ) override;
+        int CalculateMaterialResponse( const VectorType& StrainVector,
+                                       const MatrixType& DeformationGradient,
+                                       VectorType& StressVector,
+                                       MatrixType& AlgorithmicTangent,
+                                       const ProcessInfo& CurrentProcessInfo,
+                                       const Properties& props,
+                                       const GeometryType& geom,
+                                       const Vector& ShapeFunctionsValues,
+                                       bool CalculateStresses = true,
+                                       int CalculateTangent = true,
+                                       bool SaveInternalVariables = true
+                                     ) override;
 
         /**
          * returns the size of the strain vector of the current constitutive law

@@ -96,7 +96,7 @@ public:
      * Computes the material response in terms of Cauchy stresses
      * @see Parameters
      */
-    void CalculateMaterialResponseCauchy (Parameters& rValues) override;
+    void CalculateMaterialResponseCauchy( Parameters& rValues ) override;
 
     /**
      * Input and output

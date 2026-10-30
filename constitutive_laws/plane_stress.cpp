@@ -211,7 +211,7 @@ void PlaneStress::SetValue( const Variable<Matrix>& rThisVariable, const Matrix&
 {
 }
 
-void PlaneStress::CalculateMaterialResponseCauchy (Parameters& rValues)
+void PlaneStress::CalculateMaterialResponseCauchy( Parameters& rValues )
 {
     if (rValues.IsSetStressVector())
     {
@@ -230,9 +230,11 @@ void PlaneStress::CalculateMaterialResponseCauchy (Parameters& rValues)
             AlgorithmicTangent.resize(3, 3, false);
         CalculateConstitutiveMatrix( AlgorithmicTangent );
     }
+
+    rValues.SetErrorCode(0);
 }
 
-void PlaneStress::CalculateMaterialResponse( const Vector& StrainVector,
+int PlaneStress::CalculateMaterialResponse( const Vector& StrainVector,
         const Matrix& DeformationGradient,
         Vector& StressVector,
         Matrix& AlgorithmicTangent,
@@ -251,6 +253,7 @@ void PlaneStress::CalculateMaterialResponse( const Vector& StrainVector,
     const_params.SetConstitutiveMatrix(AlgorithmicTangent);
 
     this->CalculateMaterialResponseCauchy(const_params);
+    return const_params.GetErrorCode();
 }
 
 /**
@@ -274,6 +277,12 @@ void PlaneStress::ResetMaterial( const Properties& props,
     noalias(mCurrentStress) = ZeroVector(3);
 }
 
+void PlaneStress::RewindMaterial( const Properties& props,
+                                  const GeometryType& geom,
+                                  const Vector& ShapeFunctionsValues )
+{
+}
+
 void PlaneStress::InitializeNonLinearIteration( const Properties& rMaterialProperties,
                                                 const GeometryType& rElementGeometry,
                                                 const Vector& rShapeFunctionsValues,
@@ -288,10 +297,7 @@ void PlaneStress::FinalizeNonLinearIteration( const Properties& rMaterialPropert
 {
 }
 
-/**
- * TO BE TESTED!!!
- */
-void PlaneStress::CalculateElasticMatrix(Matrix& C, const double E, const double NU)
+void PlaneStress::CalculateElasticMatrix(Matrix& C, const double E, const double NU) const
 {
     double c1 = E / (1.00 - NU*NU);
     double c2 = c1 * NU;
@@ -308,9 +314,6 @@ void PlaneStress::CalculateElasticMatrix(Matrix& C, const double E, const double
     C(2,2) = c3;
 }
 
-/**
- * TO BE TESTED!!!
- */
 void PlaneStress::CalculateStress(const Vector& StrainVector, Vector& StressVector)
 {
     double c1 = mE / (1.00 - mNU*mNU);
@@ -326,14 +329,10 @@ void PlaneStress::CalculateStress(const Vector& StrainVector, Vector& StressVect
     noalias( mCurrentStress ) = StressVector;
 }
 
-/**
- * TO BE REVIEWED!!!
- */
-void PlaneStress::CalculateConstitutiveMatrix(Matrix& rResult)
+void PlaneStress::CalculateConstitutiveMatrix(Matrix& rResult) const
 {
     CalculateElasticMatrix( rResult, mE, mNU );
 }
-
 
 std::size_t PlaneStress::GetStrainSize() const
 {

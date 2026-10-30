@@ -283,10 +283,12 @@ void NeoHookean3D::CalculateMaterialResponsePK2(Parameters& rValues)
 
         CalculateTangentMatrix( AlgorithmicTangent, StrainVector );
     }
+
+    rValues.SetErrorCode(0);
 }
 
 //**********************************************************************
-void  NeoHookean3D::CalculateMaterialResponse( const Vector& StrainVector,
+int NeoHookean3D::CalculateMaterialResponse( const Vector& StrainVector,
         const Matrix& DeformationGradient,
         Vector& StressVector,
         Matrix& AlgorithmicTangent,
@@ -300,6 +302,7 @@ void  NeoHookean3D::CalculateMaterialResponse( const Vector& StrainVector,
 {
     CalculateStress( StressVector, StrainVector );
     CalculateTangentMatrix( AlgorithmicTangent, StrainVector );
+    return 0;
 }
 
 //**********************************************************************

@@ -197,20 +197,20 @@ public:
      * Computes the material response in terms of Cauchy stresses and constitutive tensor
      * @see Parameters
      */
-    void CalculateMaterialResponseCauchy (Parameters& parameters) final;
+    void CalculateMaterialResponseCauchy( Parameters& parameters ) final;
 
-    void CalculateMaterialResponse( const Vector& StrainVector,
-                                    const Matrix& DeformationGradient,
-                                    Vector& StressVector,
-                                    Matrix& AlgorithmicTangent,
-                                    const ProcessInfo& CurrentProcessInfo,
-                                    const Properties& props,
-                                    const GeometryType& geom,
-                                    const Vector& ShapeFunctionsValues,
-                                    bool CalculateStresses = true,
-                                    int CalculateTangent = true,
-                                    bool SaveInternalVariables = true
-                                  ) override;
+    int CalculateMaterialResponse( const Vector& StrainVector,
+                                   const Matrix& DeformationGradient,
+                                   Vector& StressVector,
+                                   Matrix& AlgorithmicTangent,
+                                   const ProcessInfo& CurrentProcessInfo,
+                                   const Properties& props,
+                                   const GeometryType& geom,
+                                   const Vector& ShapeFunctionsValues,
+                                   bool CalculateStresses = true,
+                                   int CalculateTangent = true,
+                                   bool SaveInternalVariables = true
+                                 ) override;
 
     /**
      * returns the size of the strain vector of the current constitutive law
