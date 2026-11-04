@@ -49,7 +49,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 //
 
-
 #if !defined(KRATOS_STRUCTURAL_APPLICATION_VARIABLES_H_INCLUDED )
 #define  KRATOS_STRUCTURAL_APPLICATION_VARIABLES_H_INCLUDED
 
@@ -62,8 +61,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include "includes/ublas_interface.h"
 #include "includes/constitutive_law.h"
-
-#include "phase_laws/hardening_law.h"
+#include "includes/hardening_law.h"
 
 namespace Kratos
 {

@@ -13,7 +13,7 @@
 /* External includes */
 
 /* Project includes */
-#include "phase_laws/hardening_law.h"
+#include "includes/hardening_law.h"
 
 
 namespace Kratos
@@ -53,7 +53,7 @@ public:
     /**
      * Operations
      */
-    bool Has( const Variable<double>& rThisVariable ) final;
+    bool Has( const Variable<double>& rThisVariable ) const final;
 
     double& GetValue( const Variable<double>& rThisVariable, double& rValue ) final;
 

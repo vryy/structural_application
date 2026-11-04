@@ -58,13 +58,12 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 // Project includes
 #include "includes/define.h"
-#include "custom_python/add_phase_laws_to_python.h"
-#include "phase_laws/hardening_law.h"
+#include "includes/hardening_law.h"
 #include "phase_laws/linear_hardening_law.h"
 #include "phase_laws/exponential_hardening_law.h"
-#include "phase_laws/piecewise_linear_hardening_law.h"
 #include "phase_laws/power_hardening_law.h"
 #include "phase_laws/mixed_hardening_law.h"
+#include "custom_python/add_phase_laws_to_python.h"
 
 namespace Kratos
 {
@@ -74,26 +73,8 @@ namespace Python
 
 using namespace boost::python;
 
-void HardeningLaw_Assign(HardeningLaw& rDummy,
-    Variable<HardeningLaw::Pointer>& rThisVariable, HardeningLaw::Pointer pLaw, Properties::Pointer pProperties)
-{
-    rDummy.Assign(rThisVariable, pLaw, pProperties);
-}
-
 void AddPhaseLawsToPython()
 {
-    class_<Variable<HardeningLaw::Pointer>, bases<VariableData>, boost::noncopyable >( "HardeningLawVariable", no_init );
-
-    double(HardeningLaw::*pointer_to_GetValue)(const double) const = &HardeningLaw::GetValue;
-    double(HardeningLaw::*pointer_to_GetDerivative)(const double) const = &HardeningLaw::GetDerivative;
-
-    class_< HardeningLaw, bases< Flags >, boost::noncopyable >
-    ( "HardeningLaw", init<>() )
-    .def("GetValue", pointer_to_GetValue)
-    .def("GetDerivative", pointer_to_GetDerivative)
-    .def("Assign", &HardeningLaw_Assign)
-    ;
-
     class_< LinearHardeningLaw, bases< HardeningLaw >, boost::noncopyable >
     ( "LinearHardeningLaw", init<>() )
     .def(init<const double, const double>())
@@ -107,11 +88,6 @@ void AddPhaseLawsToPython()
     class_< MixedHardeningLaw, bases< HardeningLaw >, boost::noncopyable >
     ( "MixedHardeningLaw", init<>() )
     .def(init<const double, const double, const double, const double>())
-    ;
-
-    class_< PiecewiseLinearHardeningLaw, bases< HardeningLaw >, boost::noncopyable >
-    ( "PiecewiseLinearHardeningLaw", init<>() )
-    .def("AddPoint", &PiecewiseLinearHardeningLaw::AddPoint)
     ;
 
     class_< PowerHardeningLaw, bases< HardeningLaw >, boost::noncopyable >

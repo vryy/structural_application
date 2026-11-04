@@ -1,16 +1,12 @@
 //
-//   Project Name:        Kratos
+//   Project Name:        KratosStructuralApplication
 //   Last Modified by:    $Author: hbui $
 //   Date:                $Date: 5 Dec 2018 $
-//   Revision:            $Revision: 1.0 $
 //
 //
-
-
 
 #include "phase_laws/linear_hardening_law.h"
 #include "structural_application_variables.h" // from structural_application
-
 
 namespace Kratos
 {
@@ -29,7 +25,7 @@ HardeningLaw::Pointer LinearHardeningLaw::Clone() const
     return HardeningLaw::Pointer(new LinearHardeningLaw(mOy, mH));
 }
 
-bool LinearHardeningLaw::Has( const Variable<double>& rThisVariable )
+bool LinearHardeningLaw::Has( const Variable<double>& rThisVariable ) const
 {
     if( rThisVariable == TENSILE_STRENGTH )
         return true;
@@ -52,7 +48,7 @@ double& LinearHardeningLaw::GetValue( const Variable<double>& rThisVariable, dou
 }
 
 void LinearHardeningLaw::SetValue( const Variable<double>& rThisVariable, const double rValue,
-                           const ProcessInfo& rCurrentProcessInfo )
+                                   const ProcessInfo& rCurrentProcessInfo )
 {
     if( rThisVariable == TENSILE_STRENGTH )
         mOy = rValue;
@@ -73,4 +69,3 @@ double LinearHardeningLaw::GetDerivative(const double phi) const
 }
 
 } /* namespace Kratos.*/
-

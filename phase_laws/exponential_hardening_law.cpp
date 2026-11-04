@@ -1,16 +1,11 @@
 //
-//   Project Name:        Kratos
+//   Project Name:        KratosStructuralApplication
 //   Last Modified by:    $Author: hbui $
 //   Date:                $Date: 5 Dec 2018 $
-//   Revision:            $Revision: 1.0 $
 //
 //
-
-
 
 #include "phase_laws/exponential_hardening_law.h"
-#include "structural_application_variables.h"
-
 
 namespace Kratos
 {
@@ -30,7 +25,7 @@ HardeningLaw::Pointer ExponentialHardeningLaw::Clone() const
     return HardeningLaw::Pointer(new ExponentialHardeningLaw(mCinf, mC0, mRho));
 }
 
-bool ExponentialHardeningLaw::Has( const Variable<double>& rThisVariable )
+bool ExponentialHardeningLaw::Has( const Variable<double>& rThisVariable ) const
 {
     return false;
 }
@@ -41,7 +36,7 @@ double& ExponentialHardeningLaw::GetValue( const Variable<double>& rThisVariable
 }
 
 void ExponentialHardeningLaw::SetValue( const Variable<double>& rThisVariable, const double rValue,
-                           const ProcessInfo& rCurrentProcessInfo )
+                                        const ProcessInfo& rCurrentProcessInfo )
 {
 }
 
@@ -56,4 +51,3 @@ double ExponentialHardeningLaw::GetDerivative(const double phi) const
 }
 
 } /* namespace Kratos.*/
-

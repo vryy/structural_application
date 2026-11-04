@@ -1,16 +1,11 @@
 //
-//   Project Name:        Kratos
+//   Project Name:        KratosStructuralApplication
 //   Last Modified by:    $Author: hbui $
 //   Date:                $Date: 1 Sep 2023 $
-//   Revision:            $Revision: 1.0 $
 //
 //
-
-
 
 #include "phase_laws/power_hardening_law.h"
-#include "structural_application_variables.h"
-
 
 namespace Kratos
 {
@@ -30,7 +25,7 @@ HardeningLaw::Pointer PowerHardeningLaw::Clone() const
     return HardeningLaw::Pointer(new PowerHardeningLaw(mK, me0, mn));
 }
 
-bool PowerHardeningLaw::Has( const Variable<double>& rThisVariable )
+bool PowerHardeningLaw::Has( const Variable<double>& rThisVariable ) const
 {
     return false;
 }
@@ -41,7 +36,7 @@ double& PowerHardeningLaw::GetValue( const Variable<double>& rThisVariable, doub
 }
 
 void PowerHardeningLaw::SetValue( const Variable<double>& rThisVariable, const double rValue,
-                           const ProcessInfo& rCurrentProcessInfo )
+                                  const ProcessInfo& rCurrentProcessInfo )
 {
 }
 

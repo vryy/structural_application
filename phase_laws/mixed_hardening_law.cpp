@@ -26,7 +26,7 @@ HardeningLaw::Pointer MixedHardeningLaw::Clone() const
     return HardeningLaw::Pointer(new MixedHardeningLaw(mOy, mH, mQ, mb));
 }
 
-bool MixedHardeningLaw::Has( const Variable<double>& rThisVariable )
+bool MixedHardeningLaw::Has( const Variable<double>& rThisVariable ) const
 {
     if( rThisVariable == TENSILE_STRENGTH )
         return true;

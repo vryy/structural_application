@@ -1,8 +1,7 @@
 //
-//   Project Name:        Kratos
+//   Project Name:        KratosStructuralApplication
 //   Last Modified by:    $Author: hbui $
 //   Date:                $Date: 5 Dec 2018 $
-//   Revision:            $Revision: 1.0 $
 //
 //
 
@@ -16,7 +15,7 @@
 /* External includes */
 
 /* Project includes */
-#include "phase_laws/hardening_law.h"
+#include "includes/hardening_law.h"
 
 
 namespace Kratos
@@ -56,7 +55,7 @@ public:
     /**
      * Operations
      */
-    bool Has( const Variable<double>& rThisVariable ) final;
+    bool Has( const Variable<double>& rThisVariable ) const final;
 
     double& GetValue( const Variable<double>& rThisVariable, double& rValue ) final;
 
