@@ -5,7 +5,7 @@
 //
 //
 
-#include "phase_laws/mixed_hardening_law.h"
+#include "hardening_laws/mixed_hardening_law.h"
 #include "structural_application_variables.h"
 
 namespace Kratos

@@ -44,26 +44,24 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 //
 //   Project Name:        Kratos
-//   Last Modified by:    $Author: hurga $
-//   Date:                $Date: 2009-02-02 14:03:23 $
-//   Revision:            $Revision: 1.5 $
+//   Last Modified by:    $Author: hbui $
+//   Date:                $Date: 22/8/2024 $
+//   Revision:            $Revision: 1.0 $
 //
 //
+
+
+#if !defined(KRATOS_STRUCTURAL_APP_ADD_HARDENING_LAWS_TO_PYTHON_H_INCLUDED )
+#define  KRATOS_STRUCTURAL_APP_ADD_HARDENING_LAWS_TO_PYTHON_H_INCLUDED
 
 
 // System includes
 
+
 // External includes
-#include <boost/python.hpp>
+
 
 // Project includes
-#include "includes/define.h"
-#include "includes/hardening_law.h"
-#include "phase_laws/linear_hardening_law.h"
-#include "phase_laws/exponential_hardening_law.h"
-#include "phase_laws/power_hardening_law.h"
-#include "phase_laws/mixed_hardening_law.h"
-#include "custom_python/add_phase_laws_to_python.h"
 
 namespace Kratos
 {
@@ -71,34 +69,10 @@ namespace Kratos
 namespace Python
 {
 
-using namespace boost::python;
-
-void AddPhaseLawsToPython()
-{
-    class_< LinearHardeningLaw, bases< HardeningLaw >, boost::noncopyable >
-    ( "LinearHardeningLaw", init<>() )
-    .def(init<const double, const double>())
-    ;
-
-    class_< ExponentialHardeningLaw, bases< HardeningLaw >, boost::noncopyable >
-    ( "ExponentialHardeningLaw", init<>() )
-    .def(init<const double, const double, const double>())
-    ;
-
-    class_< MixedHardeningLaw, bases< HardeningLaw >, boost::noncopyable >
-    ( "MixedHardeningLaw", init<>() )
-    .def(init<const double, const double, const double, const double>())
-    ;
-
-    class_< PowerHardeningLaw, bases< HardeningLaw >, boost::noncopyable >
-    ( "PowerHardeningLaw", init<>() )
-    .def(init<const double, const double, const double>())
-    .add_property("K", &PowerHardeningLaw::GetK, &PowerHardeningLaw::SetK)
-    .add_property("e0", &PowerHardeningLaw::GetE0, &PowerHardeningLaw::SetE0)
-    .add_property("n", &PowerHardeningLaw::GetN, &PowerHardeningLaw::SetN)
-    ;
-}
+void AddHardeningLawsToPython();
 
 }  // namespace Python.
 
 }  // namespace Kratos.
+
+#endif // KRATOS_STRUCTURAL_APP_ADD_HARDENING_LAWS_TO_PYTHON_H_INCLUDED  defined

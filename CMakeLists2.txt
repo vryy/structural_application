@@ -79,10 +79,10 @@ set( KRATOS_STRUCTURAL_APPLICATION_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/foundation_condition.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/mean_displacement_constraint.cpp
 
-    ${CMAKE_CURRENT_SOURCE_DIR}/phase_laws/linear_hardening_law.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/phase_laws/exponential_hardening_law.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/phase_laws/power_hardening_law.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/phase_laws/mixed_hardening_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/hardening_laws/linear_hardening_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/hardening_laws/exponential_hardening_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/hardening_laws/power_hardening_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/hardening_laws/mixed_hardening_law.cpp
 
     ${CMAKE_CURRENT_SOURCE_DIR}/plasticity_laws/general_plasticity_law.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/plasticity_laws/general_elastoplasticity_law.cpp
@@ -109,7 +109,7 @@ else()
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_io_to_python.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_constitutive_laws_to_python.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_phase_laws_to_python.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_hardening_laws_to_python.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_processes_to_python.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/structural_python_application.cpp
     )

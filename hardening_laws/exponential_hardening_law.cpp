@@ -5,7 +5,7 @@
 //
 //
 
-#include "phase_laws/exponential_hardening_law.h"
+#include "hardening_laws/exponential_hardening_law.h"
 
 namespace Kratos
 {

@@ -63,7 +63,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "structural_application_variables.h"
 #include "custom_python/add_custom_strategies_to_python.h"
 #include "custom_python/add_constitutive_laws_to_python.h"
-#include "custom_python/add_phase_laws_to_python.h"
+#include "custom_python/add_hardening_laws_to_python.h"
 #include "custom_python/add_custom_utilities_to_python.h"
 #include "custom_python/add_custom_io_to_python.h"
 #include "custom_python/add_elements_to_python.h"
@@ -88,7 +88,7 @@ BOOST_PYTHON_MODULE( KratosStructuralApplication )
     AddCustomStrategiesToPython();
     AddCustomComplexStrategiesToPython();
     AddConstitutiveLawsToPython();
-    AddPhaseLawsToPython();
+    AddHardeningLawsToPython();
     AddCustomUtilitiesToPython();
     AddCustomIOToPython();
     AddCustomElementsToPython();

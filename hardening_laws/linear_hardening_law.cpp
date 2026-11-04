@@ -5,7 +5,7 @@
 //
 //
 
-#include "phase_laws/linear_hardening_law.h"
+#include "hardening_laws/linear_hardening_law.h"
 #include "structural_application_variables.h" // from structural_application
 
 namespace Kratos

@@ -5,7 +5,7 @@
 //
 //
 
-#include "phase_laws/power_hardening_law.h"
+#include "hardening_laws/power_hardening_law.h"
 
 namespace Kratos
 {
