@@ -461,7 +461,10 @@ namespace Kratos
                 << "StrainVector: " << StrainVector << std::endl;
             #endif
 
+            const_params.SetErrorCode(0);
             mConstitutiveLawVector[PointNumber]->CalculateMaterialResponse(const_params, stress_measure);
+            if (const_params.GetErrorCode() != 0)
+                this->SetValue(BUILD_STATUS, static_cast<int>(KratosBuildStatus::CONSTITUTIVE_LAW_FAILURE));
 
             #ifdef ENABLE_DEBUG_CONSTITUTIVE_LAW
             if (CalculateResidualVectorFlag)
