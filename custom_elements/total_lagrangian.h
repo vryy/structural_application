@@ -187,11 +187,6 @@ public:
     ///@}
     ///@name Operations
     ///@{
-    /**
-     * Returns the currently selected integration method
-     * @return current integration method selected
-     */
-    IntegrationMethod GetIntegrationMethod() const override;
 
     typename ElementType::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override;
 
@@ -304,21 +299,17 @@ protected:
     ///@{
 
     /**
-     * Currently selected integration methods
+     * Container for constitutive law instances on each integration point
      */
-    IntegrationMethod mThisIntegrationMethod;
+    std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector;
 
     ///@}
     ///@name Protected Operators
     ///@{
+
     TotalLagrangian() : Element()
     {
     }
-
-    /**
-     * Container for constitutive law instances on each integration point
-     */
-    std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector;
 
     /**
      * Calculates the elemental contributions
@@ -412,14 +403,6 @@ protected:
 private:
     ///@name Static Member Variables
     ///@{
-    /*  static Matrix msB;
-    static Matrix msF;
-    static Matrix msD;
-    static Matrix msC;
-    static Vector msStrainVector;
-    static Vector msStressVector;
-    static Matrix msDN_DX;
-     */
     ///@}
     ///@name Member Variables
     ///@{
@@ -430,12 +413,6 @@ private:
     ///@}
     ///@name Private Operators
     ///@{
-
-//    void CalculateAndAddKm(
-//        MatrixType& K,
-//        Matrix& B,
-//        Matrix& D,
-//        DataType weight);
 
     void InitializeVariables();
 

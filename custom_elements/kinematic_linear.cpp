@@ -1159,66 +1159,6 @@ namespace Kratos
     }
 
     /**
-     * returns the used integration method
-     */
-    template<typename TNodeType>
-    typename BaseKinematicLinear<TNodeType>::IntegrationMethod BaseKinematicLinear<TNodeType>::GetIntegrationMethod() const
-    {
-        if(this->Has( INTEGRATION_ORDER ))
-        {
-            if(this->GetValue(INTEGRATION_ORDER) == 1)
-            {
-                return GeometryData::IntegrationMethod::GI_GAUSS_1;
-            }
-            else if(this->GetValue(INTEGRATION_ORDER) == 2)
-            {
-                return GeometryData::IntegrationMethod::GI_GAUSS_2;
-            }
-            else if(this->GetValue(INTEGRATION_ORDER) == 3)
-            {
-                return GeometryData::IntegrationMethod::GI_GAUSS_3;
-            }
-            else if(this->GetValue(INTEGRATION_ORDER) == 4)
-            {
-                return GeometryData::IntegrationMethod::GI_GAUSS_4;
-            }
-            else if(this->GetValue(INTEGRATION_ORDER) == 5)
-            {
-                return GeometryData::IntegrationMethod::GI_GAUSS_5;
-            }
-            else
-                KRATOS_ERROR << Info() << " does not support for integration order " << this->GetValue(INTEGRATION_ORDER);
-        }
-        else if(this->GetProperties().Has( INTEGRATION_ORDER ))
-        {
-            if(this->GetProperties()[INTEGRATION_ORDER] == 1)
-            {
-                return GeometryData::IntegrationMethod::GI_GAUSS_1;
-            }
-            else if(this->GetProperties()[INTEGRATION_ORDER] == 2)
-            {
-                return GeometryData::IntegrationMethod::GI_GAUSS_2;
-            }
-            else if(this->GetProperties()[INTEGRATION_ORDER] == 3)
-            {
-                return GeometryData::IntegrationMethod::GI_GAUSS_3;
-            }
-            else if(this->GetProperties()[INTEGRATION_ORDER] == 4)
-            {
-                return GeometryData::IntegrationMethod::GI_GAUSS_4;
-            }
-            else if(this->GetProperties()[INTEGRATION_ORDER] == 5)
-            {
-                return GeometryData::IntegrationMethod::GI_GAUSS_5;
-            }
-            else
-                KRATOS_ERROR << Info() << " does not support for integration order " << this->GetProperties()[INTEGRATION_ORDER];
-        }
-        else
-            return this->GetGeometry().GetDefaultIntegrationMethod(); // default method
-    }
-
-    /**
      * Informations for the builder and solver to assemble the global vectors and matrices.
      * Here a VectorType containing the EquationIds of the differnt Dofs is created
      * @param rResult VectorType of the EquationIds

@@ -166,8 +166,6 @@ public:
     ///@name Operations
     ///@{
 
-    IntegrationMethod GetIntegrationMethod() const override;
-
     typename BaseType::Pointer Create( IndexType NewId, NodesArrayType const& ThisNodes, typename PropertiesType::Pointer pProperties ) const override;
 
     typename BaseType::Pointer Create( IndexType NewId, typename GeometryType::Pointer pGeom, typename PropertiesType::Pointer pProperties ) const override;

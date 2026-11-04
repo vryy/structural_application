@@ -116,7 +116,6 @@ public:
     /// Destructor.
     virtual ~UpdatedLagrangian();
 
-
     ///@}
     ///@name Operators
     ///@{
@@ -203,7 +202,6 @@ protected:
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer,  BaseType );
     }
 
-
     ///@}
     ///@name Protected  Access
     ///@{
@@ -261,7 +259,6 @@ private:
     /// Copy constructor.
     //UpdatedLagrangian(const UpdatedLagrangian& rOther);
 
-
     ///@}
 
 }; // Class UpdatedLagrangian
@@ -280,5 +277,3 @@ private:
 }  // namespace Kratos.
 
 #endif // KRATOS_UPDATED_LAGRANGIAN_INCLUDED defined
-
-

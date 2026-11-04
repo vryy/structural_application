@@ -207,17 +207,20 @@ namespace Kratos
             rRightHandSideVector = ZeroVector( MatSize ); //resetting RHS
         }
 
+        // integration rule
+        IntegrationMethod ThisIntegrationMethod = this->GetIntegrationMethod();
+
         #ifdef ENABLE_BEZIER_GEOMETRY
         //initialize the geometry
-        GetGeometry().Initialize(mThisIntegrationMethod);
+        GetGeometry().Initialize(ThisIntegrationMethod);
         #endif
 
         //reading integration points and local gradients
-        const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
+        const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( ThisIntegrationMethod );
 
-        const GeometryType::ShapeFunctionsGradientsType& DN_De = GetGeometry().ShapeFunctionsLocalGradients( mThisIntegrationMethod );
+        const GeometryType::ShapeFunctionsGradientsType& DN_De = GetGeometry().ShapeFunctionsLocalGradients( ThisIntegrationMethod );
 
-        const Matrix& Ncontainer = GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod );
+        const Matrix& Ncontainer = GetGeometry().ShapeFunctionsValues( ThisIntegrationMethod );
 
         // current displacements
         for ( unsigned int node = 0; node < GetGeometry().size(); ++node )
@@ -225,12 +228,12 @@ namespace Kratos
 
         // calculating Jacobian in previous state
         GeometryType::JacobiansType Jn;
-        Jn = GetGeometry().Jacobian( Jn, mThisIntegrationMethod );
+        Jn = GetGeometry().Jacobian( Jn, ThisIntegrationMethod );
 
         // calculating Jacobian in current configuration
         GeometryType::JacobiansType J;
         Matrix ShiftedDisp = -CurrentDisp;
-        J = GetGeometry().Jacobian( J, mThisIntegrationMethod, ShiftedDisp );
+        J = GetGeometry().Jacobian( J, ThisIntegrationMethod, ShiftedDisp );
 
         // /////////////////////////////////////////////////////////////////////////
         // //// Compute FO, GO for Fbar formulation

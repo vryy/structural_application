@@ -163,11 +163,6 @@ public:
     ///@}
     ///@name Operations
     ///@{
-    /**
-     * Returns the currently selected integration method
-     * @return current integration method selected
-     */
-    IntegrationMethod GetIntegrationMethod() const override;
 
     typename ElementType::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override;
 
@@ -280,11 +275,6 @@ protected:
     ///@{
 
     /**
-     * Currently selected integration methods
-     */
-    IntegrationMethod mThisIntegrationMethod;
-
-    /**
      * Container for constitutive law instances on each integration point
      */
     std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector;
@@ -292,6 +282,7 @@ protected:
     ///@}
     ///@name Protected Operators
     ///@{
+
     FiniteStrain() : Element()
     {
     }
@@ -372,14 +363,6 @@ protected:
 private:
     ///@name Static Member Variables
     ///@{
-    /*  static MatrixType msB;
-    static MatrixType msF;
-    static MatrixType msD;
-    static MatrixType msC;
-    static Vector msStrainVector;
-    static Vector msStressVector;
-    static MatrixType msDN_DX;
-     */
     ///@}
     ///@name Member Variables
     ///@{
@@ -402,11 +385,6 @@ private:
 
     double CalculateIntegrationWeight(const double GaussPointWeight, const double DetJ0);
 
-    // void CalculateB(MatrixType& B,
-    //                 const MatrixType& F,
-    //                 const MatrixType& DN_DX,
-    //                 unsigned int StrainSize);
-
     ///@}
     ///@name Private Operations
     ///@{
@@ -420,6 +398,7 @@ private:
     ///@}
     ///@name Serialization
     ///@{
+
     friend class Serializer;
 
     void save(Serializer& rSerializer) const override;
