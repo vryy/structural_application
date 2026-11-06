@@ -91,6 +91,9 @@ class SolvingStrategyPython:
         if 'include_plastic_check_in_convergence_check' not in self.Parameters:
             self.Parameters['include_plastic_check_in_convergence_check'] = False
 
+        if 'number_of_iterations_to_freeze_active_set' not in self.Parameters:
+            self.Parameters['number_of_iterations_to_freeze_active_set'] = -1
+
         if 'list_plastic_points' not in self.Parameters:
             self.Parameters['list_plastic_points'] = False
 
@@ -237,6 +240,7 @@ class SolvingStrategyPython:
         err_high_cnt = 0    # marks the consecutive iteration that the error ratio is larger than threshold
         er_ratio_n = 1.0
         number_of_iterations_for_divergence_check = self.Parameters['number_of_iterations_for_divergence_check']
+        number_of_iterations_to_freeze_active_set = self.Parameters['number_of_iterations_to_freeze_active_set']
         dx_inc_cnt = 0      # marks the consecutive iteration that the normDx increases
         normDx_old = normDx
         while it < self.max_iter and not converged:
@@ -261,6 +265,11 @@ class SolvingStrategyPython:
 
             #update iteration count
             it = it + 1
+
+            # freeze the active set if needed
+            if number_of_iterations_to_freeze_active_set > 0:
+                if it > number_of_iterations_to_freeze_active_set:
+                    self.model_part.ProcessInfo[FREEZE_ACTIVE_SET_STATE] = True
 
             # record the residuum and reduction
             er = self.space_utils.TwoNorm(self.b)
@@ -364,6 +373,8 @@ class SolvingStrategyPython:
 
             self.space_utils.SetToZeroVector(self.Dx)
             self.time_scheme.Update(self.model_part,self.builder_and_solver.GetDofSet(),self.A,self.Dx,self.b)
+
+        self.model_part.ProcessInfo[FREEZE_ACTIVE_SET_STATE] = False
 
     #######################################################################
     def InitializeSolutionStep(self):
