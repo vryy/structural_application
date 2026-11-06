@@ -91,6 +91,9 @@ class SolvingStrategyPython:
         if 'include_plastic_check_in_convergence_check' not in self.Parameters:
             self.Parameters['include_plastic_check_in_convergence_check'] = False
 
+        if 'number_of_iterations_to_freeze_active_set' not in self.Parameters:
+            self.Parameters['number_of_iterations_to_freeze_active_set'] = -1
+
         if 'list_plastic_points' not in self.Parameters:
             self.Parameters['list_plastic_points'] = False
 
@@ -230,6 +233,8 @@ class SolvingStrategyPython:
             self.log_residuum.write('%-*d%.6e\n' % (10, 0, er_0))
             self.log_residuum.flush()
 
+        self.model_part.ProcessInfo[FREEZE_ACTIVE_SET_STATE] = False
+
         #non linear loop
         converged = False
         it = 0
@@ -261,6 +266,11 @@ class SolvingStrategyPython:
 
             #update iteration count
             it = it + 1
+
+            # freeze the active set if needed
+            if self.Parameters['number_of_iterations_to_freeze_active_set'] > 0:
+                if it > self.Parameters['include_plastic_check_in_convergence_check']:
+                    self.model_part.ProcessInfo[FREEZE_ACTIVE_SET_STATE] = True
 
             # record the residuum and reduction
             er = self.space_utils.TwoNorm(self.b)
