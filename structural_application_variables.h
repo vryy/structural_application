@@ -86,7 +86,7 @@ KRATOS_DEFINE_APPLICATION_DOUBLE_VARIABLE( STRUCTURAL_APPLICATION, RETRACTION_TI
 //  KRATOS_DEFINE_APPLICATION_DOUBLE_VARIABLE( STRUCTURAL_APPLICATION, POSITIVE_FACE_PRESSURE )
 
 typedef Matrix fix_matrix_33;
-//typedef boost::numeric::ublas::bounded_matrix<double,3,3> fix_matrix_33;
+//typedef BoundedMatrix<double,3,3> fix_matrix_33;
 typedef Vector array3;
 //typedef array_1d<double,3> array3;
 

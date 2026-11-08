@@ -479,8 +479,8 @@ void PlaneStrainImpl<TNodeType>::CalculateCauchyStresses(
 
     DataType J = MathUtils<DataType>::Det2( rF );
 
-    boost::numeric::ublas::bounded_matrix<DataType, 2, 2> temp;
-    boost::numeric::ublas::bounded_matrix<DataType, 2, 2> aux;
+    BoundedMatrix<DataType, 2, 2> temp;
+    BoundedMatrix<DataType, 2, 2> aux;
 
     noalias( temp ) = prod( rF, S );
     noalias( aux ) = prod( temp, trans( rF ) );

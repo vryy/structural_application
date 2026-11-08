@@ -314,9 +314,9 @@ void Face3D::CalculateAndSubKp(
 {
     KRATOS_TRY
 
-    boost::numeric::ublas::bounded_matrix<double, 3, 3 > Kij;
-    boost::numeric::ublas::bounded_matrix<double, 3, 3 > Cross_ge;
-    boost::numeric::ublas::bounded_matrix<double, 3, 3 > Cross_gn;
+    BoundedMatrix<double, 3, 3 > Kij;
+    BoundedMatrix<double, 3, 3 > Cross_ge;
+    BoundedMatrix<double, 3, 3 > Cross_gn;
     double coeff;
     unsigned int number_of_nodes = GetGeometry().size();
 
@@ -349,7 +349,7 @@ void Face3D::CalculateAndSubKp(
 //***********************************************************************************
 
 void Face3D::MakeCrossMatrix(
-    boost::numeric::ublas::bounded_matrix<double, 3, 3 > & M,
+    BoundedMatrix<double, 3, 3 > & M,
     array_1d<double, 3 > & U)
 {
     M(0, 0) = 0.00;
@@ -406,7 +406,7 @@ void Face3D::ExpandReducedMatrix(
 
 void Face3D::SubtractMatrix(
     MatrixType& Destination,
-    boost::numeric::ublas::bounded_matrix<double, 3, 3 > & InputMatrix,
+    BoundedMatrix<double, 3, 3 > & InputMatrix,
     int InitialRow,
     int InitialCol)
 {

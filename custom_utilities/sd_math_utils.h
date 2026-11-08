@@ -47,6 +47,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include <cmath>
 
+#include "includes/matrix_vector_adapter.h"
 #include "utilities/math_utils.h"
 #include "geometries/point.h"
 
@@ -60,11 +61,12 @@ public:
      * @name type definitions
      * @{
      */
-    typedef boost::numeric::ublas::matrix<TDataType> MatrixType;
 
-    typedef boost::numeric::ublas::symmetric_matrix<TDataType> SymmetricMatrixType;
+    typedef DenseMatrix<TDataType> MatrixType;
 
-    typedef boost::numeric::ublas::vector<TDataType> VectorType;
+    typedef typename MatrixVectorTypeSelector<TDataType>::SymmetricMatrixType SymmetricMatrixType;
+
+    typedef DenseVector<TDataType> VectorType;
 
     typedef std::size_t IndexType;
 
@@ -72,19 +74,19 @@ public:
 
     typedef MathUtils<TDataType> MathUtilsType;
 
-    typedef boost::numeric::ublas::c_vector<TDataType, 3> First_Order_Tensor;
+    typedef FixedVector<TDataType, 3> First_Order_Tensor;
 
-    typedef boost::numeric::ublas::c_vector<First_Order_Tensor, 3> Second_Order_Tensor;
+    typedef FixedVector<First_Order_Tensor, 3> Second_Order_Tensor;
 
-    typedef boost::numeric::ublas::vector<VectorType> General_Second_Order_Tensor;
+    typedef DenseVector<VectorType> General_Second_Order_Tensor;
 
-    typedef boost::numeric::ublas::c_vector<Second_Order_Tensor, 3> Third_Order_Tensor;
+    typedef FixedVector<Second_Order_Tensor, 3> Third_Order_Tensor;
 
-    typedef boost::numeric::ublas::vector<General_Second_Order_Tensor> General_Third_Order_Tensor;
+    typedef DenseVector<General_Second_Order_Tensor> General_Third_Order_Tensor;
 
-    typedef boost::numeric::ublas::c_vector<Third_Order_Tensor, 3> Fourth_Order_Tensor;
+    typedef FixedVector<Third_Order_Tensor, 3> Fourth_Order_Tensor;
 
-    typedef boost::numeric::ublas::vector<General_Third_Order_Tensor> General_Fourth_Order_Tensor;
+    typedef DenseVector<General_Third_Order_Tensor> General_Fourth_Order_Tensor;
 
     typedef TDataType (*unitary_func_t)(TDataType);
 
@@ -93,6 +95,10 @@ public:
     #else
     typedef Point<3> PointType;
     #endif
+
+    /**
+     * @}
+     */
 
     /// Return constant Pi
     static inline constexpr TDataType Pi()
@@ -1099,14 +1105,12 @@ public:
     */
     static int InvertMatrix( const MatrixType& input, MatrixType& inverse )
     {
-        using namespace boost::numeric::ublas;
-        typedef permutation_matrix<std::size_t> pmatrix;
         MatrixType A(input);
         const std::size_t size = A.size1();
-        pmatrix pm(size);
-        const int singular = lu_factorize(A, pm);
+        PermutationMatrix pm(size);
+        const int singular = Internals::LUFactorize(A, pm);
         inverse.assign(IdentityMatrix(size));
-        lu_substitute(A, pm, inverse);
+        Internals::LUSubstitute(A, pm, inverse);
         return singular;
     }
 
@@ -1118,12 +1122,10 @@ public:
     */
     static int InvertMatrix( const MatrixType& input, MatrixType& inverse, TDataType& det )
     {
-        using namespace boost::numeric::ublas;
-        typedef permutation_matrix<std::size_t> pmatrix;
         MatrixType A(input);
         const std::size_t size = A.size1();
-        pmatrix pm(size);
-        const int singular = lu_factorize(A,pm);
+        PermutationMatrix pm(size);
+        const int singular = Internals::LUFactorize(A,pm);
         if (singular) {det = 0.0;}
         else
         {
@@ -1136,7 +1138,7 @@ public:
                 det *= A(i, i);
             }
             inverse.assign(IdentityMatrix(size));
-            lu_substitute(A, pm, inverse);
+            Internals::LUSubstitute(A, pm, inverse);
         }
         return singular;
     }
@@ -1149,16 +1151,14 @@ public:
     */
     static int Solve( const MatrixType& A, VectorType& x, const VectorType& b )
     {
-        using namespace boost::numeric::ublas;
-        typedef permutation_matrix<std::size_t> pmatrix;
         MatrixType Acopy(A);
         const std::size_t size = A.size1();
-        pmatrix pm(size);
-        const int singular = lu_factorize(Acopy, pm);
+        PermutationMatrix pm(size);
+        const int singular = Internals::LUFactorize(Acopy, pm);
         if (!singular)
         {
             noalias(x) = b;
-            lu_substitute(Acopy, pm, x);
+            Internals::LUSubstitute(Acopy, pm, x);
         }
         return singular;
     }
@@ -3799,7 +3799,7 @@ public:
             KRATOS_ERROR << "Invalid dimension (" << F.size1() << ", " << F.size2() << ") of the deformation gradient";
     }
 
-};// class SD_MathUtils
+}; // class SD_MathUtils
 
 }
 

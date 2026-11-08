@@ -1304,11 +1304,11 @@ public:
             }
         }
 
-        boost::numeric::ublas::permutation_matrix<> pm(M.size1());
+        PermutationMatrix pm(M.size1());
         Matrix Mcopy = M;
         Vector g = b;
-        boost::numeric::ublas::lu_factorize(Mcopy, pm);
-        boost::numeric::ublas::lu_substitute(Mcopy, pm, g);
+        Internals::LUFactorize(Mcopy, pm);
+        Internals::LUSubstitute(Mcopy, pm, g);
 
         if (std::isnan(norm_2(b)))
         {
@@ -1425,12 +1425,12 @@ public:
             }
         }
 
-        boost::numeric::ublas::permutation_matrix<> pm(M.size1());
+        PermutationMatrix pm(M.size1());
         Matrix Mcopy = M;
-        boost::numeric::ublas::lu_factorize(Mcopy, pm);
+        Internals::LUFactorize(Mcopy, pm);
         for (std::size_t i = 0; i < 3; ++i)
         {
-            boost::numeric::ublas::lu_substitute(Mcopy, pm, b[i]);
+            Internals::LUSubstitute(Mcopy, pm, b[i]);
         }
 
         for (std::size_t i = 0; i < 3; ++i)
@@ -1558,12 +1558,12 @@ public:
             }
         }
 
-        boost::numeric::ublas::permutation_matrix<> pm(M.size1());
+        PermutationMatrix pm(M.size1());
         Matrix Mcopy = M;
-        boost::numeric::ublas::lu_factorize(Mcopy, pm);
+        Internals::LUFactorize(Mcopy, pm);
         for (std::size_t i = 0; i < ncomponents; ++i)
         {
-            boost::numeric::ublas::lu_substitute(Mcopy, pm, b[i]);
+            Internals::LUSubstitute(Mcopy, pm, b[i]);
         }
 
         if (rValues.size() != num_of_nodes)

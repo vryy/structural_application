@@ -499,8 +499,8 @@ void Isotropic3DImpl<TNodeType>::CalculateCauchyStresses(
     MatrixType S = MathUtils<DataType>::StressVectorToTensor( rPK2_StressVector );
 
     DataType J = MathUtils<DataType>::Det3( rF );
-    boost::numeric::ublas::bounded_matrix<DataType, 3, 3> mstemp;
-    boost::numeric::ublas::bounded_matrix<DataType, 3, 3> msaux;
+    BoundedMatrix<DataType, 3, 3> mstemp;
+    BoundedMatrix<DataType, 3, 3> msaux;
 
     noalias( mstemp ) = prod( rF, S );
     noalias( msaux ) = prod( mstemp, trans( rF ) );
