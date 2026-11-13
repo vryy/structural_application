@@ -7,6 +7,18 @@ from KratosMultiphysics.StructuralApplication import *
 CheckForPreviousImport()
 import os,time
 
+def detect_residual_cycle(r_hist, p_max=6, tol=1e-6, confirm=None):
+    # r_hist: list of residual norms, newest last
+    n = len(r_hist)
+    for p in range(2, p_max + 1):
+        k = confirm or p                     # confirm over one full period
+        if n < p + k:
+            continue
+        if all(abs(r_hist[n-1-j] - r_hist[n-1-j-p]) <= tol * max(r_hist[n-1-j], 1e-30)
+               for j in range(k)):
+            return p                         # cycle of period p detected
+    return 0
+
 class SolvingStrategyPython:
     #######################################################################
     def __init__( self, model_part, time_scheme, linear_solver, convergence_criteria, CalculateReactionsFlag, ReformDofSetAtEachStep, MoveMeshFlag, Parameters, space_utils, builder_and_solver ):
@@ -93,6 +105,9 @@ class SolvingStrategyPython:
 
         if 'number_of_iterations_to_freeze_active_set' not in self.Parameters:
             self.Parameters['number_of_iterations_to_freeze_active_set'] = -1
+
+        if 'tolerance_to_detect_residual_cycle' not in self.Parameters:
+            self.Parameters['tolerance_to_detect_residual_cycle'] = 1e-3
 
         if 'list_plastic_points' not in self.Parameters:
             self.Parameters['list_plastic_points'] = False
@@ -239,8 +254,10 @@ class SolvingStrategyPython:
         err_inc_cnt = 0     # marks the consecutive iteration that the error increases
         err_high_cnt = 0    # marks the consecutive iteration that the error ratio is larger than threshold
         er_ratio_n = 1.0
+        er_hist = []
         number_of_iterations_for_divergence_check = self.Parameters['number_of_iterations_for_divergence_check']
         number_of_iterations_to_freeze_active_set = self.Parameters['number_of_iterations_to_freeze_active_set']
+        tolerance_to_detect_residual_cycle = self.Parameters['tolerance_to_detect_residual_cycle']
         dx_inc_cnt = 0      # marks the consecutive iteration that the normDx increases
         normDx_old = normDx
         while it < self.max_iter and not converged:
@@ -273,6 +290,7 @@ class SolvingStrategyPython:
 
             # record the residuum and reduction
             er = self.space_utils.TwoNorm(self.b)
+            er_hist.append(er)
             if er_0 > 0.0:
                 er_ratio = er/er_0
             else:
@@ -290,6 +308,11 @@ class SolvingStrategyPython:
 
                 self.log_residuum.write("%-*d%-*.6e%-*.6e%.6e\n" % (10, it, 20, er, 20, er_ratio, er_reduction))
                 self.log_residuum.flush()
+
+            p = detect_residual_cycle(er_hist, tol=tolerance_to_detect_residual_cycle)
+            if p > 0:
+                print("Detecting residual is repeated, cycle = %d" % p)
+                self.model_part.ProcessInfo[FREEZE_ACTIVE_SET_STATE] = True
 
             if self.Parameters['include_plastic_check_in_convergence_check']:
                 failed_points_count = 0
