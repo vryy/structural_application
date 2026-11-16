@@ -287,6 +287,7 @@ class SolvingStrategyPython:
             if number_of_iterations_to_freeze_active_set > 0:
                 if it > number_of_iterations_to_freeze_active_set:
                     self.model_part.ProcessInfo[FREEZE_ACTIVE_SET_STATE] = True
+                    kprint("Active set is frozen at iteration %d" % (it))
 
             # record the residuum and reduction
             er = self.space_utils.TwoNorm(self.b)
@@ -311,7 +312,7 @@ class SolvingStrategyPython:
 
             p = detect_residual_cycle(er_hist, tol=tolerance_to_detect_residual_cycle)
             if p > 0:
-                print("Detecting residual is repeated, cycle = %d" % p)
+                kprint("Detecting residual is repeated, cycle = %d" % p)
                 self.model_part.ProcessInfo[FREEZE_ACTIVE_SET_STATE] = True
 
             if self.Parameters['include_plastic_check_in_convergence_check']:

@@ -499,7 +499,7 @@ class SolvingStrategyPython:
     #######################################################################
     def SetEchoLevel(self,level):
         self.echo_level = level
-        self.builder_and_solver.SetEchoLevel(level)
+        Kernel().SetLogLevel(level)
 
     #######################################################################
     def AnalyseSystemMatrix(self,  A):
