@@ -203,7 +203,7 @@ class SolvingStrategyPython:
         calculate_norm = False
         self.iterationCounter = 0
         self.iterationCounter = self.iterationCounter + 1
-        iter_success, normDx = self.ExecuteIteration(self.echo_level,self.MoveMeshFlag,calculate_norm)
+        iter_success, normDx = self.ExecuteIteration(self.echo_level,calculate_norm)
         self.FinalizeNonLinIteration(False,self.MoveMeshFlag)
         kprint("normDx: " + str(normDx), flush=True)
         kprint("newton_raphson_strategy.PerformOneIteration completed at time = %f" % (self.model_part.ProcessInfo[TIME]), flush=True)

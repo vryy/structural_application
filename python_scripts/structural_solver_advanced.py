@@ -218,7 +218,6 @@ class SolverAdvanced(structural_solver_static.StaticStructuralSolver):
                 kprint("using static scheme")
                 # self.time_scheme = ResidualBasedIncrementalUpdateStaticScheme()
                 self.time_scheme = ResidualBasedIncrementalUpdateStaticDeactivationScheme()
-                #self.time_scheme = ParallelResidualBasedIncrementalUpdateStaticScheme()
                 self.MoveMeshFlag = self.analysis_parameters["move_mesh"]
             elif( self.analysis_parameters['analysis_type'] == 1 ):
                 kprint("using newmark quasi-static scheme, dissipation_radius=" + str(self.dissipation_radius))
