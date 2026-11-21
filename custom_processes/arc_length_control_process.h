@@ -225,10 +225,10 @@ public:
     void Execute() override
     {
         if (mp_delta_u_r == NULL)
-            KRATOS_THROW_ERROR(std::logic_error, "Delta_U_r is not set", "")
+            KRATOS_ERROR << "Delta_U_r is not set";
 
         if (mp_delta_u_l == NULL)
-            KRATOS_THROW_ERROR(std::logic_error, "Delta_U_l is not set", "")
+            KRATOS_ERROR << "Delta_U_l is not set";
 
         this->Execute(*mp_delta_u_r, *mp_delta_u_l);
     }
@@ -332,11 +332,6 @@ private:
 ///@}
 ///@name Input and output
 ///@{
-
-/// input stream function
-/*  inline std::istream& operator >> (std::istream& rIStream,
-                   TrussElement& rThis);
-*/
 
 /// output stream function
 template<class TBuilderAndSolverType>

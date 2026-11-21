@@ -67,6 +67,9 @@ class DofUtility
 {
 public:
 
+    typedef ModelPart::DofsArrayType DofsArrayType;
+    typedef ModelPart::SizeType SizeType;
+
     KRATOS_CLASS_POINTER_DEFINITION(DofUtility);
 
     /**
@@ -84,15 +87,12 @@ public:
     {}
 
     /// List all the dofs in the model_part
-    static void ListDofs(ModelPart::DofsArrayType& rDofSet, const std::size_t EquationSystemSize)
+    static void ListDofs(DofsArrayType& rDofSet, const SizeType EquationSystemSize)
     {
-        KRATOS_WATCH(rDofSet.size())
-        KRATOS_WATCH(EquationSystemSize)
-
         // get the set of variables in the dof set and count them by type
         std::set<VariableData> VarSet;
         std::map<VariableData::KeyType, std::size_t> VarCount;
-        for(ModelPart::DofsArrayType::iterator dof_iterator = rDofSet.begin(); dof_iterator != rDofSet.end(); ++dof_iterator)
+        for(auto dof_iterator = rDofSet.begin(); dof_iterator != rDofSet.end(); ++dof_iterator)
         {
             if(dof_iterator->EquationId() < EquationSystemSize)
             {
@@ -102,7 +102,7 @@ public:
         }
 
         KRATOS_INFO("DofUtility") << "List of Dofs in the system:" << std::endl;
-        for(std::set<VariableData>::iterator it = VarSet.begin(); it != VarSet.end(); ++it)
+        for(auto it = VarSet.begin(); it != VarSet.end(); ++it)
         {
             KRATOS_INFO("DofUtility") << "    " << it->Name() << ": " << VarCount[it->Key()] << std::endl;
         }
@@ -110,9 +110,9 @@ public:
 
     /// Remove a dof from the list of dofs
     template<class TVariableType>
-    static void RemoveDof(ModelPart::DofsArrayType& rDofSet, const TVariableType& rVariable)
+    static void RemoveDof(DofsArrayType& rDofSet, const TVariableType& rVariable)
     {
-        for(ModelPart::DofsArrayType::iterator dof_iterator = rDofSet.begin(); dof_iterator != rDofSet.end();)
+        for(auto dof_iterator = rDofSet.begin(); dof_iterator != rDofSet.end();)
         {
             if(dof_iterator->GetVariable() == rVariable)
                 dof_iterator = rDofSet.erase(dof_iterator);
@@ -130,7 +130,7 @@ public:
     }
 
     /// Find and print the dof containing the maximum unbalanced force
-    static void PrintMaxUnbalancedForce(ModelPart::DofsArrayType& rDofSet, const Vector& forces)
+    static void PrintMaxUnbalancedForce(DofsArrayType& rDofSet, const Vector& forces)
     {
         double max_force = -1.0e99;
         std::size_t imax;
@@ -143,7 +143,7 @@ public:
             }
         }
 
-        for(ModelPart::DofsArrayType::iterator dof_iterator = rDofSet.begin(); dof_iterator != rDofSet.end(); ++dof_iterator)
+        for(auto dof_iterator = rDofSet.begin(); dof_iterator != rDofSet.end(); ++dof_iterator)
         {
             if (dof_iterator->EquationId() == imax)
             {
@@ -155,7 +155,7 @@ public:
     }
 
     /// Find and print the dof containing the minimum unbalanced force
-    static void PrintMinUnbalancedForce(ModelPart::DofsArrayType& rDofSet, const Vector& forces)
+    static void PrintMinUnbalancedForce(DofsArrayType& rDofSet, const Vector& forces)
     {
         double min_force = 1.0e99;
         std::size_t imin;
@@ -169,7 +169,7 @@ public:
             }
         }
 
-        for(ModelPart::DofsArrayType::iterator dof_iterator = rDofSet.begin(); dof_iterator != rDofSet.end(); ++dof_iterator)
+        for(auto dof_iterator = rDofSet.begin(); dof_iterator != rDofSet.end(); ++dof_iterator)
         {
             if (dof_iterator->EquationId() == imin)
             {
@@ -182,6 +182,6 @@ public:
 
 }; // class DofUtility
 
-} //namespace Kratos.
+} // namespace Kratos.
 
 #endif /* KRATOS_DOF_UTILITY_H_INCLUDED defined */
