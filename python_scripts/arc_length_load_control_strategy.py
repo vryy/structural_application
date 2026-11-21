@@ -538,7 +538,7 @@ class SolvingStrategyPython:
     #######################################################################
     def SetEchoLevel(self,level):
         self.echo_level = level
-        Kernel()1.SetLogLevel(level)
+        Kernel().SetLogLevel(level)
 
     #######################################################################
     def AnalyseSystemMatrix(self,  A):

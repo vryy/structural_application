@@ -272,7 +272,8 @@ class SolvingStrategyPython:
             iter_success, normDx = self.ExecuteIteration(self.echo_level,calculate_norm)
             if not iter_success:
                 return False, it
-            kprint("normDx at iteration %d: %.6e" % (it+1, normDx))
+            if calculate_norm:
+                kprint("normDx at iteration %d: %.6e" % (it+1, normDx))
 
             #verify convergence
             converged = self.convergence_criteria.PostCriteria(self.model_part,self.builder_and_solver.GetDofSet(),self.A,self.Dx,self.b)
