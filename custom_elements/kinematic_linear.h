@@ -144,6 +144,14 @@ public:
 
     typedef typename BaseType::PropertiesType PropertiesType;
 
+    typedef typename GeometryType::CoordinatesArrayType CoordinatesArrayType;
+
+    typedef typename GeometryType::JacobiansType JacobiansType;
+
+    typedef typename GeometryType::ShapeFunctionsGradientsType ShapeFunctionsGradientsType;
+
+    typedef typename GeometryType::IntegrationPointsArrayType IntegrationPointsArrayType;
+
     KRATOS_CLASS_POINTER_DEFINITION( BaseKinematicLinear );
 
     ///@}
@@ -325,6 +333,8 @@ protected:
 
     virtual void CalculateBoperator( MatrixType& B_Operator, const Vector& N, const MatrixType& DN_DX ) const;
 
+    virtual void CalculateBDilBaroperator( MatrixType& Bdil_bar, const Matrix& Ncontainer, const ShapeFunctionsGradientsType& DN_De, const JacobiansType& J0 ) const;
+
     virtual void CalculateBBaroperator( MatrixType& B_Operator, const MatrixType& DN_DX, const MatrixType& Bdil_bar ) const;
 
     virtual unsigned int GetStrainSize( const unsigned int dim ) const
@@ -337,7 +347,7 @@ protected:
         return Weight;
     }
 
-    virtual void CalculateJacobian( typename GeometryType::JacobiansType& J, const IntegrationMethod ThisIntegrationMethod ) const;
+    virtual void CalculateJacobian( JacobiansType& J, const IntegrationMethod ThisIntegrationMethod ) const;
 
     /** K += weight*Btrans*D*B */
     void CalculateAll( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector,

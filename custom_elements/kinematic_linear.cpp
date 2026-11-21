@@ -132,7 +132,7 @@ namespace Kratos
             const IntegrationMethod ThisIntegrationMethod = this->GetIntegrationMethod();
 
             // number of integration points used
-            const typename GeometryType::IntegrationPointsArrayType& integration_points = this->GetGeometry().IntegrationPoints( ThisIntegrationMethod );
+            const IntegrationPointsArrayType& integration_points = this->GetGeometry().IntegrationPoints( ThisIntegrationMethod );
 
             // Initialization of the constitutive law vector and
             // declaration, definition and initialization of the material
@@ -145,7 +145,7 @@ namespace Kratos
             noalias(mInitialDisp) = ZeroMatrixType(this->GetGeometry().size(), dim);
 
             // initializing the Jacobian in the reference configuration
-            typename GeometryType::JacobiansType J0;
+            JacobiansType J0;
             this->CalculateJacobian( J0, ThisIntegrationMethod );
 
             // calculating the domain size
@@ -390,14 +390,14 @@ namespace Kratos
         #endif
 
         //reading integration points and local gradients
-        const typename GeometryType::IntegrationPointsArrayType& integration_points = this->GetGeometry().IntegrationPoints( ThisIntegrationMethod );
+        const IntegrationPointsArrayType& integration_points = this->GetGeometry().IntegrationPoints( ThisIntegrationMethod );
 
-        const typename GeometryType::ShapeFunctionsGradientsType& DN_De = this->GetGeometry().ShapeFunctionsLocalGradients( ThisIntegrationMethod );
+        const ShapeFunctionsGradientsType& DN_De = this->GetGeometry().ShapeFunctionsLocalGradients( ThisIntegrationMethod );
 
         const Matrix& Ncontainer = this->GetGeometry().ShapeFunctionsValues( ThisIntegrationMethod );
 
         //initializing the Jacobian in the reference configuration
-        typename GeometryType::JacobiansType J0;
+        JacobiansType J0;
         this->CalculateJacobian( J0, ThisIntegrationMethod );
 
         //Current displacements
@@ -415,22 +415,8 @@ namespace Kratos
         if(this->GetProperties().Has(IS_BBAR))
             is_bbar = this->GetProperties()[IS_BBAR];
         MatrixType Bdil_bar;
-        DataType TotalDomainInitialSize = this->GetValue( VARSEL(DataType, GEOMETRICAL_DOMAIN_SIZE) );
         if(is_bbar)
-        {
-            Bdil_bar.resize(number_of_nodes, dim, false);
-            noalias(Bdil_bar) = ZeroMatrixType(number_of_nodes, dim);
-            for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); ++PointNumber )
-            {
-                noalias( N ) = row(Ncontainer, PointNumber);
-                IntToReferenceWeight = this->GetIntegrationWeight(integration_points[PointNumber].Weight(), N);
-                if ( dim == 2 ) IntToReferenceWeight *= this->GetProperties()[THICKNESS];
-                MathUtils<DataType>::InvertMatrix( J0[PointNumber], InvJ0, DetJ0 );
-                noalias( DN_DX ) = prod( DN_De[PointNumber], InvJ0 );
-                noalias(Bdil_bar) += DN_DX * IntToReferenceWeight * DetJ0;
-            }
-            Bdil_bar /= TotalDomainInitialSize;
-        }
+            this->CalculateBDilBaroperator(Bdil_bar, Ncontainer, DN_De, J0);
 
         /////////////////////////////////////////////////////////////////////////
         //// Integration in space over quadrature points
@@ -996,13 +982,13 @@ namespace Kratos
         #endif
 
         //reading integration points and local gradients
-        const typename GeometryType::IntegrationPointsArrayType& integration_points =
+        const IntegrationPointsArrayType& integration_points =
             this->GetGeometry().IntegrationPoints( ThisIntegrationMethod );
 
         const Matrix& Ncontainer = this->GetGeometry().ShapeFunctionsValues( ThisIntegrationMethod );
 
         //initializing the Jacobian in the reference configuration
-        typename GeometryType::JacobiansType J0;
+        JacobiansType J0;
         this->CalculateJacobian( J0, ThisIntegrationMethod );
 
         Vector N(number_of_nodes);
@@ -1397,58 +1383,52 @@ namespace Kratos
     }
 
     template<typename TNodeType>
+    void BaseKinematicLinear<TNodeType>::CalculateBDilBaroperator( MatrixType& Bdil_bar, const Matrix& Ncontainer,
+            const ShapeFunctionsGradientsType& DN_De, const JacobiansType& J0 ) const
+    {
+        unsigned int dim = this->WorkingSpaceDimension();
+        unsigned int number_of_nodes = this->GetGeometry().size();
+
+        const IntegrationMethod ThisIntegrationMethod = this->GetIntegrationMethod();
+
+        const IntegrationPointsArrayType& integration_points =
+                    this->GetGeometry().IntegrationPoints( ThisIntegrationMethod );
+
+        DataType TotalDomainInitialSize = 0.0;
+
+        Vector N(number_of_nodes);
+        MatrixType DN_DX( number_of_nodes, dim );
+        MatrixType InvJ0( dim, dim );
+        DataType DetJ0;
+
+        Bdil_bar.resize(number_of_nodes, dim, false);
+        noalias(Bdil_bar) = ZeroMatrixType(number_of_nodes, dim);
+        for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); ++PointNumber )
+        {
+            noalias( N ) = row(Ncontainer, PointNumber);
+            ValueType IntToReferenceWeight = this->GetIntegrationWeight(integration_points[PointNumber].Weight(), N);
+            if ( dim == 2 ) IntToReferenceWeight *= this->GetProperties()[THICKNESS];
+            MathUtils<DataType>::InvertMatrix( J0[PointNumber], InvJ0, DetJ0 );
+            noalias( DN_DX ) = prod( DN_De[PointNumber], InvJ0 );
+            noalias(Bdil_bar) += DN_DX * IntToReferenceWeight * DetJ0;
+            TotalDomainInitialSize += IntToReferenceWeight * DetJ0;
+        }
+        Bdil_bar /= TotalDomainInitialSize;
+    }
+
+    template<typename TNodeType>
     void BaseKinematicLinear<TNodeType>::CalculateBBaroperator( MatrixType& B_Operator, const MatrixType& DN_DX, const MatrixType& Bdil_bar ) const
     {
         KRATOS_TRY
 
-        unsigned int number_of_nodes = this->GetGeometry().size();
         unsigned int dim = this->WorkingSpaceDimension();
-        unsigned int strain_size = this->GetStrainSize(dim);
-
-        noalias( B_Operator ) = ZeroMatrixType( strain_size, number_of_nodes * dim );
-
-        if(dim == 2)
-        {
-            KRATOS_ERROR << "Bbar formulation for 2D is not supported";
-        }
-        else if(dim == 3)
-        {
-            constexpr ValueType R1R3 = (1.0 / 3);
-            DataType tmp1;
-            DataType tmp2;
-            DataType tmp3;
-            for ( unsigned int i = 0; i < number_of_nodes; ++i )
-            {
-                tmp1 = R1R3 * (Bdil_bar( i, 0 ) - DN_DX( i, 0 ));
-                tmp2 = R1R3 * (Bdil_bar( i, 1 ) - DN_DX( i, 1 ));
-                tmp3 = R1R3 * (Bdil_bar( i, 2 ) - DN_DX( i, 2 ));
-
-                B_Operator( 0, i*3 ) = DN_DX( i, 0 ) + tmp1;
-                B_Operator( 1, i*3 ) = tmp1;
-                B_Operator( 2, i*3 ) = tmp1;
-
-                B_Operator( 0, i*3 + 1)  = tmp2;
-                B_Operator( 1, i*3 + 1 ) = DN_DX( i, 1 ) + tmp2;
-                B_Operator( 2, i*3 + 1 ) = tmp2;
-
-                B_Operator( 0, i*3 + 2)  = tmp3;
-                B_Operator( 1, i*3 + 2 ) = tmp3;
-                B_Operator( 2, i*3 + 2 ) = DN_DX( i, 2 ) + tmp3;
-
-                B_Operator( 3, i*3 )     = DN_DX( i, 1 );
-                B_Operator( 3, i*3 + 1 ) = DN_DX( i, 0 );
-                B_Operator( 4, i*3 + 1 ) = DN_DX( i, 2 );
-                B_Operator( 4, i*3 + 2 ) = DN_DX( i, 1 );
-                B_Operator( 5, i*3 )     = DN_DX( i, 2 );
-                B_Operator( 5, i*3 + 2 ) = DN_DX( i, 0 );
-            }
-        }
+        SD_MathUtils<DataType>::CalculateBbar( dim, B_Operator, DN_DX, Bdil_bar );
 
         KRATOS_CATCH( "" )
     }
 
     template<typename TNodeType>
-    void BaseKinematicLinear<TNodeType>::CalculateJacobian( typename GeometryType::JacobiansType& J, const IntegrationMethod ThisIntegrationMethod ) const
+    void BaseKinematicLinear<TNodeType>::CalculateJacobian( JacobiansType& J, const IntegrationMethod ThisIntegrationMethod ) const
     {
         typename GeometryType::MatrixType DeltaPosition(this->GetGeometry().size(), 3);
 
@@ -1498,18 +1478,18 @@ namespace Kratos
         #endif
 
         //reading integration points and local gradients
-        const typename GeometryType::IntegrationPointsArrayType& integration_points =
+        const IntegrationPointsArrayType& integration_points =
             this->GetGeometry().IntegrationPoints( ThisIntegrationMethod );
         const Matrix& Ncontainer = this->GetGeometry().ShapeFunctionsValues( ThisIntegrationMethod );
 
         if ( rValues.size() != integration_points.size() )
             rValues.resize( integration_points.size() );
 
-        const typename GeometryType::ShapeFunctionsGradientsType& DN_De =
+        const ShapeFunctionsGradientsType& DN_De =
             this->GetGeometry().ShapeFunctionsLocalGradients( ThisIntegrationMethod );
 
         //initializing the Jacobian in the reference configuration
-        typename GeometryType::JacobiansType J0;
+        JacobiansType J0;
         this->CalculateJacobian( J0, ThisIntegrationMethod );
 
         //Current displacements
@@ -1638,11 +1618,11 @@ namespace Kratos
             MatrixType InvJ0(dim, dim);
             DataType DetJ0;
 
-            const typename GeometryType::ShapeFunctionsGradientsType& DN_De = this->GetGeometry().ShapeFunctionsLocalGradients( ThisIntegrationMethod );
+            const ShapeFunctionsGradientsType& DN_De = this->GetGeometry().ShapeFunctionsLocalGradients( ThisIntegrationMethod );
             const Matrix& Ncontainer = this->GetGeometry().ShapeFunctionsValues( ThisIntegrationMethod );
 
             //initializing the Jacobian in the reference configuration
-            typename GeometryType::JacobiansType J0;
+            JacobiansType J0;
             this->CalculateJacobian( J0, ThisIntegrationMethod );
 
             // extract current displacements
@@ -1791,7 +1771,7 @@ namespace Kratos
 
         if( rVariable == VARSEL(DataType, DISPLACEMENT) )
         {
-            const typename GeometryType::IntegrationPointsArrayType& integration_points =
+            const IntegrationPointsArrayType& integration_points =
                     this->GetGeometry().IntegrationPoints( ThisIntegrationMethod );
 
             const Matrix& Ncontainer = this->GetGeometry().ShapeFunctionsValues( ThisIntegrationMethod );
@@ -1808,7 +1788,7 @@ namespace Kratos
         }
         else if( rVariable == VARSEL(DataType, INITIAL_DISPLACEMENT) )
         {
-            const typename GeometryType::IntegrationPointsArrayType& integration_points =
+            const IntegrationPointsArrayType& integration_points =
                     this->GetGeometry().IntegrationPoints( ThisIntegrationMethod );
 
             const Matrix& Ncontainer = this->GetGeometry().ShapeFunctionsValues( ThisIntegrationMethod );
@@ -1825,7 +1805,7 @@ namespace Kratos
         }
         else if( rVariable == VARSEL(DataType, INTEGRATION_POINT_GLOBAL) || rVariable == VARSEL(DataType, INTEGRATION_POINT_GLOBAL_IN_CURRENT_CONFIGURATION) )
         {
-            const typename GeometryType::IntegrationPointsArrayType& integration_points =
+            const IntegrationPointsArrayType& integration_points =
                     this->GetGeometry().IntegrationPoints( ThisIntegrationMethod );
 
             if constexpr (std::is_same<DataType, ValueType>::value)
@@ -1837,7 +1817,7 @@ namespace Kratos
             }
             else
             {
-                typename GeometryType::CoordinatesArrayType tmp;
+                CoordinatesArrayType tmp;
                 for(std::size_t point = 0; point < integration_points.size(); ++point)
                 {
                     tmp = this->GetGeometry().GlobalCoordinates(tmp, integration_points[point]);
@@ -1847,7 +1827,7 @@ namespace Kratos
         }
         else if( rVariable == VARSEL(DataType, INTEGRATION_POINT_GLOBAL_IN_REFERENCE_CONFIGURATION) )
         {
-            const typename GeometryType::IntegrationPointsArrayType& integration_points =
+            const IntegrationPointsArrayType& integration_points =
                     this->GetGeometry().IntegrationPoints( ThisIntegrationMethod );
 
             Vector N( this->GetGeometry().size() );
@@ -1863,7 +1843,7 @@ namespace Kratos
         }
         else if( rVariable == VARSEL(DataType, INTEGRATION_POINT_LOCAL) )
         {
-            const typename GeometryType::IntegrationPointsArrayType& integration_points =
+            const IntegrationPointsArrayType& integration_points =
                     this->GetGeometry().IntegrationPoints( ThisIntegrationMethod );
 
             for(std::size_t point = 0; point < integration_points.size(); ++point)
@@ -1916,7 +1896,7 @@ namespace Kratos
         else if( rVariable == VARSEL(DataType, JACOBIAN_0) )
         {
             // initializing the Jacobian in the reference configuration
-            typename GeometryType::JacobiansType J0;
+            JacobiansType J0;
             this->CalculateJacobian( J0, ThisIntegrationMethod );
 
             // compute the Jacobian determinant
@@ -1927,7 +1907,7 @@ namespace Kratos
         }
         else if( rVariable == VARSEL(DataType, INTEGRATION_WEIGHT) )
         {
-            const typename GeometryType::IntegrationPointsArrayType& integration_points = this->GetGeometry().IntegrationPoints( ThisIntegrationMethod );
+            const IntegrationPointsArrayType& integration_points = this->GetGeometry().IntegrationPoints( ThisIntegrationMethod );
             for( unsigned int i = 0; i < rValues.size(); ++i )
             {
                 rValues[i] = integration_points[i].Weight();

@@ -3640,7 +3640,7 @@ public:
         }
     }
 
-    /// Calculate B operator for axisymmetric problem
+    /// Calculate B operator for axisymmetric problem (linear kinematics version)
     template<typename TGeometryType>
     static inline void CalculateBaxi( MatrixType& B_Operator, const TGeometryType& rGeometry,
             const VectorType& N, const MatrixType& DN_DX )
@@ -3649,7 +3649,7 @@ public:
 
         B_Operator.clear();
 
-        double r = 0.0;
+        TDataType r = 0.0;
 
         for ( unsigned int i = 0; i < number_of_nodes; ++i )
         {
@@ -3666,7 +3666,7 @@ public:
         }
     }
 
-    /// Calculate B operator for axisymmetric problem
+    /// Calculate B operator for axisymmetric problem (nonlinear kinematics version)
     template<typename TGeometryType>
     static inline void CalculateBaxi( MatrixType& B_Operator, const TGeometryType& rGeometry,
             const VectorType& N, const MatrixType& DN_DX, const MatrixType& CurrentDisp )
@@ -3689,6 +3689,104 @@ public:
             B_Operator( 2, i*2     ) = DN_DX( i, 1 );
             B_Operator( 2, i*2 + 1 ) = DN_DX( i, 0 );
             B_Operator( 3, i*2     ) = N( i ) / r;
+        }
+    }
+
+    static inline void CalculateBbar( const unsigned int dim, MatrixType& B_Operator,
+            const MatrixType& DN_DX, const MatrixType& Bdil_bar )
+    {
+        constexpr double R1R3 = (1.0 / 3);
+
+        unsigned int number_of_nodes = DN_DX.size1();
+
+        B_Operator.clear();
+
+        if(dim == 2)
+        {
+            // plane strain
+            for ( unsigned int i = 0; i < number_of_nodes; ++i )
+            {
+                const TDataType tmp1 = R1R3 * (Bdil_bar( i, 0 ) - DN_DX( i, 0 ));
+                const TDataType tmp2 = R1R3 * (Bdil_bar( i, 1 ) - DN_DX( i, 1 ));
+
+                B_Operator( 0, i*2 )     = DN_DX( i, 0 ) + tmp1;
+                B_Operator( 1, i*2 )     = tmp1;
+
+                B_Operator( 0, i*2 + 1 ) = tmp2;
+                B_Operator( 1, i*2 + 1 ) = DN_DX( i, 1 ) + tmp2;
+
+                B_Operator( 2, i*2 )     = DN_DX( i, 1 );
+                B_Operator( 2, i*2 + 1 ) = DN_DX( i, 0 );
+            }
+        }
+        else if(dim == 3)
+        {
+            // 3D
+            for ( unsigned int i = 0; i < number_of_nodes; ++i )
+            {
+                const TDataType tmp1 = R1R3 * (Bdil_bar( i, 0 ) - DN_DX( i, 0 ));
+                const TDataType tmp2 = R1R3 * (Bdil_bar( i, 1 ) - DN_DX( i, 1 ));
+                const TDataType tmp3 = R1R3 * (Bdil_bar( i, 2 ) - DN_DX( i, 2 ));
+
+                B_Operator( 0, i*3 )     = DN_DX( i, 0 ) + tmp1;
+                B_Operator( 1, i*3 )     = tmp1;
+                B_Operator( 2, i*3 )     = tmp1;
+
+                B_Operator( 0, i*3 + 1)  = tmp2;
+                B_Operator( 1, i*3 + 1 ) = DN_DX( i, 1 ) + tmp2;
+                B_Operator( 2, i*3 + 1 ) = tmp2;
+
+                B_Operator( 0, i*3 + 2)  = tmp3;
+                B_Operator( 1, i*3 + 2 ) = tmp3;
+                B_Operator( 2, i*3 + 2 ) = DN_DX( i, 2 ) + tmp3;
+
+                B_Operator( 3, i*3 )     = DN_DX( i, 1 );
+                B_Operator( 3, i*3 + 1 ) = DN_DX( i, 0 );
+                B_Operator( 4, i*3 + 1 ) = DN_DX( i, 2 );
+                B_Operator( 4, i*3 + 2 ) = DN_DX( i, 1 );
+                B_Operator( 5, i*3 )     = DN_DX( i, 2 );
+                B_Operator( 5, i*3 + 2 ) = DN_DX( i, 0 );
+            }
+        }
+    }
+
+    template<typename TGeometryType>
+    static inline void CalculateBbaraxi( MatrixType& B_Operator, const TGeometryType& rGeometry,
+            const VectorType& N, const MatrixType& DN_DX, const MatrixType& Bdil_bar )
+    {
+        constexpr double R1R3 = (1.0 / 3);
+
+        const unsigned int number_of_nodes = DN_DX.size1();
+
+        B_Operator.clear();
+
+        TDataType r = 0.0;
+
+        for ( unsigned int i = 0; i < number_of_nodes; ++i )
+        {
+            r += N[i] * rGeometry[i].X0();
+        }
+
+        for ( unsigned int i = 0; i < number_of_nodes; ++i )
+        {
+            const TDataType hoop = N( i ) / r;
+
+            const TDataType tmp1 = R1R3 * ( Bdil_bar( i, 0 ) - ( DN_DX( i, 0 ) + hoop ) );
+            const TDataType tmp2 = R1R3 * ( Bdil_bar( i, 1 ) - DN_DX( i, 1 ) );
+
+            // Voigt ordering: [rr, zz, theta-theta, rz]
+
+            // u_r column
+            B_Operator( 0, i*2 ) = DN_DX( i, 0 ) + tmp1;
+            B_Operator( 1, i*2 ) = tmp1;
+            B_Operator( 2, i*2 ) = hoop + tmp1;
+            B_Operator( 3, i*2 ) = DN_DX( i, 1 );
+
+            // u_z column
+            B_Operator( 0, i*2 + 1 ) = tmp2;
+            B_Operator( 1, i*2 + 1 ) = DN_DX( i, 1 ) + tmp2;
+            B_Operator( 2, i*2 + 1 ) = tmp2;
+            B_Operator( 3, i*2 + 1 ) = DN_DX( i, 0 );
         }
     }
 
