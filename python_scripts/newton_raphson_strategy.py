@@ -435,8 +435,14 @@ class SolvingStrategyPython:
 
         #build and solve the problem
         if not self.Parameters['decouple_build_and_solve']:
-            self.builder_and_solver.BuildAndSolve(self.time_scheme,self.model_part,self.A,self.Dx,self.b)
             self.dof_util.ListDofs(self.builder_and_solver.GetDofSet(),self.builder_and_solver.GetEquationSystemSize())
+            self.builder_and_solver.BuildAndSolve(self.time_scheme,self.model_part,self.A,self.Dx,self.b)
+            if self.model_part.ProcessInfo[BUILD_STATUS] < 0:
+                if self.Parameters['stop_Newton_Raphson_if_not_converged']:
+                    raise Exception("Build failed at time step %f, error code = %d" % (self.model_part.ProcessInfo[TIME], self.model_part.ProcessInfo[BUILD_STATUS]))
+                else:
+                    kprint("Build failed at time step %f with error code = %d, but the simulation will continue." % (self.model_part.ProcessInfo[TIME], self.model_part.ProcessInfo[BUILD_STATUS]))
+                    return False, 0.0
         else:
             if self.Parameters['builder_and_solver_type'] == "residual-based block with constraints":
                 raise Exception("residual-based block with constraints cannot be used with decouple_build_and_solve")
